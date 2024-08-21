@@ -121,9 +121,6 @@ path = os.getcwd()
 topas_application_path='Set your topas path'     #linux
 G4_Data='Set your G4 data path' #linux
 
-replacement_floatorint("G4DataDirectory = \'test_boilerplate_path_change\'",
-#                      "G4DataDirectory = \'\"/Applications/G4Data\"\'") #apple
-                       "G4DataDirectory = \'\""+G4_Data+"\"\'")         #linux
 
 #generate a generate_allproc file from a boiler plate so we edit only that copy each time
 original_file_path = path + '/generate_allproc_boilerplate.py'

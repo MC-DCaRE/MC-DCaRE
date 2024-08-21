@@ -61,7 +61,7 @@ def remove_lines_with_keywords(input_file, output_file, keywords):
 includeFile = 'ConvertedTopasFile_head.txt'
 Seed = '9'
 NumberOfThreads = '4'
-G4DataDirectory = '"/home/leekh/G4Data"'
+G4DataDirectory = 'before'
 World_HLX = '120'
 World_HLY = '120'
 World_HLZ = '120'

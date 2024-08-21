@@ -104,19 +104,24 @@ def replacement_witherrorhandling_forintegers(
 
 #default settings###################################################
 
-#path is directory of topas_gui.py  
-#path = '/Users/jacob/Desktop/NCCS/CBCT/gui/topaswrap_version3' #apple
-path='/root/nccs/Topas_wrapper'     #linux Figure out how to change this dynamically 
+# #path is directory of topas_gui.py  
+# #path = '/Users/jacob/Desktop/NCCS/CBCT/gui/topaswrap_version3' #apple
+# path='/root/nccs/Topas_wrapper'     #linux Figure out how to change this dynamically 
 
-# path = '__file__'.rstrip()
+# # path = '__file__'.rstrip()
 
-#topas_application_path = '/Applications/topas/bin/topas'#apple
-topas_application_path='/root/topas/bin/topas'     #linux
+# #topas_application_path = '/Applications/topas/bin/topas'#apple
+# topas_application_path='/root/topas/bin/topas'     #linux
 
-#replacing directory of G4Data
-G4_Data='/root/G4Data' #linux
+# #replacing directory of G4Data
+# G4_Data='/root/G4Data' #linux
 
-replacement_floatorint("G4DataDirectory = \'\"~/G4Data\"\'",
+# try
+path = os.getcwd()
+topas_application_path='Set your topas path'     #linux
+G4_Data='Set your G4 data path' #linux
+
+replacement_floatorint("G4DataDirectory = \'test_boilerplate_path_change\'",
 #                      "G4DataDirectory = \'\"/Applications/G4Data\"\'") #apple
                        "G4DataDirectory = \'\""+G4_Data+"\"\'")         #linux
 
@@ -139,7 +144,7 @@ multi_proc = open(path + '/runfolder/topas_multiproc.py', "r")
 for line in multi_proc:
     line.strip()
     
-    new_line  = line.replace("/home/leekh/topas/bin/topas ",
+    new_line  = line.replace(path,
                             f"{topas_application_path} ")
     replaced_content = replaced_content + new_line 
 multi_proc.close()
@@ -1517,6 +1522,20 @@ while True:
         duplicate_gen_file_path = os.path.join(directory_path, duplicate_gen_file_name)
         shutil.copy(original_file_path, duplicate_gen_file_path)
 
+        replaced_content=""
+        all_proc = open(path + '/generate_allproc.py', "r")
+        for line in all_proc:
+            line.strip()
+            
+            new_line  = line.replace("test_boilerplate_path_change_G4",
+                                    f"{G4_Data}")
+            replaced_content = replaced_content + new_line 
+        all_proc.close()
+        write_file = open(path + 'generate_allproc.py', "w")
+        write_file.write(replaced_content)
+        write_file.close()
+        # This code is inefficient, runs more lines than required 
+
     if event == '-DUPMULPROC-':
         original_file_path = path + '/runfolder/topas_multiproc_boilerplate.py'
         duplicate_multiproc_file_name = "topas_multiproc.py"
@@ -1529,13 +1548,14 @@ while True:
         for line in multi_proc:
             line.strip()
             
-            new_line  = line.replace("/home/leekh/topas/bin/topas ",
-                                    f"{topas_application_path} ")
+            new_line  = line.replace("test_boilerplate_path_change_topas",
+                                    f"{topas_application_path}")
             replaced_content = replaced_content + new_line 
         multi_proc.close()
         write_file = open(path + '/runfolder/topas_multiproc.py', "w")
         write_file.write(replaced_content)
         write_file.close()
+        # This code is inefficient, runs more lines than required 
 
     if event == '-TOPAS-_ENTER':
         topas_application_path = values['-TOPAS-'] + "/topas"

@@ -325,3 +325,7 @@ cython_debug/
 # Generated batch and csv files
 *.bat
 runfolder/datafolder/*.csv
+
+
+# Personal test file 
+proving_grounds.py

@@ -1169,7 +1169,7 @@ window["-CPC_MAT-"].bind("<Return>","_ENTER")
 window["-CPC_RMIN-"].bind("<Return>","_ENTER")
 window["-CPC_RMAX-"].bind("<Return>","_ENTER")
 window["-CPC_HL-"].bind("<Return>","_ENTER")
-window["-CPC_RMAX-"].bind("<Return>","_ENTER")
+window["-CPC_RMAX-"].bind("<Return>","_ENTER") #Why is there a dupli?
 window["-CPC_SPHI-"].bind("<Return>","_ENTER")
 window["-CPC_DPHI-"].bind("<Return>","_ENTER")
 window["-CPC_TX-"].bind("<Return>","_ENTER")
@@ -1508,9 +1508,10 @@ while True:
         print(command)
 
     if event == '-G4FOLDERNAME-_ENTER':
-        print(str(values['-G4FOLDERNAME-']))
-        replacement_floatorint("G4DataDirectory = \'\""+G4_Data+"\"\'",
-                               "G4DataDirectory = \'\""+str(values['-G4FOLDERNAME-'])+"\"\'")
+        # print(str(values['-G4FOLDERNAME-']))
+        # replacement_floatorint("G4DataDirectory = \'\""+G4_Data+"\"\'",
+        #                        "G4DataDirectory = \'\""+str(values['-G4FOLDERNAME-'])+"\"\'")
+        G4_Data = values['-G4FOLDERNAME-'] 
 
     if event == '-DUPGENPROC-':
         original_file_path = path + '/generate_allproc_boilerplate.py'
@@ -1555,7 +1556,7 @@ while True:
         # This code is inefficient, runs more lines than required 
 
     if event == '-TOPAS-_ENTER':
-        topas_application_path = values['-TOPAS-'] + "/topas"
+        topas_application_path = values['-TOPAS-'] + " "
 
     if event == '-SEED-_ENTER':
         replacement_witherrorhandling_forintegers(values['-SEED-'],

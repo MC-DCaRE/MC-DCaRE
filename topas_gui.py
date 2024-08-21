@@ -1531,7 +1531,7 @@ while True:
                                     f"{G4_Data}")
             replaced_content = replaced_content + new_line 
         all_proc.close()
-        write_file = open(path + 'generate_allproc.py', "w")
+        write_file = open(path + '/generate_allproc.py', "w")
         write_file.write(replaced_content)
         write_file.close()
         # This code is inefficient, runs more lines than required 

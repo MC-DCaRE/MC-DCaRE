@@ -106,7 +106,7 @@ def replacement_witherrorhandling_forintegers(
 
 #path is directory of topas_gui.py  
 #path = '/Users/jacob/Desktop/NCCS/CBCT/gui/topaswrap_version3' #apple
-path='/root/nccs/topaswrap_fullfantest_updateforbetteruserexp'     #linux Figure out how to change this dynamically 
+path='/root/nccs/Topas_wrapper'     #linux Figure out how to change this dynamically 
 
 # path = '__file__'.rstrip()
 
@@ -1114,7 +1114,7 @@ toggle_layer = sg.Frame("ON/OFF",
 
 # Creating a tabbed menu 
 main_layout = [[general_layer],
-               [toggle_layer, 
+               [toggle_layer], [
                 sg.Button("Generate Processes", enable_events=True, key='-GEN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey'), 
                 sg.Button("Run", enable_events=True, key='-RUN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey')] ]
 
@@ -1131,13 +1131,13 @@ filter_layout = [[ TITFIL_layer, DemoFlat_layer,TopSideBox_layer,BottomSideBox_l
 others_layout = [[Time_layer,Physics_layer, Scoring_layer,RotationGroup_layer], 
                  [Couch_layer,BeamGroup_layer,Beam_layer]]
 
-layout = [[ sg.Text('Imaging Dose', size=(30,1),justification='center',font=('Helvetica 28 bold'), text_color='dark blue')],
+layout = [[ sg.Text('Imaging Dose', size=(30,1),justification='center',font=('Helvetica 50 bold'), text_color='dark blue')],
           [sg.TabGroup([[sg.Tab( 'Main menu' , main_layout),
                         sg.Tab('Chamber menu' , chamber_layout),
                         sg.Tab('Collimator menu', collimator_layout),
                         sg.Tab('Filter menu', filter_layout),
                         sg.Tab('Others menu', others_layout)]],
-                        key='-TAB GROUP-', expand_x=True, expand_y=True),
+                        key='-TAB GROUP-', font=(40) ,expand_x=True, expand_y=True),
                         ]]
 
 sg.set_options(scaling=1)

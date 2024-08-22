@@ -118,8 +118,14 @@ def replacement_witherrorhandling_forintegers(
 
 # try
 path = os.getcwd()
-topas_application_path='Set your topas path'     #linux
-G4_Data='Set your G4 data path' #linux
+topas_application_path = 'Set your topas path'     #linux
+G4_Data = 'Set your G4 data path' #linux
+
+# Fixed path for ease of user testing. User: JK
+# path = os.getcwd()
+# topas_application_path = '/root/topas/bin/topas '     #linux
+# G4_Data ='/root/G4Data' #linux
+
 
 
 #generate a generate_allproc file from a boiler plate so we edit only that copy each time

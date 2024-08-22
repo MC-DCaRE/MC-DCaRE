@@ -10,7 +10,7 @@ i:Ts/Seed=9#startingrandomseed
 i:Ts/NumberOfThreads=2#NumberofCPUthreadstowhichworkwillbedistributed
 #negativenumbermeansuseallbutthesenumberofthreads
 #zeromeansuseall
-s:Ts/G4DataDirectory="/home/leekh/G4Data"
+s:Ts/G4DataDirectory="placeholder"
 
 ##DefineWorldGeometry############################
 d:Ge/World/HLX=120 cm #HalfLength
@@ -390,7 +390,7 @@ s:Ge/DemoLTrap/Parent="BowtieFilter"
 s:Ge/DemoLTrap/Material="Aluminum"
 d:Ge/DemoLTrap/TransX=0.0 cm
 d:Ge/DemoLTrap/TransY=2.5 cm + Ge/DemoFlat/HLY #paritallycoveringthefieldsizefromsecondarycollimator
-d:Ge/DemoLTrap/TransZ=0.65 cm#empiricallymatchedtobe14mm
+d:Ge/DemoLTrap/TransZ=0.65 cm #empiricallymatchedtobe14mm
 d:Ge/DemoLTrap/RotX=180 deg
 #d:Ge/DemoLTrap/RotY=90 deg
 d:Ge/DemoLTrap/RotY=270 deg

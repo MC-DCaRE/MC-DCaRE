@@ -324,7 +324,7 @@ cython_debug/
 
 # Generated batch and csv files
 /runfolder/*.bat
-/runfolder/datafolder/*.csv
+/runfolder/datafolder/
 /generate_allproc.py
 /runfolder/topas_multiproc.py 
 

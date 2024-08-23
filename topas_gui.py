@@ -181,7 +181,8 @@ general_layer = gui_layer_generation(path, G4_Data, topas_application_path)
 main_layout = [[general_layer],
                [toggle_layer], [
                 sg.Button("Generate Processes", enable_events=True, key='-GEN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey'), 
-                sg.Button("Run", enable_events=True, key='-RUN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey')] ]
+                sg.Button("Run", enable_events=True, key='-RUN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey'),
+                sg.Button("Generate process and run", enable_events=True, key='-GENRUN-', disabled=False, )]]
 
 chamber_layout = [[CTDI_layer,ChamberPlugCentre_layer,ChamberPlugTop_layer,ChamberPlugBottom_layer,ChamberPlugLeft_layer,ChamberPlugRight_layer]]
 
@@ -2991,5 +2992,20 @@ while True:
         for p in procs:
             #pass
             p.wait()
+
+    if event == '-GENRUN-':
+        command = ["python3 generate_allproc.py"]
+        subprocess.run(command, shell=True)
+        print(command)
+
+        command_topas = "python3 runfolder/topas_multiproc.py"
+        command_progressbar = f"python3 progressbar.py {path} {num_of_csvresult}"
+        commands = [command_topas,command_progressbar]
+        #commands = [command_progressbar]
+        procs = [subprocess.Popen(i,shell=True) for i in commands]
+        for p in procs:
+            #pass
+            p.wait()
+        
 
 window.close()

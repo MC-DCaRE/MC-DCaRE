@@ -149,32 +149,33 @@ from generate_allproc_boilerplate import selectcomponents
 
 sg.theme('Reddit')
 
-general_layer = sg.Frame('General Settings',
-                [ 
-                  [sg.Text('Main Folder',size =(17,1),font=('Helvetica', 14),text_color='black'),
-#                   sg.In(default_text='/home/businessit/Downloads/topaswrap_version2',key='-MAINFOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(font=('Helvetica', 14))],
-                    sg.In(default_text=path,key='-MAINFOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(font=('Helvetica', 14))],
+# general_layer = sg.Frame('General Settings',
+#                 [ 
+#                   [sg.Text('Main Folder',size =(17,1),font=('Helvetica', 14),text_color='black'),
+# #                   sg.In(default_text='/home/businessit/Downloads/topaswrap_version2',key='-MAINFOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(font=('Helvetica', 14))],
+#                     sg.In(default_text=path,key='-MAINFOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(font=('Helvetica', 14))],
                   
-                  [sg.Text('G4 Data Directory',size = (17,1),font=('Helvetica', 14), text_color='black'),
-#                   sg.In(default_text='/home/businessit/G4Data',key='-G4FOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(font=('Helvetica', 14))],
-                    sg.In(default_text=G4_Data,key='-G4FOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True, tooltip="Click the enter key to register the change"),sg.FolderBrowse(font=('Helvetica', 14))],
-                  [sg.Text('TOPAS Directory',size =(17,1),font=('Helvetica', 14),text_color='black'),
-#                   sg.In(default_text='/home/businessit/topas/bin/topas',key='-TOPAS-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FileBrowse(font=('Helvetica', 14))],
-                    sg.In(default_text=topas_application_path,key='-TOPAS-',size=(50,1),font=('Helvetica', 14),enable_events=True, tooltip="Click the enter key to register the change"),sg.FileBrowse(font=('Helvetica', 14))],
-                  [sg.Button("Create generate_allproc file",enable_events=True, key='-DUPGENPROC-',disabled=False,font=('Helvetica', 14),disabled_button_color='grey',size=(35,1)),
-                    sg.Text(' ', pad=(1, 1)),
-                    sg.Button("Create multiproc file",enable_events=True,key='-DUPMULPROC-',disabled=False,font=('Helvetica', 14),disabled_button_color='grey',size=(35,1))],
-                  [sg.Text('Seed',size =(9,1),font=('Helvetica', 14),text_color='black'),
-                    sg.In(default_text='9',key='-SEED-',size=(10,1),font=('Helvetica', 14),enable_events=True)],
-                  [sg.Text('Threads',size = (9,1),font=('Helvetica', 14),text_color='black'),
-                    sg.In(default_text='4',key='-THREAD-',size=(10,1),font=('Helvetica',14),enable_events=True)],
-                  [sg.Text('Histories',size = (9,1),font=('Helvetica',14),text_color='black'),
-                    sg.In(default_text='100000',key='-HIST-',size=(10,1),font=('Helvetica',14),enable_events=True)]
-                ])
+#                   [sg.Text('G4 Data Directory',size = (17,1),font=('Helvetica', 14), text_color='black'),
+# #                   sg.In(default_text='/home/businessit/G4Data',key='-G4FOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(font=('Helvetica', 14))],
+#                     sg.In(default_text=G4_Data,key='-G4FOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True, tooltip="Click the enter key to register the change"),sg.FolderBrowse(font=('Helvetica', 14))],
+#                   [sg.Text('TOPAS Directory',size =(17,1),font=('Helvetica', 14),text_color='black'),
+# #                   sg.In(default_text='/home/businessit/topas/bin/topas',key='-TOPAS-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FileBrowse(font=('Helvetica', 14))],
+#                     sg.In(default_text=topas_application_path,key='-TOPAS-',size=(50,1),font=('Helvetica', 14),enable_events=True, tooltip="Click the enter key to register the change"),sg.FileBrowse(font=('Helvetica', 14))],
+#                   [sg.Button("Create generate_allproc file",enable_events=True, key='-DUPGENPROC-',disabled=False,font=('Helvetica', 14),disabled_button_color='grey',size=(35,1)),
+#                     sg.Text(' ', pad=(1, 1)),
+#                     sg.Button("Create multiproc file",enable_events=True,key='-DUPMULPROC-',disabled=False,font=('Helvetica', 14),disabled_button_color='grey',size=(35,1))],
+#                   [sg.Text('Seed',size =(9,1),font=('Helvetica', 14),text_color='black'),
+#                     sg.In(default_text='9',key='-SEED-',size=(10,1),font=('Helvetica', 14),enable_events=True)],
+#                   [sg.Text('Threads',size = (9,1),font=('Helvetica', 14),text_color='black'),
+#                     sg.In(default_text='4',key='-THREAD-',size=(10,1),font=('Helvetica',14),enable_events=True)],
+#                   [sg.Text('Histories',size = (9,1),font=('Helvetica',14),text_color='black'),
+#                     sg.In(default_text='100000',key='-HIST-',size=(10,1),font=('Helvetica',14),enable_events=True)]
+#                 ])
 
 
 
 from guilayers import *
+general_layer = gui_layer_generation(path, G4_Data, topas_application_path)
 
 # Creating a tabbed menu 
 main_layout = [[general_layer],
@@ -208,340 +209,13 @@ window = sg.Window(title= "Imaging Dose Simulation", layout=layout, finalize=Tru
 window.set_min_size(window.size)
 # End test tab menu
 
-# my_width, my_height = 1920, 1080
 
-# root = sg.tk.Tk()
-# new_scaling = root.winfo_fpixels('1i')/72
-# width, height = sg.Window.get_screen_size()
-# scaling = new_scaling * min(width / my_width, height / my_height)
 
 # from keyvar import all
 
+from key_binds import *
+key_binds(window)
 
-window["-MAINFOLDERNAME-"].bind("<Return>","_ENTER")
-window["-G4FOLDERNAME-"].bind("<Return>","_ENTER")
-window["-TOPAS-"].bind("<Return>","_ENTER")
-window["-SEED-"].bind("<Return>","_ENTER")
-window["-THREAD-"].bind("<Return>","_ENTER")
-window["-HIST-"].bind("<Return>","_ENTER")
-window["-CPC_TYPE-"].bind("<Return>","_ENTER")
-window["-CPC_MAT-"].bind("<Return>","_ENTER")
-window["-CPC_RMIN-"].bind("<Return>","_ENTER")
-window["-CPC_RMAX-"].bind("<Return>","_ENTER")
-window["-CPC_HL-"].bind("<Return>","_ENTER")
-window["-CPC_RMAX-"].bind("<Return>","_ENTER") #Why is there a dupli?
-window["-CPC_SPHI-"].bind("<Return>","_ENTER")
-window["-CPC_DPHI-"].bind("<Return>","_ENTER")
-window["-CPC_TX-"].bind("<Return>","_ENTER")
-window["-CPC_TY-"].bind("<Return>","_ENTER")
-window["-CPC_TZ-"].bind("<Return>","_ENTER")
-window["-CPC_RX-"].bind("<Return>","_ENTER")
-
-window["-CPT_TYPE-"].bind("<Return>","_ENTER")
-window["-CPT_MAT-"].bind("<Return>","_ENTER")
-window["-CPT_RMIN-"].bind("<Return>","_ENTER")
-window["-CPT_RMAX-"].bind("<Return>","_ENTER")
-window["-CPT_HL-"].bind("<Return>","_ENTER")
-window["-CPT_RMAX-"].bind("<Return>","_ENTER")
-window["-CPT_SPHI-"].bind("<Return>","_ENTER")
-window["-CPT_DPHI-"].bind("<Return>","_ENTER")
-window["-CPT_TX-"].bind("<Return>","_ENTER")
-window["-CPT_TY-"].bind("<Return>","_ENTER")
-window["-CPT_TZ-"].bind("<Return>","_ENTER")
-window["-CPT_RX-"].bind("<Return>","_ENTER")
-
-window["-CPB_TYPE-"].bind("<Return>","_ENTER")
-window["-CPB_MAT-"].bind("<Return>","_ENTER")
-window["-CPB_RMIN-"].bind("<Return>","_ENTER")
-window["-CPB_RMAX-"].bind("<Return>","_ENTER")
-window["-CPB_HL-"].bind("<Return>","_ENTER")
-window["-CPB_RMAX-"].bind("<Return>","_ENTER")
-window["-CPB_SPHI-"].bind("<Return>","_ENTER")
-window["-CPB_DPHI-"].bind("<Return>","_ENTER")
-window["-CPB_TX-"].bind("<Return>","_ENTER")
-window["-CPB_TY-"].bind("<Return>","_ENTER")
-window["-CPB_TZ-"].bind("<Return>","_ENTER")
-window["-CPB_RX-"].bind("<Return>","_ENTER")
-
-window["-CPL_TYPE-"].bind("<Return>","_ENTER")
-window["-CPL_MAT-"].bind("<Return>","_ENTER")
-window["-CPL_RMIN-"].bind("<Return>","_ENTER")
-window["-CPL_RMAX-"].bind("<Return>","_ENTER")
-window["-CPL_HL-"].bind("<Return>","_ENTER")
-window["-CPL_RMAX-"].bind("<Return>","_ENTER")
-window["-CPL_SPHI-"].bind("<Return>","_ENTER")
-window["-CPL_DPHI-"].bind("<Return>","_ENTER")
-window["-CPL_TX-"].bind("<Return>","_ENTER")
-window["-CPL_TY-"].bind("<Return>","_ENTER")
-window["-CPL_TZ-"].bind("<Return>","_ENTER")
-window["-CPL_RX-"].bind("<Return>","_ENTER")
-
-window["-CPR_TYPE-"].bind("<Return>","_ENTER")
-window["-CPR_MAT-"].bind("<Return>","_ENTER")
-window["-CPR_RMIN-"].bind("<Return>","_ENTER")
-window["-CPR_RMAX-"].bind("<Return>","_ENTER")
-window["-CPR_HL-"].bind("<Return>","_ENTER")
-window["-CPR_RMAX-"].bind("<Return>","_ENTER")
-window["-CPR_SPHI-"].bind("<Return>","_ENTER")
-window["-CPR_DPHI-"].bind("<Return>","_ENTER")
-window["-CPR_TX-"].bind("<Return>","_ENTER")
-window["-CPR_TY-"].bind("<Return>","_ENTER")
-window["-CPR_TZ-"].bind("<Return>","_ENTER")
-window["-CPR_RX-"].bind("<Return>","_ENTER")
-
-window["-TLEZB-"].bind("<Return>","_ENTER")
-window["-DTMZB-"].bind("<Return>","_ENTER")
-window["-DTWZB-"].bind("<Return>","_ENTER")
-#window["-DTMDZB-"].bind("<Return>","_ENTER")
-
-window["-PHYLST-"].bind("<Return>","_ENTER")
-window["-PHYPRO-"].bind("<Return>","_ENTER")
-window["-PHYDEFTY-"].bind("<Return>","_ENTER")
-window["-PHYDEFMO-"].bind("<Return>","_ENTER")
-window["-PHYEMIN-"].bind("<Return>","_ENTER")
-window["-PHYEMAX-"].bind("<Return>","_ENTER")
-window["-ROTTY-"].bind("<Return>","_ENTER")
-window["-ROTPAR-"].bind("<Return>","_ENTER")
-
-window["-ROTROTX-"].bind("<Return>","_ENTER")
-window["-ROTROTY-"].bind("<Return>","_ENTER")
-window["-ROTROTZ-"].bind("<Return>","_ENTER")
-window["-ROTTRANSX-"].bind("<Return>","_ENTER")
-window["-ROTTRANSY-"].bind("<Return>","_ENTER")
-window["-ROTTRANSZ-"].bind("<Return>","_ENTER")
-window["-COLLVERTY-"].bind("<Return>","_ENTER")
-window["-COLLVERPAR-"].bind("<Return>","_ENTER")
-window["-COLLVERROTX-"].bind("<Return>","_ENTER")
-window["-COLLVERROTY-"].bind("<Return>","_ENTER")
-window["-COLLVERROTZ-"].bind("<Return>","_ENTER")
-window["-COLLVERTRANSZ-"].bind("<Return>","_ENTER")
-window["-COLLHORPAR-"].bind("<Return>","_ENTER")
-window["-COLLHORROTX-"].bind("<Return>","_ENTER")
-window["-COLLHORROTY-"].bind("<Return>","_ENTER")
-window["-COLLHORROTZ-"].bind("<Return>","_ENTER")
-window["-COLLHORTRANSZ-"].bind("<Return>","_ENTER")
-
-window["-TITTY-"].bind("<Return>","_ENTER")
-window["-TITPAR-"].bind("<Return>","_ENTER")
-window["-TITROTX-"].bind("<Return>","_ENTER")
-window["-TITROTY-"].bind("<Return>","_ENTER")
-window["-TITROTZ-"].bind("<Return>","_ENTER")
-window["-TITTRANSZ-"].bind("<Return>","_ENTER")
-
-window["-BFTY-"].bind("<Return>","_ENTER")
-window["-BFPAR-"].bind("<Return>","_ENTER")
-window["-BFROTX-"].bind("<Return>","_ENTER")
-window["-BFROTY-"].bind("<Return>","_ENTER")
-window["-BFROTZ-"].bind("<Return>","_ENTER")
-window["-BFTRANSX-"].bind("<Return>","_ENTER")
-window["-BFTRANSY-"].bind("<Return>","_ENTER")
-window["-BFTRANSZ-"].bind("<Return>","_ENTER")
-
-window["-Coll1TY-"].bind("<Return>","_ENTER")
-window["-Coll1PAR-"].bind("<Return>","_ENTER")
-window["-Coll1MAT-"].bind("<Return>","_ENTER")
-window["-Coll1ROTX-"].bind("<Return>","_ENTER")
-window["-Coll1ROTY-"].bind("<Return>","_ENTER")
-window["-Coll1ROTZ-"].bind("<Return>","_ENTER")
-window["-Coll1TRANSX-"].bind("<Return>","_ENTER")
-window["-Coll1TRANSY-"].bind("<Return>","_ENTER")
-window["-Coll1TRANSZ-"].bind("<Return>","_ENTER")
-window["-Coll1LZ-"].bind("<Return>","_ENTER")
-window["-Coll1LY-"].bind("<Return>","_ENTER")
-window["-Coll1LX-"].bind("<Return>","_ENTER")
-window["-Coll1LTX-"].bind("<Return>","_ENTER")
-
-window["-Coll2TY-"].bind("<Return>","_ENTER")
-window["-Coll2PAR-"].bind("<Return>","_ENTER")
-window["-Coll2MAT-"].bind("<Return>","_ENTER")
-window["-Coll2ROTX-"].bind("<Return>","_ENTER")
-window["-Coll2ROTY-"].bind("<Return>","_ENTER")
-window["-Coll2ROTZ-"].bind("<Return>","_ENTER")
-window["-Coll2TRANSX-"].bind("<Return>","_ENTER")
-window["-Coll2TRANSY-"].bind("<Return>","_ENTER")
-window["-Coll2TRANSZ-"].bind("<Return>","_ENTER")
-window["-Coll2LZ-"].bind("<Return>","_ENTER")
-window["-Coll2LY-"].bind("<Return>","_ENTER")
-window["-Coll2LX-"].bind("<Return>","_ENTER")
-window["-Coll2LTX-"].bind("<Return>","_ENTER")
-
-window["-Coll3TY-"].bind("<Return>","_ENTER")
-window["-Coll3PAR-"].bind("<Return>","_ENTER")
-window["-Coll3MAT-"].bind("<Return>","_ENTER")
-window["-Coll3ROTX-"].bind("<Return>","_ENTER")
-window["-Coll3ROTY-"].bind("<Return>","_ENTER")
-window["-Coll3ROTZ-"].bind("<Return>","_ENTER")
-window["-Coll3TRANSX-"].bind("<Return>","_ENTER")
-window["-Coll3TRANSY-"].bind("<Return>","_ENTER")
-window["-Coll3TRANSZ-"].bind("<Return>","_ENTER")
-window["-Coll3LZ-"].bind("<Return>","_ENTER")
-window["-Coll3LY-"].bind("<Return>","_ENTER")
-window["-Coll3LX-"].bind("<Return>","_ENTER")
-window["-Coll3LTX-"].bind("<Return>","_ENTER")
-
-window["-Coll4TY-"].bind("<Return>","_ENTER")
-window["-Coll4PAR-"].bind("<Return>","_ENTER")
-window["-Coll4MAT-"].bind("<Return>","_ENTER")
-window["-Coll4ROTX-"].bind("<Return>","_ENTER")
-window["-Coll4ROTY-"].bind("<Return>","_ENTER")
-window["-Coll4ROTZ-"].bind("<Return>","_ENTER")
-window["-Coll4TRANSX-"].bind("<Return>","_ENTER")
-window["-Coll4TRANSY-"].bind("<Return>","_ENTER")
-window["-Coll4TRANSZ-"].bind("<Return>","_ENTER")
-window["-Coll4LZ-"].bind("<Return>","_ENTER")
-window["-Coll4LY-"].bind("<Return>","_ENTER")
-window["-Coll4LX-"].bind("<Return>","_ENTER")
-window["-Coll4LTX-"].bind("<Return>","_ENTER")
-
-window["-Coll1steelMAT-"].bind("<Return>","_ENTER")
-window["-Coll1steelPAR-"].bind("<Return>","_ENTER")
-window["-Coll1steelTY-"].bind("<Return>","_ENTER")
-window["-Coll1steelROTX-"].bind("<Return>","_ENTER")
-window["-Coll1steelROTY-"].bind("<Return>","_ENTER")
-window["-Coll1steelROTZ-"].bind("<Return>","_ENTER")
-window["-Coll1steelTRANSX-"].bind("<Return>","_ENTER")
-window["-Coll1steelTRANSY-"].bind("<Return>","_ENTER")
-window["-Coll1steelTRANSZ-"].bind("<Return>","_ENTER")
-window["-Coll1steelLZ-"].bind("<Return>","_ENTER")
-window["-Coll1steelLY-"].bind("<Return>","_ENTER")
-window["-Coll1steelLX-"].bind("<Return>","_ENTER")
-window["-Coll1steelLTX-"].bind("<Return>","_ENTER")
-
-window["-Coll2steelTY-"].bind("<Return>","_ENTER")
-window["-Coll2steelPAR-"].bind("<Return>","_ENTER")
-window["-Coll2steelMAT-"].bind("<Return>","_ENTER")
-window["-Coll2steelROTX-"].bind("<Return>","_ENTER")
-window["-Coll2steelROTY-"].bind("<Return>","_ENTER")
-window["-Coll2steelROTZ-"].bind("<Return>","_ENTER")
-window["-Coll2steelTRANSX-"].bind("<Return>","_ENTER")
-window["-Coll2steelTRANSY-"].bind("<Return>","_ENTER")
-window["-Coll2steelTRANSZ-"].bind("<Return>","_ENTER")
-window["-Coll2steelLZ-"].bind("<Return>","_ENTER")
-window["-Coll2steelLY-"].bind("<Return>","_ENTER")
-window["-Coll2steelLX-"].bind("<Return>","_ENTER")
-window["-Coll2steelLTX-"].bind("<Return>","_ENTER")
-
-window["-Coll3steelTY-"].bind("<Return>","_ENTER")
-window["-Coll3steelPAR-"].bind("<Return>","_ENTER")
-window["-Coll3steelMAT-"].bind("<Return>","_ENTER")
-window["-Coll3steelROTX-"].bind("<Return>","_ENTER")
-window["-Coll3steelROTY-"].bind("<Return>","_ENTER")
-window["-Coll3steelROTZ-"].bind("<Return>","_ENTER")
-window["-Coll3steelTRANSX-"].bind("<Return>","_ENTER")
-window["-Coll3steelTRANSY-"].bind("<Return>","_ENTER")
-window["-Coll3steelTRANSZ-"].bind("<Return>","_ENTER")
-window["-Coll3steelLZ-"].bind("<Return>","_ENTER")
-window["-Coll3steelLY-"].bind("<Return>","_ENTER")
-window["-Coll3steelLX-"].bind("<Return>","_ENTER")
-window["-Coll3steelLTX-"].bind("<Return>","_ENTER")
-window["-Coll4steelTY-"].bind("<Return>","_ENTER")
-window["-Coll4steelPAR-"].bind("<Return>","_ENTER")
-window["-Coll4steelMAT-"].bind("<Return>","_ENTER")
-window["-Coll4steelROTX-"].bind("<Return>","_ENTER")
-window["-Coll4steelROTY-"].bind("<Return>","_ENTER")
-window["-Coll4steelROTZ-"].bind("<Return>","_ENTER")
-window["-Coll4steelTRANSX-"].bind("<Return>","_ENTER")
-window["-Coll4steelTRANSY-"].bind("<Return>","_ENTER")
-window["-Coll4steelTRANSZ-"].bind("<Return>","_ENTER")
-window["-Coll4steelLZ-"].bind("<Return>","_ENTER")
-window["-Coll4steelLY-"].bind("<Return>","_ENTER")
-window["-Coll4steelLX-"].bind("<Return>","_ENTER")
-window["-Coll4steelLTX-"].bind("<Return>","_ENTER")
-
-window["-TITFILTY-"].bind("<Return>","_ENTER")
-window["-TITFILPAR-"].bind("<Return>","_ENTER")
-window["-TITFILMAT-"].bind("<Return>","_ENTER")
-window["-TITFILROTX-"].bind("<Return>","_ENTER")
-window["-TITFILROTY-"].bind("<Return>","_ENTER")
-window["-TITFILROTZ-"].bind("<Return>","_ENTER")
-window["-TITFILTRANSX-"].bind("<Return>","_ENTER")
-window["-TITFILTRANSY-"].bind("<Return>","_ENTER")
-window["-TITFILTRANSZ-"].bind("<Return>","_ENTER")
-window["-TITFILHLZ-"].bind("<Return>","_ENTER")
-window["-TITFILHLY-"].bind("<Return>","_ENTER")
-window["-TITFILHLX-"].bind("<Return>","_ENTER")
-
-window["-DEMOFLATTY-"].bind("<Return>","_ENTER")
-window["-DEMOFLATPAR-"].bind("<Return>","_ENTER")
-window["-DEMOFLATMAT-"].bind("<Return>","_ENTER")
-window["-DEMOFLATROTX-"].bind("<Return>","_ENTER")
-window["-DEMOFLATROTY-"].bind("<Return>","_ENTER")
-window["-DEMOFLATROTZ-"].bind("<Return>","_ENTER")
-window["-DEMOFLATTRANSX-"].bind("<Return>","_ENTER")
-window["-DEMOFLATTRANSY-"].bind("<Return>","_ENTER")
-window["-DEMOFLATTRANSZ-"].bind("<Return>","_ENTER")
-window["-DEMOFLATHLZ-"].bind("<Return>","_ENTER")
-window["-DEMOFLATHLY-"].bind("<Return>","_ENTER")
-window["-DEMOFLATHLX-"].bind("<Return>","_ENTER")
-
-window["-TSBTY-"].bind("<Return>","_ENTER")
-window["-TSBPAR-"].bind("<Return>","_ENTER")
-window["-TSBMAT-"].bind("<Return>","_ENTER")
-window["-TSBROTX-"].bind("<Return>","_ENTER")
-window["-TSBROTY-"].bind("<Return>","_ENTER")
-window["-TSBROTZ-"].bind("<Return>","_ENTER")
-window["-TSBTRANSX-"].bind("<Return>","_ENTER")
-window["-TSBTRANSY-"].bind("<Return>","_ENTER")
-window["-TSBTRANSZ-"].bind("<Return>","_ENTER")
-window["-TSBHLZ-"].bind("<Return>","_ENTER")
-window["-TSBHLY-"].bind("<Return>","_ENTER")
-window["-TSBHLX-"].bind("<Return>","_ENTER")
-
-window["-BSBTY-"].bind("<Return>","_ENTER")
-window["-BSBPAR-"].bind("<Return>","_ENTER")
-window["-BSBMAT-"].bind("<Return>","_ENTER")
-window["-BSBROTX-"].bind("<Return>","_ENTER")
-window["-BSBROTY-"].bind("<Return>","_ENTER")
-window["-BSBROTZ-"].bind("<Return>","_ENTER")
-window["-BSBTRANSX-"].bind("<Return>","_ENTER")
-window["-BSBTRANSY-"].bind("<Return>","_ENTER")
-window["-BSBTRANSZ-"].bind("<Return>","_ENTER")
-window["-BSBHLZ-"].bind("<Return>","_ENTER")
-window["-BSBHLY-"].bind("<Return>","_ENTER")
-window["-BSBHLX-"].bind("<Return>","_ENTER")
-
-window["-COUCHTY-"].bind("<Return>","_ENTER")
-window["-COUCHPAR-"].bind("<Return>","_ENTER")
-window["-COUCHMAT-"].bind("<Return>","_ENTER")
-window["-COUCHTRANSX-"].bind("<Return>","_ENTER")
-window["-COUCHTRANSY-"].bind("<Return>","_ENTER")
-window["-COUCHTRANSZ-"].bind("<Return>","_ENTER")
-window["-COUCHHLZ-"].bind("<Return>","_ENTER")
-window["-COUCHHLY-"].bind("<Return>","_ENTER")
-window["-COUCHHLX-"].bind("<Return>","_ENTER")
-
-window["-BEAMGRPTY-"].bind("<Return>","_ENTER")
-window["-BEAMGRPPAR-"].bind("<Return>","_ENTER")
-window["-BEAMGRPTRANSX-"].bind("<Return>","_ENTER")
-window["-BEAMGRPTRANSY-"].bind("<Return>","_ENTER")
-window["-BEAMGRPTRANSZ-"].bind("<Return>","_ENTER")
-window["-BEAMGRPROTZ-"].bind("<Return>","_ENTER")
-window["-BEAMGRPROTY-"].bind("<Return>","_ENTER")
-window["-BEAMGRPROTX-"].bind("<Return>","_ENTER")
-
-window["-BEAMSPECTY-"].bind("<Return>","_ENTER")
-window["-BEAMTY-"].bind("<Return>","_ENTER")
-window["-BEAMCOMPO-"].bind("<Return>","_ENTER")
-window["-BEAMPAR-"].bind("<Return>","_ENTER")
-window["-BEAMGRPTRANSZ-"].bind("<Return>","_ENTER")
-window["-BEAMPOSDISTRO-"].bind("<Return>","_ENTER")
-window["-BEAMPOSHAPE-"].bind("<Return>","_ENTER")
-window["-BEAMSPOSANGDISTRO-"].bind("<Return>","_ENTER")
-window["-BEAMPOSCUTOFFX-"].bind("<Return>","_ENTER")
-window["-BEAMPOSCUTTOFFY-"].bind("<Return>","_ENTER")
-window["-BEAMPOSSPRDX-"].bind("<Return>","_ENTER")
-window["-BEAMPOSSPRDY-"].bind("<Return>","_ENTER")
-window["-BEAMPOSANGCUTOFFX-"].bind("<Return>","_ENTER")
-window["-BEAMPOSANGCUTOFFY-"].bind("<Return>","_ENTER")
-window["-BEAMPOSANGSPREADX-"].bind("<Return>","_ENTER")
-window["-BEAMPOSANGSPREADY-"].bind("<Return>","_ENTER")
-window["-TIMEROTFUNC-"].bind("<Return>","_ENTER")
-window["-TIMESEQ-"].bind("<Return>","_ENTER")
-window["-TIMELINEEND-"].bind("<Return>","_ENTER")
-window["-COUCHTRANSZ-"].bind("<Return>","_ENTER")
-window["-TIMEROTRATE-"].bind("<Return>","_ENTER")
-window["-TIMEROTSTART-"].bind("<Return>","_ENTER")
-window["-TIMEHISTINT-"].bind("<Return>","_ENTER")
 #default we will have 5 positions-chamberplugs and 3 quantities to score
 #this variable has to be outside of the while loop because after the RUN event updates
 #variable, the while loop continues to run and therefore it gets reassigned to 15 again
@@ -663,7 +337,7 @@ while True:
     if event == '-CPC_RMIN-_ENTER':
         replacement_witherrorhandling(values['-CPC_RMIN-'],
                                       "ChamberPlugCentre_RMin=\"0.0\"",
-                                      "ChamberPlugCentre_RMin=\""+str(values['-CPC_RMIN-'])+"\""
+                                      "ChamberPlugCentre_RMin=\""+str(values['-CPC_RMIN-'])+"\"",
                                       "#ChamberPlugCentre_RMin_start,ChamberPlugCentre_RMin_stop,ChamberPlugCentre_RMin_step = 0,0,0",
                                       "#boundaries_list.append([ChamberPlugCentre_RMin_start",
                                       "#boundaries_name_list.append(['ChamberPlugCentre_RMin']",
@@ -760,7 +434,7 @@ while True:
     if event == '-CPT_RMIN-_ENTER':
         replacement_witherrorhandling(values['-CPT_RMIN-'],
                                       "ChamberPlugTop_RMin=\"0.0\"",
-                                      "ChamberPlugTop_RMin=\""+str(values['-CPT_RMIN-'])+"\""
+                                      "ChamberPlugTop_RMin=\""+str(values['-CPT_RMIN-'])+"\"",
                                       "#ChamberPlugTop_RMin_start,ChamberPlugTop_RMin_stop,ChamberPlugTop_RMin_step = 0,0,0",
                                       "#boundaries_list.append([ChamberPlugTop_RMin_start",
                                       "#boundaries_name_list.append(['ChamberPlugTop_RMin']",
@@ -856,7 +530,7 @@ while True:
     if event == '-CPB_RMIN-_ENTER':
         replacement_witherrorhandling(values['-CPB_RMIN-'],
                                       "ChamberPlugBottom_RMin=\"0.0\"",
-                                      "ChamberPlugBottom_RMin=\""+str(values['-CPB_RMIN-'])+"\""
+                                      "ChamberPlugBottom_RMin=\""+str(values['-CPB_RMIN-'])+"\"",
                                       "#ChamberPlugBottom_RMin_start,ChamberPlugBottom_RMin_stop,ChamberPlugBottom_RMin_step = 0,0,0",
                                       "#boundaries_list.append([ChamberPlugBottom_RMin_start",
                                       "#boundaries_name_list.append(['ChamberPlugBottom_RMin']",
@@ -952,7 +626,7 @@ while True:
     if event == '-CPL_RMIN-_ENTER':
         replacement_witherrorhandling(values['-CPL_RMIN-'],
                                       "ChamberPlugLeft_RMin=\"0.0\"",
-                                      "ChamberPlugLeft_RMin=\""+str(values['-CPL_RMIN-'])+"\""
+                                      "ChamberPlugLeft_RMin=\""+str(values['-CPL_RMIN-'])+"\"",
                                       "#ChamberPlugLeft_RMin_start,ChamberPlugLeft_RMin_stop,ChamberPlugLeft_RMin_step = 0,0,0",
                                       "#boundaries_list.append([ChamberPlugLeft_RMin_start",
                                       "#boundaries_name_list.append(['ChamberPlugLeft_RMin']",
@@ -1049,7 +723,8 @@ while True:
     if event == '-CPR_RMIN-_ENTER':
         replacement_witherrorhandling(values['-CPR_RMIN-'],
                                       "ChamberPlugRight_RMin=\"0.0\"",
-                                      "ChamberPlugRight_RMin=\""+str(values['-CPR_RMIN-'])+"\""
+                                      "ChamberPlugRight_RMin=\""+str(values['-CPR_RMIN-'])+"\"",
+
                                       "#ChamberPlugRight_RMin_start,ChamberPlugRight_RMin_stop,ChamberPlugRight_RMin_step = 0,0,0",
                                       "#boundaries_list.append([ChamberPlugRight_RMin_start",
                                       "#boundaries_name_list.append(['ChamberPlugRight_RMin']",

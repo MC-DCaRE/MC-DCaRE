@@ -1,6 +1,31 @@
 import PySimpleGUI as sg
 from generate_allproc import selectcomponents
 
+def gui_layer_generation(path, G4_Data, topas_application_path):
+  general_layer = sg.Frame('General Settings',
+                  [ 
+                    [sg.Text('Main Folder',size =(17,1),font=('Helvetica', 14),text_color='black'),
+  #                   sg.In(default_text='/home/businessit/Downloads/topaswrap_version2',key='-MAINFOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(font=('Helvetica', 14))],
+                      sg.In(default_text=path,key='-MAINFOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(font=('Helvetica', 14))],
+                    
+                    [sg.Text('G4 Data Directory',size = (17,1),font=('Helvetica', 14), text_color='black'),
+  #                   sg.In(default_text='/home/businessit/G4Data',key='-G4FOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(font=('Helvetica', 14))],
+                      sg.In(default_text=G4_Data,key='-G4FOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True, tooltip="Click the enter key to register the change"),sg.FolderBrowse(font=('Helvetica', 14))],
+                    [sg.Text('TOPAS Directory',size =(17,1),font=('Helvetica', 14),text_color='black'),
+  #                   sg.In(default_text='/home/businessit/topas/bin/topas',key='-TOPAS-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FileBrowse(font=('Helvetica', 14))],
+                      sg.In(default_text=topas_application_path,key='-TOPAS-',size=(50,1),font=('Helvetica', 14),enable_events=True, tooltip="Click the enter key to register the change"),sg.FileBrowse(font=('Helvetica', 14))],
+                    [sg.Button("Create generate_allproc file",enable_events=True, key='-DUPGENPROC-',disabled=False,font=('Helvetica', 14),disabled_button_color='grey',size=(35,1)),
+                      sg.Text(' ', pad=(1, 1)),
+                      sg.Button("Create multiproc file",enable_events=True,key='-DUPMULPROC-',disabled=False,font=('Helvetica', 14),disabled_button_color='grey',size=(35,1))],
+                    [sg.Text('Seed',size =(9,1),font=('Helvetica', 14),text_color='black'),
+                      sg.In(default_text='9',key='-SEED-',size=(10,1),font=('Helvetica', 14),enable_events=True)],
+                    [sg.Text('Threads',size = (9,1),font=('Helvetica', 14),text_color='black'),
+                      sg.In(default_text='4',key='-THREAD-',size=(10,1),font=('Helvetica',14),enable_events=True)],
+                    [sg.Text('Histories',size = (9,1),font=('Helvetica',14),text_color='black'),
+                      sg.In(default_text='100000',key='-HIST-',size=(10,1),font=('Helvetica',14),enable_events=True)]
+                ])
+  return general_layer
+
 CTDI_layer = sg.Frame('CTDI',
                     [
                       [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),

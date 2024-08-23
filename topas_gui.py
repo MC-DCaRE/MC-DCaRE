@@ -245,9 +245,16 @@ while True:
         # print(str(values['-G4FOLDERNAME-']))
         # replacement_floatorint("G4DataDirectory = \'\""+G4_Data+"\"\'",
         #                        "G4DataDirectory = \'\""+str(values['-G4FOLDERNAME-'])+"\"\'")
+        # Add a line search and replacement function here
         G4_Data = values['-G4FOLDERNAME-'] 
 
+    if event == '-TOPAS-_ENTER':
+        # Add a line search and replacement function here
+        topas_application_path = values['-TOPAS-'] + " "
+
     if event == '-DUPGENPROC-':
+        G4_Data = values['-G4FOLDERNAME-']
+        # Add code that dynamically pulls value from the input textboxes and replaced the newly generated files
         original_file_path = path + '/generate_allproc_boilerplate.py'
         duplicate_gen_file_name = "generate_allproc.py"
         directory_path = os.path.dirname(original_file_path)
@@ -269,6 +276,8 @@ while True:
         # This code is inefficient, runs more lines than required 
 
     if event == '-DUPMULPROC-':
+        topas_application_path = values['-TOPAS-'] + " "
+        # Add code that dynamically pulls value from the input textboxes and replaced the newly generated files
         original_file_path = path + '/runfolder/topas_multiproc_boilerplate.py'
         duplicate_multiproc_file_name = "topas_multiproc.py"
         directory_path = os.path.dirname(original_file_path)
@@ -288,9 +297,6 @@ while True:
         write_file.write(replaced_content)
         write_file.close()
         # This code is inefficient, runs more lines than required 
-
-    if event == '-TOPAS-_ENTER':
-        topas_application_path = values['-TOPAS-'] + " "
 
     if event == '-SEED-_ENTER':
         replacement_witherrorhandling_forintegers(values['-SEED-'],

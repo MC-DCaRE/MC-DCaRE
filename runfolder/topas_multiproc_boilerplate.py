@@ -5,7 +5,7 @@ import multiprocessing as mp
 batch_files = []
 command = []
 directory = os.getcwd()
-topas_directory = "test_boilerplate_path_change_topas"
+topas_directory = "test_boilerplate_path_change_topas "
 
 for root, dirs, files in os.walk(directory):
     #dirs.clear()
@@ -15,8 +15,8 @@ for root, dirs, files in os.walk(directory):
             batch_files.append(str(filename))
             command.append(topas_directory+ directory +"/runfolder"+"/"+str(filename))
     
-#print(batch_files)
-#print(command)
+# print(batch_files)
+# print(command)
 
 def run_topas(command):
 	subprocess.run(["cd runfolder"], shell=True)

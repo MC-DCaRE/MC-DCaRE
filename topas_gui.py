@@ -105,14 +105,14 @@ def replacement_witherrorhandling_forintegers(
 #default settings###################################################
 
 # try
-path = os.getcwd()
-topas_application_path = 'Set your topas path'     #linux
-G4_Data = 'Set your G4 data path' #linux
+# path = os.getcwd()
+# topas_application_path = 'Set your topas path'     #linux
+# G4_Data = 'Set your G4 data path' #linux
 
 # Fixed path for ease of user testing. User: JK
-# path = os.getcwd()
-# topas_application_path = '/root/topas/bin/topas '     #linux
-# G4_Data ='/root/G4Data' #linux
+path = os.getcwd()
+topas_application_path = '/root/topas/bin/topas '     #linux
+G4_Data ='/root/G4Data' #linux
 
 
 
@@ -184,7 +184,7 @@ key_binds(window)
 #simulation subprocess is still running. if no other buttons get triggered while it loops
 #then no if block statement will run. though when the subprocess runs, the GUI seems to block 
 #all buttons and inputs
-num_of_csvresult = 15 
+num_of_csvresult = 5 
 
 while True:
     event,values = window.read()
@@ -2954,6 +2954,7 @@ while True:
             p.wait()
 
     if event == '-GENRUN-':
+        
         command = ["python3 generate_allproc.py"]
         subprocess.run(command, shell=True)
         print(command)

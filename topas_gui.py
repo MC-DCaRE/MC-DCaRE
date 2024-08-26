@@ -130,57 +130,17 @@ directory_path = os.path.dirname(original_file_path)
 duplicate_multiproc_file_path = os.path.join(directory_path, duplicate_multiproc_file_name)
 shutil.copy(original_file_path, duplicate_multiproc_file_path)
 
-replaced_content=""
-multi_proc = open(path + '/runfolder/topas_multiproc.py', "r")
-for line in multi_proc:
-    line.strip()
-    
-    new_line  = line.replace(path,
-                            f"{topas_application_path} ")
-    replaced_content = replaced_content + new_line 
-multi_proc.close()
-write_file = open(path + '/runfolder/topas_multiproc.py', "w")
-write_file.write(replaced_content)
-write_file.close()
-
 from generate_allproc_boilerplate import selectcomponents
-#selectcomponents_local = copy.deepcopy(selectcomponents)
-#####################################################################
 
 sg.theme('Reddit')
-
-# general_layer = sg.Frame('General Settings',
-#                 [ 
-#                   [sg.Text('Main Folder',size =(17,1),font=('Helvetica', 14),text_color='black'),
-# #                   sg.In(default_text='/home/businessit/Downloads/topaswrap_version2',key='-MAINFOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(font=('Helvetica', 14))],
-#                     sg.In(default_text=path,key='-MAINFOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(font=('Helvetica', 14))],
-                  
-#                   [sg.Text('G4 Data Directory',size = (17,1),font=('Helvetica', 14), text_color='black'),
-# #                   sg.In(default_text='/home/businessit/G4Data',key='-G4FOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(font=('Helvetica', 14))],
-#                     sg.In(default_text=G4_Data,key='-G4FOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True, tooltip="Click the enter key to register the change"),sg.FolderBrowse(font=('Helvetica', 14))],
-#                   [sg.Text('TOPAS Directory',size =(17,1),font=('Helvetica', 14),text_color='black'),
-# #                   sg.In(default_text='/home/businessit/topas/bin/topas',key='-TOPAS-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FileBrowse(font=('Helvetica', 14))],
-#                     sg.In(default_text=topas_application_path,key='-TOPAS-',size=(50,1),font=('Helvetica', 14),enable_events=True, tooltip="Click the enter key to register the change"),sg.FileBrowse(font=('Helvetica', 14))],
-#                   [sg.Button("Create generate_allproc file",enable_events=True, key='-DUPGENPROC-',disabled=False,font=('Helvetica', 14),disabled_button_color='grey',size=(35,1)),
-#                     sg.Text(' ', pad=(1, 1)),
-#                     sg.Button("Create multiproc file",enable_events=True,key='-DUPMULPROC-',disabled=False,font=('Helvetica', 14),disabled_button_color='grey',size=(35,1))],
-#                   [sg.Text('Seed',size =(9,1),font=('Helvetica', 14),text_color='black'),
-#                     sg.In(default_text='9',key='-SEED-',size=(10,1),font=('Helvetica', 14),enable_events=True)],
-#                   [sg.Text('Threads',size = (9,1),font=('Helvetica', 14),text_color='black'),
-#                     sg.In(default_text='4',key='-THREAD-',size=(10,1),font=('Helvetica',14),enable_events=True)],
-#                   [sg.Text('Histories',size = (9,1),font=('Helvetica',14),text_color='black'),
-#                     sg.In(default_text='100000',key='-HIST-',size=(10,1),font=('Helvetica',14),enable_events=True)]
-#                 ])
-
-
 
 from guilayers import *
 general_layer = gui_layer_generation(path, G4_Data, topas_application_path)
 
 # Creating a tabbed menu 
 main_layout = [[general_layer],
-               [toggle_layer], [
-                sg.Button("Generate Processes", enable_events=True, key='-GEN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey'), 
+               [toggle_layer], 
+               [sg.Button("Generate Processes", enable_events=True, key='-GEN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey'), 
                 sg.Button("Run", enable_events=True, key='-RUN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey'),
                 sg.Button("Generate process and run", enable_events=True, key='-GENRUN-', disabled=False, )]]
 
@@ -215,7 +175,7 @@ window.set_min_size(window.size)
 # from keyvar import all
 
 from key_binds import *
-key_binds(window)
+key_binds(window) 
 
 #default we will have 5 positions-chamberplugs and 3 quantities to score
 #this variable has to be outside of the while loop because after the RUN event updates

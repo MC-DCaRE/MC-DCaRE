@@ -1,5 +1,5 @@
 import PySimpleGUI as sg
-from generate_allproc import selectcomponents
+from generate_allproc_boilerplate import selectcomponents
 
 def gui_layer_generation(path, G4_Data, topas_application_path):
   general_layer = sg.Frame('General Settings',
@@ -14,9 +14,9 @@ def gui_layer_generation(path, G4_Data, topas_application_path):
                     [sg.Text('TOPAS Directory',size =(17,1),font=('Helvetica', 14),text_color='black'),
   #                   sg.In(default_text='/home/businessit/topas/bin/topas',key='-TOPAS-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FileBrowse(font=('Helvetica', 14))],
                       sg.In(default_text=topas_application_path,key='-TOPAS-',size=(50,1),font=('Helvetica', 14),enable_events=True, tooltip="Click the enter key to register the change"),sg.FileBrowse(font=('Helvetica', 14))],
-                    [sg.Button("Create generate_allproc file",enable_events=True, key='-DUPGENPROC-',disabled=False,font=('Helvetica', 14),disabled_button_color='grey',size=(35,1)),
+                    [sg.Button("Create new default generate_allproc file",enable_events=True, key='-DUPGENPROC-',disabled=False,font=('Helvetica', 14),disabled_button_color='grey',size=(35,1)),
                       sg.Text(' ', pad=(1, 1)),
-                      sg.Button("Create multiproc file",enable_events=True,key='-DUPMULPROC-',disabled=False,font=('Helvetica', 14),disabled_button_color='grey',size=(35,1))],
+                      sg.Button("Create new default multiproc file",enable_events=True,key='-DUPMULPROC-',disabled=False,font=('Helvetica', 14),disabled_button_color='grey',size=(35,1))],
                     [sg.Text('Seed',size =(9,1),font=('Helvetica', 14),text_color='black'),
                       sg.In(default_text='9',key='-SEED-',size=(10,1),font=('Helvetica', 14),enable_events=True)],
                     [sg.Text('Threads',size = (9,1),font=('Helvetica', 14),text_color='black'),

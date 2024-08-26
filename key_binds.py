@@ -1,5 +1,4 @@
 import PySimpleGUI as sg
-from generate_allproc import selectcomponents
 
 def key_binds(window):
     window["-MAINFOLDERNAME-"].bind("<Return>","_ENTER")
@@ -13,13 +12,24 @@ def key_binds(window):
     window["-CPC_RMIN-"].bind("<Return>","_ENTER")
     window["-CPC_RMAX-"].bind("<Return>","_ENTER")
     window["-CPC_HL-"].bind("<Return>","_ENTER")
-    window["-CPC_RMAX-"].bind("<Return>","_ENTER") #Why is there a dupli?
     window["-CPC_SPHI-"].bind("<Return>","_ENTER")
     window["-CPC_DPHI-"].bind("<Return>","_ENTER")
     window["-CPC_TX-"].bind("<Return>","_ENTER")
     window["-CPC_TY-"].bind("<Return>","_ENTER")
     window["-CPC_TZ-"].bind("<Return>","_ENTER")
     window["-CPC_RX-"].bind("<Return>","_ENTER")
+
+    window["-CTDI_TYPE-"].bind("<Return>","_ENTER")
+    window["-CTDI_MAT-"].bind("<Return>","_ENTER")
+    window["-CTDI_RMIN-"].bind("<Return>","_ENTER")
+    window["-CTDI_RMAX-"].bind("<Return>","_ENTER")
+    window["-CTDI_HL-"].bind("<Return>","_ENTER")
+    window["-CTDI_SPHI-"].bind("<Return>","_ENTER")
+    window["-CTDI_DPHI-"].bind("<Return>","_ENTER")
+    window["-CTDI_TX-"].bind("<Return>","_ENTER")
+    window["-CTDI_TY-"].bind("<Return>","_ENTER")
+    window["-CTDI_TZ-"].bind("<Return>","_ENTER")
+    window["-CTDI_RX-"].bind("<Return>","_ENTER")
 
     window["-CPT_TYPE-"].bind("<Return>","_ENTER")
     window["-CPT_MAT-"].bind("<Return>","_ENTER")

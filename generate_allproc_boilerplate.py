@@ -61,7 +61,7 @@ def remove_lines_with_keywords(input_file, output_file, keywords):
 includeFile = 'ConvertedTopasFile_head.txt'
 Seed = '9'
 NumberOfThreads = '4'
-G4DataDirectory = '"/home/leekh/G4Data"'
+G4DataDirectory = '/root/G4Data'
 World_HLX = '120'
 World_HLY = '120'
 World_HLZ = '120'
@@ -1651,7 +1651,7 @@ if __name__ == '__main__':
                     new_line=line.replace("includeFile = ConvertedTopasFile_head.txt","includeFile = "+includeFile)
                     new_line=new_line.replace("i:Ts/Seed=9","i:Ts/Seed="+Seed)
                     new_line=new_line.replace("i:Ts/NumberOfThreads=2","i:Ts/NumberOfThreads="+str(NumberOfThreads))
-                    new_line=new_line.replace('s:Ts/G4DataDirectory="/home/leekh/G4Data"','s:Ts/G4DataDirectory='+G4DataDirectory)
+                    new_line=new_line.replace('s:Ts/G4DataDirectory="placeholder"','s:Ts/G4DataDirectory="'+G4DataDirectory+'"')
 
                     new_line=new_line.replace("d:Ge/World/HLX=120","d:Ge/World/HLX="+World_HLX)
                     new_line=new_line.replace("d:Ge/World/HLY=120","d:Ge/World/HLY="+World_HLY)
@@ -2189,7 +2189,7 @@ if __name__ == '__main__':
                 new_line=line.replace("includeFile = ConvertedTopasFile_head.txt","includeFile = "+includeFile)
                 new_line=new_line.replace("i:Ts/Seed=9","i:Ts/Seed="+Seed)
                 new_line=new_line.replace("i:Ts/NumberOfThreads=2","i:Ts/NumberOfThreads="+str(NumberOfThreads))
-                new_line=new_line.replace('s:Ts/G4DataDirectory="/home/leekh/G4Data"','s:Ts/G4DataDirectory='+G4DataDirectory)
+                new_line=new_line.replace('s:Ts/G4DataDirectory="placeholder"','s:Ts/G4DataDirectory="'+ G4DataDirectory +'"')
 
                 new_line=new_line.replace("d:Ge/World/HLX=120","d:Ge/World/HLX="+World_HLX)
                 new_line=new_line.replace("d:Ge/World/HLY=120","d:Ge/World/HLY="+World_HLY)
@@ -2559,7 +2559,7 @@ if __name__ == '__main__':
                 new_line=new_line.replace('s:Ge/DemoLTrap/Material="Aluminum"','s:Ge/DemoLTrap/Material='+DemoLTrap_Material)
                 new_line=new_line.replace('d:Ge/DemoLTrap/TransX=0.0','d:Ge/DemoLTrap/TransX='+DemoLTrap_TransX)
                 new_line=new_line.replace('d:Ge/DemoLTrap/TransY=2.5','d:Ge/DemoLTrap/TransY='+DemoLTrap_TransY)
-                new_line=new_line.replace('d:Ge/DemoLTrap/TransZ=0.65 cm','d:Ge/DemoLTrap/TransZ='+DemoLTrap_TransZ)
+                new_line=new_line.replace('d:Ge/DemoLTrap/TransZ=0.65','d:Ge/DemoLTrap/TransZ='+DemoLTrap_TransZ)
                 new_line=new_line.replace('d:Ge/DemoLTrap/RotX=180','d:Ge/DemoLTrap/RotX='+DemoLTrap_RotX)
                 new_line=new_line.replace('d:Ge/DemoLTrap/RotY=270','d:Ge/DemoLTrap/RotY='+DemoLTrap_RotY)
                 new_line=new_line.replace('d:Ge/DemoLTrap/RotZ=0.','d:Ge/DemoLTrap/RotZ='+DemoLTrap_RotZ)

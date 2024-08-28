@@ -100,25 +100,35 @@ def replacement_witherrorhandling_forintegers(
             sg.popup_error("Something is wrong!","Either not all the inputs are integer/float or the number of elements entered is incorrect. Must be of the form: start,stop,step")
     else:
         sg.popup_error("Something is wrong!", "The input needs to be of the form :start,stop,step or single entry")
+
+
+def stringindexreplacement(string, filepath, replacementstring):
+    filecontent = open(filepath, 'r')
+    for lineIndex in range(len(filecontent)):
+        if line.strip().startswith(string):
+            line = string + replacementstring
+            filecontent[lineIndex] = line
+
+
+
+
+
 ####################################################################
 
 #default settings###################################################
 
-#path is directory of topas_gui.py  
-#path = '/Users/jacob/Desktop/NCCS/CBCT/gui/topaswrap_version3' #apple
-path='/root/nccs/Topas_wrapper'     #linux Figure out how to change this dynamically 
+# try
+# path = os.getcwd()
+# topas_application_path = 'Set your topas path'     #linux
+# G4_Data = 'Set your G4 data path' #linux
 
-# path = '__file__'.rstrip()
+# Fixed path for ease of user testing. User: JK
+path = os.getcwd()
+topas_application_path = '/root/topas/bin/topas '     #linux
+dicom_path = '/root/nccs/Topas_wrapper/test/cherylair'
+G4_Data ='/root/G4Data' #linux
 
-#topas_application_path = '/Applications/topas/bin/topas'#apple
-topas_application_path='/root/topas/bin/topas'     #linux
 
-#replacing directory of G4Data
-G4_Data='/root/G4Data' #linux
-
-replacement_floatorint("G4DataDirectory = \'\"~/G4Data\"\'",
-#                      "G4DataDirectory = \'\"/Applications/G4Data\"\'") #apple
-                       "G4DataDirectory = \'\""+G4_Data+"\"\'")         #linux
 
 #generate a generate_allproc file from a boiler plate so we edit only that copy each time
 original_file_path = path + '/generate_allproc_boilerplate.py'
@@ -134,991 +144,19 @@ directory_path = os.path.dirname(original_file_path)
 duplicate_multiproc_file_path = os.path.join(directory_path, duplicate_multiproc_file_name)
 shutil.copy(original_file_path, duplicate_multiproc_file_path)
 
-replaced_content=""
-multi_proc = open(path + '/runfolder/topas_multiproc.py', "r")
-for line in multi_proc:
-    line.strip()
-    
-    new_line  = line.replace("/home/leekh/topas/bin/topas ",
-                            f"{topas_application_path} ")
-    replaced_content = replaced_content + new_line 
-multi_proc.close()
-write_file = open(path + '/runfolder/topas_multiproc.py', "w")
-write_file.write(replaced_content)
-write_file.close()
-
 from generate_allproc_boilerplate import selectcomponents
-#selectcomponents_local = copy.deepcopy(selectcomponents)
-#####################################################################
 
 sg.theme('Reddit')
 
-general_layer = sg.Frame('General Settings',
-                [ 
-                  [sg.Text('Main Folder',size =(17,1),font=('Helvetica', 14),text_color='black'),
-#                   sg.In(default_text='/home/businessit/Downloads/topaswrap_version2',key='-MAINFOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(font=('Helvetica', 14))],
-                    sg.In(default_text=path,key='-MAINFOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(font=('Helvetica', 14))],
-                  
-                  [sg.Text('G4 Data Directory',size = (17,1),font=('Helvetica', 14), text_color='black'),
-#                   sg.In(default_text='/home/businessit/G4Data',key='-G4FOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(font=('Helvetica', 14))],
-                    sg.In(default_text=G4_Data,key='-G4FOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(font=('Helvetica', 14))],
-                  [sg.Text('TOPAS Directory',size =(17,1),font=('Helvetica', 14),text_color='black'),
-#                   sg.In(default_text='/home/businessit/topas/bin/topas',key='-TOPAS-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FileBrowse(font=('Helvetica', 14))],
-                    sg.In(default_text=topas_application_path,key='-TOPAS-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FileBrowse(font=('Helvetica', 14))],
-                  [sg.Button("Create generate_allproc file",enable_events=True, key='-DUPGENPROC-',disabled=False,font=('Helvetica', 14),disabled_button_color='grey',size=(35,1)),
-                    sg.Text(' ', pad=(1, 1)),
-                    sg.Button("Create multiproc file",enable_events=True,key='-DUPMULPROC-',disabled=False,font=('Helvetica', 14),disabled_button_color='grey',size=(35,1))],
-                  [sg.Text('Seed',size =(9,1),font=('Helvetica', 14),text_color='black'),
-                    sg.In(default_text='9',key='-SEED-',size=(10,1),font=('Helvetica', 14),enable_events=True)],
-                  [sg.Text('Threads',size = (9,1),font=('Helvetica', 14),text_color='black'),
-                    sg.In(default_text='4',key='-THREAD-',size=(10,1),font=('Helvetica',14),enable_events=True)],
-                  [sg.Text('Histories',size = (9,1),font=('Helvetica',14),text_color='black'),
-                    sg.In(default_text='100000',key='-HIST-',size=(10,1),font=('Helvetica',14),enable_events=True)]
-                ])
-
-#create a button menu with key that triggers an event 
-#event that will fill up the dynamic for loop with range of values
-#to simulate
-#menu_def = ['Menu',['Menu item 1::savekey', 'Menu item 2']]
-
-#range_generator_layer = sg.Frame('Range Generator',
-                        # [  
-                        #   [sg.Text('Component',size = (5,1), font=('Helvetica', 14), text_color='black'),
-                        #     sg.ButtonMenu('select',menu_def,),
-                        #     sg.Text('Start',size = (2,1),font=('Helvetica', 14), text_color='black')
-                        #     sg.In(key='-START-',size=(2,1), font=('Helvetica', 14)),
-                        #     sg.Text('Stop',size = (2,1),font=('Helvetica', 14), text_color='black')
-                        #     sg.In(key='-STOP-',size=(2,1), font=('Helvetica', 14)),
-                        #     sg.Text('Step',size = (2,1),font=('Helvetica', 14), text_color='black')
-                        #     sg.In(key='-STEP-',size=(2,1), font=('Helvetica', 14))
-                        #     sg.Button('Fill')
-                        #     ]
-
-                        # ])
-
-# selectcomponents = {
-# 'ChamberPlugCentre': 1,
-# 'ChamberPlugTop': 1,
-# 'ChamberPlugBottom': 1,
-# 'ChamberPlugLeft': 1,
-# 'ChamberPlugRight': 1,
-# 'ChamberPlugDose_tle': 1,
-# 'ChamberPlugDose_dtm': 1,
-# 'ChamberPlugDose_dtw': 1,
-# 'CollimatorsVertical': 1,
-# 'CollimatorsHorizontal': 1,
-# 'SteelFilter': 0,
-# 'BowtieFilter': 0,
-# 'Coll1': 1,
-# 'Coll2': 1,
-# 'Coll3': 1,
-# 'Coll4': 1,
-# 'DemoFlat': 0,
-# 'DemoRTrap':0,
-# 'DemoLTrap': 0,
-# 'topsidebox': 0,
-# 'bottomsidebox': 0,
-# 'couch': 1
-# }
-
-CTDI_layer = sg.Frame('CTDI',
-                    [
-                      [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='TsCylinder',key='-CTDI_TYPE-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                      [sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='PMMA',key='-CTDI_MAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('RMin',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.0',key='-CTDI_RMIN-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('RMax',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='8.0',key='-CTDI_RMAX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('HL',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='7.25',key='-CTDI_HL-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('SPHI',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text="0.",key='-CTDI_SPHI-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('DPHI',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='360.',key='-CTDI_DPHI-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.',key='-CTDI_TX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.',key='-CTDI_TY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.',key='-CTDI_TZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='-90',key='-CTDI_RX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                    ])
-
-
-ChamberPlugCentre_layer = sg.Frame('ChamberPlugCentre',
-                    [
-                      [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='TsCylinder',key='-CPC_TYPE-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                      [sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='PMMA',key='-CPC_MAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('RMin',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.0',key='-CPC_RMIN-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('RMax',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.655',key='-CPC_RMAX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('HL',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='5.0',key='-CPC_HL-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('SPHI',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text="0.",key='-CPC_SPHI-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('DPHI',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='360.',key='-CPC_DPHI-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.0',key='-CPC_TX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.0',key='-CPC_TY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.0',key='-CPC_TZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='-90',key='-CPC_RX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                    ])
-
-ChamberPlugTop_layer = sg.Frame('ChamberPlugTop',
-                    [
-                      [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='TsCylinder',key='-CPT_TYPE-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                      [sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='PMMA',key='-CPT_MAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('RMin',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.0',key='-CPT_RMIN-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('RMax',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.655',key='-CPT_RMAX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('HL',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='5.0',key='-CPT_HL-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('SPHI',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text="0.",key='-CPT_SPHI-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('DPHI',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='360.',key='-CPT_DPHI-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.0',key='-CPT_TX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.0',key='-CPT_TY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='-7.0',key='-CPT_TZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='-90',key='-CPT_RX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                    ])
-
-ChamberPlugBottom_layer = sg.Frame('ChamberPlugBottom',
-                    [
-                      [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='TsCylinder',key='-CPB_TYPE-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                      [sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='PMMA',key='-CPB_MAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('RMin',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.0',key='-CPB_RMIN-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('RMax',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.655',key='-CPB_RMAX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('HL',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='5.0',key='-CPB_HL-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('SPHI',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text="0.",key='-CPB_SPHI-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('DPHI',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='360.',key='-CPB_DPHI-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.0',key='-CPB_TX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.0',key='-CPB_TY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='7.0',key='-CPB_TZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='-90',key='-CPB_RX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                    ])
-
-ChamberPlugLeft_layer = sg.Frame('ChamberPlugLeft',
-                    [
-                      [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='TsCylinder',key='-CPL_TYPE-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                      [sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='PMMA',key='-CPL_MAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('RMin',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.0',key='-CPL_RMIN-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('RMax',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.655',key='-CPL_RMAX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('HL',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='5.0',key='-CPL_HL-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('SPHI',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text="0.",key='-CPL_SPHI-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('DPHI',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='360.',key='-CPL_DPHI-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='-7.0',key='-CPL_TX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.0',key='-CPL_TY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.0',key='-CPL_TZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='-90',key='-CPL_RX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                    ])
-
-ChamberPlugRight_layer = sg.Frame('ChamberPlugRight',
-                    [
-                      [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='TsCylinder',key='-CPR_TYPE-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                      [sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='PMMA',key='-CPR_MAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('RMin',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.0',key='-CPR_RMIN-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('RMax',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.655',key='-CPR_RMAX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('HL',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='5.0',key='-CPR_HL-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('SPHI',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text="0.",key='-CPR_SPHI-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('DPHI',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='360.',key='-CPR_DPHI-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='7.0',key='-CPR_TX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.0',key='-CPR_TY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='0.0',key='-CPR_TZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text='-90',key='-CPR_RX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-
-                    ])
-
-Scoring_layer = sg.Frame("Scoring",
-                [
-                   [sg.Text('TLE_Zbins',size = (10,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='100',key='-TLEZB-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('DTM_Zbins',size = (10,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='100',key='-DTMZB-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('DTW_Zbins',size = (10,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='100',key='-DTWZB-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                ])
-
-Physics_layer = sg.Frame("Physics",
-                [
-                   [sg.Text('List',size = (15,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Default',key='-PHYLST-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Process',size = (15,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='False',key='-PHYPRO-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Default Type',size = (15,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Geant4_Modular',key='-PHYDEFTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Default Modules',size = (15,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='6 "g4em-standard_opt4" "g4h-phy_QGSP_BIC_HP" "g4decay" "g4ion-binarycascade" "g4h-elastic_HP" "g4stopping"',key='-PHYDEFMO-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('EMRangeMin',size = (15,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='100.',key='-PHYEMIN-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('EMRangeMax',size = (15,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='521.',key='-PHYEMAX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                ])
-
-RotationGroup_layer = sg.Frame("Rotation Group",
-                [
-                   [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Group',key='-ROTTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='World',key='-ROTPAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-ROTROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Tf_Rotate_Value',key='-ROTROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-ROTROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.0',key='-ROTTRANSX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.0',key='-ROTTRANSY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.0',key='-ROTTRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                ])
-
-CollimatorVerticalGroup_layer = sg.Frame("Collimators Vertical Group",
-                [
-                   [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Group',key='-COLLVERTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Rotation',key='-COLLVERPAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-COLLVERROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-COLLVERROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-COLLVERROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='9.3',key='-COLLVERTRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                ])
-
-CollimatorHorizontalGroup_layer = sg.Frame("Collimators Horizontal Group",
-                [
-                   [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Group',key='-COLLHORTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='CollimatorsVertical',key='-COLLHORPAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-COLLHORROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-COLLHORROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-COLLHORROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='1.4',key='-COLLHORTRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                ])
-
-# SteelGroup_layer = sg.Frame("Steel Filter Group",
-#               [
-#                  [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-#                    sg.In(default_text='Group',key='-STEELTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-#                  [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-#                    sg.In(default_text='CollimatorsHorizontal',key='-STEELPAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-#                  [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-#                    sg.In(default_text='0.',key='-STEELROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-#                  [sg.Text('RotY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-#                    sg.In(default_text='0.',key='-STEELROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-#                  [sg.Text('RotZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-#                    sg.In(default_text='0.',key='-STEELROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-#                  [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-#                    sg.In(default_text='1.59',key='-STEELTRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-#               ])
-
-TitaniumGroup_layer = sg.Frame("Titanium Filter Group",
-                [
-                   [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Group',key='-TITTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='CollimatorsHorizontal',key='-TITPAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-TITROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-TITROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-TITROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='1.59',key='-TITTRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                ])
-Bowtie_layer = sg.Frame("Bowtie Filter Group",
-                [
-                   [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Group',key='-BFTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='CollimatorsHorizontal',key='-BFPAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-BFROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-BFROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='90.',key='-BFROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.0',key='-BFTRANSX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.0',key='-BFTRANSY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='3.85',key='-BFTRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                ])
-
-Coll1_layer = sg.Frame("Collimator 1",
-                [
-                   [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='G4RTrap',key='-Coll1TY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Lead',key='-Coll1MAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='CollimatorsVertical',key='-Coll1PAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='-90.',key='-Coll1ROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='90.',key='-Coll1ROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0',key='-Coll1ROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0',key='-Coll1TRANSX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='5.27',key='-Coll1TRANSY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0',key='-Coll1TRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='12.',key='-Coll1LZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.3',key='-Coll1LY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='10.',key='-Coll1LX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LTX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='9.2',key='-Coll1LTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)]
-                ])
-
-Coll2_layer = sg.Frame("Collimator 2",
-                [
-                   [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='G4RTrap',key='-Coll2TY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Lead',key='-Coll2MAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='CollimatorsVertical',key='-Coll2PAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='-90',key='-Coll2ROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='270.',key='-Coll2ROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0',key='-Coll2ROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0',key='-Coll2TRANSX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='-5.27',key='-Coll2TRANSY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0',key='-Coll2TRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='12.',key='-Coll2LZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.3',key='-Coll2LY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='10.',key='-Coll2LX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LTX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='9.2',key='-Coll2LTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)]
-                ])
-	
-Coll3_layer = sg.Frame("Collimator 3",
-                [
-                   [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='G4RTrap',key='-Coll3TY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Lead',key='-Coll3MAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='CollimatorsHorizontal',key='-Coll3PAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='-90.',key='-Coll3ROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='180.',key='-Coll3ROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0',key='-Coll3ROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='5.27',key='-Coll3TRANSX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-Coll3TRANSY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-Coll3TRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='12.',key='-Coll3LZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.3',key='-Coll3LY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='10.',key='-Coll3LX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LTX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='9.2',key='-Coll3LTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)]
-                ])
-
-Coll4_layer = sg.Frame("Collimator 4",
-                [
-                   [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='G4RTrap',key='-Coll4TY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Lead',key='-Coll4MAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='CollimatorsHorizontal',key='-Coll4PAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='-90.',key='-Coll4ROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-Coll4ROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0',key='-Coll4ROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='-5.27',key='-Coll4TRANSX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-Coll4TRANSY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-Coll4TRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='12.',key='-Coll4LZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.3',key='-Coll4LY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='10.',key='-Coll4LX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LTX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='9.2',key='-Coll4LTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)]
-                ])
-
-Coll1steel_layer = sg.Frame("Collimator Steel 1",
-                [
-                   [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='G4RTrap',key='-Coll1steelTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Steel',key='-Coll1steelMAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='CollimatorsVertical',key='-Coll1steelPAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='-90.',key='-Coll1steelROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='90.',key='-Coll1steelROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0',key='-Coll1steelROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0',key='-Coll1steelTRANSX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.2',key='-Coll1steelTRANSY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='-0.25',key='-Coll1steelTRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='12.',key='-Coll1steelLZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.2',key='-Coll1steelLY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='10.',key='-Coll1steelLX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LTX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='10.',key='-Coll1steelLTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)]
-                ])
-
-Coll2steel_layer = sg.Frame("Collimator Steel 2",
-                [
-                   [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='G4RTrap',key='-Coll2steelTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Steel',key='-Coll2steelMAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='CollimatorsVertical',key='-Coll2steelPAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='-90.',key='-Coll2steelROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='270.',key='-Coll2steelROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0',key='-Coll2steelROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0',key='-Coll2steelTRANSX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.2',key='-Coll2steelTRANSY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='-0.25',key='-Coll2steelTRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='12.',key='-Coll2steelLZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.2',key='-Coll2steelLY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='10.',key='-Coll2steelLX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LTX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='10.',key='-Coll2steelLTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)]
-                ])
-
-Coll3steel_layer = sg.Frame("Collimator Steel 3",
-                [
-                   [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='G4RTrap',key='-Coll3steelTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Steel',key='-Coll3steelMAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='CollimatorsHorizontal',key='-Coll3steelPAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='-90.',key='-Coll3steelROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='180.',key='-Coll3steelROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0',key='-Coll3steelROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.2',key='-Coll3steelTRANSX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0',key='-Coll3steelTRANSY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='-0.25',key='-Coll3steelTRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='12.',key='-Coll3steelLZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.2',key='-Coll3steelLY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='10.',key='-Coll3steelLX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LTX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='10.',key='-Coll3steelLTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)]
-                ])
-
-Coll4steel_layer = sg.Frame("Collimator Steel 4",
-                [
-                   [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='G4RTrap',key='-Coll4steelTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Steel',key='-Coll4steelMAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='CollimatorsHorizontal',key='-Coll4steelPAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='-90.',key='-Coll4steelROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-Coll4steelROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0',key='-Coll4steelROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.2',key='-Coll4steelTRANSX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0',key='-Coll4steelTRANSY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='-0.25',key='-Coll4steelTRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='12.',key='-Coll4steelLZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.2',key='-Coll4steelLY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='10.',key='-Coll4steelLX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LTX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='10.',key='-Coll4steelLTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)]
-                ])
-
-
-# SteelFil_layer = sg.Frame("Steel Filter",
-#               [
-#                  [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-#                    sg.In(default_text='TsBox',key='-STEELFILTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-#                  [sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-#                    sg.In(default_text='Steel',key='-STEELFILMAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-#                  [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-#                    sg.In(default_text='SteelFilterGroup',key='-STEELFILPAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-#                  [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-#                    sg.In(default_text='0.',key='-STEELFILROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-#                  [sg.Text('RotY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-#                    sg.In(default_text='0.',key='-STEELFILROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-#                  [sg.Text('RotZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-#                    sg.In(default_text='0.',key='-STEELFILROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-#                  [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-#                    sg.In(default_text='0.',key='-STEELFILTRANSX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-#                  [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-#                    sg.In(default_text='0.',key='-STEELFILTRANSY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-#                  [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-#                    sg.In(default_text='0.',key='-STEELFILTRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-#                  [sg.Text('HLZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-#                    sg.In(default_text='0.01',key='-STEELFILHLZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-#                  [sg.Text('HLY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-#                    sg.In(default_text='10.',key='-STEELFILHLY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-#                  [sg.Text('HLX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-#                    sg.In(default_text='10.',key='-STEELFILHLX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   
-#               ])
-
-TITFIL_layer = sg.Frame("Titanium Filter",
-                [
-                   [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='TsBox',key='-TITFILTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Titanium',key='-TITFILMAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='TitaniumFilterGroup',key='-TITFILPAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-TITFILROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-TITFILROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-TITFILROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-TITFILTRANSX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-TITFILTRANSY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-TITFILTRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('HLZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.0445',key='-TITFILHLZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('HLY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='10.',key='-TITFILHLY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('HLX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='10.',key='-TITFILHLX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   
-                ])
-
-DemoFlat_layer = sg.Frame("Demo Flat",
-                [
-                   [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='TsBox',key='-DEMOFLATTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Aluminum',key='-DEMOFLATMAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='BowtieFilter',key='-DEMOFLATPAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0',key='-DEMOFLATROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='-90.',key='-DEMOFLATROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-DEMOFLATROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.0',key='-DEMOFLATTRANSX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-DEMOFLATTRANSY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-DEMOFLATTRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('HLZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='7.5',key='-DEMOFLATHLZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('HLY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.4',key='-DEMOFLATHLY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('HLX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='7.5',key='-DEMOFLATHLX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   
-                ])
-TopSideBox_layer = sg.Frame("Top side box",
-                [
-                   [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='TsBox',key='-TSBTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Aluminum',key='-TSBMAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='BowtieFilter',key='-TSBPAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-TSBROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='-90.',key='-TSBROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-TSBROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.0',key='-TSBTRANSX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='5.0',key='-TSBTRANSY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='1.3',key='-TSBTRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('HLZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='7.5',key='-TSBHLZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('HLY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='2.5',key='-TSBHLY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('HLX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='1.4',key='-TSBHLX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   
-                ])
-
-BottomSideBox_layer = sg.Frame("Bottom side box",
-                [
-                   [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='TsBox',key='-BSBTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Aluminum',key='-BSBMAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='BowtieFilter',key='-BSBPAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-BSBROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='-90.',key='-BSBROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-BSBROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.0',key='-BSBTRANSX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='-5.0',key='-BSBTRANSY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='1.3',key='-BSBTRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('HLZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='7.5',key='-BSBHLZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('HLY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='2.5',key='-BSBHLY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('HLX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='1.4',key='-BSBHLX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   
-                ])
-
-DemoRTrap_layer = sg.Frame("Demo RTrap",
-                [
-                   [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='G4RTrap',key='-DEMORTRAPTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Aluminum',key='-DEMORTRAPMAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='BowtieFilter',key='-DEMORTRAPPAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0',key='-DEMORTRAPROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='90',key='-DEMORTRAPROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-DEMORTRAPROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.0',key='-DEMORTRAPTRANSX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='-2.5',key='-DEMORTRAPTRANSY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.65',key='-DEMORTRAPTRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='15.',key='-DEMORTRAPLZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='5.',key='-DEMORTRAPLY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='2.8',key='-DEMORTRAPLX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LTX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.2',key='-DEMORTRAPLTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)]
-                ])
-DemoLTrap_layer = sg.Frame("Demo LTrap",
-                [
-                   [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='G4RTrap',key='-DEMOLTRAPTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Aluminum',key='-DEMOLTRAPMAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='BowtieFilter',key='-DEMOLTRAPPAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='180',key='-DEMOLTRAPROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='270',key='-DEMOLTRAPROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-DEMOLTRAPROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.0',key='-DEMOLTRAPTRANSX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='2.5',key='-DEMOLTRAPTRANSY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.65',key='-DEMOLTRAPTRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='15.',key='-DEMOLTRAPLZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='5.0',key='-DEMOLTRAPLY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='2.8',key='-DEMOLTRAPLX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('LTX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.2',key='-DEMOLTRAPLTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)]
-                ])
-
-Couch_layer = sg.Frame("Couch",
-                [
-                   [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='TsBox',key='-COUCHTY-',size=(10,1), font=('Helvetica', 12), enable_events=True),
-                     sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Aluminum',key='-COUCHMAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='World',key='-COUCHPAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.0',key='-COUCHTRANSX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.0',key='-COUCHTRANSY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Ge/couch/HLZ + Ge/CTDI/RMax',key='-COUCHTRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('HLZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.075',key='-COUCHHLZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('HLY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='100.0',key='-COUCHHLY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('HLX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='26.0',key='-COUCHHLX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   
-                ])
-
-BeamGroup_layer = sg.Frame("Beam Group",
-                [
-                   [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Group',key='-BEAMGRPTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Parent',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Rotation',key='-BEAMGRPPAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-BEAMGRPTRANSX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-BEAMGRPTRANSY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='-100.',key='-BEAMGRPTRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-BEAMGRPROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-BEAMGRPROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('RotZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.',key='-BEAMGRPROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                 
-                ])
-
-Beam_layer = sg.Frame("Beam",
-                [   
-                   [sg.Text('EnergySpec',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Continuous',key='-BEAMSPECTY-',size=(10,1), font=('Helvetica', 12), enable_events=True),
-                    sg.Text('Type',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Beam',key='-BEAMTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Component',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='BeamPosition',key='-BEAMCOMPO-',size=(10,1), font=('Helvetica', 12), enable_events=True),
-                    sg.Text('Particle',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='gamma',key='-BEAMPAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('PosDistro',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Gaussian',key='-BEAMPOSDISTRO-',size=(10,1), font=('Helvetica', 12), enable_events=True),
-                    sg.Text('CutOffShape',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Rectangle',key='-BEAMPOSHAPE-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('CutOffX',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='5.',key='-BEAMPOSCUTOFFX-',size=(10,1), font=('Helvetica', 12), enable_events=True),
-                    sg.Text('CutOffY',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='5.',key='-BEAMPOSCUTTOFFY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('SpreadX',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.04246',key='-BEAMPOSSPRDX-',size=(10,1), font=('Helvetica', 12), enable_events=True),
-                    sg.Text('SpreadY',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.04246',key='-BEAMPOSSPRDY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('AngDistro',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Gaussian',key='-BEAMSPOSANGDISTRO-',size=(10,1), font=('Helvetica', 12), enable_events=True),
-                    sg.Text('AngCutoffX',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='90',key='-BEAMPOSANGCUTOFFX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('AngCutoffY',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='90',key='-BEAMPOSANGCUTOFFY-',size=(10,1), font=('Helvetica', 12), enable_events=True),
-                    sg.Text('AngSpreadX',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='28',key='-BEAMPOSANGSPREADX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('AngSpreadY',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='28',key='-BEAMPOSANGSPREADY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                ])
-
-Time_layer = sg.Frame("Time Feature",
-                [   
-                   [sg.Text('Seq Time',size = (14,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='501',key='-TIMESEQ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Verbosity',size = (14,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0',key='-TIMEVERBO-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Timeline End',size = (14,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='501.0',key='-TIMELINEEND-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Rotate Func',size = (14,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='Linear deg',key='-TIMEROTFUNC-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Rotate Rate',size = (14,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='0.4',key='-TIMEROTRATE-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Rotate Start',size = (14,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='90.0',key='-TIMEROTSTART-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('ShowHistoryInt',size = (14,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='100000',key='-TIMEHISTINT-',size=(10,1), font=('Helvetica', 12), enable_events=True)]
-                     
-                ])
-
-toggle_layer = sg.Frame("ON/OFF",
-                [   
-                  [sg.Text('ChamberPlugCentre',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugCentre'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugCentre'] else 'white on red', key='-CPCTOG-'),
-                    sg.Text('ChamberPlugTop',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugTop'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugTop'] else 'white on red', key='-CPTTOG-'),
-                    sg.Text('ChamberPlugBottom',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugBottom'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugBottom'] else 'white on red', key='-CPBTOG-'),
-                    sg.Text('ChamberPlugLeft',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugLeft'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugLeft'] else 'white on red', key='-CPLTOG-')],
-                  [sg.Text('ChamberPlugRight',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugRight'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugRight'] else 'white on red', key='-CPRTOG-'),
-                    sg.Text('ChamberPlugDose_tle',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugDose_tle'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugDose_tle'] else 'white on red', key='-TLETOG-'),
-                    sg.Text('ChamberPlugDose_dtm',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugDose_dtm'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugDose_dtm'] else 'white on red', key='-DTMTOG-'),
-                    sg.Text('ChamberPlugDose_dtw',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugDose_dtw'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugDose_dtw'] else 'white on red', key='-DTWTOG-')],
-                  [sg.Text('CollimatorsVertical',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['CollimatorsVertical'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['CollimatorsVertical'] else 'white on red', key='-COLLVERTOG-'),
-                    sg.Text('CollimatorsHorizontal',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['CollimatorsHorizontal'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['CollimatorsHorizontal'] else 'white on red', key='-COLLHORTOG-'),
-                    sg.Text('TitaniumFilter',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['TitaniumFilter'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['TitaniumFilter'] else 'white on red', key='-TITFILTOG-'),
-                    sg.Text('BowtieFilter',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['BowtieFilter'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['BowtieFilter'] else 'white on red', key='-BTFILTOG-')],
-                  [sg.Text('Coll1',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['Coll1'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['Coll1'] else 'white on red', key='-COLL1TOG-'),
-                    sg.Text('Coll2',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['Coll2'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['Coll2'] else 'white on red', key='-COLL2TOG-'),
-                    sg.Text('Coll3',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['Coll3'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['Coll3'] else 'white on red', key='-COLL3TOG-'),
-                    sg.Text('Coll4',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['Coll4'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['Coll4'] else 'white on red', key='-COLL4TOG-')],
-                 
-                  [sg.Text('DemoFlat',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['DemoFlat'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['DemoFlat'] else 'white on red', key='-DEMOFLATTOG-'),
-                    sg.Text('DemoRTrap',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['DemoRTrap'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['DemoRTrap'] else 'white on red', key='-DEMORTRAPTOG-'),
-                    sg.Text('DemoLTrap',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['DemoLTrap'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['DemoLTrap'] else 'white on red', key='-DEMOLTRAPTOG-')],
-                  [sg.Text('topsidebox',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['topsidebox'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['topsidebox'] else 'white on red', key='-TSBTOG-'),
-                    sg.Text('bottomsidebox',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['bottomsidebox'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['bottomsidebox'] else 'white on red', key='-BSBTOG-'),
-                    sg.Text('couch',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['couch'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['couch'] else 'white on red', key='-COHTOG-')]
-                ])
-	
-
-#old menu
-# layout = [[ sg.Text('Imaging Dose', size=(30,1),font=('Helvetica 28 bold'), text_color='dark blue')],
-#             [general_layer,CTDI_layer,toggle_layer],
-#             [ChamberPlugCentre_layer,ChamberPlugTop_layer,ChamberPlugBottom_layer,ChamberPlugLeft_layer,ChamberPlugRight_layer,TITFIL_layer,Coll1_layer,Coll2_layer,Coll3_layer,Coll4_layer,Scoring_layer],
-#             [Coll1steel_layer,Coll2steel_layer,Coll3steel_layer,Coll4steel_layer,DemoFlat_layer,TopSideBox_layer,BottomSideBox_layer,DemoRTrap_layer,DemoLTrap_layer,Time_layer,Physics_layer],
-#             [RotationGroup_layer,CollimatorVerticalGroup_layer,CollimatorHorizontalGroup_layer,TitaniumGroup_layer,Bowtie_layer,
-# #           [DemoFlat_layer,TopSideBox_layer,BottomSideBox_layer,DemoRTrap_layer,DemoLTrap_layer],
-#             Couch_layer,BeamGroup_layer,Beam_layer,
-#              sg.Button("Generate Processes", enable_events=True, key='-GEN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey'),
-#              sg.Button("Run", enable_events=True, key='-RUN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey')]
-#          ]
-#end old menu
+from guilayers import *
+general_layer = gui_layer_generation(path, G4_Data, topas_application_path,dicom_path)
 
 # Creating a tabbed menu 
 main_layout = [[general_layer],
-               [toggle_layer], [
-                sg.Button("Generate Processes", enable_events=True, key='-GEN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey'), 
-                sg.Button("Run", enable_events=True, key='-RUN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey')] ]
-
-
+               [toggle_layer], 
+               [sg.Button("Generate Processes", enable_events=True, key='-GEN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey'), 
+                sg.Button("Run", enable_events=True, key='-RUN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey'),
+                sg.Button("Generate process and run", enable_events=True, key='-GENRUN-', disabled=False, )]]
 
 chamber_layout = [[CTDI_layer,ChamberPlugCentre_layer,ChamberPlugTop_layer,ChamberPlugBottom_layer,ChamberPlugLeft_layer,ChamberPlugRight_layer]]
 
@@ -1146,340 +184,13 @@ window = sg.Window(title= "Imaging Dose Simulation", layout=layout, finalize=Tru
 window.set_min_size(window.size)
 # End test tab menu
 
-# my_width, my_height = 1920, 1080
-
-# root = sg.tk.Tk()
-# new_scaling = root.winfo_fpixels('1i')/72
-# width, height = sg.Window.get_screen_size()
-# scaling = new_scaling * min(width / my_width, height / my_height)
 
 
+# from keyvar import all
 
+from key_binds import *
+key_binds(window) 
 
-window["-MAINFOLDERNAME-"].bind("<Return>","_ENTER")
-window["-G4FOLDERNAME-"].bind("<Return>","_ENTER")
-window["-TOPAS-"].bind("<Return>","_ENTER")
-window["-SEED-"].bind("<Return>","_ENTER")
-window["-THREAD-"].bind("<Return>","_ENTER")
-window["-HIST-"].bind("<Return>","_ENTER")
-window["-CPC_TYPE-"].bind("<Return>","_ENTER")
-window["-CPC_MAT-"].bind("<Return>","_ENTER")
-window["-CPC_RMIN-"].bind("<Return>","_ENTER")
-window["-CPC_RMAX-"].bind("<Return>","_ENTER")
-window["-CPC_HL-"].bind("<Return>","_ENTER")
-window["-CPC_RMAX-"].bind("<Return>","_ENTER")
-window["-CPC_SPHI-"].bind("<Return>","_ENTER")
-window["-CPC_DPHI-"].bind("<Return>","_ENTER")
-window["-CPC_TX-"].bind("<Return>","_ENTER")
-window["-CPC_TY-"].bind("<Return>","_ENTER")
-window["-CPC_TZ-"].bind("<Return>","_ENTER")
-window["-CPC_RX-"].bind("<Return>","_ENTER")
-
-window["-CPT_TYPE-"].bind("<Return>","_ENTER")
-window["-CPT_MAT-"].bind("<Return>","_ENTER")
-window["-CPT_RMIN-"].bind("<Return>","_ENTER")
-window["-CPT_RMAX-"].bind("<Return>","_ENTER")
-window["-CPT_HL-"].bind("<Return>","_ENTER")
-window["-CPT_RMAX-"].bind("<Return>","_ENTER")
-window["-CPT_SPHI-"].bind("<Return>","_ENTER")
-window["-CPT_DPHI-"].bind("<Return>","_ENTER")
-window["-CPT_TX-"].bind("<Return>","_ENTER")
-window["-CPT_TY-"].bind("<Return>","_ENTER")
-window["-CPT_TZ-"].bind("<Return>","_ENTER")
-window["-CPT_RX-"].bind("<Return>","_ENTER")
-
-window["-CPB_TYPE-"].bind("<Return>","_ENTER")
-window["-CPB_MAT-"].bind("<Return>","_ENTER")
-window["-CPB_RMIN-"].bind("<Return>","_ENTER")
-window["-CPB_RMAX-"].bind("<Return>","_ENTER")
-window["-CPB_HL-"].bind("<Return>","_ENTER")
-window["-CPB_RMAX-"].bind("<Return>","_ENTER")
-window["-CPB_SPHI-"].bind("<Return>","_ENTER")
-window["-CPB_DPHI-"].bind("<Return>","_ENTER")
-window["-CPB_TX-"].bind("<Return>","_ENTER")
-window["-CPB_TY-"].bind("<Return>","_ENTER")
-window["-CPB_TZ-"].bind("<Return>","_ENTER")
-window["-CPB_RX-"].bind("<Return>","_ENTER")
-
-window["-CPL_TYPE-"].bind("<Return>","_ENTER")
-window["-CPL_MAT-"].bind("<Return>","_ENTER")
-window["-CPL_RMIN-"].bind("<Return>","_ENTER")
-window["-CPL_RMAX-"].bind("<Return>","_ENTER")
-window["-CPL_HL-"].bind("<Return>","_ENTER")
-window["-CPL_RMAX-"].bind("<Return>","_ENTER")
-window["-CPL_SPHI-"].bind("<Return>","_ENTER")
-window["-CPL_DPHI-"].bind("<Return>","_ENTER")
-window["-CPL_TX-"].bind("<Return>","_ENTER")
-window["-CPL_TY-"].bind("<Return>","_ENTER")
-window["-CPL_TZ-"].bind("<Return>","_ENTER")
-window["-CPL_RX-"].bind("<Return>","_ENTER")
-
-window["-CPR_TYPE-"].bind("<Return>","_ENTER")
-window["-CPR_MAT-"].bind("<Return>","_ENTER")
-window["-CPR_RMIN-"].bind("<Return>","_ENTER")
-window["-CPR_RMAX-"].bind("<Return>","_ENTER")
-window["-CPR_HL-"].bind("<Return>","_ENTER")
-window["-CPR_RMAX-"].bind("<Return>","_ENTER")
-window["-CPR_SPHI-"].bind("<Return>","_ENTER")
-window["-CPR_DPHI-"].bind("<Return>","_ENTER")
-window["-CPR_TX-"].bind("<Return>","_ENTER")
-window["-CPR_TY-"].bind("<Return>","_ENTER")
-window["-CPR_TZ-"].bind("<Return>","_ENTER")
-window["-CPR_RX-"].bind("<Return>","_ENTER")
-
-window["-TLEZB-"].bind("<Return>","_ENTER")
-window["-DTMZB-"].bind("<Return>","_ENTER")
-window["-DTWZB-"].bind("<Return>","_ENTER")
-#window["-DTMDZB-"].bind("<Return>","_ENTER")
-
-window["-PHYLST-"].bind("<Return>","_ENTER")
-window["-PHYPRO-"].bind("<Return>","_ENTER")
-window["-PHYDEFTY-"].bind("<Return>","_ENTER")
-window["-PHYDEFMO-"].bind("<Return>","_ENTER")
-window["-PHYEMIN-"].bind("<Return>","_ENTER")
-window["-PHYEMAX-"].bind("<Return>","_ENTER")
-window["-ROTTY-"].bind("<Return>","_ENTER")
-window["-ROTPAR-"].bind("<Return>","_ENTER")
-
-window["-ROTROTX-"].bind("<Return>","_ENTER")
-window["-ROTROTY-"].bind("<Return>","_ENTER")
-window["-ROTROTZ-"].bind("<Return>","_ENTER")
-window["-ROTTRANSX-"].bind("<Return>","_ENTER")
-window["-ROTTRANSY-"].bind("<Return>","_ENTER")
-window["-ROTTRANSZ-"].bind("<Return>","_ENTER")
-window["-COLLVERTY-"].bind("<Return>","_ENTER")
-window["-COLLVERPAR-"].bind("<Return>","_ENTER")
-window["-COLLVERROTX-"].bind("<Return>","_ENTER")
-window["-COLLVERROTY-"].bind("<Return>","_ENTER")
-window["-COLLVERROTZ-"].bind("<Return>","_ENTER")
-window["-COLLVERTRANSZ-"].bind("<Return>","_ENTER")
-window["-COLLHORPAR-"].bind("<Return>","_ENTER")
-window["-COLLHORROTX-"].bind("<Return>","_ENTER")
-window["-COLLHORROTY-"].bind("<Return>","_ENTER")
-window["-COLLHORROTZ-"].bind("<Return>","_ENTER")
-window["-COLLHORTRANSZ-"].bind("<Return>","_ENTER")
-
-window["-TITTY-"].bind("<Return>","_ENTER")
-window["-TITPAR-"].bind("<Return>","_ENTER")
-window["-TITROTX-"].bind("<Return>","_ENTER")
-window["-TITROTY-"].bind("<Return>","_ENTER")
-window["-TITROTZ-"].bind("<Return>","_ENTER")
-window["-TITTRANSZ-"].bind("<Return>","_ENTER")
-
-window["-BFTY-"].bind("<Return>","_ENTER")
-window["-BFPAR-"].bind("<Return>","_ENTER")
-window["-BFROTX-"].bind("<Return>","_ENTER")
-window["-BFROTY-"].bind("<Return>","_ENTER")
-window["-BFROTZ-"].bind("<Return>","_ENTER")
-window["-BFTRANSX-"].bind("<Return>","_ENTER")
-window["-BFTRANSY-"].bind("<Return>","_ENTER")
-window["-BFTRANSZ-"].bind("<Return>","_ENTER")
-
-window["-Coll1TY-"].bind("<Return>","_ENTER")
-window["-Coll1PAR-"].bind("<Return>","_ENTER")
-window["-Coll1MAT-"].bind("<Return>","_ENTER")
-window["-Coll1ROTX-"].bind("<Return>","_ENTER")
-window["-Coll1ROTY-"].bind("<Return>","_ENTER")
-window["-Coll1ROTZ-"].bind("<Return>","_ENTER")
-window["-Coll1TRANSX-"].bind("<Return>","_ENTER")
-window["-Coll1TRANSY-"].bind("<Return>","_ENTER")
-window["-Coll1TRANSZ-"].bind("<Return>","_ENTER")
-window["-Coll1LZ-"].bind("<Return>","_ENTER")
-window["-Coll1LY-"].bind("<Return>","_ENTER")
-window["-Coll1LX-"].bind("<Return>","_ENTER")
-window["-Coll1LTX-"].bind("<Return>","_ENTER")
-
-window["-Coll2TY-"].bind("<Return>","_ENTER")
-window["-Coll2PAR-"].bind("<Return>","_ENTER")
-window["-Coll2MAT-"].bind("<Return>","_ENTER")
-window["-Coll2ROTX-"].bind("<Return>","_ENTER")
-window["-Coll2ROTY-"].bind("<Return>","_ENTER")
-window["-Coll2ROTZ-"].bind("<Return>","_ENTER")
-window["-Coll2TRANSX-"].bind("<Return>","_ENTER")
-window["-Coll2TRANSY-"].bind("<Return>","_ENTER")
-window["-Coll2TRANSZ-"].bind("<Return>","_ENTER")
-window["-Coll2LZ-"].bind("<Return>","_ENTER")
-window["-Coll2LY-"].bind("<Return>","_ENTER")
-window["-Coll2LX-"].bind("<Return>","_ENTER")
-window["-Coll2LTX-"].bind("<Return>","_ENTER")
-
-window["-Coll3TY-"].bind("<Return>","_ENTER")
-window["-Coll3PAR-"].bind("<Return>","_ENTER")
-window["-Coll3MAT-"].bind("<Return>","_ENTER")
-window["-Coll3ROTX-"].bind("<Return>","_ENTER")
-window["-Coll3ROTY-"].bind("<Return>","_ENTER")
-window["-Coll3ROTZ-"].bind("<Return>","_ENTER")
-window["-Coll3TRANSX-"].bind("<Return>","_ENTER")
-window["-Coll3TRANSY-"].bind("<Return>","_ENTER")
-window["-Coll3TRANSZ-"].bind("<Return>","_ENTER")
-window["-Coll3LZ-"].bind("<Return>","_ENTER")
-window["-Coll3LY-"].bind("<Return>","_ENTER")
-window["-Coll3LX-"].bind("<Return>","_ENTER")
-window["-Coll3LTX-"].bind("<Return>","_ENTER")
-
-window["-Coll4TY-"].bind("<Return>","_ENTER")
-window["-Coll4PAR-"].bind("<Return>","_ENTER")
-window["-Coll4MAT-"].bind("<Return>","_ENTER")
-window["-Coll4ROTX-"].bind("<Return>","_ENTER")
-window["-Coll4ROTY-"].bind("<Return>","_ENTER")
-window["-Coll4ROTZ-"].bind("<Return>","_ENTER")
-window["-Coll4TRANSX-"].bind("<Return>","_ENTER")
-window["-Coll4TRANSY-"].bind("<Return>","_ENTER")
-window["-Coll4TRANSZ-"].bind("<Return>","_ENTER")
-window["-Coll4LZ-"].bind("<Return>","_ENTER")
-window["-Coll4LY-"].bind("<Return>","_ENTER")
-window["-Coll4LX-"].bind("<Return>","_ENTER")
-window["-Coll4LTX-"].bind("<Return>","_ENTER")
-
-window["-Coll1steelMAT-"].bind("<Return>","_ENTER")
-window["-Coll1steelPAR-"].bind("<Return>","_ENTER")
-window["-Coll1steelTY-"].bind("<Return>","_ENTER")
-window["-Coll1steelROTX-"].bind("<Return>","_ENTER")
-window["-Coll1steelROTY-"].bind("<Return>","_ENTER")
-window["-Coll1steelROTZ-"].bind("<Return>","_ENTER")
-window["-Coll1steelTRANSX-"].bind("<Return>","_ENTER")
-window["-Coll1steelTRANSY-"].bind("<Return>","_ENTER")
-window["-Coll1steelTRANSZ-"].bind("<Return>","_ENTER")
-window["-Coll1steelLZ-"].bind("<Return>","_ENTER")
-window["-Coll1steelLY-"].bind("<Return>","_ENTER")
-window["-Coll1steelLX-"].bind("<Return>","_ENTER")
-window["-Coll1steelLTX-"].bind("<Return>","_ENTER")
-
-window["-Coll2steelTY-"].bind("<Return>","_ENTER")
-window["-Coll2steelPAR-"].bind("<Return>","_ENTER")
-window["-Coll2steelMAT-"].bind("<Return>","_ENTER")
-window["-Coll2steelROTX-"].bind("<Return>","_ENTER")
-window["-Coll2steelROTY-"].bind("<Return>","_ENTER")
-window["-Coll2steelROTZ-"].bind("<Return>","_ENTER")
-window["-Coll2steelTRANSX-"].bind("<Return>","_ENTER")
-window["-Coll2steelTRANSY-"].bind("<Return>","_ENTER")
-window["-Coll2steelTRANSZ-"].bind("<Return>","_ENTER")
-window["-Coll2steelLZ-"].bind("<Return>","_ENTER")
-window["-Coll2steelLY-"].bind("<Return>","_ENTER")
-window["-Coll2steelLX-"].bind("<Return>","_ENTER")
-window["-Coll2steelLTX-"].bind("<Return>","_ENTER")
-
-window["-Coll3steelTY-"].bind("<Return>","_ENTER")
-window["-Coll3steelPAR-"].bind("<Return>","_ENTER")
-window["-Coll3steelMAT-"].bind("<Return>","_ENTER")
-window["-Coll3steelROTX-"].bind("<Return>","_ENTER")
-window["-Coll3steelROTY-"].bind("<Return>","_ENTER")
-window["-Coll3steelROTZ-"].bind("<Return>","_ENTER")
-window["-Coll3steelTRANSX-"].bind("<Return>","_ENTER")
-window["-Coll3steelTRANSY-"].bind("<Return>","_ENTER")
-window["-Coll3steelTRANSZ-"].bind("<Return>","_ENTER")
-window["-Coll3steelLZ-"].bind("<Return>","_ENTER")
-window["-Coll3steelLY-"].bind("<Return>","_ENTER")
-window["-Coll3steelLX-"].bind("<Return>","_ENTER")
-window["-Coll3steelLTX-"].bind("<Return>","_ENTER")
-window["-Coll4steelTY-"].bind("<Return>","_ENTER")
-window["-Coll4steelPAR-"].bind("<Return>","_ENTER")
-window["-Coll4steelMAT-"].bind("<Return>","_ENTER")
-window["-Coll4steelROTX-"].bind("<Return>","_ENTER")
-window["-Coll4steelROTY-"].bind("<Return>","_ENTER")
-window["-Coll4steelROTZ-"].bind("<Return>","_ENTER")
-window["-Coll4steelTRANSX-"].bind("<Return>","_ENTER")
-window["-Coll4steelTRANSY-"].bind("<Return>","_ENTER")
-window["-Coll4steelTRANSZ-"].bind("<Return>","_ENTER")
-window["-Coll4steelLZ-"].bind("<Return>","_ENTER")
-window["-Coll4steelLY-"].bind("<Return>","_ENTER")
-window["-Coll4steelLX-"].bind("<Return>","_ENTER")
-window["-Coll4steelLTX-"].bind("<Return>","_ENTER")
-
-window["-TITFILTY-"].bind("<Return>","_ENTER")
-window["-TITFILPAR-"].bind("<Return>","_ENTER")
-window["-TITFILMAT-"].bind("<Return>","_ENTER")
-window["-TITFILROTX-"].bind("<Return>","_ENTER")
-window["-TITFILROTY-"].bind("<Return>","_ENTER")
-window["-TITFILROTZ-"].bind("<Return>","_ENTER")
-window["-TITFILTRANSX-"].bind("<Return>","_ENTER")
-window["-TITFILTRANSY-"].bind("<Return>","_ENTER")
-window["-TITFILTRANSZ-"].bind("<Return>","_ENTER")
-window["-TITFILHLZ-"].bind("<Return>","_ENTER")
-window["-TITFILHLY-"].bind("<Return>","_ENTER")
-window["-TITFILHLX-"].bind("<Return>","_ENTER")
-
-window["-DEMOFLATTY-"].bind("<Return>","_ENTER")
-window["-DEMOFLATPAR-"].bind("<Return>","_ENTER")
-window["-DEMOFLATMAT-"].bind("<Return>","_ENTER")
-window["-DEMOFLATROTX-"].bind("<Return>","_ENTER")
-window["-DEMOFLATROTY-"].bind("<Return>","_ENTER")
-window["-DEMOFLATROTZ-"].bind("<Return>","_ENTER")
-window["-DEMOFLATTRANSX-"].bind("<Return>","_ENTER")
-window["-DEMOFLATTRANSY-"].bind("<Return>","_ENTER")
-window["-DEMOFLATTRANSZ-"].bind("<Return>","_ENTER")
-window["-DEMOFLATHLZ-"].bind("<Return>","_ENTER")
-window["-DEMOFLATHLY-"].bind("<Return>","_ENTER")
-window["-DEMOFLATHLX-"].bind("<Return>","_ENTER")
-
-window["-TSBTY-"].bind("<Return>","_ENTER")
-window["-TSBPAR-"].bind("<Return>","_ENTER")
-window["-TSBMAT-"].bind("<Return>","_ENTER")
-window["-TSBROTX-"].bind("<Return>","_ENTER")
-window["-TSBROTY-"].bind("<Return>","_ENTER")
-window["-TSBROTZ-"].bind("<Return>","_ENTER")
-window["-TSBTRANSX-"].bind("<Return>","_ENTER")
-window["-TSBTRANSY-"].bind("<Return>","_ENTER")
-window["-TSBTRANSZ-"].bind("<Return>","_ENTER")
-window["-TSBHLZ-"].bind("<Return>","_ENTER")
-window["-TSBHLY-"].bind("<Return>","_ENTER")
-window["-TSBHLX-"].bind("<Return>","_ENTER")
-
-window["-BSBTY-"].bind("<Return>","_ENTER")
-window["-BSBPAR-"].bind("<Return>","_ENTER")
-window["-BSBMAT-"].bind("<Return>","_ENTER")
-window["-BSBROTX-"].bind("<Return>","_ENTER")
-window["-BSBROTY-"].bind("<Return>","_ENTER")
-window["-BSBROTZ-"].bind("<Return>","_ENTER")
-window["-BSBTRANSX-"].bind("<Return>","_ENTER")
-window["-BSBTRANSY-"].bind("<Return>","_ENTER")
-window["-BSBTRANSZ-"].bind("<Return>","_ENTER")
-window["-BSBHLZ-"].bind("<Return>","_ENTER")
-window["-BSBHLY-"].bind("<Return>","_ENTER")
-window["-BSBHLX-"].bind("<Return>","_ENTER")
-
-window["-COUCHTY-"].bind("<Return>","_ENTER")
-window["-COUCHPAR-"].bind("<Return>","_ENTER")
-window["-COUCHMAT-"].bind("<Return>","_ENTER")
-window["-COUCHTRANSX-"].bind("<Return>","_ENTER")
-window["-COUCHTRANSY-"].bind("<Return>","_ENTER")
-window["-COUCHTRANSZ-"].bind("<Return>","_ENTER")
-window["-COUCHHLZ-"].bind("<Return>","_ENTER")
-window["-COUCHHLY-"].bind("<Return>","_ENTER")
-window["-COUCHHLX-"].bind("<Return>","_ENTER")
-
-window["-BEAMGRPTY-"].bind("<Return>","_ENTER")
-window["-BEAMGRPPAR-"].bind("<Return>","_ENTER")
-window["-BEAMGRPTRANSX-"].bind("<Return>","_ENTER")
-window["-BEAMGRPTRANSY-"].bind("<Return>","_ENTER")
-window["-BEAMGRPTRANSZ-"].bind("<Return>","_ENTER")
-window["-BEAMGRPROTZ-"].bind("<Return>","_ENTER")
-window["-BEAMGRPROTY-"].bind("<Return>","_ENTER")
-window["-BEAMGRPROTX-"].bind("<Return>","_ENTER")
-
-window["-BEAMSPECTY-"].bind("<Return>","_ENTER")
-window["-BEAMTY-"].bind("<Return>","_ENTER")
-window["-BEAMCOMPO-"].bind("<Return>","_ENTER")
-window["-BEAMPAR-"].bind("<Return>","_ENTER")
-window["-BEAMGRPTRANSZ-"].bind("<Return>","_ENTER")
-window["-BEAMPOSDISTRO-"].bind("<Return>","_ENTER")
-window["-BEAMPOSHAPE-"].bind("<Return>","_ENTER")
-window["-BEAMSPOSANGDISTRO-"].bind("<Return>","_ENTER")
-window["-BEAMPOSCUTOFFX-"].bind("<Return>","_ENTER")
-window["-BEAMPOSCUTTOFFY-"].bind("<Return>","_ENTER")
-window["-BEAMPOSSPRDX-"].bind("<Return>","_ENTER")
-window["-BEAMPOSSPRDY-"].bind("<Return>","_ENTER")
-window["-BEAMPOSANGCUTOFFX-"].bind("<Return>","_ENTER")
-window["-BEAMPOSANGCUTOFFY-"].bind("<Return>","_ENTER")
-window["-BEAMPOSANGSPREADX-"].bind("<Return>","_ENTER")
-window["-BEAMPOSANGSPREADY-"].bind("<Return>","_ENTER")
-window["-TIMEROTFUNC-"].bind("<Return>","_ENTER")
-window["-TIMESEQ-"].bind("<Return>","_ENTER")
-window["-TIMELINEEND-"].bind("<Return>","_ENTER")
-window["-COUCHTRANSZ-"].bind("<Return>","_ENTER")
-window["-TIMEROTRATE-"].bind("<Return>","_ENTER")
-window["-TIMEROTSTART-"].bind("<Return>","_ENTER")
-window["-TIMEHISTINT-"].bind("<Return>","_ENTER")
 #default we will have 5 positions-chamberplugs and 3 quantities to score
 #this variable has to be outside of the while loop because after the RUN event updates
 #variable, the while loop continues to run and therefore it gets reassigned to 15 again
@@ -1487,7 +198,7 @@ window["-TIMEHISTINT-"].bind("<Return>","_ENTER")
 #simulation subprocess is still running. if no other buttons get triggered while it loops
 #then no if block statement will run. though when the subprocess runs, the GUI seems to block 
 #all buttons and inputs
-num_of_csvresult = 15 
+num_of_csvresult = 5 
 
 while True:
     event,values = window.read()
@@ -1506,18 +217,42 @@ while True:
         print(command)
 
     if event == '-G4FOLDERNAME-_ENTER':
-        print(str(values['-G4FOLDERNAME-']))
-        replacement_floatorint("G4DataDirectory = \'\""+G4_Data+"\"\'",
-                               "G4DataDirectory = \'\""+str(values['-G4FOLDERNAME-'])+"\"\'")
+        # print(str(values['-G4FOLDERNAME-']))
+        # replacement_floatorint("G4DataDirectory = \'\""+G4_Data+"\"\'",
+        #                        "G4DataDirectory = \'\""+str(values['-G4FOLDERNAME-'])+"\"\'")
+        # Add a line search and replacement function here
+        G4_Data = values['-G4FOLDERNAME-'] 
+
+    if event == '-TOPAS-_ENTER':
+        # Add a line search and replacement function here
+        topas_application_path = values['-TOPAS-'] + " "
 
     if event == '-DUPGENPROC-':
+        G4_Data = values['-G4FOLDERNAME-']
+        # Add code that dynamically pulls value from the input textboxes and replaced the newly generated files
         original_file_path = path + '/generate_allproc_boilerplate.py'
         duplicate_gen_file_name = "generate_allproc.py"
         directory_path = os.path.dirname(original_file_path)
         duplicate_gen_file_path = os.path.join(directory_path, duplicate_gen_file_name)
         shutil.copy(original_file_path, duplicate_gen_file_path)
 
+        replaced_content=""
+        all_proc = open(path + '/generate_allproc.py', "r")
+        for line in all_proc:
+            line.strip()
+            
+            new_line  = line.replace("test_boilerplate_path_change_G4",
+                                    f"{G4_Data}")
+            replaced_content = replaced_content + new_line 
+        all_proc.close()
+        write_file = open(path + '/generate_allproc.py', "w")
+        write_file.write(replaced_content)
+        write_file.close()
+        # This code is inefficient, runs more lines than required 
+
     if event == '-DUPMULPROC-':
+        topas_application_path = values['-TOPAS-'] + " "
+        # Add code that dynamically pulls value from the input textboxes and replaced the newly generated files
         original_file_path = path + '/runfolder/topas_multiproc_boilerplate.py'
         duplicate_multiproc_file_name = "topas_multiproc.py"
         directory_path = os.path.dirname(original_file_path)
@@ -1529,16 +264,14 @@ while True:
         for line in multi_proc:
             line.strip()
             
-            new_line  = line.replace("/home/leekh/topas/bin/topas ",
-                                    f"{topas_application_path} ")
+            new_line  = line.replace("test_boilerplate_path_change_topas",
+                                    f"{topas_application_path}")
             replaced_content = replaced_content + new_line 
         multi_proc.close()
         write_file = open(path + '/runfolder/topas_multiproc.py', "w")
         write_file.write(replaced_content)
         write_file.close()
-
-    if event == '-TOPAS-_ENTER':
-        topas_application_path = values['-TOPAS-'] + "/topas"
+        # This code is inefficient, runs more lines than required 
 
     if event == '-SEED-_ENTER':
         replacement_witherrorhandling_forintegers(values['-SEED-'],
@@ -1585,7 +318,7 @@ while True:
     if event == '-CPC_RMIN-_ENTER':
         replacement_witherrorhandling(values['-CPC_RMIN-'],
                                       "ChamberPlugCentre_RMin=\"0.0\"",
-                                      "ChamberPlugCentre_RMin=\""+str(values['-CPC_RMIN-'])+"\""
+                                      "ChamberPlugCentre_RMin=\""+str(values['-CPC_RMIN-'])+"\"",
                                       "#ChamberPlugCentre_RMin_start,ChamberPlugCentre_RMin_stop,ChamberPlugCentre_RMin_step = 0,0,0",
                                       "#boundaries_list.append([ChamberPlugCentre_RMin_start",
                                       "#boundaries_name_list.append(['ChamberPlugCentre_RMin']",
@@ -1682,7 +415,7 @@ while True:
     if event == '-CPT_RMIN-_ENTER':
         replacement_witherrorhandling(values['-CPT_RMIN-'],
                                       "ChamberPlugTop_RMin=\"0.0\"",
-                                      "ChamberPlugTop_RMin=\""+str(values['-CPT_RMIN-'])+"\""
+                                      "ChamberPlugTop_RMin=\""+str(values['-CPT_RMIN-'])+"\"",
                                       "#ChamberPlugTop_RMin_start,ChamberPlugTop_RMin_stop,ChamberPlugTop_RMin_step = 0,0,0",
                                       "#boundaries_list.append([ChamberPlugTop_RMin_start",
                                       "#boundaries_name_list.append(['ChamberPlugTop_RMin']",
@@ -1778,7 +511,7 @@ while True:
     if event == '-CPB_RMIN-_ENTER':
         replacement_witherrorhandling(values['-CPB_RMIN-'],
                                       "ChamberPlugBottom_RMin=\"0.0\"",
-                                      "ChamberPlugBottom_RMin=\""+str(values['-CPB_RMIN-'])+"\""
+                                      "ChamberPlugBottom_RMin=\""+str(values['-CPB_RMIN-'])+"\"",
                                       "#ChamberPlugBottom_RMin_start,ChamberPlugBottom_RMin_stop,ChamberPlugBottom_RMin_step = 0,0,0",
                                       "#boundaries_list.append([ChamberPlugBottom_RMin_start",
                                       "#boundaries_name_list.append(['ChamberPlugBottom_RMin']",
@@ -1874,7 +607,7 @@ while True:
     if event == '-CPL_RMIN-_ENTER':
         replacement_witherrorhandling(values['-CPL_RMIN-'],
                                       "ChamberPlugLeft_RMin=\"0.0\"",
-                                      "ChamberPlugLeft_RMin=\""+str(values['-CPL_RMIN-'])+"\""
+                                      "ChamberPlugLeft_RMin=\""+str(values['-CPL_RMIN-'])+"\"",
                                       "#ChamberPlugLeft_RMin_start,ChamberPlugLeft_RMin_stop,ChamberPlugLeft_RMin_step = 0,0,0",
                                       "#boundaries_list.append([ChamberPlugLeft_RMin_start",
                                       "#boundaries_name_list.append(['ChamberPlugLeft_RMin']",
@@ -1971,7 +704,8 @@ while True:
     if event == '-CPR_RMIN-_ENTER':
         replacement_witherrorhandling(values['-CPR_RMIN-'],
                                       "ChamberPlugRight_RMin=\"0.0\"",
-                                      "ChamberPlugRight_RMin=\""+str(values['-CPR_RMIN-'])+"\""
+                                      "ChamberPlugRight_RMin=\""+str(values['-CPR_RMIN-'])+"\"",
+
                                       "#ChamberPlugRight_RMin_start,ChamberPlugRight_RMin_stop,ChamberPlugRight_RMin_step = 0,0,0",
                                       "#boundaries_list.append([ChamberPlugRight_RMin_start",
                                       "#boundaries_name_list.append(['ChamberPlugRight_RMin']",
@@ -4224,7 +2958,6 @@ while True:
             selectcomponents['couch'] = 0
 
     if event == '-RUN-':
-
         command_topas = "python3 runfolder/topas_multiproc.py"
         command_progressbar = f"python3 progressbar.py {path} {num_of_csvresult}"
         commands = [command_topas,command_progressbar]
@@ -4233,5 +2966,22 @@ while True:
         for p in procs:
             #pass
             p.wait()
+
+    if event == '-GENRUN-':
+        command = ["python3 generate_allproc.py"]
+        subprocess.run(command, shell=True)
+        print(command)
+        command_topas = "python3 runfolder/topas_multiproc.py"
+        command_progressbar = f"python3 progressbar.py {path} {num_of_csvresult}"
+        commands = [command_topas,command_progressbar]
+        #commands = [command_progressbar]
+        procs = [subprocess.Popen(i,shell=True) for i in commands]
+        for p in procs:
+            #pass
+            p.wait()
+    if event == '-DICOMACTIVATE-':
+        pass
+        # window[2].update(visible=False)
+        
 
 window.close()

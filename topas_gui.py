@@ -100,6 +100,19 @@ def replacement_witherrorhandling_forintegers(
             sg.popup_error("Something is wrong!","Either not all the inputs are integer/float or the number of elements entered is incorrect. Must be of the form: start,stop,step")
     else:
         sg.popup_error("Something is wrong!", "The input needs to be of the form :start,stop,step or single entry")
+
+
+def stringindexreplacement(string, filepath, replacementstring):
+    filecontent = open(filepath, 'r')
+    for lineIndex in range(len(filecontent)):
+        if line.strip().startswith(string):
+            line = string + replacementstring
+            filecontent[lineIndex] = line
+
+
+
+
+
 ####################################################################
 
 #default settings###################################################
@@ -112,6 +125,7 @@ def replacement_witherrorhandling_forintegers(
 # Fixed path for ease of user testing. User: JK
 path = os.getcwd()
 topas_application_path = '/root/topas/bin/topas '     #linux
+dicom_path = '/root/nccs/Topas_wrapper/test/cherylair'
 G4_Data ='/root/G4Data' #linux
 
 
@@ -135,7 +149,7 @@ from generate_allproc_boilerplate import selectcomponents
 sg.theme('Reddit')
 
 from guilayers import *
-general_layer = gui_layer_generation(path, G4_Data, topas_application_path)
+general_layer = gui_layer_generation(path, G4_Data, topas_application_path,dicom_path)
 
 # Creating a tabbed menu 
 main_layout = [[general_layer],
@@ -2954,11 +2968,9 @@ while True:
             p.wait()
 
     if event == '-GENRUN-':
-        
         command = ["python3 generate_allproc.py"]
         subprocess.run(command, shell=True)
         print(command)
-
         command_topas = "python3 runfolder/topas_multiproc.py"
         command_progressbar = f"python3 progressbar.py {path} {num_of_csvresult}"
         commands = [command_topas,command_progressbar]
@@ -2967,6 +2979,9 @@ while True:
         for p in procs:
             #pass
             p.wait()
+    if event == '-DICOMACTIVATE-':
+        pass
+        # window[2].update(visible=False)
         
 
 window.close()

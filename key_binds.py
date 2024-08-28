@@ -4,6 +4,8 @@ def key_binds(window):
     window["-MAINFOLDERNAME-"].bind("<Return>","_ENTER")
     window["-G4FOLDERNAME-"].bind("<Return>","_ENTER")
     window["-TOPAS-"].bind("<Return>","_ENTER")
+    window["-DICOM-"].bind("<Return>","_ENTER")
+    # window["-DICOMACTIVATE-"].bind("<Return>","_ENTER")
     window["-SEED-"].bind("<Return>","_ENTER")
     window["-THREAD-"].bind("<Return>","_ENTER")
     window["-HIST-"].bind("<Return>","_ENTER")

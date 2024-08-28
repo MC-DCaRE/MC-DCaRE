@@ -332,3 +332,4 @@ cython_debug/
 # Personal test file 
 /proving_grounds.py
 /test/sampledicom
+/test.bat

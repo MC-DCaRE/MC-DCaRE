@@ -15,6 +15,22 @@ def my_arange(start, end, step):
 	"""
 	return np.linspace(start, end, num=round((end-start)/step), endpoint=False)
 
+def stringindexreplacement(SearchString :str , TargetFile: str , ReplacementString: str):
+    '''
+    Targeted string replacement. 
+    Function looks for the line that startes with SearchString at the file directory of TargetFile and replaces it with Replacement String. 
+    Function will replace the entire line and any information trailing the SearchString will be lost in this process. 
+    '''
+    with open(TargetFile, 'r') as Rread_file:
+        filecontent = Rread_file.readlines()
+    with open(TargetFile, 'w') as Write_file:
+        for lineIndex in range(len(filecontent)):
+            if filecontent[lineIndex].startswith(SearchString):
+                newline = SearchString + " = " +ReplacementString+'\n' 
+                filecontent[lineIndex] = newline
+                break #exits after the first instance of match. Saves compute. 
+        Write_file.writelines( filecontent )
+
 def replacement_floatorint(stringtoreplace,stringreplacement):
 
     replaced_content=""
@@ -101,13 +117,6 @@ def replacement_witherrorhandling_forintegers(
     else:
         sg.popup_error("Something is wrong!", "The input needs to be of the form :start,stop,step or single entry")
 
-
-def stringindexreplacement(string, filepath, replacementstring):
-    filecontent = open(filepath, 'r')
-    for lineIndex in range(len(filecontent)):
-        if line.strip().startswith(string):
-            line = string + replacementstring
-            filecontent[lineIndex] = line
 
 
 
@@ -209,12 +218,12 @@ while True:
     if event == '-MAINFOLDERNAME-_ENTER':
         #default path
         path = values['-MAINFOLDERNAME-']
-        print(path)
+        # print(path)
 
     if event == '-GEN-':
         command = ["python3 generate_allproc.py"]
         subprocess.run(command, shell=True)
-        print(command)
+        # print(command)
 
     if event == '-G4FOLDERNAME-_ENTER':
         # print(str(values['-G4FOLDERNAME-']))

@@ -323,14 +323,5 @@ cython_debug/
 #.idea/
 
 # Generated batch and csv files
-/runfolder/*.bat
-/runfolder/datafolder/
-/generate_allproc.py
-/runfolder/topas_multiproc.py 
-
-
-# Personal test file 
-/proving_grounds.py
-/test/sampledicom
-/test.bat
-
+*.bat
+runfolder/datafolder/*.csv

@@ -1,33 +1,93 @@
 import PySimpleGUI as sg
 from generate_allproc_boilerplate import selectcomponents
 
-def gui_layer_generation(path, G4_Data, topas_application_path, dicom_path):
+def gui_layer_generation(path, G4_Data, topas_application_path):
   general_layer = sg.Frame('General Settings',
                   [ 
                     [sg.Text('Main Folder',size =(17,1),font=('Helvetica', 14),text_color='black'),
-  #                   sg.In(default_text='/home/businessit/Downloads/topaswrap_version2',key='-MAINFOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(font=('Helvetica', 14))],
                       sg.In(default_text=path,key='-MAINFOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(font=('Helvetica', 14))],
-                    
                     [sg.Text('G4 Data Directory',size = (17,1),font=('Helvetica', 14), text_color='black'),
-  #                   sg.In(default_text='/home/businessit/G4Data',key='-G4FOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(font=('Helvetica', 14))],
                       sg.In(default_text=G4_Data,key='-G4FOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True, tooltip="Click the enter key to register the change"),sg.FolderBrowse(font=('Helvetica', 14))],
                     [sg.Text('TOPAS Directory',size =(17,1),font=('Helvetica', 14),text_color='black'),
-  #                   sg.In(default_text='/home/businessit/topas/bin/topas',key='-TOPAS-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FileBrowse(font=('Helvetica', 14))],
                       sg.In(default_text=topas_application_path,key='-TOPAS-',size=(50,1),font=('Helvetica', 14),enable_events=True, tooltip="Click the enter key to register the change"),sg.FileBrowse(font=('Helvetica', 14))],
-                    [sg.Text('DICOM Directory',size =(17,1),font=('Helvetica', 14),text_color='black'),
-                      sg.In(default_text=dicom_path,key='-DICOM-',size=(50,1),font=('Helvetica', 14),enable_events=True, tooltip="Click the enter key to register the change"),sg.FolderBrowse(font=('Helvetica', 14))],
-                    [sg.Button("Create new default generate_allproc file",enable_events=True, key='-DUPGENPROC-',disabled=False,font=('Helvetica', 14),disabled_button_color='grey',size=(35,1)),
-                      sg.Text(' ', pad=(1, 1)),
-                      sg.Button("Create new default multiproc file",enable_events=True,key='-DUPMULPROC-',disabled=False,font=('Helvetica', 14),disabled_button_color='grey',size=(35,1))],
-                    [sg.Button("Use DICOM in topas",enable_events=True, key='-DICOMACTIVATE-',disabled=False,font=('Helvetica', 14),disabled_button_color='grey',size=(35,1))],
                     [sg.Text('Seed',size =(9,1),font=('Helvetica', 14),text_color='black'),
                       sg.In(default_text='9',key='-SEED-',size=(10,1),font=('Helvetica', 14),enable_events=True)],
                     [sg.Text('Threads',size = (9,1),font=('Helvetica', 14),text_color='black'),
                       sg.In(default_text='4',key='-THREAD-',size=(10,1),font=('Helvetica',14),enable_events=True)],
                     [sg.Text('Histories',size = (9,1),font=('Helvetica',14),text_color='black'),
-                      sg.In(default_text='100000',key='-HIST-',size=(10,1),font=('Helvetica',14),enable_events=True)]
+                      sg.In(default_text='100000',key='-HIST-',size=(10,1),font=('Helvetica',14),enable_events=True)],
                 ])
   return general_layer
+
+function_layer = sg.Frame('Choose your function',
+                          [
+                            [sg.Checkbox('Use DICOM', enable_events=True, key='-DICOMACTIVATECHECK-'),
+                             sg.Checkbox('Optimisation generation', enable_events=True , key='-USERACTIVATECHECK-')
+                             ],
+                          ])
+
+dicom_layer = sg.pin(sg.Frame("DICOM inputs",
+                              [ 
+                                [sg.Text('DICOM Directory',size =(17,1),font=('Helvetica', 14),text_color='black'),
+                                 sg.In(default_text='dicom_path',key='-DICOM-',size=(50,1),font=('Helvetica', 14),enable_events=True,
+                                       tooltip="Click the enter key to register the change"),sg.FolderBrowse(font=('Helvetica', 14))
+                                ],
+                                [sg.Button("Create new DICOM bat file",enable_events=True, key='-DICOMBAT-',font=('Helvetica', 14),size=(35,1))],
+                              ],
+                              key ='-DICOMACTIVATE-', 
+                              visible = False
+                              ) )
+
+toggle_layer = sg.pin(sg.Frame("Optimisation component toggle",
+                [ [sg.Button("Create new default generate_allproc file",enable_events=True, key='-DUPGENPROC-',disabled=False,font=('Helvetica', 14),disabled_button_color='grey',size=(35,1)),
+                    sg.Button("Create new default multiproc file",enable_events=True,key='-DUPMULPROC-',disabled=False,font=('Helvetica', 14),disabled_button_color='grey',size=(35,1))],  
+                  [sg.Text('ChamberPlugCentre',size = (21,1),font=('Helvetica', 12), text_color='black'),
+                    sg.Button('On' if selectcomponents['ChamberPlugCentre'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugCentre'] else 'white on red', key='-CPCTOG-'),
+                    sg.Text('ChamberPlugTop',size = (21,1),font=('Helvetica', 12), text_color='black'),
+                    sg.Button('On' if selectcomponents['ChamberPlugTop'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugTop'] else 'white on red', key='-CPTTOG-'),
+                    sg.Text('ChamberPlugBottom',size = (21,1),font=('Helvetica', 12), text_color='black'),
+                    sg.Button('On' if selectcomponents['ChamberPlugBottom'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugBottom'] else 'white on red', key='-CPBTOG-'),
+                    sg.Text('ChamberPlugLeft',size = (21,1),font=('Helvetica', 12), text_color='black'),
+                    sg.Button('On' if selectcomponents['ChamberPlugLeft'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugLeft'] else 'white on red', key='-CPLTOG-')],
+                  [sg.Text('ChamberPlugRight',size = (21,1),font=('Helvetica', 12), text_color='black'),
+                    sg.Button('On' if selectcomponents['ChamberPlugRight'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugRight'] else 'white on red', key='-CPRTOG-'),
+                    sg.Text('ChamberPlugDose_tle',size = (21,1),font=('Helvetica', 12), text_color='black'),
+                    sg.Button('On' if selectcomponents['ChamberPlugDose_tle'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugDose_tle'] else 'white on red', key='-TLETOG-'),
+                    sg.Text('ChamberPlugDose_dtm',size = (21,1),font=('Helvetica', 12), text_color='black'),
+                    sg.Button('On' if selectcomponents['ChamberPlugDose_dtm'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugDose_dtm'] else 'white on red', key='-DTMTOG-'),
+                    sg.Text('ChamberPlugDose_dtw',size = (21,1),font=('Helvetica', 12), text_color='black'),
+                    sg.Button('On' if selectcomponents['ChamberPlugDose_dtw'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugDose_dtw'] else 'white on red', key='-DTWTOG-')],
+                  [sg.Text('CollimatorsVertical',size = (21,1),font=('Helvetica', 12), text_color='black'),
+                    sg.Button('On' if selectcomponents['CollimatorsVertical'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['CollimatorsVertical'] else 'white on red', key='-COLLVERTOG-'),
+                    sg.Text('CollimatorsHorizontal',size = (21,1),font=('Helvetica', 12), text_color='black'),
+                    sg.Button('On' if selectcomponents['CollimatorsHorizontal'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['CollimatorsHorizontal'] else 'white on red', key='-COLLHORTOG-'),
+                    sg.Text('TitaniumFilter',size = (21,1),font=('Helvetica', 12), text_color='black'),
+                    sg.Button('On' if selectcomponents['TitaniumFilter'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['TitaniumFilter'] else 'white on red', key='-TITFILTOG-'),
+                    sg.Text('BowtieFilter',size = (21,1),font=('Helvetica', 12), text_color='black'),
+                    sg.Button('On' if selectcomponents['BowtieFilter'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['BowtieFilter'] else 'white on red', key='-BTFILTOG-')],
+                  [sg.Text('Coll1',size = (21,1),font=('Helvetica', 12), text_color='black'),
+                    sg.Button('On' if selectcomponents['Coll1'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['Coll1'] else 'white on red', key='-COLL1TOG-'),
+                    sg.Text('Coll2',size = (21,1),font=('Helvetica', 12), text_color='black'),
+                    sg.Button('On' if selectcomponents['Coll2'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['Coll2'] else 'white on red', key='-COLL2TOG-'),
+                    sg.Text('Coll3',size = (21,1),font=('Helvetica', 12), text_color='black'),
+                    sg.Button('On' if selectcomponents['Coll3'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['Coll3'] else 'white on red', key='-COLL3TOG-'),
+                    sg.Text('Coll4',size = (21,1),font=('Helvetica', 12), text_color='black'),
+                    sg.Button('On' if selectcomponents['Coll4'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['Coll4'] else 'white on red', key='-COLL4TOG-')],
+                 
+                  [sg.Text('DemoFlat',size = (21,1),font=('Helvetica', 12), text_color='black'),
+                    sg.Button('On' if selectcomponents['DemoFlat'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['DemoFlat'] else 'white on red', key='-DEMOFLATTOG-'),
+                    sg.Text('DemoRTrap',size = (21,1),font=('Helvetica', 12), text_color='black'),
+                    sg.Button('On' if selectcomponents['DemoRTrap'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['DemoRTrap'] else 'white on red', key='-DEMORTRAPTOG-'),
+                    sg.Text('DemoLTrap',size = (21,1),font=('Helvetica', 12), text_color='black'),
+                    sg.Button('On' if selectcomponents['DemoLTrap'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['DemoLTrap'] else 'white on red', key='-DEMOLTRAPTOG-')],
+                  [sg.Text('topsidebox',size = (21,1),font=('Helvetica', 12), text_color='black'),
+                    sg.Button('On' if selectcomponents['topsidebox'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['topsidebox'] else 'white on red', key='-TSBTOG-'),
+                    sg.Text('bottomsidebox',size = (21,1),font=('Helvetica', 12), text_color='black'),
+                    sg.Button('On' if selectcomponents['bottomsidebox'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['bottomsidebox'] else 'white on red', key='-BSBTOG-'),
+                    sg.Text('couch',size = (21,1),font=('Helvetica', 12), text_color='black'),
+                    sg.Button('On' if selectcomponents['couch'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['couch'] else 'white on red', key='-COHTOG-')]
+                ]
+                , key ='-USERACTIVATE-', visible = False))
 
 CTDI_layer = sg.Frame('CTDI',
                     [
@@ -856,52 +916,5 @@ Time_layer = sg.Frame("Time Feature",
                      sg.In(default_text='100000',key='-TIMEHISTINT-',size=(10,1), font=('Helvetica', 12), enable_events=True)]
                      
                 ])
-toggle_layer = sg.Frame("ON/OFF",
-                [   
-                  [sg.Text('ChamberPlugCentre',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugCentre'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugCentre'] else 'white on red', key='-CPCTOG-'),
-                    sg.Text('ChamberPlugTop',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugTop'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugTop'] else 'white on red', key='-CPTTOG-'),
-                    sg.Text('ChamberPlugBottom',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugBottom'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugBottom'] else 'white on red', key='-CPBTOG-'),
-                    sg.Text('ChamberPlugLeft',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugLeft'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugLeft'] else 'white on red', key='-CPLTOG-')],
-                  [sg.Text('ChamberPlugRight',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugRight'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugRight'] else 'white on red', key='-CPRTOG-'),
-                    sg.Text('ChamberPlugDose_tle',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugDose_tle'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugDose_tle'] else 'white on red', key='-TLETOG-'),
-                    sg.Text('ChamberPlugDose_dtm',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugDose_dtm'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugDose_dtm'] else 'white on red', key='-DTMTOG-'),
-                    sg.Text('ChamberPlugDose_dtw',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugDose_dtw'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugDose_dtw'] else 'white on red', key='-DTWTOG-')],
-                  [sg.Text('CollimatorsVertical',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['CollimatorsVertical'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['CollimatorsVertical'] else 'white on red', key='-COLLVERTOG-'),
-                    sg.Text('CollimatorsHorizontal',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['CollimatorsHorizontal'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['CollimatorsHorizontal'] else 'white on red', key='-COLLHORTOG-'),
-                    sg.Text('TitaniumFilter',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['TitaniumFilter'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['TitaniumFilter'] else 'white on red', key='-TITFILTOG-'),
-                    sg.Text('BowtieFilter',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['BowtieFilter'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['BowtieFilter'] else 'white on red', key='-BTFILTOG-')],
-                  [sg.Text('Coll1',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['Coll1'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['Coll1'] else 'white on red', key='-COLL1TOG-'),
-                    sg.Text('Coll2',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['Coll2'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['Coll2'] else 'white on red', key='-COLL2TOG-'),
-                    sg.Text('Coll3',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['Coll3'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['Coll3'] else 'white on red', key='-COLL3TOG-'),
-                    sg.Text('Coll4',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['Coll4'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['Coll4'] else 'white on red', key='-COLL4TOG-')],
-                 
-                  [sg.Text('DemoFlat',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['DemoFlat'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['DemoFlat'] else 'white on red', key='-DEMOFLATTOG-'),
-                    sg.Text('DemoRTrap',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['DemoRTrap'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['DemoRTrap'] else 'white on red', key='-DEMORTRAPTOG-'),
-                    sg.Text('DemoLTrap',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['DemoLTrap'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['DemoLTrap'] else 'white on red', key='-DEMOLTRAPTOG-')],
-                  [sg.Text('topsidebox',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['topsidebox'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['topsidebox'] else 'white on red', key='-TSBTOG-'),
-                    sg.Text('bottomsidebox',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['bottomsidebox'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['bottomsidebox'] else 'white on red', key='-BSBTOG-'),
-                    sg.Text('couch',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['couch'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['couch'] else 'white on red', key='-COHTOG-')]
-                ])
+
                 

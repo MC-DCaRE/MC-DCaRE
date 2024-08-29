@@ -121,7 +121,6 @@ def replacement_witherrorhandling_forintegers(
 
 
 
-
 ####################################################################
 
 #default settings###################################################
@@ -158,10 +157,13 @@ from generate_allproc_boilerplate import selectcomponents
 sg.theme('Reddit')
 
 from guilayers import *
-general_layer = gui_layer_generation(path, G4_Data, topas_application_path,dicom_path)
+general_layer = gui_layer_generation(path, G4_Data, topas_application_path)
 
 # Creating a tabbed menu 
 main_layout = [[general_layer],
+               [function_layer],
+               [dicom_layer],
+            #    collapse(toggle_layer, '-USERACTIVATE-', False),
                [toggle_layer], 
                [sg.Button("Generate Processes", enable_events=True, key='-GEN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey'), 
                 sg.Button("Run", enable_events=True, key='-RUN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey'),
@@ -180,7 +182,7 @@ others_layout = [[Time_layer,Physics_layer, Scoring_layer,RotationGroup_layer],
 
 layout = [[ sg.Text('Imaging Dose', size=(30,1),justification='center',font=('Helvetica 50 bold'), text_color='dark blue')],
           [sg.TabGroup([[sg.Tab( 'Main menu' , main_layout),
-                        sg.Tab('Chamber menu' , chamber_layout),
+                        sg.Tab('Chamber menu' , chamber_layout, key= '-HIDETAB-', visible=False),
                         sg.Tab('Collimator menu', collimator_layout),
                         sg.Tab('Filter menu', filter_layout),
                         sg.Tab('Others menu', others_layout)]],
@@ -208,7 +210,7 @@ key_binds(window)
 #then no if block statement will run. though when the subprocess runs, the GUI seems to block 
 #all buttons and inputs
 num_of_csvresult = 5 
-
+DICOM_bool = USER_bool = False
 while True:
     event,values = window.read()
 
@@ -236,6 +238,27 @@ while True:
         # Add a line search and replacement function here
         topas_application_path = values['-TOPAS-'] + " "
 
+    if event == '-DICOM-_ENTER':
+        # Add a line search and replacement function here
+        dicom_path = values['-DICOM-'] + " "
+
+    if event == '-DICOMACTIVATECHECK-':
+        if USER_bool == False:
+            DICOM_bool = not DICOM_bool
+            window['-DICOMACTIVATE-'].update(visible=DICOM_bool)
+        else:
+            sg.popup_error('Choose 1 option')
+            window['-DICOMACTIVATECHECK-'].update(value=False)
+
+    if event == '-USERACTIVATECHECK-':
+        if DICOM_bool == False:
+            USER_bool = not USER_bool
+            window['-USERACTIVATE-'].update(visible=USER_bool)
+            window['-HIDETAB-'].update(visible=USER_bool)
+        else:
+            sg.popup_error('Choose 1 option')
+            window['-USERACTIVATECHECK-'].update(value=False)
+
     if event == '-DUPGENPROC-':
         G4_Data = values['-G4FOLDERNAME-']
         # Add code that dynamically pulls value from the input textboxes and replaced the newly generated files
@@ -244,20 +267,7 @@ while True:
         directory_path = os.path.dirname(original_file_path)
         duplicate_gen_file_path = os.path.join(directory_path, duplicate_gen_file_name)
         shutil.copy(original_file_path, duplicate_gen_file_path)
-
-        replaced_content=""
-        all_proc = open(path + '/generate_allproc.py', "r")
-        for line in all_proc:
-            line.strip()
-            
-            new_line  = line.replace("test_boilerplate_path_change_G4",
-                                    f"{G4_Data}")
-            replaced_content = replaced_content + new_line 
-        all_proc.close()
-        write_file = open(path + '/generate_allproc.py', "w")
-        write_file.write(replaced_content)
-        write_file.close()
-        # This code is inefficient, runs more lines than required 
+        stringindexreplacement('G4DataDirectory', duplicate_gen_file_path, G4_Data)
 
     if event == '-DUPMULPROC-':
         topas_application_path = values['-TOPAS-'] + " "
@@ -267,20 +277,7 @@ while True:
         directory_path = os.path.dirname(original_file_path)
         duplicate_multiproc_file_path = os.path.join(directory_path, duplicate_multiproc_file_name)
         shutil.copy(original_file_path, duplicate_multiproc_file_path)
-
-        replaced_content=""
-        multi_proc = open(path + '/runfolder/topas_multiproc.py', "r")
-        for line in multi_proc:
-            line.strip()
-            
-            new_line  = line.replace("test_boilerplate_path_change_topas",
-                                    f"{topas_application_path}")
-            replaced_content = replaced_content + new_line 
-        multi_proc.close()
-        write_file = open(path + '/runfolder/topas_multiproc.py', "w")
-        write_file.write(replaced_content)
-        write_file.close()
-        # This code is inefficient, runs more lines than required 
+        stringindexreplacement('topas_directory', duplicate_multiproc_file_path, topas_application_path)
 
     if event == '-SEED-_ENTER':
         replacement_witherrorhandling_forintegers(values['-SEED-'],
@@ -2756,7 +2753,7 @@ while True:
             replacement_floatorint("'ChamberPlugCentre': 1","'ChamberPlugCentre': 0")
             selectcomponents['ChamberPlugCentre'] = 0
 
-    if event == '-CPTTOG-':
+    if event == '-CPCTOG-':
         down = not bool(selectcomponents['ChamberPlugTop'])
         window['-CPCTOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
         if down:

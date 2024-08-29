@@ -5,7 +5,7 @@ import multiprocessing as mp
 batch_files = []
 command = []
 directory = os.getcwd()
-topas_directory = "/home/leekh/topas/bin/topas "
+topas_directory = "/root/topas/bin/topas "
 
 for root, dirs, files in os.walk(directory):
     #dirs.clear()

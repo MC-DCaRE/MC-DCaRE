@@ -5,18 +5,18 @@ import multiprocessing as mp
 batch_files = []
 command = []
 directory = os.getcwd()
-topas_directory = "/home/leekh/topas/bin/topas "
+topas_directory = "/root/topas/bin/topas "
 
 for root, dirs, files in os.walk(directory):
     #dirs.clear()
     for filename in files:
 #    	print('filename:',filename)
-    	if ('bat' in filename) and ('sourcecode' not in filename):
-        	batch_files.append(str(filename))
-        	command.append(topas_directory+ directory +"/runfolder"+"/"+str(filename))
+        if ('bat' in filename) and ('sourcecode' not in filename):
+            batch_files.append(str(filename))
+            command.append(topas_directory+ directory +"/runfolder"+"/"+str(filename))
     
-#print(batch_files)
-#print(command)
+# print(batch_files)
+# print(command)
 
 def run_topas(command):
 	subprocess.run(["cd runfolder"], shell=True)

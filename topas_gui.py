@@ -3,7 +3,6 @@ import PySimpleGUI as sg
 import subprocess
 import shutil
 from numpy import arange
-import copy
 import numpy as np
 
 
@@ -163,7 +162,6 @@ general_layer = gui_layer_generation(path, G4_Data, topas_application_path)
 main_layout = [[general_layer],
                [function_layer],
                [dicom_layer],
-            #    collapse(toggle_layer, '-USERACTIVATE-', False),
                [toggle_layer], 
                [sg.Button("Generate Processes", enable_events=True, key='-GEN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey'), 
                 sg.Button("Run", enable_events=True, key='-RUN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey'),
@@ -193,11 +191,6 @@ sg.set_options(scaling=1)
 
 window = sg.Window(title= "Imaging Dose Simulation", layout=layout, finalize=True)
 window.set_min_size(window.size)
-# End test tab menu
-
-
-
-# from keyvar import all
 
 from key_binds import *
 key_binds(window) 
@@ -211,6 +204,7 @@ key_binds(window)
 #all buttons and inputs
 num_of_csvresult = 5 
 DICOM_bool = USER_bool = False
+
 while True:
     event,values = window.read()
 
@@ -233,6 +227,7 @@ while True:
         #                        "G4DataDirectory = \'\""+str(values['-G4FOLDERNAME-'])+"\"\'")
         # Add a line search and replacement function here
         G4_Data = values['-G4FOLDERNAME-'] 
+        stringindexreplacement(G4_Data, )
 
     if event == '-TOPAS-_ENTER':
         # Add a line search and replacement function here

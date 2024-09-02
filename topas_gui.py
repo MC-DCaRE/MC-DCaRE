@@ -4,7 +4,7 @@ import subprocess
 import shutil
 from numpy import arange
 import numpy as np
-
+import multiprocessing as mp
 
 #Useful functions###################################################
 def my_arange(start, end, step):
@@ -25,13 +25,13 @@ def stringindexreplacement(SearchString :str , TargetFile: str , ReplacementStri
     with open(TargetFile, 'w') as Write_file:
         for lineIndex in range(len(filecontent)):
             if filecontent[lineIndex].startswith(SearchString):
-                newline = SearchString + " = " +ReplacementString+'\n' 
+                newline = SearchString + "=" +ReplacementString+'\n' 
                 filecontent[lineIndex] = newline
                 break #exits after the first instance of match. Saves compute. 
         Write_file.writelines( filecontent )
 
 def replacement_floatorint(stringtoreplace,stringreplacement):
-
+    
     replaced_content=""
     generate_proc = open(path + '/generate_allproc.py', "r")
     for line in generate_proc:
@@ -68,6 +68,7 @@ def replacement_witherrorhandling (
         boundariesnamefortuple,
         valuefortuple,
         ):
+    stringindexreplacement(defaultforfloatorint.split('=')[0],path + '/generate_allproc.py', defaultforfloatorint.split('=')[1] )
     if type(eval(key_value)) == float or type(eval(key_value)) == int: 
         replacement_floatorint(defaultforfloatorint,
                                replaceforfloatorint)
@@ -151,6 +152,13 @@ directory_path = os.path.dirname(original_file_path)
 duplicate_multiproc_file_path = os.path.join(directory_path, duplicate_multiproc_file_name)
 shutil.copy(original_file_path, duplicate_multiproc_file_path)
 
+#generate a dicom bat file from a boiler plate so we edit only that copy each time
+original_file_path = path + '/dicom_boilerplate.bat'
+duplicate_multiproc_file_name = "dicom.bat"
+directory_path = os.path.dirname(original_file_path)
+duplicate_dicom_file_path = os.path.join(directory_path +"/runfolder" ,duplicate_multiproc_file_name)
+shutil.copy(original_file_path, duplicate_dicom_file_path)
+
 from generate_allproc_boilerplate import selectcomponents
 
 sg.theme('Reddit')
@@ -159,15 +167,14 @@ from guilayers import *
 general_layer = gui_layer_generation(path, G4_Data, topas_application_path)
 
 # Creating a tabbed menu 
-main_layout = [[general_layer],
+main_layout = [[information_layer],
+               [general_layer],
                [function_layer],
                [dicom_layer],
                [toggle_layer], 
-               [sg.Button("Generate Processes", enable_events=True, key='-GEN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey'), 
-                sg.Button("Run", enable_events=True, key='-RUN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey'),
-                sg.Button("Generate process and run", enable_events=True, key='-GENRUN-', disabled=False, )]]
+               [runbuttons_layer]]
 
-chamber_layout = [[CTDI_layer,ChamberPlugCentre_layer,ChamberPlugTop_layer,ChamberPlugBottom_layer,ChamberPlugLeft_layer,ChamberPlugRight_layer]]
+chamber_layout = [[CTDI_layer,ChamberPlugCentre_layer,ChamberPlugTop_layer],[ChamberPlugBottom_layer,ChamberPlugLeft_layer,ChamberPlugRight_layer]]
 
 collimator_layout = [[Coll1_layer,Coll2_layer,Coll3_layer,Coll4_layer, CollimatorVerticalGroup_layer], 
                      [Coll1steel_layer,Coll2steel_layer,Coll3steel_layer,Coll4steel_layer,CollimatorHorizontalGroup_layer ]]
@@ -226,8 +233,8 @@ while True:
         # replacement_floatorint("G4DataDirectory = \'\""+G4_Data+"\"\'",
         #                        "G4DataDirectory = \'\""+str(values['-G4FOLDERNAME-'])+"\"\'")
         # Add a line search and replacement function here
-        G4_Data = values['-G4FOLDERNAME-'] 
-        stringindexreplacement(G4_Data, )
+        G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
+        # stringindexreplacement(G4_Data, )
 
     if event == '-TOPAS-_ENTER':
         # Add a line search and replacement function here
@@ -241,6 +248,7 @@ while True:
         if USER_bool == False:
             DICOM_bool = not DICOM_bool
             window['-DICOMACTIVATE-'].update(visible=DICOM_bool)
+            window['-BUTTONSACTIVATE-'].update(visible=DICOM_bool)
         else:
             sg.popup_error('Choose 1 option')
             window['-DICOMACTIVATECHECK-'].update(value=False)
@@ -250,12 +258,13 @@ while True:
             USER_bool = not USER_bool
             window['-USERACTIVATE-'].update(visible=USER_bool)
             window['-HIDETAB-'].update(visible=USER_bool)
+            window['-BUTTONSACTIVATE-'].update(visible=USER_bool)
         else:
             sg.popup_error('Choose 1 option')
             window['-USERACTIVATECHECK-'].update(value=False)
 
     if event == '-DUPGENPROC-':
-        G4_Data = values['-G4FOLDERNAME-']
+        G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
         # Add code that dynamically pulls value from the input textboxes and replaced the newly generated files
         original_file_path = path + '/generate_allproc_boilerplate.py'
         duplicate_gen_file_name = "generate_allproc.py"
@@ -2980,9 +2989,25 @@ while True:
         for p in procs:
             #pass
             p.wait()
-    if event == '-DICOMACTIVATE-':
+    if event == '-DICOMBAT-':
+        G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
+        DICOM =  '\"' +str(values['-DICOM-'])+ '\"' 
+        stringindexreplacement('s:Ts/G4DataDirectory', duplicate_dicom_file_path, G4_Data)
+        stringindexreplacement('s:Ge/Patient/DicomDirectory', duplicate_dicom_file_path, DICOM)
+
+        command = topas_application_path + ' ' + os.getcwd() + "/runfolder/dicom.bat \n"
+        print(command)
+        def run_topas(command):
+            subprocess.run(["cd /root/nccs/Topas_wrapper/runfolder"], shell=True)
+            subprocess.run(command,cwd= os.getcwd() +"/runfolder",shell =True)
+        
+        pool = mp.Pool(10) #How to best tune this? Currently taking it as -1 of max cpu count 
+        pool.map_async(run_topas, command)
+        pool.close()
+        pool.join()
+        
         pass
-        # window[2].update(visible=False)
+        
         
 
 window.close()

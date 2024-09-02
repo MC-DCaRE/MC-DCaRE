@@ -23,8 +23,7 @@ def run_topas(command):
 	subprocess.run(command, cwd= directory +"/runfolder", shell =True)
 	
 if __name__ ==  '__main__':
-    poolnumber = os.cpu_count -1
-    pool = mp.Pool(processes= poolnumber) #How to best tune this? Currently taking it as -1 of max cpu count 
+    pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
     pool.map_async(run_topas, command)
     pool.close()
     pool.join()

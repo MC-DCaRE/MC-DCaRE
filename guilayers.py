@@ -19,6 +19,25 @@ def gui_layer_generation(path, G4_Data, topas_application_path):
                 ])
   return general_layer
 
+information_layer = sg.Frame('Instructions on the usage of the GUI', 
+                             [ 
+                               [sg.Text('Select your Topas and G4 data directories, remember to press the enter key to update the selection ')],
+                               [sg.Text('Select the function you would like to enable: ')],
+                               [sg.Text('   DICOM allows the user to specify a DICOM image folder to run simulations on')],
+                               [sg.Text('   Optimisation generation for running simulations and batch testing')],
+                               [sg.Text('In the following pages, type in your desired value and press the enter key. ')],
+                               [sg.Text('By default all lengths are in units of cm and all angles are in units of degrees.')],
+                               
+                             ]) 
+
+runbuttons_layer= sg.Frame('Activate simulation', 
+                           [
+                             [sg.Button("Generate Processes", enable_events=True, key='-GEN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey'),
+                              sg.Button("Run", enable_events=True, key='-RUN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey'),
+                              sg.Button("Generate process and run", enable_events=True, key='-GENRUN-', disabled=False)],
+                            ], key ='-BUTTONSACTIVATE-', 
+                              visible = False)
+
 function_layer = sg.Frame('Choose your function',
                           [
                             [sg.Checkbox('Use DICOM', enable_events=True, key='-DICOMACTIVATECHECK-'),

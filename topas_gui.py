@@ -2992,21 +2992,37 @@ while True:
             p.wait()
     if event == '-DICOMBAT-':
         G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
-        # DICOM =  '\"' +str(values['-DICOM-'])+ '\"' 
+        # DICOM =  '\"' +str(values['-DICOM-'])+ '\"'
+        DICOM = values['-DICOM-'] 
         stringindexreplacement('s:Ts/G4DataDirectory', duplicate_dicom_file_path, G4_Data)
         # stringindexreplacement('s:Ge/Patient/DicomDirectory', duplicate_dicom_file_path, DICOM)
 
-        command = [topas_application_path + ' ' + os.getcwd() + "/test/sampledicom/dicom.bat"]
+        # command = [topas_application_path + ' ' + os.getcwd() + "/test/sampledicom/dicom.bat"]
+        command = [topas_application_path + ' ' + DICOM +'/dicom.bat']
+
         print(command)
-        
+        print(DICOM)
         def run_topas(command):
+            print(command)
             subprocess.run("cd test/sampledicom", shell=True)
             foo=os.getcwd() +"/test/sampledicom"
             subprocess.run(command, cwd= foo,shell =True)
+
+        def run_topas_DICOM(x1): 
+            print(x1)
+            command = x1[0][0]
+            DICOM = x1[1][0]
+            print('command is' , command) 
+            print('dicom is ', DICOM)
+            subprocess.run('cd $home', shell=True)
+            subprocess.run("cd " + DICOM, shell=True)
+            subprocess.run(command, cwd= DICOM,shell =True)
+
             
         
         pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
-        pool.map_async(run_topas, command)
+        # pool.map_async(run_topas, command)
+        pool.map_async(run_topas_DICOM, [(command, [DICOM])])
         pool.close()
         pool.join()
         

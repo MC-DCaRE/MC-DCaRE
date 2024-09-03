@@ -331,6 +331,8 @@ cython_debug/
 
 # Personal test file 
 /proving_grounds.py
-/test/sampledicom
+/test/sampledicom/cherylair
+/test/sampledicom/dicom.bat
+/test/sampledicom/*.dcm
 /test.bat
 

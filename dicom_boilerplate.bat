@@ -8,7 +8,7 @@ includeFile = HUtoMaterialSchneider.txt
 
 ## Some Control Parameters ####################
 i:Ts/Seed=9#startingrandomseed
-i:Ts/NumberOfThreads=10#NumberofCPUthreadstowhichworkwillbedistributed
+i:Ts/NumberOfThreads=1#NumberofCPUthreadstowhichworkwillbedistributed
 #negativenumbermeansuseallbutthesenumberofthreads
 #zeromeansuseall
 s:Ts/G4DataDirectory="/home/leekh/G4Data"
@@ -59,14 +59,14 @@ s:Sc/DoseOnRTGrid100kz17/Component                   = "Patient"
 #b:Sc/DoseOnRTGrid/ToConsole             = "T"
 s:Sc/DoseOnRTGrid100kz17/IfOutputFileAlreadyExists   = "Overwrite"
 s:Sc/DoseOnRTGrid100kz17/OutputType                  = "DICOM" 
-#s:Sc/DoseOnRtGrid/OutputFile                  = "Dose_PTV"
+s:Sc/DoseOnRtGrid/OutputFile                  = "Dose_PTV"
 b:Sc/DoseOnRTGrid100kz17/DICOMOutput32BitsPerPixel   = "True"
 
 s:Sc/DoseOnRTGrid_tle100kz17/Quantity="TrackLengthEstimator"#Zbinningcausescreationofaparallelworldforscoring
 s:Sc/DoseOnRTGrid_tle100kz17/InputFile="Muen.dat"
 s:Sc/DoseOnRTGrid_tle100kz17/Component="Patient"
 s:Sc/DoseOnRTGrid_tle100kz17/IfOutputFileAlreadyExists="Overwrite"
-# i:Sc/DoseOnRTGrid_tle/ZBins=1 #0.1 cm/bin1.0mm/bin
+i:Sc/DoseOnRTGrid_tle/ZBins=1 #0.1 cm/bin1.0mm/bin
 b:Sc/DoseOnRTGrid_tle100kz17/DICOMOutput32BitsPerPixel   = "True"
 s:Sc/DoseOnRTGrid_tle100kz17/OutputType                  = "DICOM" 
 #Physics############################################
@@ -407,7 +407,7 @@ d:So/beam/BeamAngularSpreadX=5.8 deg #Xangulardistribution(ifGaussian)
 d:So/beam/BeamAngularSpreadY=24.4 deg #Yangulardistribution(ifGaussian)
 #i:So/beam/NumberOfHistoriesInRun=25257086363570 #ActualtotalnumberofparticlesfromSpekPy(fluence*area)
 
-i:So/beam/NumberOfHistoriesInRun=100000 #4000000#reducebyafactorof12566371fromtheactualparticlegivenbySpekPy.TobemultipliedbytheCTDIvaluetogetactualdosevalue
+i:So/beam/NumberOfHistoriesInRun=150 #4000000#reducebyafactorof12566371fromtheactualparticlegivenbySpekPy.TobemultipliedbytheCTDIvaluetogetactualdosevalue
 #i:So/beam/NumberOfHistoriesInRun=500000 #justforprototyping
 
 #TimeFeature####################################

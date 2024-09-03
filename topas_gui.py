@@ -156,7 +156,8 @@ shutil.copy(original_file_path, duplicate_multiproc_file_path)
 original_file_path = path + '/dicom_boilerplate.bat'
 duplicate_multiproc_file_name = "dicom.bat"
 directory_path = os.path.dirname(original_file_path)
-duplicate_dicom_file_path = os.path.join(directory_path +"/runfolder" ,duplicate_multiproc_file_name)
+# duplicate_dicom_file_path = os.path.join(directory_path +"/runfolder" ,duplicate_multiproc_file_name)
+duplicate_dicom_file_path = os.path.join(directory_path +"/test/sampledicom" ,duplicate_multiproc_file_name)
 shutil.copy(original_file_path, duplicate_dicom_file_path)
 
 from generate_allproc_boilerplate import selectcomponents
@@ -2991,21 +2992,25 @@ while True:
             p.wait()
     if event == '-DICOMBAT-':
         G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
-        DICOM =  '\"' +str(values['-DICOM-'])+ '\"' 
+        # DICOM =  '\"' +str(values['-DICOM-'])+ '\"' 
         stringindexreplacement('s:Ts/G4DataDirectory', duplicate_dicom_file_path, G4_Data)
-        stringindexreplacement('s:Ge/Patient/DicomDirectory', duplicate_dicom_file_path, DICOM)
+        # stringindexreplacement('s:Ge/Patient/DicomDirectory', duplicate_dicom_file_path, DICOM)
 
-        command = topas_application_path + ' ' + os.getcwd() + "/runfolder/dicom.bat \n"
+        command = [topas_application_path + ' ' + os.getcwd() + "/test/sampledicom/dicom.bat"]
         print(command)
-        def run_topas(command):
-            subprocess.run(["cd /root/nccs/Topas_wrapper/runfolder"], shell=True)
-            subprocess.run(command,cwd= os.getcwd() +"/runfolder",shell =True)
         
-        pool = mp.Pool(10) #How to best tune this? Currently taking it as -1 of max cpu count 
+        def run_topas(command):
+            subprocess.run("cd test/sampledicom", shell=True)
+            foo=os.getcwd() +"/test/sampledicom"
+            subprocess.run(command, cwd= foo,shell =True)
+            
+        
+        pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
         pool.map_async(run_topas, command)
         pool.close()
         pool.join()
         
+        # run_topas(command)
         pass
         
         

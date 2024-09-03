@@ -139,32 +139,33 @@ G4_Data ='/root/G4Data' #linux
 
 
 #generate a generate_allproc file from a boiler plate so we edit only that copy each time
-original_file_path = path + '/generate_allproc_boilerplate.py'
-duplicate_gen_file_name = "generate_allproc.py"
-directory_path = os.path.dirname(original_file_path)
-duplicate_gen_file_path = os.path.join(directory_path, duplicate_gen_file_name)
+original_file_path = path + '/src/boilerplates/generate_allproc_boilerplate.py'
+duplicate_gen_file_path = path + "/tmp/generate_allproc.py"
+# directory_path = os.path.dirname(original_file_path)
+# duplicate_gen_file_path = os.path.join(directory_path, duplicate_gen_file_name)
 shutil.copy(original_file_path, duplicate_gen_file_path)
 
 #generate a multi_allproc file from a boiler plate so we edit only that copy each time
-original_file_path = path + '/runfolder/topas_multiproc_boilerplate.py'
-duplicate_multiproc_file_name = "topas_multiproc.py"
-directory_path = os.path.dirname(original_file_path)
-duplicate_multiproc_file_path = os.path.join(directory_path, duplicate_multiproc_file_name)
+original_file_path = path + '/src/boilerplates/topas_multiproc_boilerplate.py'
+duplicate_multiproc_file_path = path + "/tmp/topas_multiproc.py"
+# directory_path = os.path.dirname(original_file_path)
+# duplicate_multiproc_file_path = os.path.join(directory_path, duplicate_multiproc_file_name)
 shutil.copy(original_file_path, duplicate_multiproc_file_path)
 
 #generate a dicom bat file from a boiler plate so we edit only that copy each time
-original_file_path = path + '/dicom_boilerplate.bat'
-duplicate_multiproc_file_name = "dicom.bat"
-directory_path = os.path.dirname(original_file_path)
+original_file_path = path + '/src/boilerplates/dicom_boilerplate.bat'
+duplicate_dicom_file_path = path +"/tmp/dicom.bat"
+# directory_path = os.path.dirname(original_file_path)
 # duplicate_dicom_file_path = os.path.join(directory_path +"/runfolder" ,duplicate_multiproc_file_name)
-duplicate_dicom_file_path = os.path.join(directory_path +"/test/sampledicom" ,duplicate_multiproc_file_name)
+# duplicate_dicom_file_path = os.path.join(directory_path +"/test/sampledicom" ,duplicate_multiproc_file_name)
 shutil.copy(original_file_path, duplicate_dicom_file_path)
 
-from generate_allproc_boilerplate import selectcomponents
+from src.boilerplates.generate_allproc_boilerplate import selectcomponents
+
 
 sg.theme('Reddit')
 
-from guilayers import *
+from src.guilayers import *
 general_layer = gui_layer_generation(path, G4_Data, topas_application_path)
 
 # Creating a tabbed menu 
@@ -200,7 +201,7 @@ sg.set_options(scaling=1)
 window = sg.Window(title= "Imaging Dose Simulation", layout=layout, finalize=True)
 window.set_min_size(window.size)
 
-from key_binds import *
+from src.key_binds import *
 key_binds(window) 
 
 #default we will have 5 positions-chamberplugs and 3 quantities to score
@@ -283,7 +284,51 @@ while True:
         duplicate_multiproc_file_path = os.path.join(directory_path, duplicate_multiproc_file_name)
         shutil.copy(original_file_path, duplicate_multiproc_file_path)
         stringindexreplacement('topas_directory', duplicate_multiproc_file_path, topas_application_path)
+        
+    if event == '-RUN-':
+        command_topas = "python3 runfolder/topas_multiproc.py"
+        command_progressbar = f"python3 progressbar.py {path} {num_of_csvresult}"
+        commands = [command_topas,command_progressbar]
+        #commands = [command_progressbar]
+        procs = [subprocess.Popen(i,shell=True) for i in commands]
+        for p in procs:
+            #pass
+            p.wait()
 
+    if event == '-GENRUN-':
+        command = ["python3 generate_allproc.py"]
+        subprocess.run(command, shell=True)
+        print(command)
+        command_topas = "python3 runfolder/topas_multiproc.py"
+        command_progressbar = f"python3 progressbar.py {path} {num_of_csvresult}"
+        commands = [command_topas,command_progressbar]
+        #commands = [command_progressbar]
+        procs = [subprocess.Popen(i,shell=True) for i in commands]
+        for p in procs:
+            #pass
+            p.wait()
+    if event == '-DICOMBAT-':
+        G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
+        # DICOM =  '\"' +str(values['-DICOM-'])+ '\"' 
+        stringindexreplacement('s:Ts/G4DataDirectory', duplicate_dicom_file_path, G4_Data)
+        # stringindexreplacement('s:Ge/Patient/DicomDirectory', duplicate_dicom_file_path, DICOM)
+
+        command = [topas_application_path + ' ' + os.getcwd() + "/test/sampledicom/dicom.bat"]
+        print(command)
+        
+        def run_topas(command):
+            subprocess.run("cd test/sampledicom", shell=True)
+            foo=os.getcwd() +"/test/sampledicom"
+            subprocess.run(command, cwd= foo,shell =True)
+            
+        
+        pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
+        pool.map_async(run_topas, command)
+        pool.close()
+        pool.join()
+        
+        # run_topas(command)
+        pass
     if event == '-SEED-_ENTER':
         replacement_witherrorhandling_forintegers(values['-SEED-'],
                                                   "Seed = \'9\'",
@@ -2968,50 +3013,7 @@ while True:
             replacement_floatorint("'couch': 1","'couch': 0")
             selectcomponents['couch'] = 0
 
-    if event == '-RUN-':
-        command_topas = "python3 runfolder/topas_multiproc.py"
-        command_progressbar = f"python3 progressbar.py {path} {num_of_csvresult}"
-        commands = [command_topas,command_progressbar]
-        #commands = [command_progressbar]
-        procs = [subprocess.Popen(i,shell=True) for i in commands]
-        for p in procs:
-            #pass
-            p.wait()
 
-    if event == '-GENRUN-':
-        command = ["python3 generate_allproc.py"]
-        subprocess.run(command, shell=True)
-        print(command)
-        command_topas = "python3 runfolder/topas_multiproc.py"
-        command_progressbar = f"python3 progressbar.py {path} {num_of_csvresult}"
-        commands = [command_topas,command_progressbar]
-        #commands = [command_progressbar]
-        procs = [subprocess.Popen(i,shell=True) for i in commands]
-        for p in procs:
-            #pass
-            p.wait()
-    if event == '-DICOMBAT-':
-        G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
-        # DICOM =  '\"' +str(values['-DICOM-'])+ '\"' 
-        stringindexreplacement('s:Ts/G4DataDirectory', duplicate_dicom_file_path, G4_Data)
-        # stringindexreplacement('s:Ge/Patient/DicomDirectory', duplicate_dicom_file_path, DICOM)
-
-        command = [topas_application_path + ' ' + os.getcwd() + "/test/sampledicom/dicom.bat"]
-        print(command)
-        
-        def run_topas(command):
-            subprocess.run("cd test/sampledicom", shell=True)
-            foo=os.getcwd() +"/test/sampledicom"
-            subprocess.run(command, cwd= foo,shell =True)
-            
-        
-        pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
-        pool.map_async(run_topas, command)
-        pool.close()
-        pool.join()
-        
-        # run_topas(command)
-        pass
         
         
 

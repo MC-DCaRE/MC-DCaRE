@@ -1,5 +1,28 @@
 import PySimpleGUI as sg
-from generate_allproc_boilerplate import selectcomponents
+selectcomponents = {
+'ChamberPlugCentre': 1,
+'ChamberPlugTop': 1,
+'ChamberPlugBottom': 1,
+'ChamberPlugLeft': 1,
+'ChamberPlugRight': 1,
+'ChamberPlugDose_tle': 1,
+'ChamberPlugDose_dtm': 1,
+'ChamberPlugDose_dtw': 1,
+'CollimatorsVertical': 1,
+'CollimatorsHorizontal': 1,
+'TitaniumFilter': 1,
+'BowtieFilter': 1,
+'Coll1': 1,
+'Coll2': 1,
+'Coll3': 1,
+'Coll4': 1,
+'DemoFlat': 1,
+'DemoRTrap': 1,
+'DemoLTrap': 1,
+'topsidebox': 1,
+'bottomsidebox': 1,
+'couch': 1
+}
 
 def gui_layer_generation(path, G4_Data, topas_application_path):
   general_layer = sg.Frame('General Settings',

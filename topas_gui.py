@@ -5,6 +5,7 @@ import shutil
 from numpy import arange
 import numpy as np
 import multiprocessing as mp
+from pydicom import dcmread
 
 #Useful functions###################################################
 def my_arange(start, end, step):
@@ -3001,13 +3002,17 @@ while True:
         shutil.copy(original_file_path, duplicate_dicom_file_path)
 
         G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
-        DICOM = values['-DICOM-']         
+        DICOM = values['-DICOM-']
+        DICOM_RP = values['-DICOMRP-']
+        dcm = dcmread(DICOM_RP)
+        isocentre_coors = dcm.BeamSequence[0].ControlPointSequence[0].IsocenterPosition 
         DICOM_image_path =  '\"' +str(values['-DICOM-'])+ '\"'
         DICOM_parent_directory = os.path.dirname(DICOM)
         stringindexreplacement('s:Ts/G4DataDirectory', duplicate_dicom_file_path, G4_Data)
         stringindexreplacement('s:Ge/Patient/DicomDirectory', duplicate_dicom_file_path, DICOM_image_path)
         stringindexreplacement( "includeFile", duplicate_dicom_file_path, "/root/nccs/Topas_wrapper/test/sampledicom/ConvertedTopasFile_head.txt /root/nccs/Topas_wrapper/test/sampledicom/HUtoMaterialSchneider.txt")
         stringindexreplacement("s:Sc/DoseOnRTGrid_tle100kz17/InputFile" , duplicate_dicom_file_path, "\"/root/nccs/Topas_wrapper/test/Muen.dat\"")
+
         command = [topas_application_path + ' ' + duplicate_dicom_file_path]
         # command = [topas_application_path + ' ' + DICOM_parent_directory +'/dicom.bat']
 

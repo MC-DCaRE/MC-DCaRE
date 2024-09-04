@@ -2990,15 +2990,26 @@ while True:
         for p in procs:
             #pass
             p.wait()
+            
     if event == '-DICOMBAT-':
-        G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
-        # DICOM =  '\"' +str(values['-DICOM-'])+ '\"'
-        DICOM = values['-DICOM-'] 
-        stringindexreplacement('s:Ts/G4DataDirectory', duplicate_dicom_file_path, G4_Data)
-        # stringindexreplacement('s:Ge/Patient/DicomDirectory', duplicate_dicom_file_path, DICOM)
+        #generate a dicom bat file from a boiler plate so we edit only that copy each time
+        original_file_path = path + '/dicom_boilerplate.bat'
+        duplicate_multiproc_file_name = "dicomtest.bat"
+        directory_path = os.path.dirname(original_file_path)
+        # duplicate_dicom_file_path = os.path.join(directory_path +"/runfolder" ,duplicate_multiproc_file_name)
+        duplicate_dicom_file_path = os.path.join(directory_path +"/runfolder" ,duplicate_multiproc_file_name)
+        shutil.copy(original_file_path, duplicate_dicom_file_path)
 
-        # command = [topas_application_path + ' ' + os.getcwd() + "/test/sampledicom/dicom.bat"]
-        command = [topas_application_path + ' ' + DICOM +'/dicom.bat']
+        G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
+        DICOM = values['-DICOM-']         
+        DICOM_image_path =  '\"' +str(values['-DICOM-'])+ '\"'
+        DICOM_parent_directory = os.path.dirname(DICOM)
+        stringindexreplacement('s:Ts/G4DataDirectory', duplicate_dicom_file_path, G4_Data)
+        stringindexreplacement('s:Ge/Patient/DicomDirectory', duplicate_dicom_file_path, DICOM_image_path)
+        stringindexreplacement( "includeFile", duplicate_dicom_file_path, "/root/nccs/Topas_wrapper/test/sampledicom/ConvertedTopasFile_head.txt /root/nccs/Topas_wrapper/test/sampledicom/HUtoMaterialSchneider.txt")
+        stringindexreplacement("s:Sc/DoseOnRTGrid_tle100kz17/InputFile" , duplicate_dicom_file_path, "\"/root/nccs/Topas_wrapper/test/Muen.dat\"")
+        command = [topas_application_path + ' ' + duplicate_dicom_file_path]
+        # command = [topas_application_path + ' ' + DICOM_parent_directory +'/dicom.bat']
 
         print(command)
         print(DICOM)
@@ -3018,11 +3029,9 @@ while True:
             subprocess.run("cd " + DICOM, shell=True)
             subprocess.run(command, cwd= DICOM,shell =True)
 
-            
-        
         pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
         # pool.map_async(run_topas, command)
-        pool.map_async(run_topas_DICOM, [(command, [DICOM])])
+        pool.map_async(run_topas_DICOM, [(command, ["/root/nccs/Topas_wrapper/runfolder"])])
         pool.close()
         pool.join()
         

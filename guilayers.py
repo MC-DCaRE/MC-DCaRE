@@ -51,7 +51,7 @@ dicom_layer = sg.pin(sg.Frame("DICOM inputs",
                                  sg.In(default_text='dicom_path',key='-DICOM-',size=(50,1),font=('Helvetica', 14),enable_events=True,
                                        tooltip="Click the enter key to register the change"),sg.FolderBrowse(font=('Helvetica', 14))
                                 ],
-                                [sg.Button("Create new DICOM bat file",enable_events=True, key='-DICOMBAT-',font=('Helvetica', 14),size=(35,1))],
+                                [sg.Button("Create new DICOM bat file and run",enable_events=True, key='-DICOMBAT-',font=('Helvetica', 14),size=(35,1))],
                               ],
                               key ='-DICOMACTIVATE-', 
                               visible = False

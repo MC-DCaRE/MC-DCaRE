@@ -5,6 +5,8 @@ import shutil
 from numpy import arange
 import numpy as np
 import multiprocessing as mp
+from pydicom import dcmread
+from runtimehandler import log_output
 
 #Useful functions###################################################
 def my_arange(start, end, step):
@@ -268,25 +270,26 @@ while True:
     if event == '-DUPGENPROC-':
         G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
         # Add code that dynamically pulls value from the input textboxes and replaced the newly generated files
-        original_file_path = path + '/generate_allproc_boilerplate.py'
-        duplicate_gen_file_name = "generate_allproc.py"
-        directory_path = os.path.dirname(original_file_path)
-        duplicate_gen_file_path = os.path.join(directory_path, duplicate_gen_file_name)
+        original_file_path = path + '/src/boilderplates/generate_allproc_boilerplate.py'
+        duplicate_gen_file_path = os.path.join(path + '/tmp/generate_allproc.py')
         shutil.copy(original_file_path, duplicate_gen_file_path)
         stringindexreplacement('G4DataDirectory', duplicate_gen_file_path, G4_Data)
 
     if event == '-DUPMULPROC-':
+        # Not required if a proper timestamped file creation, generation and run function is implimented 
         topas_application_path = values['-TOPAS-'] + " "
         # Add code that dynamically pulls value from the input textboxes and replaced the newly generated files
         original_file_path = path + '/runfolder/topas_multiproc_boilerplate.py'
-        duplicate_multiproc_file_name = "topas_multiproc.py"
-        directory_path = os.path.dirname(original_file_path)
-        duplicate_multiproc_file_path = os.path.join(directory_path, duplicate_multiproc_file_name)
+        duplicate_multiproc_file_path = os.path.join(path + '/tmp/topas_multiproc.py')
         shutil.copy(original_file_path, duplicate_multiproc_file_path)
         stringindexreplacement('topas_directory', duplicate_multiproc_file_path, topas_application_path)
         
     if event == '-RUN-':
-        command_topas = "python3 runfolder/topas_multiproc.py"
+        timestamp = log_output()
+        original_file_path = path + '/runfolder/topas_multiproc_boilerplate.py'
+        
+        shutil.copy(original_file_path, duplicate_multiproc_file_path)
+        command_topas = "python3 " + "runfolder/datafolder/" + timestamp + "/topas_multiproc.py"
         command_progressbar = f"python3 progressbar.py {path} {num_of_csvresult}"
         commands = [command_topas,command_progressbar]
         #commands = [command_progressbar]
@@ -308,22 +311,49 @@ while True:
             #pass
             p.wait()
     if event == '-DICOMBAT-':
-        G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
-        # DICOM =  '\"' +str(values['-DICOM-'])+ '\"' 
-        stringindexreplacement('s:Ts/G4DataDirectory', duplicate_dicom_file_path, G4_Data)
-        # stringindexreplacement('s:Ge/Patient/DicomDirectory', duplicate_dicom_file_path, DICOM)
+        #generate a dicom bat file from a boiler plate so we edit only that copy each time
+        original_file_path = path + '/src/boilerplates/dicom_boilerplate.bat/dicom_boilerplate.bat'
+        duplicate_multiproc_file_name = "dicomtest.bat"
+        # duplicate_dicom_file_path = os.path.join(directory_path +"/runfolder" ,duplicate_multiproc_file_name)
+        duplicate_dicom_file_path = os.path.join(path +"/tmp/dicomtest" )
+        shutil.copy(original_file_path, duplicate_dicom_file_path)
 
-        command = [topas_application_path + ' ' + os.getcwd() + "/test/sampledicom/dicom.bat"]
+        G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
+        DICOM = values['-DICOM-']
+        DICOM_RP = values['-DICOMRP-']
+        dcm = dcmread(DICOM_RP)
+        isocentre_coors = dcm.BeamSequence[0].ControlPointSequence[0].IsocenterPosition 
+        DICOM_image_path =  '\"' +str(values['-DICOM-'])+ '\"'
+        DICOM_parent_directory = os.path.dirname(DICOM)
+        stringindexreplacement('s:Ts/G4DataDirectory', duplicate_dicom_file_path, G4_Data)
+        stringindexreplacement('s:Ge/Patient/DicomDirectory', duplicate_dicom_file_path, DICOM_image_path)
+        stringindexreplacement( "includeFile", duplicate_dicom_file_path, "/root/nccs/Topas_wrapper/src/boilerplates/runfiles/dicomfiles/ConvertedTopasFile_head.txt /root/nccs/Topas_wrapper/src/boilerplates/runfiles/dicomfiles/HUtoMaterialSchneider.txt")
+        stringindexreplacement("s:Sc/DoseOnRTGrid_tle100kz17/InputFile" , duplicate_dicom_file_path, "\"/root/nccs/Topas_wrapper/src/boilerplates/runfiles/dicomfiles/Muen.dat\"")
+
+        command = [topas_application_path + ' ' + duplicate_dicom_file_path]
+        # command = [topas_application_path + ' ' + DICOM_parent_directory +'/dicom.bat']
+
         print(command)
-        
+        print(DICOM)
         def run_topas(command):
+            print(command)
             subprocess.run("cd test/sampledicom", shell=True)
             foo=os.getcwd() +"/test/sampledicom"
             subprocess.run(command, cwd= foo,shell =True)
-            
-        
+
+        def run_topas_DICOM(x1): 
+            print(x1)
+            command = x1[0][0]
+            DICOM = x1[1][0]
+            print('command is' , command) 
+            print('dicom is ', DICOM)
+            subprocess.run('cd $home', shell=True)
+            subprocess.run("cd " + DICOM, shell=True)
+            subprocess.run(command, cwd= DICOM,shell =True)
+
         pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
-        pool.map_async(run_topas, command)
+        # pool.map_async(run_topas, command)
+        pool.map_async(run_topas_DICOM, [(command, ["/root/nccs/Topas_wrapper/runfolder"])])
         pool.close()
         pool.join()
         

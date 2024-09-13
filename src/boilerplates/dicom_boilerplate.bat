@@ -4,14 +4,13 @@
 
 ## Include File ###############################
 includeFile=ConvertedTopasFile_head.txt
-includeFile = HUtoMaterialSchneider.txt
 
 ## Some Control Parameters ####################
 i:Ts/Seed=9#startingrandomseed
 i:Ts/NumberOfThreads=1#NumberofCPUthreadstowhichworkwillbedistributed
 #negativenumbermeansuseallbutthesenumberofthreads
 #zeromeansuseall
-s:Ts/G4DataDirectory="/home/leekh/G4Data"
+s:Ts/G4DataDirectory="/home/G4Data"
 
 ##DefineWorldGeometry############################
 d:Ge/World/HLX=1.2 m #HalfLength

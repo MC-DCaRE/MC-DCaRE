@@ -1634,7 +1634,7 @@ if __name__ == '__main__':
                 centrecsvname = ''.join(char for char in centrecsvname if char.lower() not in 'aeiou')
                 #centrecsvname = centrecsvname.replace("-","m")
                 #this creates the file in runfolder?
-                new_file_name = "runfolder/"+centrecsvname+".bat"
+                new_file_name = centrecsvname+".bat"
                 write_file = open(new_file_name, "w")   
                 new_file_name=remove_lines_with_keywords("headsourcecode.bat", new_file_name, components_to_be_del)
                 #create a variable here when the input is a range
@@ -2175,7 +2175,7 @@ if __name__ == '__main__':
             centrecsvname = names+"head"+"_default"
             centrecsvname = centrecsvname.replace(".","p")
             #centrecsvname = centrecsvname.replace("-","m")
-            new_file_name = "runfolder/"+centrecsvname+".bat"
+            new_file_name = centrecsvname+".bat"
             #write_file = open(new_file_name, "w")   
             new_file_name=remove_lines_with_keywords("headsourcecode.bat", new_file_name, components_to_be_del)
 
@@ -2322,9 +2322,9 @@ if __name__ == '__main__':
                 #new_line=new_line.replace('s:Sc/ChamberPlugDose_dtmd/IfOutputFileAlreadyExists="Overwrite"','s:Sc/ChamberPlugDose_dtmd/IfOutputFileAlreadyExists='+ChamberPlugDose_dtmd_IfOutputFileAlreadyExists)
                 #new_line=new_line.replace('i:Sc/ChamberPlugDose_dtmd/ZBins=100','i:Sc/ChamberPlugDose_dtmd/ZBins='+ChamberPlugDose_dtmd_ZBins)
 
-                new_line=new_line.replace('s:Sc/ChamberPlugDose_tle/OutputFile="ChamberPlugCentre_tle"','s:Sc/ChamberPlugDose_tle/OutputFile="'+"datafolder/"+str(centrecsvname)+ChamberPlugDose_tle_OutputFile)
-                new_line=new_line.replace('s:Sc/ChamberPlugDose_dtm/OutputFile="ChamberPlugCentre_dtm"','s:Sc/ChamberPlugDose_dtm/OutputFile="'+"datafolder/"+str(centrecsvname)+ChamberPlugDose_dtm_OutputFile)
-                new_line=new_line.replace('s:Sc/ChamberPlugDose_dtw/OutputFile="ChamberPlugCentre_dtw"','s:Sc/ChamberPlugDose_dtw/OutputFile="'+"datafolder/"+str(centrecsvname)+ChamberPlugDose_dtw_OutputFile)
+                new_line=new_line.replace('s:Sc/ChamberPlugDose_tle/OutputFile="ChamberPlugCentre_tle"','s:Sc/ChamberPlugDose_tle/OutputFile="'+str(centrecsvname)+ChamberPlugDose_tle_OutputFile)
+                new_line=new_line.replace('s:Sc/ChamberPlugDose_dtm/OutputFile="ChamberPlugCentre_dtm"','s:Sc/ChamberPlugDose_dtm/OutputFile="'+str(centrecsvname)+ChamberPlugDose_dtm_OutputFile)
+                new_line=new_line.replace('s:Sc/ChamberPlugDose_dtw/OutputFile="ChamberPlugCentre_dtw"','s:Sc/ChamberPlugDose_dtw/OutputFile="'+str(centrecsvname)+ChamberPlugDose_dtw_OutputFile)
                 
 
                 #Physics############################################

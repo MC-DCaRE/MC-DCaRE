@@ -6,7 +6,7 @@ from numpy import arange
 import numpy as np
 import multiprocessing as mp
 from pydicom import dcmread
-from runtimehandler import log_output
+from src.runtimehandler import log_output
 
 #Useful functions###################################################
 def my_arange(start, end, step):
@@ -119,6 +119,27 @@ def replacement_witherrorhandling_forintegers(
     else:
         sg.popup_error("Something is wrong!", "The input needs to be of the form :start,stop,step or single entry")
 
+def reset_tmp():
+    path = os.getcwd()
+    #generate a generate_allproc file from a boiler plate so we edit only that copy each time
+    original_gen_file_path = path + '/src/boilerplates/generate_allproc_boilerplate.py'
+    duplicate_gen_file_path = path + "/tmp/generate_allproc.py"
+    shutil.copy(original_gen_file_path, duplicate_gen_file_path)
+
+    #generate a headsource file from a boiler plate so we edit only that copy each time
+    original_headsource_file_path = path + '/src/boilerplates/headsourcecode_boilerplate.bat'
+    duplicate_headsource_file_path = path + "/tmp/headsourcecode.bat"
+    shutil.copy(original_headsource_file_path, duplicate_headsource_file_path)
+
+    #generate a multi_allproc file from a boiler plate so we edit only that copy each time
+    original_multiproc_file_path = path + '/src/boilerplates/topas_multiproc_boilerplate.py'
+    duplicate_multiproc_file_path = path + "/tmp/topas_multiproc.py"
+    shutil.copy(original_multiproc_file_path, duplicate_multiproc_file_path)
+
+    #generate a dicom bat file from a boiler plate so we edit only that copy each time
+    original_dicom_file_path = path + '/src/boilerplates/dicom_boilerplate.bat'
+    duplicate_dicom_file_path = path +"/tmp/dicom.bat"
+    shutil.copy(original_dicom_file_path, duplicate_dicom_file_path)
 
 
 
@@ -139,28 +160,6 @@ dicom_path = '/root/nccs/Topas_wrapper/test/cherylair'
 G4_Data ='/root/G4Data' #linux
 
 
-
-#generate a generate_allproc file from a boiler plate so we edit only that copy each time
-original_file_path = path + '/src/boilerplates/generate_allproc_boilerplate.py'
-duplicate_gen_file_path = path + "/tmp/generate_allproc.py"
-# directory_path = os.path.dirname(original_file_path)
-# duplicate_gen_file_path = os.path.join(directory_path, duplicate_gen_file_name)
-shutil.copy(original_file_path, duplicate_gen_file_path)
-
-#generate a multi_allproc file from a boiler plate so we edit only that copy each time
-original_file_path = path + '/src/boilerplates/topas_multiproc_boilerplate.py'
-duplicate_multiproc_file_path = path + "/tmp/topas_multiproc.py"
-# directory_path = os.path.dirname(original_file_path)
-# duplicate_multiproc_file_path = os.path.join(directory_path, duplicate_multiproc_file_name)
-shutil.copy(original_file_path, duplicate_multiproc_file_path)
-
-#generate a dicom bat file from a boiler plate so we edit only that copy each time
-original_file_path = path + '/src/boilerplates/dicom_boilerplate.bat'
-duplicate_dicom_file_path = path +"/tmp/dicom.bat"
-# directory_path = os.path.dirname(original_file_path)
-# duplicate_dicom_file_path = os.path.join(directory_path +"/runfolder" ,duplicate_multiproc_file_name)
-# duplicate_dicom_file_path = os.path.join(directory_path +"/test/sampledicom" ,duplicate_multiproc_file_name)
-shutil.copy(original_file_path, duplicate_dicom_file_path)
 
 from src.boilerplates.generate_allproc_boilerplate import selectcomponents
 
@@ -205,6 +204,7 @@ window.set_min_size(window.size)
 
 from src.key_binds import *
 key_binds(window) 
+reset_tmp()
 
 #default we will have 5 positions-chamberplugs and 3 quantities to score
 #this variable has to be outside of the while loop because after the RUN event updates
@@ -285,18 +285,10 @@ while True:
         stringindexreplacement('topas_directory', duplicate_multiproc_file_path, topas_application_path)
         
     if event == '-RUN-':
-        timestamp = log_output()
-        original_file_path = path + '/runfolder/topas_multiproc_boilerplate.py'
-        
-        shutil.copy(original_file_path, duplicate_multiproc_file_path)
-        command_topas = "python3 " + "runfolder/datafolder/" + timestamp + "/topas_multiproc.py"
-        command_progressbar = f"python3 progressbar.py {path} {num_of_csvresult}"
-        commands = [command_topas,command_progressbar]
-        #commands = [command_progressbar]
-        procs = [subprocess.Popen(i,shell=True) for i in commands]
-        for p in procs:
-            #pass
-            p.wait()
+        # add code to edit the tmp file
+        tmp_file_path = path + '/tmp/generate_allproc.py'
+        timestamp = log_output(tmp_file_path, 'generate_allproc.py', topas_application_path)
+        reset_tmp()
 
     if event == '-GENRUN-':
         command = ["python3 generate_allproc.py"]
@@ -311,54 +303,22 @@ while True:
             #pass
             p.wait()
     if event == '-DICOMBAT-':
-        #generate a dicom bat file from a boiler plate so we edit only that copy each time
-        original_file_path = path + '/src/boilerplates/dicom_boilerplate.bat/dicom_boilerplate.bat'
-        duplicate_multiproc_file_name = "dicomtest.bat"
-        # duplicate_dicom_file_path = os.path.join(directory_path +"/runfolder" ,duplicate_multiproc_file_name)
-        duplicate_dicom_file_path = os.path.join(path +"/tmp/dicomtest" )
-        shutil.copy(original_file_path, duplicate_dicom_file_path)
+        tmp_file_path = path + '/tmp/dicom.bat'
 
+        # add code to edit the tmp file
         G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
         DICOM = values['-DICOM-']
         DICOM_RP = values['-DICOMRP-']
         dcm = dcmread(DICOM_RP)
         isocentre_coors = dcm.BeamSequence[0].ControlPointSequence[0].IsocenterPosition 
         DICOM_image_path =  '\"' +str(values['-DICOM-'])+ '\"'
-        DICOM_parent_directory = os.path.dirname(DICOM)
-        stringindexreplacement('s:Ts/G4DataDirectory', duplicate_dicom_file_path, G4_Data)
-        stringindexreplacement('s:Ge/Patient/DicomDirectory', duplicate_dicom_file_path, DICOM_image_path)
-        stringindexreplacement( "includeFile", duplicate_dicom_file_path, "/root/nccs/Topas_wrapper/src/boilerplates/runfiles/dicomfiles/ConvertedTopasFile_head.txt /root/nccs/Topas_wrapper/src/boilerplates/runfiles/dicomfiles/HUtoMaterialSchneider.txt")
-        stringindexreplacement("s:Sc/DoseOnRTGrid_tle100kz17/InputFile" , duplicate_dicom_file_path, "\"/root/nccs/Topas_wrapper/src/boilerplates/runfiles/dicomfiles/Muen.dat\"")
+        # DICOM_parent_directory = os.path.dirname(DICOM)
+        stringindexreplacement('s:Ts/G4DataDirectory', tmp_file_path, G4_Data)
+        stringindexreplacement('s:Ge/Patient/DicomDirectory', tmp_file_path, DICOM_image_path)
 
-        command = [topas_application_path + ' ' + duplicate_dicom_file_path]
-        # command = [topas_application_path + ' ' + DICOM_parent_directory +'/dicom.bat']
+        log_output(tmp_file_path, 'dicom.bat', topas_application_path)
+        reset_tmp()
 
-        print(command)
-        print(DICOM)
-        def run_topas(command):
-            print(command)
-            subprocess.run("cd test/sampledicom", shell=True)
-            foo=os.getcwd() +"/test/sampledicom"
-            subprocess.run(command, cwd= foo,shell =True)
-
-        def run_topas_DICOM(x1): 
-            print(x1)
-            command = x1[0][0]
-            DICOM = x1[1][0]
-            print('command is' , command) 
-            print('dicom is ', DICOM)
-            subprocess.run('cd $home', shell=True)
-            subprocess.run("cd " + DICOM, shell=True)
-            subprocess.run(command, cwd= DICOM,shell =True)
-
-        pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
-        # pool.map_async(run_topas, command)
-        pool.map_async(run_topas_DICOM, [(command, ["/root/nccs/Topas_wrapper/runfolder"])])
-        pool.close()
-        pool.join()
-        
-        # run_topas(command)
-        pass
     if event == '-SEED-_ENTER':
         replacement_witherrorhandling_forintegers(values['-SEED-'],
                                                   "Seed = \'9\'",
@@ -385,13 +345,6 @@ while True:
                                                   "#boundaries_list.append([beam_NumberOfHistoriesInRun_start",
                                                   "#boundaries_name_list.append(['beam_NumberOfHistoriesInRun'])+",
                                                   "#beam_NumberOfHistoriesInRun,i=str(int(values[i])),i+1")
-    if event == '-CPC_TYPE-_ENTER':
-        try:
-            int(values['-CPC_TYPE-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except:
-            replacement_floatorint("ChamberPlugCentre_Type=\'\"TsCylinder\"\'",
-                               "ChamberPlugCentre_Type=\'\""+str(values['-CPC_TYPE-'])+"\"\'")
 
     if event == '-CPC_MAT-_ENTER':
         try:
@@ -482,13 +435,6 @@ while True:
                                       "#boundaries_name_list.append(['ChamberPlugCentre_RotX'])+",
                                       "#ChamberPlugCentre_RotX,i=str(values[i]),i+1")
 
-    if event == '-CPT_TYPE-_ENTER':
-        try:
-            int(values['-CPT_TYPE-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except:
-            replacement_floatorint("ChamberPlugTop_Type=\'\"TsCylinder\"\'",
-                               "ChamberPlugTop_Type=\'\""+str(values['-CPT_TYPE-'])+"\"\'")
 
     if event == '-CPT_MAT-_ENTER':
         try:
@@ -578,13 +524,6 @@ while True:
                                       "#boundaries_list.append([ChamberPlugTop_RotX_start",
                                       "#boundaries_name_list.append(['ChamberPlugTop_RotX'])+",
                                       "#ChamberPlugTop_RotX,i=str(values[i]),i+1")
-    if event == '-CPB_TYPE-_ENTER':
-        try:
-            int(values['-CPB_TYPE-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except:
-            replacement_floatorint("ChamberPlugBottom_Type=\'\"TsCylinder\"\'",
-                               "ChamberPlugBottom_Type=\'\""+str(values['-CPB_TYPE-'])+"\"\'")
 
     if event == '-CPB_MAT-_ENTER':
         try:
@@ -674,13 +613,6 @@ while True:
                                       "#boundaries_list.append([ChamberPlugBottom_RotX_start",
                                       "#boundaries_name_list.append(['ChamberPlugBottom_RotX'])+",
                                       "#ChamberPlugBottom_RotX,i=str(values[i]),i+1")
-    if event == '-CPL_TYPE-_ENTER':
-        try:
-            int(values['-CPL_TYPE-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except:
-            replacement_floatorint("ChamberPlugLeft_Type=\'\"TsCylinder\"\'",
-                               "ChamberPlugLeft_Type=\'\""+str(values['-CPL_TYPE-'])+"\"\'")
 
     if event == '-CPL_MAT-_ENTER':
         try:
@@ -771,13 +703,6 @@ while True:
                                       "#boundaries_name_list.append(['ChamberPlugLeft_RotX'])+",
                                       "#ChamberPlugLeft_RotX,i=str(values[i]),i+1")
 
-    if event == '-CPR_TYPE-_ENTER':
-        try:
-            int(values['-CPR_TYPE-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except:
-            replacement_floatorint("ChamberPlugRight_Type=\'\"TsCylinder\"\'",
-                               "ChamberPlugRight_Type=\'\""+str(values['-CPR_TYPE-'])+"\"\'")
 
     if event == '-CPR_MAT-_ENTER':
         try:

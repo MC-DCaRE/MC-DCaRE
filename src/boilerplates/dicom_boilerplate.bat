@@ -4,6 +4,7 @@
 
 ## Include File ###############################
 includeFile=ConvertedTopasFile_head.txt
+includeFile= HUtoMaterialSchneider.txt
 
 ## Some Control Parameters ####################
 i:Ts/Seed=9#startingrandomseed

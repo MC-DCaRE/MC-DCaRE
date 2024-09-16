@@ -9,7 +9,6 @@ def key_binds(window):
     window["-SEED-"].bind("<Return>","_ENTER")
     window["-THREAD-"].bind("<Return>","_ENTER")
     window["-HIST-"].bind("<Return>","_ENTER")
-    window["-CPC_TYPE-"].bind("<Return>","_ENTER")
     window["-CPC_MAT-"].bind("<Return>","_ENTER")
     window["-CPC_RMIN-"].bind("<Return>","_ENTER")
     window["-CPC_RMAX-"].bind("<Return>","_ENTER")
@@ -21,7 +20,6 @@ def key_binds(window):
     window["-CPC_TZ-"].bind("<Return>","_ENTER")
     window["-CPC_RX-"].bind("<Return>","_ENTER")
 
-    window["-CTDI_TYPE-"].bind("<Return>","_ENTER")
     window["-CTDI_MAT-"].bind("<Return>","_ENTER")
     window["-CTDI_RMIN-"].bind("<Return>","_ENTER")
     window["-CTDI_RMAX-"].bind("<Return>","_ENTER")
@@ -33,7 +31,6 @@ def key_binds(window):
     window["-CTDI_TZ-"].bind("<Return>","_ENTER")
     window["-CTDI_RX-"].bind("<Return>","_ENTER")
 
-    window["-CPT_TYPE-"].bind("<Return>","_ENTER")
     window["-CPT_MAT-"].bind("<Return>","_ENTER")
     window["-CPT_RMIN-"].bind("<Return>","_ENTER")
     window["-CPT_RMAX-"].bind("<Return>","_ENTER")
@@ -46,7 +43,6 @@ def key_binds(window):
     window["-CPT_TZ-"].bind("<Return>","_ENTER")
     window["-CPT_RX-"].bind("<Return>","_ENTER")
 
-    window["-CPB_TYPE-"].bind("<Return>","_ENTER")
     window["-CPB_MAT-"].bind("<Return>","_ENTER")
     window["-CPB_RMIN-"].bind("<Return>","_ENTER")
     window["-CPB_RMAX-"].bind("<Return>","_ENTER")
@@ -59,7 +55,6 @@ def key_binds(window):
     window["-CPB_TZ-"].bind("<Return>","_ENTER")
     window["-CPB_RX-"].bind("<Return>","_ENTER")
 
-    window["-CPL_TYPE-"].bind("<Return>","_ENTER")
     window["-CPL_MAT-"].bind("<Return>","_ENTER")
     window["-CPL_RMIN-"].bind("<Return>","_ENTER")
     window["-CPL_RMAX-"].bind("<Return>","_ENTER")
@@ -72,7 +67,6 @@ def key_binds(window):
     window["-CPL_TZ-"].bind("<Return>","_ENTER")
     window["-CPL_RX-"].bind("<Return>","_ENTER")
 
-    window["-CPR_TYPE-"].bind("<Return>","_ENTER")
     window["-CPR_MAT-"].bind("<Return>","_ENTER")
     window["-CPR_RMIN-"].bind("<Return>","_ENTER")
     window["-CPR_RMAX-"].bind("<Return>","_ENTER")

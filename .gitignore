@@ -328,6 +328,7 @@ cython_debug/
 /generate_allproc.py
 /runfolder/topas_multiproc.py 
 /tmp/*
+/runfolder/
 
 
 # Personal test file 

@@ -29,7 +29,7 @@ def log_output(input_file_path, filename, topas_application_path):
                 pool.map_async(run_topas, [(command, [rundatadir])])
                 pool.close()
                 pool.join()
-                pass
+                run_status= "DICOM simulation completed"
 
         elif filename == 'generate_allproc.py':
         #       edit the file to add timestamp corrections
@@ -49,9 +49,10 @@ def log_output(input_file_path, filename, topas_application_path):
                 pool.map_async(run_topas, [(command, [rundatadir])])
                 pool.close()
                 pool.join()
+                run_status= "CTDI simulation completed"
 
         else:
-              pass
+              run_status = 'Error encountered' 
 
 
         # Not implemented yet
@@ -77,7 +78,7 @@ def log_output(input_file_path, filename, topas_application_path):
         # logging.basicConfig(...)
         # multiprocessing_logging.install_mp_handler()
         # # pool = Pool(...)
-        return rundatadir
+        return run_status
 
 if __name__ == "__main__":
     log_output()

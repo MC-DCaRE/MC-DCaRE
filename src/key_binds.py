@@ -1,15 +1,12 @@
 import PySimpleGUI as sg
 
 def key_binds(window):
-    window["-MAINFOLDERNAME-"].bind("<Return>","_ENTER")
     window["-G4FOLDERNAME-"].bind("<Return>","_ENTER")
     window["-TOPAS-"].bind("<Return>","_ENTER")
     window["-DICOM-"].bind("<Return>","_ENTER")
-    # window["-DICOMACTIVATE-"].bind("<Return>","_ENTER")
     window["-SEED-"].bind("<Return>","_ENTER")
     window["-THREAD-"].bind("<Return>","_ENTER")
     window["-HIST-"].bind("<Return>","_ENTER")
-    window["-CPC_MAT-"].bind("<Return>","_ENTER")
     window["-CPC_RMIN-"].bind("<Return>","_ENTER")
     window["-CPC_RMAX-"].bind("<Return>","_ENTER")
     window["-CPC_HL-"].bind("<Return>","_ENTER")
@@ -20,7 +17,6 @@ def key_binds(window):
     window["-CPC_TZ-"].bind("<Return>","_ENTER")
     window["-CPC_RX-"].bind("<Return>","_ENTER")
 
-    window["-CTDI_MAT-"].bind("<Return>","_ENTER")
     window["-CTDI_RMIN-"].bind("<Return>","_ENTER")
     window["-CTDI_RMAX-"].bind("<Return>","_ENTER")
     window["-CTDI_HL-"].bind("<Return>","_ENTER")
@@ -31,7 +27,6 @@ def key_binds(window):
     window["-CTDI_TZ-"].bind("<Return>","_ENTER")
     window["-CTDI_RX-"].bind("<Return>","_ENTER")
 
-    window["-CPT_MAT-"].bind("<Return>","_ENTER")
     window["-CPT_RMIN-"].bind("<Return>","_ENTER")
     window["-CPT_RMAX-"].bind("<Return>","_ENTER")
     window["-CPT_HL-"].bind("<Return>","_ENTER")
@@ -43,7 +38,6 @@ def key_binds(window):
     window["-CPT_TZ-"].bind("<Return>","_ENTER")
     window["-CPT_RX-"].bind("<Return>","_ENTER")
 
-    window["-CPB_MAT-"].bind("<Return>","_ENTER")
     window["-CPB_RMIN-"].bind("<Return>","_ENTER")
     window["-CPB_RMAX-"].bind("<Return>","_ENTER")
     window["-CPB_HL-"].bind("<Return>","_ENTER")
@@ -55,7 +49,6 @@ def key_binds(window):
     window["-CPB_TZ-"].bind("<Return>","_ENTER")
     window["-CPB_RX-"].bind("<Return>","_ENTER")
 
-    window["-CPL_MAT-"].bind("<Return>","_ENTER")
     window["-CPL_RMIN-"].bind("<Return>","_ENTER")
     window["-CPL_RMAX-"].bind("<Return>","_ENTER")
     window["-CPL_HL-"].bind("<Return>","_ENTER")
@@ -67,7 +60,6 @@ def key_binds(window):
     window["-CPL_TZ-"].bind("<Return>","_ENTER")
     window["-CPL_RX-"].bind("<Return>","_ENTER")
 
-    window["-CPR_MAT-"].bind("<Return>","_ENTER")
     window["-CPR_RMIN-"].bind("<Return>","_ENTER")
     window["-CPR_RMAX-"].bind("<Return>","_ENTER")
     window["-CPR_HL-"].bind("<Return>","_ENTER")
@@ -91,7 +83,6 @@ def key_binds(window):
     window["-PHYEMIN-"].bind("<Return>","_ENTER")
     window["-PHYEMAX-"].bind("<Return>","_ENTER")
     window["-ROTTY-"].bind("<Return>","_ENTER")
-    window["-ROTPAR-"].bind("<Return>","_ENTER")
 
     window["-ROTROTX-"].bind("<Return>","_ENTER")
     window["-ROTROTY-"].bind("<Return>","_ENTER")
@@ -100,26 +91,22 @@ def key_binds(window):
     window["-ROTTRANSY-"].bind("<Return>","_ENTER")
     window["-ROTTRANSZ-"].bind("<Return>","_ENTER")
     window["-COLLVERTY-"].bind("<Return>","_ENTER")
-    window["-COLLVERPAR-"].bind("<Return>","_ENTER")
     window["-COLLVERROTX-"].bind("<Return>","_ENTER")
     window["-COLLVERROTY-"].bind("<Return>","_ENTER")
     window["-COLLVERROTZ-"].bind("<Return>","_ENTER")
     window["-COLLVERTRANSZ-"].bind("<Return>","_ENTER")
-    window["-COLLHORPAR-"].bind("<Return>","_ENTER")
     window["-COLLHORROTX-"].bind("<Return>","_ENTER")
     window["-COLLHORROTY-"].bind("<Return>","_ENTER")
     window["-COLLHORROTZ-"].bind("<Return>","_ENTER")
     window["-COLLHORTRANSZ-"].bind("<Return>","_ENTER")
 
     window["-TITTY-"].bind("<Return>","_ENTER")
-    window["-TITPAR-"].bind("<Return>","_ENTER")
     window["-TITROTX-"].bind("<Return>","_ENTER")
     window["-TITROTY-"].bind("<Return>","_ENTER")
     window["-TITROTZ-"].bind("<Return>","_ENTER")
     window["-TITTRANSZ-"].bind("<Return>","_ENTER")
 
     window["-BFTY-"].bind("<Return>","_ENTER")
-    window["-BFPAR-"].bind("<Return>","_ENTER")
     window["-BFROTX-"].bind("<Return>","_ENTER")
     window["-BFROTY-"].bind("<Return>","_ENTER")
     window["-BFROTZ-"].bind("<Return>","_ENTER")
@@ -128,7 +115,6 @@ def key_binds(window):
     window["-BFTRANSZ-"].bind("<Return>","_ENTER")
 
     window["-Coll1TY-"].bind("<Return>","_ENTER")
-    window["-Coll1PAR-"].bind("<Return>","_ENTER")
     window["-Coll1MAT-"].bind("<Return>","_ENTER")
     window["-Coll1ROTX-"].bind("<Return>","_ENTER")
     window["-Coll1ROTY-"].bind("<Return>","_ENTER")
@@ -142,7 +128,6 @@ def key_binds(window):
     window["-Coll1LTX-"].bind("<Return>","_ENTER")
 
     window["-Coll2TY-"].bind("<Return>","_ENTER")
-    window["-Coll2PAR-"].bind("<Return>","_ENTER")
     window["-Coll2MAT-"].bind("<Return>","_ENTER")
     window["-Coll2ROTX-"].bind("<Return>","_ENTER")
     window["-Coll2ROTY-"].bind("<Return>","_ENTER")
@@ -156,7 +141,6 @@ def key_binds(window):
     window["-Coll2LTX-"].bind("<Return>","_ENTER")
 
     window["-Coll3TY-"].bind("<Return>","_ENTER")
-    window["-Coll3PAR-"].bind("<Return>","_ENTER")
     window["-Coll3MAT-"].bind("<Return>","_ENTER")
     window["-Coll3ROTX-"].bind("<Return>","_ENTER")
     window["-Coll3ROTY-"].bind("<Return>","_ENTER")
@@ -170,7 +154,6 @@ def key_binds(window):
     window["-Coll3LTX-"].bind("<Return>","_ENTER")
 
     window["-Coll4TY-"].bind("<Return>","_ENTER")
-    window["-Coll4PAR-"].bind("<Return>","_ENTER")
     window["-Coll4MAT-"].bind("<Return>","_ENTER")
     window["-Coll4ROTX-"].bind("<Return>","_ENTER")
     window["-Coll4ROTY-"].bind("<Return>","_ENTER")
@@ -184,7 +167,6 @@ def key_binds(window):
     window["-Coll4LTX-"].bind("<Return>","_ENTER")
 
     window["-Coll1steelMAT-"].bind("<Return>","_ENTER")
-    window["-Coll1steelPAR-"].bind("<Return>","_ENTER")
     window["-Coll1steelTY-"].bind("<Return>","_ENTER")
     window["-Coll1steelROTX-"].bind("<Return>","_ENTER")
     window["-Coll1steelROTY-"].bind("<Return>","_ENTER")
@@ -198,7 +180,6 @@ def key_binds(window):
     window["-Coll1steelLTX-"].bind("<Return>","_ENTER")
 
     window["-Coll2steelTY-"].bind("<Return>","_ENTER")
-    window["-Coll2steelPAR-"].bind("<Return>","_ENTER")
     window["-Coll2steelMAT-"].bind("<Return>","_ENTER")
     window["-Coll2steelROTX-"].bind("<Return>","_ENTER")
     window["-Coll2steelROTY-"].bind("<Return>","_ENTER")
@@ -212,7 +193,6 @@ def key_binds(window):
     window["-Coll2steelLTX-"].bind("<Return>","_ENTER")
 
     window["-Coll3steelTY-"].bind("<Return>","_ENTER")
-    window["-Coll3steelPAR-"].bind("<Return>","_ENTER")
     window["-Coll3steelMAT-"].bind("<Return>","_ENTER")
     window["-Coll3steelROTX-"].bind("<Return>","_ENTER")
     window["-Coll3steelROTY-"].bind("<Return>","_ENTER")
@@ -225,7 +205,6 @@ def key_binds(window):
     window["-Coll3steelLX-"].bind("<Return>","_ENTER")
     window["-Coll3steelLTX-"].bind("<Return>","_ENTER")
     window["-Coll4steelTY-"].bind("<Return>","_ENTER")
-    window["-Coll4steelPAR-"].bind("<Return>","_ENTER")
     window["-Coll4steelMAT-"].bind("<Return>","_ENTER")
     window["-Coll4steelROTX-"].bind("<Return>","_ENTER")
     window["-Coll4steelROTY-"].bind("<Return>","_ENTER")
@@ -239,7 +218,6 @@ def key_binds(window):
     window["-Coll4steelLTX-"].bind("<Return>","_ENTER")
 
     window["-TITFILTY-"].bind("<Return>","_ENTER")
-    window["-TITFILPAR-"].bind("<Return>","_ENTER")
     window["-TITFILMAT-"].bind("<Return>","_ENTER")
     window["-TITFILROTX-"].bind("<Return>","_ENTER")
     window["-TITFILROTY-"].bind("<Return>","_ENTER")
@@ -252,7 +230,6 @@ def key_binds(window):
     window["-TITFILHLX-"].bind("<Return>","_ENTER")
 
     window["-DEMOFLATTY-"].bind("<Return>","_ENTER")
-    window["-DEMOFLATPAR-"].bind("<Return>","_ENTER")
     window["-DEMOFLATMAT-"].bind("<Return>","_ENTER")
     window["-DEMOFLATROTX-"].bind("<Return>","_ENTER")
     window["-DEMOFLATROTY-"].bind("<Return>","_ENTER")
@@ -265,7 +242,6 @@ def key_binds(window):
     window["-DEMOFLATHLX-"].bind("<Return>","_ENTER")
 
     window["-TSBTY-"].bind("<Return>","_ENTER")
-    window["-TSBPAR-"].bind("<Return>","_ENTER")
     window["-TSBMAT-"].bind("<Return>","_ENTER")
     window["-TSBROTX-"].bind("<Return>","_ENTER")
     window["-TSBROTY-"].bind("<Return>","_ENTER")
@@ -278,7 +254,6 @@ def key_binds(window):
     window["-TSBHLX-"].bind("<Return>","_ENTER")
 
     window["-BSBTY-"].bind("<Return>","_ENTER")
-    window["-BSBPAR-"].bind("<Return>","_ENTER")
     window["-BSBMAT-"].bind("<Return>","_ENTER")
     window["-BSBROTX-"].bind("<Return>","_ENTER")
     window["-BSBROTY-"].bind("<Return>","_ENTER")
@@ -291,7 +266,6 @@ def key_binds(window):
     window["-BSBHLX-"].bind("<Return>","_ENTER")
 
     window["-COUCHTY-"].bind("<Return>","_ENTER")
-    window["-COUCHPAR-"].bind("<Return>","_ENTER")
     window["-COUCHMAT-"].bind("<Return>","_ENTER")
     window["-COUCHTRANSX-"].bind("<Return>","_ENTER")
     window["-COUCHTRANSY-"].bind("<Return>","_ENTER")
@@ -301,7 +275,6 @@ def key_binds(window):
     window["-COUCHHLX-"].bind("<Return>","_ENTER")
 
     window["-BEAMGRPTY-"].bind("<Return>","_ENTER")
-    window["-BEAMGRPPAR-"].bind("<Return>","_ENTER")
     window["-BEAMGRPTRANSX-"].bind("<Return>","_ENTER")
     window["-BEAMGRPTRANSY-"].bind("<Return>","_ENTER")
     window["-BEAMGRPTRANSZ-"].bind("<Return>","_ENTER")
@@ -312,7 +285,6 @@ def key_binds(window):
     window["-BEAMSPECTY-"].bind("<Return>","_ENTER")
     window["-BEAMTY-"].bind("<Return>","_ENTER")
     window["-BEAMCOMPO-"].bind("<Return>","_ENTER")
-    window["-BEAMPAR-"].bind("<Return>","_ENTER")
     window["-BEAMGRPTRANSZ-"].bind("<Return>","_ENTER")
     window["-BEAMPOSDISTRO-"].bind("<Return>","_ENTER")
     window["-BEAMPOSHAPE-"].bind("<Return>","_ENTER")

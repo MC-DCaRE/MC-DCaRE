@@ -1,10 +1,8 @@
 import os
 import PySimpleGUI as sg
-import subprocess
 import shutil
 from numpy import arange
 import numpy as np
-import multiprocessing as mp
 from pydicom import dcmread
 from src.runtimehandler import log_output
 
@@ -170,14 +168,16 @@ from src.guilayers import *
 general_layer = gui_layer_generation(path, G4_Data, topas_application_path)
 
 # Creating a tabbed menu 
-main_layout = [[information_layer],
+main_layout = [[main_menu_information_layer],
                [general_layer],
                [function_layer],
-               [dicom_layer],
+               [dicom_file_layer],
                [toggle_layer], 
                [runbuttons_layer]]
 
-chamber_layout = [[CTDI_layer,ChamberPlugCentre_layer,ChamberPlugTop_layer],[ChamberPlugBottom_layer,ChamberPlugLeft_layer,ChamberPlugRight_layer]]
+chamber_layout = [[CTDI_information_layer],[CTDI_layer,ChamberPlugCentre_layer,ChamberPlugTop_layer],[ChamberPlugBottom_layer,ChamberPlugLeft_layer,ChamberPlugRight_layer]]
+
+dicom_layout = [ [dicom_information_layer] , [dicom_translation_layer, dicom_scan_layer]]
 
 collimator_layout = [[Coll1_layer,Coll2_layer,Coll3_layer,Coll4_layer, CollimatorVerticalGroup_layer], 
                      [Coll1steel_layer,Coll2steel_layer,Coll3steel_layer,Coll4steel_layer,CollimatorHorizontalGroup_layer ]]
@@ -189,12 +189,13 @@ others_layout = [[Time_layer,Physics_layer, Scoring_layer,RotationGroup_layer],
                  [Couch_layer,BeamGroup_layer,Beam_layer]]
 
 layout = [[ sg.Text('Imaging Dose', size=(30,1),justification='center',font=('Helvetica 50 bold'), text_color='dark blue')],
-          [sg.TabGroup([[sg.Tab( 'Main menu' , main_layout),
-                        sg.Tab('Chamber menu' , chamber_layout, key= '-HIDETAB-', visible=False),
-                        sg.Tab('Collimator menu', collimator_layout),
-                        sg.Tab('Filter menu', filter_layout),
-                        sg.Tab('Others menu', others_layout)]],
-                        key='-TAB GROUP-', font=(40) ,expand_x=True, expand_y=True),
+          [sg.TabGroup([[sg.Tab('Main menu' , main_layout),
+                         sg.Tab('DICOM adjustments menu', dicom_layout, key= '-HIDEDICOMTAB-', visible=False),
+                         sg.Tab('CTDI phantom menu' , chamber_layout, key= '-HIDESIMUTAB-', visible=False),
+                         sg.Tab('Collimator menu', collimator_layout),
+                         sg.Tab('Filter menu', filter_layout),
+                         sg.Tab('Others menu', others_layout)]],
+                         key='-TAB GROUP-', font=(40) ,expand_x=True, expand_y=True),
                         ]]
 
 sg.set_options(scaling=1)
@@ -222,17 +223,10 @@ while True:
     if event == sg.WIN_CLOSED:
         break
 
-    if event == '-MAINFOLDERNAME-_ENTER':
-        #default path
-        path = values['-MAINFOLDERNAME-']
-        # print(path)
-
-    if event == '-GEN-':
-        command = ["python3 generate_allproc.py"]
-        subprocess.run(command, shell=True)
-        # print(command)
-
     if event == '-G4FOLDERNAME-_ENTER':
+        # f = open('dump.txt', 'w')
+        # f.write( 'dict = '+repr(values)+ '\n')
+        # f.close()
         # print(str(values['-G4FOLDERNAME-']))
         # replacement_floatorint("G4DataDirectory = \'\""+G4_Data+"\"\'",
         #                        "G4DataDirectory = \'\""+str(values['-G4FOLDERNAME-'])+"\"\'")
@@ -252,7 +246,8 @@ while True:
         if USER_bool == False:
             DICOM_bool = not DICOM_bool
             window['-DICOMACTIVATE-'].update(visible=DICOM_bool)
-            window['-BUTTONSACTIVATE-'].update(visible=DICOM_bool)
+            window['-HIDEDICOMTAB-'].update(visible=DICOM_bool)
+            
         else:
             sg.popup_error('Choose 1 option')
             window['-DICOMACTIVATECHECK-'].update(value=False)
@@ -261,47 +256,19 @@ while True:
         if DICOM_bool == False:
             USER_bool = not USER_bool
             window['-USERACTIVATE-'].update(visible=USER_bool)
-            window['-HIDETAB-'].update(visible=USER_bool)
+            window['-HIDESIMUTAB-'].update(visible=USER_bool)
             window['-BUTTONSACTIVATE-'].update(visible=USER_bool)
         else:
             sg.popup_error('Choose 1 option')
             window['-USERACTIVATECHECK-'].update(value=False)
-
-    if event == '-DUPGENPROC-':
-        G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
-        # Add code that dynamically pulls value from the input textboxes and replaced the newly generated files
-        original_file_path = path + '/src/boilderplates/generate_allproc_boilerplate.py'
-        duplicate_gen_file_path = os.path.join(path + '/tmp/generate_allproc.py')
-        shutil.copy(original_file_path, duplicate_gen_file_path)
-        stringindexreplacement('G4DataDirectory', duplicate_gen_file_path, G4_Data)
-
-    if event == '-DUPMULPROC-':
-        # Not required if a proper timestamped file creation, generation and run function is implimented 
-        topas_application_path = values['-TOPAS-'] + " "
-        # Add code that dynamically pulls value from the input textboxes and replaced the newly generated files
-        original_file_path = path + '/runfolder/topas_multiproc_boilerplate.py'
-        duplicate_multiproc_file_path = os.path.join(path + '/tmp/topas_multiproc.py')
-        shutil.copy(original_file_path, duplicate_multiproc_file_path)
-        stringindexreplacement('topas_directory', duplicate_multiproc_file_path, topas_application_path)
         
     if event == '-RUN-':
         # add code to edit the tmp file
         tmp_file_path = path + '/tmp/generate_allproc.py'
-        timestamp = log_output(tmp_file_path, 'generate_allproc.py', topas_application_path)
+        run_status = log_output(tmp_file_path, 'generate_allproc.py', topas_application_path)
         reset_tmp()
+        sg.popup_error(run_status)
 
-    if event == '-GENRUN-':
-        command = ["python3 generate_allproc.py"]
-        subprocess.run(command, shell=True)
-        print(command)
-        command_topas = "python3 runfolder/topas_multiproc.py"
-        command_progressbar = f"python3 progressbar.py {path} {num_of_csvresult}"
-        commands = [command_topas,command_progressbar]
-        #commands = [command_progressbar]
-        procs = [subprocess.Popen(i,shell=True) for i in commands]
-        for p in procs:
-            #pass
-            p.wait()
     if event == '-DICOMBAT-':
         tmp_file_path = path + '/tmp/dicom.bat'
 
@@ -309,15 +276,15 @@ while True:
         G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
         DICOM = values['-DICOM-']
         DICOM_RP = values['-DICOMRP-']
-        dcm = dcmread(DICOM_RP)
-        isocentre_coors = dcm.BeamSequence[0].ControlPointSequence[0].IsocenterPosition 
+        isocentre_coors = dcmread(DICOM_RP).BeamSequence[0].ControlPointSequence[0].IsocenterPosition
         DICOM_image_path =  '\"' +str(values['-DICOM-'])+ '\"'
         # DICOM_parent_directory = os.path.dirname(DICOM)
         stringindexreplacement('s:Ts/G4DataDirectory', tmp_file_path, G4_Data)
         stringindexreplacement('s:Ge/Patient/DicomDirectory', tmp_file_path, DICOM_image_path)
 
-        log_output(tmp_file_path, 'dicom.bat', topas_application_path)
+        run_status = log_output(tmp_file_path, 'dicom.bat', topas_application_path)
         reset_tmp()
+        sg.popup_error(run_status)
 
     if event == '-SEED-_ENTER':
         replacement_witherrorhandling_forintegers(values['-SEED-'],
@@ -346,13 +313,6 @@ while True:
                                                   "#boundaries_name_list.append(['beam_NumberOfHistoriesInRun'])+",
                                                   "#beam_NumberOfHistoriesInRun,i=str(int(values[i])),i+1")
 
-    if event == '-CPC_MAT-_ENTER':
-        try:
-            int(values['-CPC_MAT-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("ChamberPlugCentre_Material=\'\"PMMA\"\'",
-                                   "ChamberPlugCentre_Material=\'\""+str(values['-CPC_MAT-'])+"\"\'")
 
     if event == '-CPC_RMIN-_ENTER':
         replacement_witherrorhandling(values['-CPC_RMIN-'],
@@ -436,14 +396,6 @@ while True:
                                       "#ChamberPlugCentre_RotX,i=str(values[i]),i+1")
 
 
-    if event == '-CPT_MAT-_ENTER':
-        try:
-            int(values['-CPT_MAT-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("ChamberPlugTop_Material=\'\"PMMA\"\'",
-                                   "ChamberPlugTop_Material=\'\""+str(values['-CPT_MAT-'])+"\"\'")
-
     if event == '-CPT_RMIN-_ENTER':
         replacement_witherrorhandling(values['-CPT_RMIN-'],
                                       "ChamberPlugTop_RMin=\"0.0\"",
@@ -524,14 +476,6 @@ while True:
                                       "#boundaries_list.append([ChamberPlugTop_RotX_start",
                                       "#boundaries_name_list.append(['ChamberPlugTop_RotX'])+",
                                       "#ChamberPlugTop_RotX,i=str(values[i]),i+1")
-
-    if event == '-CPB_MAT-_ENTER':
-        try:
-            int(values['-CPB_MAT-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("ChamberPlugBottom_Material=\'\"PMMA\"\'",
-                                   "ChamberPlugBottom_Material=\'\""+str(values['-CPB_MAT-'])+"\"\'")
 
     if event == '-CPB_RMIN-_ENTER':
         replacement_witherrorhandling(values['-CPB_RMIN-'],
@@ -614,13 +558,6 @@ while True:
                                       "#boundaries_name_list.append(['ChamberPlugBottom_RotX'])+",
                                       "#ChamberPlugBottom_RotX,i=str(values[i]),i+1")
 
-    if event == '-CPL_MAT-_ENTER':
-        try:
-            int(values['-CPL_MAT-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("ChamberPlugLeft_Material=\'\"PMMA\"\'",
-                                   "ChamberPlugLeft_Material=\'\""+str(values['-CPL_MAT-'])+"\"\'")
 
     if event == '-CPL_RMIN-_ENTER':
         replacement_witherrorhandling(values['-CPL_RMIN-'],
@@ -704,13 +641,6 @@ while True:
                                       "#ChamberPlugLeft_RotX,i=str(values[i]),i+1")
 
 
-    if event == '-CPR_MAT-_ENTER':
-        try:
-            int(values['-CPR_MAT-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("ChamberPlugRight_Material=\'\"PMMA\"\'",
-                                   "ChamberPlugRight_Material=\'\""+str(values['-CPR_MAT-'])+"\"\'")
 
     if event == '-CPR_RMIN-_ENTER':
         replacement_witherrorhandling(values['-CPR_RMIN-'],
@@ -884,13 +814,6 @@ while True:
             replacement_floatorint("Rotation_Type=\'\"Group\"\'",
                                    "Rotation_Type=\'\""+str(values['-ROTTY-'])+"\"\'")
 
-    if event == '-ROTPAR-_ENTER':
-        try:
-            int(values['-ROTPAR-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("Rotation_Parent=\'\"World\"\'",
-                                   "Rotation_Parent=\'\""+str(values['-ROTPAR-'])+"\"\'")
 
     if event == '-ROTROTX-_ENTER':
         replacement_witherrorhandling(values['-ROTROTX-'],
@@ -948,13 +871,6 @@ while True:
         except: 
             replacement_floatorint("CollimatorsVertical_Type=\'\"Group\"\'",
                                    "CollimatorsVertical_Type=\'\""+str(values['-COLLVERTY-'])+"\"\'")
-    if event == '-COLLVERPAR-_ENTER':
-        try:
-            int(values['-COLLVERPAR-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("CollimatorsVertical_Parent=\'\"World\"\'",
-                                   "CollimatorsVertical_Parent=\'\""+str(values['-COLLVERPAR-'])+"\"\'")
 
     if event == '-COLLVERROTX-_ENTER':
         replacement_witherrorhandling(values['-COLLVERROTX-'],
@@ -997,13 +913,6 @@ while True:
         except: 
             replacement_floatorint("CollimatorsHorizontal_Type=\'\"Group\"\'",
                                    "CollimatorsHorizontal_Type=\'\""+str(values['-COLLHORTY-'])+"\"\'")
-    if event == '-COLLHORPAR-_ENTER':
-        try:
-            int(values['-COLLHORPAR-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("CollimatorsHorizontal_Parent=\'\"CollimatorsVertical\"\'",
-                                   "CollimatorsHorizontal_Parent=\'\""+str(values['-COLLHORPAR-'])+"\"\'")
 
     if event == '-COLLHORROTX-_ENTER':
         replacement_witherrorhandling(values['-COLLHORROTX-'],
@@ -1045,13 +954,6 @@ while True:
         except: 
             replacement_floatorint("TitaniumFilterGroup_Type=\'\"Group\"\'",
                                    "TitaniumFilterGroup_Type=\'\""+str(values['-TITTY-'])+"\"\'")
-    if event == '-TITPAR-_ENTER':
-        try:
-            int(values['-TITPAR-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("TitaniumFilterGroup_Parent=\'\"CollimatorsHorizontal\"\'",
-                                   "TitaniumFilterGroup_Parent=\'\""+str(values['-TITPAR-'])+"\"\'")
 
     if event == '-TITROTX-_ENTER':
         replacement_witherrorhandling(values['-TITROTX-'],
@@ -1093,13 +995,6 @@ while True:
         except: 
             replacement_floatorint("BowtieFilter_Type=\'\"Group\"\'",
                                    "BowtieFilter_Type=\'\""+str(values['-BFTY-'])+"\"\'")
-    if event == '-BFPAR-_ENTER':
-        try:
-            int(values['-BFPAR-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("BowtieFilter_Parent=\'\"CollimatorsVertical\"\'",
-                                   "BowtieFilter_Parent=\'\""+str(values['-BFPAR-'])+"\"\'")
 
     if event == '-BFROTX-_ENTER':
         replacement_witherrorhandling(values['-BFROTX-'],
@@ -1157,13 +1052,6 @@ while True:
         except: 
             replacement_floatorint("Coll1_Type=\'\"G4RTrap\"\'",
                                    "Coll1_Type=\'\""+str(values['-Coll1TY-'])+"\"\'")
-    if event == '-Coll1PAR-_ENTER':
-        try:
-            int(values['-Coll1PAR-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("Coll1_Parent=\'\"CollimatorsVertical\"\'",
-                                   "Coll1_Parent=\'\""+str(values['-Coll1PAR-'])+"\"\'")
     if event == '-Coll1MAT-_ENTER':
         try:
             int(values['-Coll1MAT-'])
@@ -1259,13 +1147,6 @@ while True:
         except: 
             replacement_floatorint("Coll2_Type=\'\"G4RTrap\"\'",
                                    "Coll2_Type=\'\""+str(values['-Coll2TY-'])+"\"\'")
-    if event == '-Coll2PAR-_ENTER':
-        try:
-            int(values['-Coll2PAR-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("Coll2_Parent=\'\"CollimatorsVertical\"\'",
-                                   "Coll2_Parent=\'\""+str(values['-Coll2PAR-'])+"\"\'")
     if event == '-Coll2MAT-_ENTER':
         try:
             int(values['-Coll2MAT-'])
@@ -1361,13 +1242,6 @@ while True:
         except: 
             replacement_floatorint("Coll3_Type=\'\"G4RTrap\"\'",
                                    "Coll3_Type=\'\""+str(values['-Coll3TY-'])+"\"\'")
-    if event == '-Coll3PAR-_ENTER':
-        try:
-            int(values['-Coll3PAR-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("Coll3_Parent=\'\"CollimatorsHorizontal\"\'",
-                                   "Coll3_Parent=\'\""+str(values['-Coll3PAR-'])+"\"\'")
     if event == '-Coll3MAT-_ENTER':
         try:
             int(values['-Coll3MAT-'])
@@ -1463,13 +1337,6 @@ while True:
         except: 
             replacement_floatorint("Coll4_Type=\'\"G4RTrap\"\'",
                                    "Coll4_Type=\'\""+str(values['-Coll4TY-'])+"\"\'")
-    if event == '-Coll4PAR-_ENTER':
-        try:
-            int(values['-Coll4PAR-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("Coll4_Parent=\'\"CollimatorsHorizontal\"\'",
-                                   "Coll4_Parent=\'\""+str(values['-Coll4PAR-'])+"\"\'")
     if event == '-Coll4MAT-_ENTER':
         try:
             int(values['-Coll4MAT-'])
@@ -1558,13 +1425,6 @@ while True:
                                       "#boundaries_name_list.append(['Coll4_LTX']",
                                       "#Coll4_LTX,i=str(values[i]),i+1")
 
-    if event == '-Coll1steelPAR-_ENTER':
-        try:
-            int(values['-Coll1steelPAR-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("Coll1steel_Parent=\'\"CollimatorsVertical\"\'",
-                                   "Coll1steel_Parent=\'\""+str(values['-Coll1steelPAR-'])+"\"\'")
     if event == '-Coll1steelTY-_ENTER':
         try:
             int(values['-Coll1steelTY-'])
@@ -1668,13 +1528,6 @@ while True:
         except: 
             replacement_floatorint("Coll2steel_Type=\'\"G4RTrap\"\'",
                                    "Coll2steel_Type=\'\""+str(values['-Coll2steelTY-'])+"\"\'")
-    if event == '-Coll2steelPAR-_ENTER':
-        try:
-            int(values['-Coll2steelPAR-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("Coll2steel_Parent=\'\"CollimatorsVertical\"\'",
-                                   "Coll2steel_Parent=\'\""+str(values['-Coll2steelPAR-'])+"\"\'")
     if event == '-Coll2steelMAT-_ENTER':
         try:
             int(values['-Coll2steelMAT-'])
@@ -1771,13 +1624,7 @@ while True:
         except: 
             replacement_floatorint("Coll3steel_Type=\'\"G4RTrap\"\'",
                                    "Coll3steel_Type=\'\""+str(values['-Coll3steelTY-'])+"\"\'")
-    if event == '-Coll3steelPAR-_ENTER':
-        try:
-            int(values['-Coll3steelPAR-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("Coll3steel_Parent=\'\"CollimatorsHorizontal\"\'",
-                                   "Coll3steel_Parent=\'\""+str(values['-Coll3steelPAR-'])+"\"\'")
+
     if event == '-Coll3steelMAT-_ENTER':
         try:
             int(values['-Coll3steelMAT-'])
@@ -1874,13 +1721,7 @@ while True:
         except: 
             replacement_floatorint("Coll4steel_Type=\'\"G4RTrap\"\'",
                                    "Coll4steel_Type=\'\""+str(values['-Coll4steelTY-'])+"\"\'")
-    if event == '-Coll4steelPAR-_ENTER':
-        try:
-            int(values['-Coll4steelPAR-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("Coll4steel_Parent=\'\"CollimatorsHorizontal\"\'",
-                                   "Coll4steel_Parent=\'\""+str(values['-Coll4steelPAR-'])+"\"\'")
+
     if event == '-Coll4steelMAT-_ENTER':
         try:
             int(values['-Coll4steelMAT-'])
@@ -1977,13 +1818,7 @@ while True:
         except: 
             replacement_floatorint("SteelFilter_Type=\'\"TsBox\"\'",
                                    "SteelFilter_Type=\'\""+str(values['-STEELFILTY-'])+"\"\'")
-    if event == '-STEELFILPAR-_ENTER':
-        try:
-            int(values['-STEELFILPAR-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("SteelFilter_Parent=\'\"SteelFilterGroup\"\'",
-                                   "SteelFilter_Parent=\'\""+str(values['-STEELFILPAR-'])+"\"\'")
+
     if event == '-STEELFILMAT-_ENTER':
         try:
             int(values['-STEELFILMAT-'])
@@ -2064,13 +1899,6 @@ while True:
                                       "#boundaries_name_list.append(['SteelFilter_HLX']",
                                       "#SteelFilter_HLX,i=str(values[i]),i+1")
 
-    if event == '-TITFILPAR-_ENTER':
-        try:
-            int(values['-TITFILPAR-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("TitaniumFilter_Parent=\'\"TitaniumFilterGroup\"\'",
-                                   "TitaniumFilter_Parent=\'\""+str(values['-TITFILPAR-'])+"\"\'")
 
     if event == '-TITFILTY-_ENTER':
         try:
@@ -2167,13 +1995,7 @@ while True:
         except: 
             replacement_floatorint("DemoFlat_Type=\'\"TsBox\"\'",
                                    "DemoFlat_Type=\'\""+str(values['-DEMOFLATTY-'])+"\"\'")
-    if event == '-DEMOFLATPAR-_ENTER':
-        try:
-            int(values['-DEMOFLATPAR-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("DemoFlat_Parent=\'\"BowtieFilter\"\'",
-                                   "DemoFlat_Parent=\'\""+str(values['-DEMOFLATPAR-'])+"\"\'")
+
     if event == '-DEMOFLATMAT-_ENTER':
         try:
             int(values['-DEMOFLATMAT-'])
@@ -2260,13 +2082,7 @@ while True:
         except: 
             replacement_floatorint("topsidebox_Type=\'\"TsBox\"\'",
                                    "topsidebox_Type=\'\""+str(values['-TSBTY-'])+"\"\'")
-    if event == '-TSBPAR-_ENTER':
-        try:
-            int(values['-TSBPAR-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("topsidebox_Parent=\'\"BowtieFilter\"\'",
-                                   "topsidebox_Parent=\'\""+str(values['-TSBPAR-'])+"\"\'")
+
     if event == '-TSBMAT-_ENTER':
         try:
             int(values['-TSBMAT-'])
@@ -2354,13 +2170,7 @@ while True:
         except: 
             replacement_floatorint("bottomsidebox_Type=\'\"TsBox\"\'",
                                    "bottomsidebox_Type=\'\""+str(values['-BSBTY-'])+"\"\'")
-    if event == '-BSBPAR-_ENTER':
-        try:
-            int(values['-BSBPAR-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("bottomsidebox_Parent=\'\"BowtieFilter\"\'",
-                                   "bottomsidebox_Parent=\'\""+str(values['-BSBPAR-'])+"\"\'")
+
     if event == '-BSBMAT-_ENTER':
         try:
             int(values['-BSBMAT-'])
@@ -2448,13 +2258,7 @@ while True:
         except: 
             replacement_floatorint("couch_Type=\'\"TsBox\"\'",
                                    "couch_Type=\'\""+str(values['-COUCHTY-'])+"\"\'")
-    if event == '-COUCHPAR-_ENTER':
-        try:
-            int(values['-COUCHPAR-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("couch_Parent=\'\"World\"\'",
-                                   "couch_Parent=\'\""+str(values['-COUCHPAR-'])+"\"\'")
+
     if event == '-COUCHMAT-_ENTER':
         try:
             int(values['-COUCHMAT-'])
@@ -2518,13 +2322,7 @@ while True:
         except: 
             replacement_floatorint("BeamPosition_Type=\'\"Group\"\'",
                                    "BeamPosition_Type=\'\""+str(values['-BEAMGRPTY-'])+"\"\'")
-    if event == '-BEAMGRPPAR-_ENTER':
-        try:
-            int(values['-BEAMGRPPAR-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("BeamPosition_Parent=\'\"Rotation\"\'",
-                                   "BeamPosition_Parent=\'\""+str(values['-BEAMGRPPAR-'])+"\"\'")
+
             
     if event == '-BEAMGRPTRANSX-_ENTER':
         replacement_witherrorhandling(values['-BEAMGRPTRANSX-'],
@@ -2596,13 +2394,7 @@ while True:
         except: 
             replacement_floatorint("beam_Component=\'\"BeamPosition\"\'",
                                    "beam_Component=\'\""+str(values['-BEAMCOMPO-'])+"\"\'")
-    if event == '-BEAMPAR-_ENTER':
-        try:
-            int(values['-BEAMPAR-'])
-            sg.popup_error("Something is wrong!","This is suppose to be a string and not a number!")
-        except: 
-            replacement_floatorint("beam_BeamParticle=\'\"gamma\"\'",
-                                   "beam_BeamParticle=\'\""+str(values['-BEAMPAR-'])+"\"\'")
+
     if event == '-BEAMPOSDISTRO-_ENTER':
         try:
             int(values['-BEAMPOSDISTRO-'])
@@ -2748,6 +2540,16 @@ while True:
                                       "#boundaries_list.append([ShowHistoryCountAtInterval_start",
                                       "#boundaries_name_list.append(['ShowHistoryCountAtInterval']",
                                       "#ShowHistoryCountAtInterval,i=str(values[i]),i+1")
+    if event =='-GRAPHICS-':
+        down = not bool(selectcomponents['Graphics'])
+        window['-GRAPHICS-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
+        if down:
+            # replacement_floatorint("'Graphics': 0","'Graphics': 1")
+            selectcomponents['Graphics'] = 1
+        elif not down:
+            # replacement_floatorint("'Graphics': 1","'Graphics': 0")
+            selectcomponents['Graphics'] = 0
+
     if event == '-CPCTOG-':
         down = not bool(selectcomponents['ChamberPlugCentre'])
         window['-CPCTOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')

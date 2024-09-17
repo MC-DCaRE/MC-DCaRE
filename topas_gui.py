@@ -5,6 +5,7 @@ from numpy import arange
 import numpy as np
 from pydicom import dcmread
 from src.runtimehandler import log_output
+from src.fileeditorhandler import editor
 
 #Useful functions###################################################
 def my_arange(start, end, step):
@@ -139,6 +140,8 @@ def reset_tmp():
     duplicate_dicom_file_path = path +"/tmp/dicom.bat"
     shutil.copy(original_dicom_file_path, duplicate_dicom_file_path)
 
+    # Might not reset varibles like selectcomponents. Might need to be reimported 
+
 
 
 
@@ -153,9 +156,9 @@ def reset_tmp():
 
 # Fixed path for ease of user testing. User: JK
 path = os.getcwd()
-topas_application_path = '/root/topas/bin/topas '     #linux
-dicom_path = '/root/nccs/Topas_wrapper/test/cherylair'
-G4_Data ='/root/G4Data' #linux
+# topas_application_path = '/root/topas/bin/topas '     #linux
+# dicom_path = '/root/nccs/Topas_wrapper/test/cherylair'
+# G4_Data ='/root/G4Data' #linux
 
 
 
@@ -165,7 +168,6 @@ from src.boilerplates.generate_allproc_boilerplate import selectcomponents
 sg.theme('Reddit')
 
 from src.guilayers import *
-general_layer = gui_layer_generation(path, G4_Data, topas_application_path)
 
 # Creating a tabbed menu 
 main_layout = [[main_menu_information_layer],
@@ -216,23 +218,48 @@ reset_tmp()
 #all buttons and inputs
 num_of_csvresult = 5 
 DICOM_bool = USER_bool = False
-
+initiate = True
 while True:
     event,values = window.read()
 
+    if initiate == True: 
+        # Sets up default values for resetting to default parameters
+        selectcomponents_default = selectcomponents
+        values_default = values
+        topas_application_path = values['-TOPAS-'] + " "
+        dicom_path = values['-DICOM-'] + " "
+        G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
+        # Brute force work around as reseting all parameter will clear the default Browse string
+        values_default['Browse'] =values_default['Browse0']=values_default['Browse1']=values_default['Browse2']= "Browse"
+        initiate = False
+    
+    if event == '-RESET-':
+
+        # HAS TO BE A LOOPED FUNCTION CAUSE PYSIMPLEGUI
+        for i in values: 
+            window[i].update( values_default[i])
+        # Does not work for selectcomponents YET
+        selectcomponents= selectcomponents_default            
+        pass
+    
     if event == sg.WIN_CLOSED:
         break
 
     if event == '-G4FOLDERNAME-_ENTER':
+        # THIS IS A PLACEHOLDER FOR QUICK AND DIRTY DEBUGGING
+
+        # DUMP all values into a text file
         # f = open('dump.txt', 'w')
         # f.write( 'dict = '+repr(values)+ '\n')
         # f.close()
+
+        # print(selectcomponents)
+
         # print(str(values['-G4FOLDERNAME-']))
         # replacement_floatorint("G4DataDirectory = \'\""+G4_Data+"\"\'",
         #                        "G4DataDirectory = \'\""+str(values['-G4FOLDERNAME-'])+"\"\'")
         # Add a line search and replacement function here
         G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
-        # stringindexreplacement(G4_Data, )
 
     if event == '-TOPAS-_ENTER':
         # Add a line search and replacement function here
@@ -265,9 +292,10 @@ while True:
     if event == '-RUN-':
         # add code to edit the tmp file
         tmp_file_path = path + '/tmp/generate_allproc.py'
+        topas_application_path = values['-TOPAS-'] + " "
         run_status = log_output(tmp_file_path, 'generate_allproc.py', topas_application_path)
         reset_tmp()
-        sg.popup_error(run_status)
+        sg.popup(run_status)
 
     if event == '-DICOMBAT-':
         tmp_file_path = path + '/tmp/dicom.bat'
@@ -281,10 +309,10 @@ while True:
         # DICOM_parent_directory = os.path.dirname(DICOM)
         stringindexreplacement('s:Ts/G4DataDirectory', tmp_file_path, G4_Data)
         stringindexreplacement('s:Ge/Patient/DicomDirectory', tmp_file_path, DICOM_image_path)
-
+        topas_application_path = values['-TOPAS-'] + " "
         run_status = log_output(tmp_file_path, 'dicom.bat', topas_application_path)
         reset_tmp()
-        sg.popup_error(run_status)
+        sg.popup(run_status)
 
     if event == '-SEED-_ENTER':
         replacement_witherrorhandling_forintegers(values['-SEED-'],
@@ -2541,232 +2569,232 @@ while True:
                                       "#boundaries_name_list.append(['ShowHistoryCountAtInterval']",
                                       "#ShowHistoryCountAtInterval,i=str(values[i]),i+1")
     if event =='-GRAPHICS-':
-        down = not bool(selectcomponents['Graphics'])
-        window['-GRAPHICS-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+        changed_bool = not bool(selectcomponents['Graphics'])
+        window['-GRAPHICS-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             # replacement_floatorint("'Graphics': 0","'Graphics': 1")
             selectcomponents['Graphics'] = 1
-        elif not down:
+        elif not changed_bool:
             # replacement_floatorint("'Graphics': 1","'Graphics': 0")
             selectcomponents['Graphics'] = 0
 
     if event == '-CPCTOG-':
-        down = not bool(selectcomponents['ChamberPlugCentre'])
-        window['-CPCTOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+        changed_bool = not bool(selectcomponents['ChamberPlugCentre'])
+        window['-CPCTOG-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             replacement_floatorint("'ChamberPlugCentre': 0","'ChamberPlugCentre': 1")
             selectcomponents['ChamberPlugCentre'] = 1
-        elif not down:
+        elif not changed_bool:
             replacement_floatorint("'ChamberPlugCentre': 1","'ChamberPlugCentre': 0")
             selectcomponents['ChamberPlugCentre'] = 0
 
-    if event == '-CPCTOG-':
-        down = not bool(selectcomponents['ChamberPlugTop'])
-        window['-CPCTOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+    if event == '-CPTTOG-':
+        changed_bool = not bool(selectcomponents['ChamberPlugTop'])
+        window['-CPTTOG-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             replacement_floatorint("'ChamberPlugTop': 0","'ChamberPlugTop': 1")
             selectcomponents['ChamberPlugTop'] = 1
-        elif not down:
+        elif not changed_bool:
             replacement_floatorint("'ChamberPlugTop': 1","'ChamberPlugTop': 0")
             selectcomponents['ChamberPlugTop'] = 0
 
     if event == '-CPBTOG-':
-        down = not bool(selectcomponents['ChamberPlugBottom'])
-        window['-CPBTOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+        changed_bool = not bool(selectcomponents['ChamberPlugBottom'])
+        window['-CPBTOG-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             replacement_floatorint("'ChamberPlugBottom': 0","'ChamberPlugBottom': 1")
             selectcomponents['ChamberPlugBottom'] = 1
-        elif not down:
+        elif not changed_bool:
             replacement_floatorint("'ChamberPlugBottom': 1","'ChamberPlugBottom': 0")
             selectcomponents['ChamberPlugBottom'] = 0
 
     if event == '-CPLTOG-':
-        down = not bool(selectcomponents['ChamberPlugLeft'])
-        window['-CPLTOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+        changed_bool = not bool(selectcomponents['ChamberPlugLeft'])
+        window['-CPLTOG-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             replacement_floatorint("'ChamberPlugLeft': 0","'ChamberPlugLeft': 1")
             selectcomponents['ChamberPlugLeft'] = 1
-        elif not down:
+        elif not changed_bool:
             replacement_floatorint("'ChamberPlugLeft': 1","'ChamberPlugLeft': 0")
             selectcomponents['ChamberPlugLeft'] = 0
 
     if event == '-CPRTOG-':
-        down = not bool(selectcomponents['ChamberPlugRight'])
-        window['-CPRTOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+        changed_bool = not bool(selectcomponents['ChamberPlugRight'])
+        window['-CPRTOG-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             replacement_floatorint("'ChamberPlugRight': 0","'ChamberPlugRight': 1")
             selectcomponents['ChamberPlugRight'] = 1
-        elif not down:
+        elif not changed_bool:
             replacement_floatorint("'ChamberPlugRight': 1","'ChamberPlugRight': 0")
             selectcomponents['ChamberPlugRight'] = 0
 
     if event == '-TLETOG-':
-        down = not bool(selectcomponents['ChamberPlugDose_tle'])
-        window['-TLETOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+        changed_bool = not bool(selectcomponents['ChamberPlugDose_tle'])
+        window['-TLETOG-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             replacement_floatorint("'ChamberPlugDose_tle': 0","'ChamberPlugDose_tle': 1")
             selectcomponents['ChamberPlugDose_tle'] = 1
-        elif not down:
+        elif not changed_bool:
             replacement_floatorint("'ChamberPlugDose_tle': 1","'ChamberPlugDose_tle': 0")
             selectcomponents['ChamberPlugDose_tle'] = 0
 
     if event == '-DTMTOG-':
-        down = not bool(selectcomponents['ChamberPlugDose_dtm'])
-        window['-DTMTOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+        changed_bool = not bool(selectcomponents['ChamberPlugDose_dtm'])
+        window['-DTMTOG-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             replacement_floatorint("'ChamberPlugDose_dtm': 0","'ChamberPlugDose_dtm': 1")
             selectcomponents['ChamberPlugDose_dtm'] = 1
-        elif not down:
+        elif not changed_bool:
             replacement_floatorint("'ChamberPlugDose_dtm': 1","'ChamberPlugDose_dtm': 0")
             selectcomponents['ChamberPlugDose_dtm'] = 0
 
     if event == '-DTWTOG-':
-        down = not bool(selectcomponents['ChamberPlugDose_dtw'])
-        window['-DTWTOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+        changed_bool = not bool(selectcomponents['ChamberPlugDose_dtw'])
+        window['-DTWTOG-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             replacement_floatorint("'ChamberPlugDose_dtw': 0","'ChamberPlugDose_dtw': 1")
             selectcomponents['ChamberPlugDose_dtw'] = 1
-        elif not down:
+        elif not changed_bool:
             replacement_floatorint("'ChamberPlugDose_dtw': 1","'ChamberPlugDose_dtw': 0")
             selectcomponents['ChamberPlugDose_dtw'] = 0
 
     if event == '-COLLVERTOG-':
-        down = not bool(selectcomponents['CollimatorsVertical'])
-        window['-COLLVERTOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+        changed_bool = not bool(selectcomponents['CollimatorsVertical'])
+        window['-COLLVERTOG-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             replacement_floatorint("'CollimatorsVertical': 0","'CollimatorsVertical': 1")
             selectcomponents['CollimatorsVertical'] = 1
-        elif not down:
+        elif not changed_bool:
             replacement_floatorint("'CollimatorsVertical': 1","'CollimatorsVertical': 0")
             selectcomponents['CollimatorsVertical'] = 0
 
     if event == '-COLLHORTOG-':
-        down = not bool(selectcomponents['CollimatorsHorizontal'])
-        window['-COLLHORTOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+        changed_bool = not bool(selectcomponents['CollimatorsHorizontal'])
+        window['-COLLHORTOG-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             replacement_floatorint("'CollimatorsHorizontal': 0","'CollimatorsHorizontal': 1")
             selectcomponents['CollimatorsHorizontal'] = 1
-        elif not down:
+        elif not changed_bool:
             replacement_floatorint("'CollimatorsHorizontal': 1","'CollimatorsHorizontal': 0")
             selectcomponents['CollimatorsHorizontal'] = 0
 
     if event == '-STEELFILTOG-':
-        down = not bool(selectcomponents['SteelFilter'])
-        window['-STEELFILTOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+        changed_bool = not bool(selectcomponents['SteelFilter'])
+        window['-STEELFILTOG-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             replacement_floatorint("'SteelFilter': 0","'SteelFilter': 1")
             selectcomponents['SteelFilter'] = 1
-        elif not down:
+        elif not changed_bool:
             replacement_floatorint("'SteelFilter': 1","'SteelFilter': 0")
             selectcomponents['SteelFilter'] = 0
 
     if event == '-BTFILTOG-':
-        down = not bool(selectcomponents['BowtieFilter'])
-        window['-BTFILTOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+        changed_bool = not bool(selectcomponents['BowtieFilter'])
+        window['-BTFILTOG-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             replacement_floatorint("'BowtieFilter': 0","'BowtieFilter': 1")
             selectcomponents['BowtieFilter'] = 1
-        elif not down:
+        elif not changed_bool:
             replacement_floatorint("'BowtieFilter': 1","'BowtieFilter': 0")
             selectcomponents['BowtieFilter'] = 0
 
     if event == '-COLL1TOG-':
-        down = not bool(selectcomponents['Coll1'])
-        window['-COLL1TOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+        changed_bool = not bool(selectcomponents['Coll1'])
+        window['-COLL1TOG-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             replacement_floatorint("'Coll1': 0","'Coll1': 1")
             selectcomponents['Coll1'] = 1
-        elif not down:
+        elif not changed_bool:
             replacement_floatorint("'Coll1': 1","'Coll1': 0")
             selectcomponents['Coll1'] = 0
 
     if event == '-COLL2TOG-':
-        down = not bool(selectcomponents['Coll2'])
-        window['-COLL2TOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+        changed_bool = not bool(selectcomponents['Coll2'])
+        window['-COLL2TOG-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             replacement_floatorint("'Coll2': 0","'Coll2': 1")
             selectcomponents['Coll2'] = 1
-        elif not down:
+        elif not changed_bool:
             replacement_floatorint("'Coll2': 1","'Coll2': 0")
             selectcomponents['Coll2'] = 0
 
     if event == '-COLL3TOG-':
-        down = not bool(selectcomponents['Coll3'])
-        window['-COLL3TOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+        changed_bool = not bool(selectcomponents['Coll3'])
+        window['-COLL3TOG-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             replacement_floatorint("'Coll3': 0","'Coll3': 1")
             selectcomponents['Coll3'] = 1
-        elif not down:
+        elif not changed_bool:
             replacement_floatorint("'Coll3': 1","'Coll3': 0")
             selectcomponents['Coll3'] = 0
 
     if event == '-COLL4TOG-':
-        down = not bool(selectcomponents['Coll4'])
-        window['-COLL4TOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+        changed_bool = not bool(selectcomponents['Coll4'])
+        window['-COLL4TOG-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             replacement_floatorint("'Coll4': 0","'Coll4': 1")
             selectcomponents['Coll4'] = 1
-        elif not down:
+        elif not changed_bool:
             replacement_floatorint("'Coll4': 1","'Coll4': 0")
             selectcomponents['Coll4'] = 0
 
     if event == '-DEMOFLATTOG-':
-        down = not bool(selectcomponents['DemoFlat'])
-        window['-DEMOFLATTOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+        changed_bool = not bool(selectcomponents['DemoFlat'])
+        window['-DEMOFLATTOG-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             replacement_floatorint("'DemoFlat': 0","'DemoFlat': 1")
             selectcomponents['DemoFlat'] = 1
-        elif not down:
+        elif not changed_bool:
             replacement_floatorint("'DemoFlat': 1","'DemoFlat': 0")
             selectcomponents['DemoFlat'] = 0
         
     if event == '-DEMORTRAPTOG-':
-        down = not bool(selectcomponents['DemoRTrap'])
-        window['-DEMORTRAPTOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+        changed_bool = not bool(selectcomponents['DemoRTrap'])
+        window['-DEMORTRAPTOG-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             replacement_floatorint("'DemoRTrap': 0","'DemoRTrap': 1")
             selectcomponents['DemoRTrap'] = 1
-        elif not down:
+        elif not changed_bool:
             replacement_floatorint("'DemoRTrap': 1","'DemoRTrap': 0")
             selectcomponents['DemoRTrap'] = 0
 
     if event == '-DEMOLTRAPTOG-':
-        down = not bool(selectcomponents['DemoLTrap'])
-        window['-DEMOLTRAPTOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+        changed_bool = not bool(selectcomponents['DemoLTrap'])
+        window['-DEMOLTRAPTOG-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             replacement_floatorint("'DemoLTrap': 0","'DemoLTrap': 1")
             selectcomponents['DemoLTrap'] = 1
-        elif not down:
+        elif not changed_bool:
             replacement_floatorint("'DemoLTrap': 1","'DemoLTrap': 0")
             selectcomponents['DemoLTrap'] = 0
 
     if event == '-TSBTOG-':
-        down = not bool(selectcomponents['topsidebox'])
-        window['-TSBTOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+        changed_bool = not bool(selectcomponents['topsidebox'])
+        window['-TSBTOG-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             replacement_floatorint("'topsidebox': 0","'topsidebox': 1")
             selectcomponents['topsidebox'] = 1
-        elif not down:
+        elif not changed_bool:
             replacement_floatorint("'topsidebox': 1","'topsidebox': 0")
             selectcomponents['topsidebox'] = 0
 
     if event == '-BSBTOG-':
-        down = not bool(selectcomponents['bottomsidebox'])
-        window['-BSBTOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+        changed_bool = not bool(selectcomponents['bottomsidebox'])
+        window['-BSBTOG-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             replacement_floatorint("'bottomsidebox': 0","'bottomsidebox': 1")
             selectcomponents['bottomsidebox'] = 1
-        elif not down:
+        elif not changed_bool:
             replacement_floatorint("'bottomsidebox': 1","'bottomsidebox': 0")
             selectcomponents['bottomsidebox'] = 0
 
     if event == '-COHTOG-':
-        down = not bool(selectcomponents['couch'])
-        window['-COHTOG-'].update(text='On' if down else 'Off', button_color='white on green' if down else 'white on red')
-        if down:
+        changed_bool = not bool(selectcomponents['couch'])
+        window['-COHTOG-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+        if changed_bool:
             replacement_floatorint("'couch': 0","'couch': 1")
             selectcomponents['couch'] = 1
-        elif not down:
+        elif not changed_bool:
             replacement_floatorint("'couch': 1","'couch': 0")
             selectcomponents['couch'] = 0
 

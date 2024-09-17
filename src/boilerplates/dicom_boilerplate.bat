@@ -427,6 +427,7 @@ s:Tf/Rotate/Function="Linear deg"
 d:Tf/Rotate/Rate= -0.4 deg/s #2degree/0.6s->time/rotation=TimelineEnd/totalno.ofangles
 d:Tf/Rotate/StartValue=290.0 deg
 i:Ts/ShowHistoryCountAtInterval=100000
+
 #halffanrotationrate
 #i:Tf/NumberOfSequentialTimes=60 #no.oftimesthissimulationwillreruneachtimewithparticles=numberofhistories
 #i:Tf/Verbosity=2#Setverbosityhighertogetmoreinformation
@@ -435,6 +436,8 @@ i:Ts/ShowHistoryCountAtInterval=100000
 #s:Tf/Rotate/Function="Linear deg"
 #d:Tf/Rotate/Rate=6 deg/s#2degree/0.6s->time/rotation=TimelineEnd/totalno.ofangles
 #d:Tf/Rotate/StartValue=0.0 deg
+#i:Ts/ShowHistoryCountAtInterval=100000
+
 
 
 
@@ -460,16 +463,13 @@ i:Ts/ShowHistoryCountAtInterval=100000
 ##Graphicsoutput###############################
 # Ts/UseQt="True"#ShowGUI#hashthislinetosuppressgui
 # s:Gr/ViewA/Type="OpenGL"#Showsimulation#hashthislinetosuppressgui
-# b:Gr/Enable="T"
-# b:Ph/ListProcesses = "True" # Set true to dump list of active physics processes to console
 b:Gr/Enable="F"
 i:Gr/ViewA/WindowSizeX=1024
 i:Gr/ViewA/WindowSizeY=768
-#u:Gr/ViewA/Zoom=1.25
 d:Gr/ViewA/Theta=-20.0 deg
 d:Gr/ViewA/Phi=30.0 deg
 b:Gr/ViewA/IncludeAxes="True"
 d:Gr/ViewA/AxesSize=0.5 m
-u:Gr/ViewA/Zoom=2e+01
+u:Gr/ViewA/Zoom=20
 b:Ts/ShowCPUTime="True"
 

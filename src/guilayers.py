@@ -25,21 +25,21 @@ selectcomponents = {
 'Graphics': 0
 }
 
-def gui_layer_generation(path, G4_Data, topas_application_path):
-  general_layer = sg.Frame('General Settings',
-                  [ 
-                    [sg.Text('G4 Data Directory',size = (17,1),font=('Helvetica', 14), text_color='black'),
-                      sg.In(default_text=G4_Data,key='-G4FOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True, tooltip="Click the enter key to register the change"),sg.FolderBrowse(font=('Helvetica', 14))],
-                    [sg.Text('TOPAS Directory',size =(17,1),font=('Helvetica', 14),text_color='black'),
-                      sg.In(default_text=topas_application_path,key='-TOPAS-',size=(50,1),font=('Helvetica', 14),enable_events=True, tooltip="Click the enter key to register the change"),sg.FileBrowse(font=('Helvetica', 14))],
-                    [sg.Text('Seed',size =(9,1),font=('Helvetica', 14),text_color='black'),
-                      sg.In(default_text='9',key='-SEED-',size=(10,1),font=('Helvetica', 14),enable_events=True)],
-                    [sg.Text('Threads',size = (9,1),font=('Helvetica', 14),text_color='black'),
-                      sg.In(default_text='4',key='-THREAD-',size=(10,1),font=('Helvetica',14),enable_events=True)],
-                    [sg.Text('Histories',size = (9,1),font=('Helvetica',14),text_color='black'),
-                      sg.In(default_text='100000',key='-HIST-',size=(10,1),font=('Helvetica',14),enable_events=True)],
-                ])
-  return general_layer
+general_layer = sg.Frame('General Settings',
+                [ 
+                  [sg.Text('G4 Data Directory',size = (17,1),font=('Helvetica', 14), text_color='black'),
+                    sg.In(default_text='/root/G4Data',key='-G4FOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(button_text= "Browse", font=('Helvetica', 14))],
+                  [sg.Text('TOPAS Directory',size =(17,1),font=('Helvetica', 14),text_color='black'),
+                    sg.In(default_text='/root/topas/bin/topas ',key='-TOPAS-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FileBrowse(button_text= "Browse",font=('Helvetica', 14))],
+                  [sg.Text('Seed',size =(9,1),font=('Helvetica', 14),text_color='black'),
+                    sg.In(default_text='9',key='-SEED-',size=(10,1),font=('Helvetica', 14),enable_events=True)],
+                  [sg.Text('Threads',size = (9,1),font=('Helvetica', 14),text_color='black'),
+                    sg.In(default_text='4',key='-THREAD-',size=(10,1),font=('Helvetica',14),enable_events=True)],
+                  [sg.Text('Histories',size = (9,1),font=('Helvetica',14),text_color='black'),
+                    sg.In(default_text='100000',key='-HIST-',size=(10,1),font=('Helvetica',14),enable_events=True),
+                    sg.Push(),
+                    sg.Button(button_text='Reset all parameters to default', key='-RESET-')],
+              ])
 
 main_menu_information_layer = sg.Frame('Instructions on the usage of the GUI', 
                              [ 

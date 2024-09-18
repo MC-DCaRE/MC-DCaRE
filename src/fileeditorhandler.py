@@ -350,7 +350,6 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
             stringindexreplacement('s:Gr/ViewA/Type', filecontent , ' "OpenGL" ') 
             stringindexreplacement('b:Gr/Enable', filecontent , ' "F" ') 
         
-        input("Pause ")
         pass
 
 

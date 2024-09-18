@@ -106,7 +106,7 @@ dicom_patient_layer = sg.Frame('Patient set up adjustments',
 dicom_scan_layer = sg.Frame('Set up imaging parameters',
                     [
                         [sg.Text('Fan mode selection'),
-                         sg.Combo(['Full fan', 'Half fan'], key='-FAN-', readonly=True )],
+                         sg.Combo(['Full fan', 'Half fan'],default_value='Full fan', key='-FAN-', readonly=True )],
                         [sg.Text('Start angle',size = (15,1),font=('Helvetica', 12), text_color='black'),
                         sg.In(default_text='0 deg',key='-DICOM_STARTROT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
                         [sg.Text('Stop angle',size = (15,1),font=('Helvetica', 12), text_color='black'),

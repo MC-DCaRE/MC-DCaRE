@@ -39,17 +39,25 @@ s:Ge/Patient/Color                                 = "green"
 b:Ge/Patient/IgnoreInconsistentFrameOfReferenceUID = "True"
 
 #isocenter
-d:Ge/IsocenterX   = 1.0  mm #1.0  mm  #r
-d:Ge/IsocenterY   = -151.5 mm #i - s 
-d:Ge/IsocenterZ   = 17.0 mm #17.22506896012784 mm  #p- a
+dc:Ge/IsocenterX   = 1.0  mm #1.0  mm  #r
+dc:Ge/IsocenterY   = -151.5 mm #i - s 
+dc:Ge/IsocenterZ   = 17.0 mm #17.22506896012784 mm  #p- a
+
+dc:Ge/Patient/UserTransX = 0.0 mm
+dc:Ge/Patient/UserTransY = 0.0 mm
+dc:Ge/Patient/UserTransZ = 0.0 mm
+
+d:Ge/Patient/InterX = Ge/IsocenterX + Ge/Patient/UserTransX mm
+d:Ge/Patient/InterY = Ge/IsocenterY + Ge/Patient/UserTransY mm
+d:Ge/Patient/InterZ = Ge/IsocenterZ + Ge/Patient/UserTransZ mm
 
 dc:Ge/Patient/DicomOriginX = 0.0 mm
 dc:Ge/Patient/DicomOriginY = 0.0 mm
 dc:Ge/Patient/DicomOriginZ = 0.0 mm
 
-d:Ge/Patient/TransX  = Ge/Patient/DicomOriginX - Ge/IsocenterX mm 
-d:Ge/Patient/TransY  = Ge/Patient/DicomOriginY - Ge/IsocenterY mm
-d:Ge/Patient/TransZ  = Ge/Patient/DicomOriginZ - Ge/IsocenterZ mm
+d:Ge/Patient/TransX  = Ge/Patient/DicomOriginX - Ge/Patient/InterX mm
+d:Ge/Patient/TransY  = Ge/Patient/DicomOriginY - Ge/Patient/InterY mm
+d:Ge/Patient/TransZ  = Ge/Patient/DicomOriginZ - Ge/Patient/InterZ mm
 
 #####################
 # Dose calculation  #
@@ -66,7 +74,7 @@ s:Sc/DoseOnRTGrid_tle100kz17/Quantity="TrackLengthEstimator"#Zbinningcausescreat
 s:Sc/DoseOnRTGrid_tle100kz17/InputFile="Muen.dat"
 s:Sc/DoseOnRTGrid_tle100kz17/Component="Patient"
 s:Sc/DoseOnRTGrid_tle100kz17/IfOutputFileAlreadyExists="Overwrite"
-i:Sc/DoseOnRTGrid_tle/ZBins=1 #0.1 cm/bin1.0mm/bin
+i:Sc/DoseOnRTGrid_tle/ZBins=1 #1 mm/bin1.0mm/bin
 b:Sc/DoseOnRTGrid_tle100kz17/DICOMOutput32BitsPerPixel   = "True"
 s:Sc/DoseOnRTGrid_tle100kz17/OutputType                  = "DICOM" 
 #Physics############################################
@@ -92,9 +100,9 @@ s:Ge/Rotation/Parent="World"
 d:Ge/Rotation/RotX=0. deg
 d:Ge/Rotation/RotY= Tf/Rotate/Value deg #Timefeatureddefinedbelow
 d:Ge/Rotation/RotZ=0. deg
-d:Ge/Rotation/TransX=0.0 cm
-d:Ge/Rotation/TransY=0.0 cm
-d:Ge/Rotation/TransZ=0.0 cm
+d:Ge/Rotation/TransX=0.0 mm
+d:Ge/Rotation/TransY=0.0 mm
+d:Ge/Rotation/TransZ=0.0 mm
 
 #X-Ybladesgroup
 s:Ge/CollimatorsVertical/Type="Group"
@@ -102,14 +110,14 @@ s:Ge/CollimatorsVertical/Parent="Rotation"
 d:Ge/CollimatorsVertical/RotX=0. deg
 d:Ge/CollimatorsVertical/RotY=0. deg
 d:Ge/CollimatorsVertical/RotZ=0. deg
-d:Ge/CollimatorsVertical/TransZ=11.7 cm + Ge/BeamPosition/TransZ #0.0745minfrontofsource-K.Sangroh
+d:Ge/CollimatorsVertical/TransZ=117. mm + Ge/BeamPosition/TransZ #0.0745minfrontofsource-K.Sangroh
 
 s:Ge/CollimatorsHorizontal/Type="Group"
 s:Ge/CollimatorsHorizontal/Parent="CollimatorsVertical"
 d:Ge/CollimatorsHorizontal/RotX=0. deg
 d:Ge/CollimatorsHorizontal/RotY=0. deg
 d:Ge/CollimatorsHorizontal/RotZ=0. deg
-d:Ge/CollimatorsHorizontal/TransZ=1.4 cm + Ge/Coll1/LY #preventgeometryoverlapwithvertical
+d:Ge/CollimatorsHorizontal/TransZ=14. mm + Ge/Coll1/LY #preventgeometryoverlapwithvertical
 
 #Steelfiltergroup-filterexistinBrianHZCampospaperbutnotseeninTruebeamreferencepaper
 #willcomparewithandwithouttoseethedifferenceitmakes
@@ -120,18 +128,18 @@ s:Ge/BowtieFilter/Parent="CollimatorsHorizontal"
 dc:Ge/BowtieFilter/RotX=0. deg
 d:Ge/BowtieFilter/RotY=0. deg
 d:Ge/BowtieFilter/RotZ=90. deg
-d:Ge/BowtieFilter/TransX=0.0 cm
-d:Ge/BowtieFilter/TransY=0.0 cm
-d:Ge/BowtieFilter/TransZ=0.0385 m #preventgeometryoverlapwithvertical
+d:Ge/BowtieFilter/TransX=0.0 mm
+d:Ge/BowtieFilter/TransY=0.0 mm
+d:Ge/BowtieFilter/TransZ=38.5 mm #preventgeometryoverlapwithvertical
 
 #topcollimator
 s:Ge/Coll1/Type="G4RTrap"
 s:Ge/Coll1/Parent="CollimatorsVertical"
 s:Ge/Coll1/Material="Lead"
-dc:Ge/Coll1/TransX=0 cm
-#dc:Ge/Coll1/TransY=5.205 cm#5.125+0.08 cm
-dc:Ge/Coll1/TransY=5.81 cm #10.7cm#5.197+0.07 cm#5.19sinceminimumb4overlap
-dc:Ge/Coll1/TransZ=0. cm
+dc:Ge/Coll1/TransX=0 mm
+#dc:Ge/Coll1/TransY=52.05 mm #51.25+0.8 mm
+dc:Ge/Coll1/TransY=58.1 mm #10.7mm#51.97+00.7 mm#51.9sinceminimumb4overlap
+dc:Ge/Coll1/TransZ=0. mm
 dc:Ge/Coll1/RotX=-90. deg
 dc:Ge/Coll1/RotY=90. deg
 dc:Ge/Coll1/RotZ=0 deg
@@ -145,9 +153,9 @@ s:Ge/Coll1/Color="red"
 s:Ge/Coll2/Type="G4RTrap"
 s:Ge/Coll2/Parent="CollimatorsVertical"
 s:Ge/Coll2/Material="Lead"
-dc:Ge/Coll2/TransX=0 cm
-dc:Ge/Coll2/TransY=-5.81 cm#5.267 cm
-dc:Ge/Coll2/TransZ=0. cm
+dc:Ge/Coll2/TransX=0. mm 
+dc:Ge/Coll2/TransY=-5.81 mm #52.67 mm
+dc:Ge/Coll2/TransZ=0. mm
 dc:Ge/Coll2/RotX=-90. deg
 dc:Ge/Coll2/RotY=270. deg
 dc:Ge/Coll2/RotZ=0 deg
@@ -161,9 +169,9 @@ s:Ge/Coll2/Color="red"
 s:Ge/Coll3/Type="G4RTrap"
 s:Ge/Coll3/Parent="CollimatorsHorizontal"
 s:Ge/Coll3/Material="Lead"
-dc:Ge/Coll3/TransX=6.01 cm#5.267 cm
-dc:Ge/Coll3/TransY=0. cm
-dc:Ge/Coll3/TransZ=0. cm
+dc:Ge/Coll3/TransX=60.1 mm #52.67 mm
+dc:Ge/Coll3/TransY=0. mm
+dc:Ge/Coll3/TransZ=0. mm
 dc:Ge/Coll3/RotX=-90. deg
 dc:Ge/Coll3/RotY=180. deg
 dc:Ge/Coll3/RotZ=0 deg
@@ -177,9 +185,9 @@ s:Ge/Coll3/Color="red"
 s:Ge/Coll4/Type="G4RTrap"
 s:Ge/Coll4/Parent="CollimatorsHorizontal"
 s:Ge/Coll4/Material="Lead"
-dc:Ge/Coll4/TransX=-6.01 cm#-5.267 cm
-dc:Ge/Coll4/TransY=0. cm
-dc:Ge/Coll4/TransZ=0. cm
+dc:Ge/Coll4/TransX=-60.1 mm #-52.67 mm
+dc:Ge/Coll4/TransY=0. mm
+dc:Ge/Coll4/TransZ=0. mm
 dc:Ge/Coll4/RotX=-90. deg
 dc:Ge/Coll4/RotY=0. deg
 dc:Ge/Coll4/RotZ=0 deg
@@ -194,10 +202,10 @@ s:Ge/Coll4/Color="red"
 s:Ge/Coll1steel/Type="G4RTrap"
 s:Ge/Coll1steel/Parent="CollimatorsVertical"
 s:Ge/Coll1steel/Material="Steel"
-dc:Ge/Coll1steel/TransX=0 cm
-#dc:Ge/Coll1/TransY=5.205 cm#5.125+0.08 cm
-dc:Ge/Coll1steel/TransY=Ge/Coll1/TransY - 0.2 cm #5.27 cm#5.197+0.07 cm#5.19sinceminimumb4overlap
-dc:Ge/Coll1steel/TransZ=-0.25 cm #varian manual
+dc:Ge/Coll1steel/TransX=0 mm
+#dc:Ge/Coll1/TransY=52.05 mm #51.25+0.8 mm
+dc:Ge/Coll1steel/TransY=Ge/Coll1/TransY - 2. mm #52.7 mm#51.97+0.7 mm#5.19sinceminimumb4overlap
+dc:Ge/Coll1steel/TransZ=-2.5 mm #varian manual
 dc:Ge/Coll1steel/RotX=-90. deg
 dc:Ge/Coll1steel/RotY=90. deg
 dc:Ge/Coll1steel/RotZ=0 deg
@@ -211,9 +219,9 @@ s:Ge/Coll1steel/Color="pink"
 s:Ge/Coll2steel/Type="G4RTrap"
 s:Ge/Coll2steel/Parent="CollimatorsVertical"
 s:Ge/Coll2steel/Material="Steel"
-dc:Ge/Coll2steel/TransX=0 cm
-dc:Ge/Coll2steel/TransY=Ge/Coll2/TransY + 0.2 cm#5.267 cm
-dc:Ge/Coll2steel/TransZ=-0.25 cm #varian manual
+dc:Ge/Coll2steel/TransX=0 mm
+dc:Ge/Coll2steel/TransY=Ge/Coll2/TransY + 2. mm #52.67 mm
+dc:Ge/Coll2steel/TransZ=-2.5 mm #varian manual
 dc:Ge/Coll2steel/RotX=-90. deg
 dc:Ge/Coll2steel/RotY=270. deg
 dc:Ge/Coll2steel/RotZ=0 deg
@@ -227,12 +235,12 @@ s:Ge/Coll2steel/Color="pink"
 s:Ge/Coll3steel/Type="G4RTrap"
 s:Ge/Coll3steel/Parent="CollimatorsHorizontal"
 s:Ge/Coll3steel/Material="Steel"
-dc:Ge/Coll3steel/TransX=Ge/Coll3/TransX - 0.2 cm#5.267 cm
-dc:Ge/Coll3steel/TransY=0. cm
-dc:Ge/Coll3steel/TransZ=-0.25 cm #varian manual
+dc:Ge/Coll3steel/TransX=Ge/Coll3/TransX - 2. mm #5.267 mm
+dc:Ge/Coll3steel/TransY=0. mm
+dc:Ge/Coll3steel/TransZ=-2.5 mm #varian manual
 dc:Ge/Coll3steel/RotX=-90. deg
 dc:Ge/Coll3steel/RotY=180. deg
-dc:Ge/Coll3steel/RotZ=0 deg
+dc:Ge/Coll3steel/RotZ=0. deg
 dc:Ge/Coll3steel/LZ=120. mm
 dc:Ge/Coll3steel/LY=2. mm
 dc:Ge/Coll3steel/LX=100. mm
@@ -243,12 +251,12 @@ s:Ge/Coll3steel/Color="pink"
 s:Ge/Coll4steel/Type="G4RTrap"
 s:Ge/Coll4steel/Parent="CollimatorsHorizontal"
 s:Ge/Coll4steel/Material="Steel"
-dc:Ge/Coll4steel/TransX=Ge/Coll4/TransX + 0.2 cm#-5.267 cm
-dc:Ge/Coll4steel/TransY=0. cm
-dc:Ge/Coll4steel/TransZ=-0.25 cm #varian manual
+dc:Ge/Coll4steel/TransX=Ge/Coll4/TransX + 2. mm #-52.67 mm
+dc:Ge/Coll4steel/TransY=0. mm
+dc:Ge/Coll4steel/TransZ=-2.5 mm #varian manual
 dc:Ge/Coll4steel/RotX=-90. deg
 dc:Ge/Coll4steel/RotY=0. deg
-dc:Ge/Coll4steel/RotZ=0 deg
+dc:Ge/Coll4steel/RotZ=0. deg
 dc:Ge/Coll4steel/LZ=120. mm
 dc:Ge/Coll4steel/LY=2. mm
 dc:Ge/Coll4steel/LX=100. mm
@@ -264,7 +272,7 @@ s:Ge/Coll4steel/Color="pink"
 # d:Ge/SteelFilterGroup/RotX=0. deg
 # d:Ge/SteelFilterGroup/RotY=0. deg
 # d:Ge/SteelFilterGroup/RotZ=0. deg
-# d:Ge/SteelFilterGroup/TransZ=1.59 cm #preventgeometryoverlapwithvertical
+# d:Ge/SteelFilterGroup/TransZ=15.9 mm #preventgeometryoverlapwithvertical
 
 # #steelfilter
 # s:Ge/SteelFilter/Type="TsBox"
@@ -380,7 +388,7 @@ s:Ge/bottomsidebox/Color="green"
 #Definelocatonofsourceingeometry##################
 s:Ge/BeamPosition/Parent="Rotation"
 s:Ge/BeamPosition/Type="Group"
-d:Ge/BeamPosition/TransX=0. cm
+d:Ge/BeamPosition/TransX=0. mm
 d:Ge/BeamPosition/TransY=0. m
 #d:Ge/BeamPosition/TransZ=Ge/World/HLZ m
 d:Ge/BeamPosition/TransZ=-1. m
@@ -396,8 +404,8 @@ s:So/beam/Component="BeamPosition"
 s:So/beam/BeamParticle="gamma"#'proton','gamma','e-''
 s:So/beam/BeamPositionDistribution="Gaussian"#FlatorGaussian
 s:So/beam/BeamPositionCutoffShape="Rectangle"#Point,Ellipse,RectangleorIsotropic
-d:So/beam/BeamPositionCutoffX=5. cm #Xextentofposition(ifFlatorGaussian)#fromvarianpg.203
-d:So/beam/BeamPositionCutoffY=5. cm #Yextentofposition(ifFlatorGaussian
+d:So/beam/BeamPositionCutoffX=50. mm #Xextentofposition(ifFlatorGaussian)#fromvarianpg.203
+d:So/beam/BeamPositionCutoffY=50. mm #Yextentofposition(ifFlatorGaussian
 d:So/beam/BeamPositionSpreadX=0.4246 mm #distribution(ifGaussian)
 d:So/beam/BeamPositionSpreadY=0.4246 mm #distribution(ifGaussian)
 s:So/beam/BeamAngularDistribution="Gaussian" #FlatorGaussian
@@ -429,14 +437,14 @@ d:Tf/Rotate/StartValue=290.0 deg
 i:Ts/ShowHistoryCountAtInterval=100000
 
 #halffanrotationrate
-#i:Tf/NumberOfSequentialTimes=60 #no.oftimesthissimulationwillreruneachtimewithparticles=numberofhistories
-#i:Tf/Verbosity=2#Setverbosityhighertogetmoreinformation
-#d:Tf/TimelineEnd=60.0s#Specifyanendtimefortherunsequence.
+i:Tf/NumberOfSequentialTimes=60 #no.oftimesthissimulationwillreruneachtimewithparticles=numberofhistories
+i:Tf/Verbosity=2#Setverbosityhighertogetmoreinformation
+d:Tf/TimelineEnd=60.0s#Specifyanendtimefortherunsequence.
 #ThefollowingfourparametersdefineaTimeFeaturewearecallingMyRotation.
-#s:Tf/Rotate/Function="Linear deg"
-#d:Tf/Rotate/Rate=6 deg/s#2degree/0.6s->time/rotation=TimelineEnd/totalno.ofangles
-#d:Tf/Rotate/StartValue=0.0 deg
-#i:Ts/ShowHistoryCountAtInterval=100000
+s:Tf/Rotate/Function="Linear deg"
+d:Tf/Rotate/Rate=6 deg/s#2degree/0.6s->time/rotation=TimelineEnd/totalno.ofangles
+d:Tf/Rotate/StartValue=0.0 deg
+i:Ts/ShowHistoryCountAtInterval=100000
 
 
 
@@ -448,7 +456,7 @@ i:Ts/ShowHistoryCountAtInterval=100000
 # b:Vr/UseVarianceReduction = "true"
 # s:Vr/ForcedInteraction/Type   = "ForcedInteraction"
 # sv:Vr/ForcedInteraction/forregion/targetregion/processesNamed   = 2 "compt" "phot"
-# dv:Vr/ForcedInteraction/ForRegion/targetregion/ForcedDistances  = 2 0.001 0.001 cm
+# dv:Vr/ForcedInteraction/ForRegion/targetregion/ForcedDistances  = 2 0.01 0.01 mm
 # b:Vr/ForcedInteraction/ForRegion/targetregion/CorrectByWeight = "True"
 # #halffan360
 #fullfan200
@@ -461,9 +469,9 @@ i:Ts/ShowHistoryCountAtInterval=100000
 #b:Ts/DumpNonDefaultParameters="True"
 
 ##Graphicsoutput###############################
-# Ts/UseQt="True"#ShowGUI#hashthislinetosuppressgui
-# s:Gr/ViewA/Type="OpenGL"#Showsimulation#hashthislinetosuppressgui
-b:Gr/Enable="F"
+Ts/UseQt="True"#ShowGUI#hashthislinetosuppressgui
+s:Gr/ViewA/Type="OpenGL"#Showsimulation#hashthislinetosuppressgui
+b:Gr/Enable="T"
 i:Gr/ViewA/WindowSizeX=1024
 i:Gr/ViewA/WindowSizeY=768
 d:Gr/ViewA/Theta=-20.0 deg

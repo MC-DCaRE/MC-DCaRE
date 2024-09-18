@@ -6,6 +6,9 @@ import numpy as np
 from pydicom import dcmread
 from src.runtimehandler import log_output
 from src.fileeditorhandler import editor
+from src.guilayers import *
+from src.key_binds import *
+
 
 #Useful functions###################################################
 def my_arange(start, end, step):
@@ -161,14 +164,6 @@ path = os.getcwd()
 # G4_Data ='/root/G4Data' #linux
 
 
-
-from src.boilerplates.generate_allproc_boilerplate import selectcomponents
-
-
-sg.theme('Reddit')
-
-from src.guilayers import *
-
 # Creating a tabbed menu 
 main_layout = [[main_menu_information_layer],
                [general_layer],
@@ -177,15 +172,19 @@ main_layout = [[main_menu_information_layer],
                [toggle_layer], 
                [runbuttons_layer]]
 
-chamber_layout = [[CTDI_information_layer],[CTDI_layer,ChamberPlugCentre_layer,ChamberPlugTop_layer],[ChamberPlugBottom_layer,ChamberPlugLeft_layer,ChamberPlugRight_layer]]
+chamber_layout = [[CTDI_information_layer],
+                  [CTDI_layer,ChamberPlugCentre_layer,ChamberPlugTop_layer],
+                  [ChamberPlugBottom_layer,ChamberPlugLeft_layer,ChamberPlugRight_layer]]
 
-dicom_layout = [ [dicom_information_layer] , [dicom_translation_layer, dicom_scan_layer]]
+dicom_layout = [[dicom_information_layer], 
+                [dicom_patient_layer, dicom_scan_layer], 
+                [dicom_planned_layer]]
 
 collimator_layout = [[Coll1_layer,Coll2_layer,Coll3_layer,Coll4_layer, CollimatorVerticalGroup_layer], 
                      [Coll1steel_layer,Coll2steel_layer,Coll3steel_layer,Coll4steel_layer,CollimatorHorizontalGroup_layer ]]
 
-filter_layout = [[ TITFIL_layer, DemoFlat_layer,TopSideBox_layer,BottomSideBox_layer],
-                  [DemoRTrap_layer,DemoLTrap_layer,TitaniumGroup_layer,Bowtie_layer]]
+filter_layout = [[TITFIL_layer, DemoFlat_layer,TopSideBox_layer,BottomSideBox_layer],
+                 [DemoRTrap_layer,DemoLTrap_layer,TitaniumGroup_layer,Bowtie_layer]]
 
 others_layout = [[Time_layer,Physics_layer, Scoring_layer,RotationGroup_layer], 
                  [Couch_layer,BeamGroup_layer,Beam_layer]]
@@ -202,12 +201,9 @@ layout = [[ sg.Text('Imaging Dose', size=(30,1),justification='center',font=('He
 
 sg.set_options(scaling=1)
 
-window = sg.Window(title= "Imaging Dose Simulation", layout=layout, finalize=True)
-window.set_min_size(window.size)
-
-from src.key_binds import *
+window = sg.Window(title= "Imaging Dose Simulation", layout=layout, finalize=True, auto_size_text=True, font ='Helvetica' ,debugger_enabled= True)
+# window.set_min_size(window.size) #might not be needed
 key_binds(window) 
-reset_tmp()
 
 #default we will have 5 positions-chamberplugs and 3 quantities to score
 #this variable has to be outside of the while loop because after the RUN event updates
@@ -219,6 +215,8 @@ reset_tmp()
 num_of_csvresult = 5 
 DICOM_bool = USER_bool = False
 initiate = True
+reset_tmp()
+
 while True:
     event,values = window.read()
 
@@ -226,18 +224,14 @@ while True:
         # Sets up default values for resetting to default parameters
         selectcomponents_default = selectcomponents
         values_default = values
-        topas_application_path = values['-TOPAS-'] + " "
-        dicom_path = values['-DICOM-'] + " "
-        G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
         # Brute force work around as reseting all parameter will clear the default Browse string
         values_default['Browse'] =values_default['Browse0']=values_default['Browse1']=values_default['Browse2']= "Browse"
         initiate = False
     
     if event == '-RESET-':
-
         # HAS TO BE A LOOPED FUNCTION CAUSE PYSIMPLEGUI
         for i in values: 
-            window[i].update( values_default[i])
+            window[i].update(values_default[i])
         # Does not work for selectcomponents YET
         selectcomponents= selectcomponents_default            
         pass
@@ -249,9 +243,9 @@ while True:
         # THIS IS A PLACEHOLDER FOR QUICK AND DIRTY DEBUGGING
 
         # DUMP all values into a text file
-        # f = open('dump.txt', 'w')
-        # f.write( 'dict = '+repr(values)+ '\n')
-        # f.close()
+        f = open('dump.txt', 'w')
+        f.write( 'dict = '+repr(values)+ '\n')
+        f.close()
 
         # print(selectcomponents)
 
@@ -259,7 +253,7 @@ while True:
         # replacement_floatorint("G4DataDirectory = \'\""+G4_Data+"\"\'",
         #                        "G4DataDirectory = \'\""+str(values['-G4FOLDERNAME-'])+"\"\'")
         # Add a line search and replacement function here
-        G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
+        # G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
 
     if event == '-TOPAS-_ENTER':
         # Add a line search and replacement function here
@@ -267,7 +261,7 @@ while True:
 
     if event == '-DICOM-_ENTER':
         # Add a line search and replacement function here
-        dicom_path = values['-DICOM-'] + " "
+        dicom_path = values['-DICOM-']
 
     if event == '-DICOMACTIVATECHECK-':
         if USER_bool == False:
@@ -297,19 +291,26 @@ while True:
         reset_tmp()
         sg.popup(run_status)
 
+    if event == '-DICOMRP-':
+        try:    
+            DICOM_RP = values['-DICOMRP-']
+            isocentre_coors = dcmread(DICOM_RP).BeamSequence[0].ControlPointSequence[0].IsocenterPosition
+            values['-DICOM_ISOX-'] = str(round(isocentre_coors[0], 5)) + ' mm' #figure out how to get units form dicom 
+            values['-DICOM_ISOY-'] = str(round(isocentre_coors[1], 5)) + ' mm'
+            values['-DICOM_ISOZ-'] = str(round(isocentre_coors[2], 5)) + ' mm'
+            window['-DICOM_ISOX-'].update(values['-DICOM_ISOX-'])
+            window['-DICOM_ISOY-'].update(values['-DICOM_ISOY-'])
+            window['-DICOM_ISOZ-'].update(values['-DICOM_ISOZ-'])
+        except: 
+            sg.popup_error("No isocentre found")
+
     if event == '-DICOMBAT-':
         tmp_file_path = path + '/tmp/dicom.bat'
 
-        # add code to edit the tmp file
-        G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
-        DICOM = values['-DICOM-']
-        DICOM_RP = values['-DICOMRP-']
-        isocentre_coors = dcmread(DICOM_RP).BeamSequence[0].ControlPointSequence[0].IsocenterPosition
-        DICOM_image_path =  '\"' +str(values['-DICOM-'])+ '\"'
-        # DICOM_parent_directory = os.path.dirname(DICOM)
-        stringindexreplacement('s:Ts/G4DataDirectory', tmp_file_path, G4_Data)
-        stringindexreplacement('s:Ge/Patient/DicomDirectory', tmp_file_path, DICOM_image_path)
+        ### add code to edit the tmp file ###
+
         topas_application_path = values['-TOPAS-'] + " "
+        editor(values, selectcomponents, tmp_file_path, '.bat')
         run_status = log_output(tmp_file_path, 'dicom.bat', topas_application_path)
         reset_tmp()
         sg.popup(run_status)

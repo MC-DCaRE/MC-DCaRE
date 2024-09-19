@@ -1,32 +1,6 @@
 import PySimpleGUI as sg
 sg.theme('Reddit')
 
-selectcomponents = {
-'ChamberPlugCentre': 1,
-'ChamberPlugTop': 1,
-'ChamberPlugBottom': 1,
-'ChamberPlugLeft': 1,
-'ChamberPlugRight': 1,
-'ChamberPlugDose_tle': 1,
-'ChamberPlugDose_dtm': 1,
-'ChamberPlugDose_dtw': 1,
-'CollimatorsVertical': 1,
-'CollimatorsHorizontal': 1,
-'TitaniumFilter': 1,
-'BowtieFilter': 1,
-'Coll1': 1,
-'Coll2': 1,
-'Coll3': 1,
-'Coll4': 1,
-'DemoFlat': 1,
-'DemoRTrap': 1,
-'DemoLTrap': 1,
-'topsidebox': 1,
-'bottomsidebox': 1,
-'couch': 1,
-'Graphics': 0
-}
-
 general_layer = sg.Frame('General Settings',
                 [ 
                   [sg.Text('G4 Data Directory',size = (17,1),font=('Helvetica', 14), text_color='black'),

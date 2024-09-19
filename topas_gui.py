@@ -1,38 +1,12 @@
 import os
 import PySimpleGUI as sg
 import shutil
-from numpy import arange
-import numpy as np
 from pydicom import dcmread
 from src.runtimehandler import log_output
 from src.fileeditorhandler import editor
 from src.guilayers import *
 
 #Useful functions###################################################
-def my_arange(start, end, step):
-	"""
-	This is used instead of numpy arange due to numpy arange unstable length of
-	output when floating numbers are used
-	"""
-	return np.linspace(start, end, num=round((end-start)/step), endpoint=False)
-
-def stringindexreplacement(SearchString :str , TargetFile: str , ReplacementString: str):
-    '''
-    Targeted string replacement. 
-    Function looks for the line that startes with SearchString at the file directory of TargetFile and replaces it with Replacement String. 
-    Function will replace the entire line and any information trailing the SearchString will be lost in this process. 
-    '''
-    with open(TargetFile, 'r') as Rread_file:
-        filecontent = Rread_file.readlines()
-    with open(TargetFile, 'w') as Write_file:
-        for lineIndex in range(len(filecontent)):
-            if filecontent[lineIndex].startswith(SearchString):
-                newline = SearchString + "=" +ReplacementString+'\n' 
-                filecontent[lineIndex] = newline
-                break #exits after the first instance of match. Saves compute. 
-        Write_file.writelines( filecontent )
-
-
 def reset_tmp():
     path = os.getcwd()
     #generate a generate_allproc file from a boiler plate so we edit only that copy each time
@@ -54,8 +28,6 @@ def reset_tmp():
     original_dicom_file_path = path + '/src/boilerplates/dicom_boilerplate.bat'
     duplicate_dicom_file_path = path +"/tmp/dicom.bat"
     shutil.copy(original_dicom_file_path, duplicate_dicom_file_path)
-
-    # Might not reset varibles like selectcomponents. Might need to be reimported 
 
 
 

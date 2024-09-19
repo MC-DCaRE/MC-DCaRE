@@ -63,7 +63,9 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
         stringindexreplacement('dc:Ge/Patient/UserTransY', filecontent , change_dictionary['-DICOM_TY-'])
         stringindexreplacement('dc:Ge/Patient/UserTransZ', filecontent , change_dictionary['-DICOM_TZ-'])
 
-        stringindexreplacement('i:Sc/DoseOnRTGrid_tle/ZBins', filecontent , change_dictionary['-TLEZB-']) 
+        stringindexreplacement('i:Sc/DoseOnRTGrid100kz17/ZBins', filecontent , change_dictionary['-DTMZB-']) 
+        stringindexreplacement('i:Sc/DoseOnRTGrid_tle100kz17/ZBins', filecontent , change_dictionary['-TLEZB-']) 
+
         #missing 2 other zbins
         stringindexreplacement('s:Ph/ListName', filecontent , '\"'+change_dictionary['-PHYLST-']+'\"') 
         stringindexreplacement('b:Ph/ListProcesses', filecontent , '\"'+change_dictionary['-PHYPRO-']+'\"') 

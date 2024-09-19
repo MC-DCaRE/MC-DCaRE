@@ -69,14 +69,17 @@ s:Sc/DoseOnRTGrid100kz17/IfOutputFileAlreadyExists   = "Overwrite"
 s:Sc/DoseOnRTGrid100kz17/OutputType                  = "DICOM" 
 s:Sc/DoseOnRtGrid/OutputFile                  = "Dose_PTV"
 b:Sc/DoseOnRTGrid100kz17/DICOMOutput32BitsPerPixel   = "True"
+i:Sc/DoseOnRTGrid100kz17/ZBins=10
 
-#s:Sc/DoseOnRTGrid_tle100kz17/Quantity="TrackLengthEstimator"#Zbinningcausescreationofaparallelworldforscoring
-#s:Sc/DoseOnRTGrid_tle100kz17/InputFile="Muen.dat"
-#s:Sc/DoseOnRTGrid_tle100kz17/Component="Patient"
-#s:Sc/DoseOnRTGrid_tle100kz17/IfOutputFileAlreadyExists="Overwrite"
-#i:Sc/DoseOnRTGrid_tle/ZBins=1 #1 mm/bin1.0mm/bin
-#b:Sc/DoseOnRTGrid_tle100kz17/DICOMOutput32BitsPerPixel   = "True"
-#s:Sc/DoseOnRTGrid_tle100kz17/OutputType                  = "DICOM" 
+s:Sc/DoseOnRTGrid_tle100kz17/Quantity="TrackLengthEstimator"#Zbinningcausescreationofaparallelworldforscoring
+s:Sc/DoseOnRTGrid_tle100kz17/InputFile="Muen.dat"
+s:Sc/DoseOnRTGrid_tle100kz17/Component="Patient"
+s:Sc/DoseOnRTGrid_tle100kz17/IfOutputFileAlreadyExists="Overwrite"
+i:Sc/DoseOnRTGrid_tle100kz17/ZBins=10 #1 mm/bin1.0mm/bin
+s:Sc/DoseOnRTGrid_tle100kz17/OutputFile                  = "Dose_PTV_TLE"
+b:Sc/DoseOnRTGrid_tle100kz17/DICOMOutput32BitsPerPixel   = "True"
+s:Sc/DoseOnRTGrid_tle100kz17/OutputType                  = "DICOM" 
+
 #Physics############################################
 
 #Usethisonlyforplacinggeometry-prototyping

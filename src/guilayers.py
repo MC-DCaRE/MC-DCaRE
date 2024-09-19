@@ -72,7 +72,7 @@ dicom_file_layer = sg.pin(sg.Frame("DICOM inputs",
                                  sg.In(default_text='dicom_path',key='-DICOM-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(font=('Helvetica', 14))
                                 ],
                                 [sg.Text('DICOM RP file',size =(17,1),font=('Helvetica', 14),text_color='black'),
-                                 sg.In(default_text='dicom_RP_path',key='-DICOMRP-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FileBrowse(font=('Helvetica', 14))
+                                 sg.In(default_text='dicom_RP_path',key='-DICOMRP-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FileBrowse(file_types= (("DICOM File",'*.dcm'),) ,font=('Helvetica', 14))
                                 ],
                                 [sg.Button("Run set up imaging dose simulation",enable_events=True, key='-DICOMBAT-',font=('Helvetica', 14),size=(35,1))],
                               ],
@@ -128,52 +128,56 @@ dicom_planned_layer = sg.Frame('Treatment plan parameters',
                     ])
 
 toggle_layer = sg.pin(sg.Frame("Optimisation component toggle",
-                [ [sg.Text('ChamberPlugCentre',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugCentre'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugCentre'] else 'white on red', key='-CPCTOG-'),
+                [ [
+                    sg.Checkbox("ChamberPlugCentre", default= True , enable_events=True, key='-CPCTOG-', expand_x=True),
                     sg.VerticalSeparator(), 
-                    sg.Text('ChamberPlugTop',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugTop'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugTop'] else 'white on red', key='-CPTTOG-'),
-                    sg.Text('ChamberPlugBottom',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugBottom'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugBottom'] else 'white on red', key='-CPBTOG-'),
-                    sg.Text('ChamberPlugLeft',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugLeft'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugLeft'] else 'white on red', key='-CPLTOG-')],
-                  [sg.Text('ChamberPlugRight',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugRight'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugRight'] else 'white on red', key='-CPRTOG-'),
-                    sg.Text('ChamberPlugDose_tle',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugDose_tle'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugDose_tle'] else 'white on red', key='-TLETOG-'),
-                    sg.Text('ChamberPlugDose_dtm',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugDose_dtm'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugDose_dtm'] else 'white on red', key='-DTMTOG-'),
-                    sg.Text('ChamberPlugDose_dtw',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['ChamberPlugDose_dtw'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['ChamberPlugDose_dtw'] else 'white on red', key='-DTWTOG-')],
-                  [sg.Text('CollimatorsVertical',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['CollimatorsVertical'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['CollimatorsVertical'] else 'white on red', key='-COLLVERTOG-'),
-                    sg.Text('CollimatorsHorizontal',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['CollimatorsHorizontal'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['CollimatorsHorizontal'] else 'white on red', key='-COLLHORTOG-'),
-                    sg.Text('TitaniumFilter',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['TitaniumFilter'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['TitaniumFilter'] else 'white on red', key='-TITFILTOG-'),
-                    sg.Text('BowtieFilter',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['BowtieFilter'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['BowtieFilter'] else 'white on red', key='-BTFILTOG-')],
-                  [sg.Text('Coll1',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['Coll1'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['Coll1'] else 'white on red', key='-COLL1TOG-'),
-                    sg.Text('Coll2',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['Coll2'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['Coll2'] else 'white on red', key='-COLL2TOG-'),
-                    sg.Text('Coll3',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['Coll3'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['Coll3'] else 'white on red', key='-COLL3TOG-'),
-                    sg.Text('Coll4',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['Coll4'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['Coll4'] else 'white on red', key='-COLL4TOG-')],
-                 
-                  [sg.Text('DemoFlat',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['DemoFlat'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['DemoFlat'] else 'white on red', key='-DEMOFLATTOG-'),
-                    sg.Text('DemoRTrap',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['DemoRTrap'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['DemoRTrap'] else 'white on red', key='-DEMORTRAPTOG-'),
-                    sg.Text('DemoLTrap',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['DemoLTrap'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['DemoLTrap'] else 'white on red', key='-DEMOLTRAPTOG-')],
-                  [sg.Text('topsidebox',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['topsidebox'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['topsidebox'] else 'white on red', key='-TSBTOG-'),
-                    sg.Text('bottomsidebox',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['bottomsidebox'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['bottomsidebox'] else 'white on red', key='-BSBTOG-'),
-                    sg.Text('couch',size = (21,1),font=('Helvetica', 12), text_color='black'),
-                    sg.Button('On' if selectcomponents['couch'] else 'Off' , size=(3, 1), button_color='white on green' if selectcomponents['couch'] else 'white on red', key='-COHTOG-')]
+                    sg.Checkbox("ChamberPlugTop", default= True , enable_events=True, key='-CPTTOG-', expand_x=True),
+                    sg.VerticalSeparator(), 
+                    sg.Checkbox("ChamberPlugBottom", default= True , enable_events=True, key='-CPBTOG-', expand_x=True),
+                    sg.VerticalSeparator(), 
+                    sg.Checkbox("ChamberPlugLeft", default= True , enable_events=True, key='-CPLTOG-', expand_x=True)
+                  ],
+                  [
+                    sg.Checkbox("ChamberPlugRight", default= True , enable_events=True, key='-CPRTOG-', expand_x=True),
+                    sg.VerticalSeparator(), 
+                    sg.Checkbox("ChamberPlugDose_dtm", default= True , enable_events=True, key='-DTMTOG-', expand_x=True),
+                    sg.VerticalSeparator(),
+                    sg.Checkbox("ChamberPlugDose_tle", default= True , enable_events=True, key='-TLETOG-', expand_x=True),
+                    sg.VerticalSeparator(),
+                    sg.Checkbox("ChamberPlugDose_dtw", default= True , enable_events=True, key='-DTWTOG-', expand_x=True)
+                  ],
+                  [
+                    sg.Checkbox("CollimatorsVertical", default= True , enable_events=True, key='-COLLVERTOG-'),
+                    sg.VerticalSeparator(), 
+                    sg.Checkbox("CollimatorsHorizontal", default= True , enable_events=True, key='-COLLHORTOG-'),
+                    sg.VerticalSeparator(), 
+                    sg.Checkbox("TitaniumFilter", default= True , enable_events=True, key='-TITFILTOG-'),
+                    sg.VerticalSeparator(), 
+                    sg.Checkbox("BowtieFilter", default= True , enable_events=True, key='-BTFILTOG-')
+                  ],
+                  [
+                    sg.Checkbox("Coll1", default= True , enable_events=True, key='-COLL1TOG-'),
+                    sg.VerticalSeparator(), 
+                    sg.Checkbox("Coll2", default= True , enable_events=True, key='-COLL2TOG-'),
+                    sg.VerticalSeparator(), 
+                    sg.Checkbox("Coll3", default= True , enable_events=True, key='-COLL3TOG-'),
+                    sg.VerticalSeparator(), 
+                    sg.Checkbox("Coll4", default= True , enable_events=True, key='-COLL4TOG-')
+                  ],
+                  [
+                    sg.Checkbox("DemoFlat", default= True , enable_events=True, key='-DEMOFLATTOG-'),
+                    sg.VerticalSeparator(), 
+                    sg.Checkbox("DemoRTrap", default= True , enable_events=True, key='-DEMORTRAPTOG-'),
+                    sg.VerticalSeparator(), 
+                    sg.Checkbox("DemoLTrap", default= True , enable_events=True, key='-DEMOLTRAPTOG-')
+                  ],
+                  [
+                    sg.Checkbox("topsidebox", default= True , enable_events=True, key='-TSBTOG-'),
+                    sg.VerticalSeparator(), 
+                    sg.Checkbox("bottomsidebox", default= True , enable_events=True, key='-BSBTOG-'),
+                    sg.VerticalSeparator(), 
+                    sg.Checkbox("couch", default= True , enable_events=True, key='-COHTOG-')
+                  ]
                 ]
                 , key ='-USERACTIVATE-', visible = False))
 
@@ -343,12 +347,12 @@ ChamberPlugRight_layer = sg.Frame('ChamberPlugRight',
 
 Scoring_layer = sg.Frame("Scoring",
                 [
-                   [sg.Text('TLE_Zbins',size = (10,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='100',key='-TLEZB-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
                    [sg.Text('DTM_Zbins',size = (10,1),font=('Helvetica', 12), text_color='black'),
                      sg.In(default_text='100',key='-DTMZB-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('DTW_Zbins',size = (10,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text='100',key='-DTWZB-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
+                   [sg.Text('TLE_Zbins',size = (10,1),font=('Helvetica', 12), text_color='black'),
+                     sg.In(default_text='100',key='-TLEZB-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
+                  #  [sg.Text('DTW_Zbins',size = (10,1),font=('Helvetica', 12), text_color='black'),
+                  #    sg.In(default_text='100',key='-DTWZB-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
                 ])
 
 Physics_layer = sg.Frame("Physics",

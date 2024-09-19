@@ -1,20 +1,14 @@
 # from topas_gui import stringindexreplacement
-def stringindexreplacement_Legacy(SearchString :str , TargetFile: str , ReplacementString: str):
+def stringindexreplacement_Dictionary(SearchString :str , TargetList: str , ReplacementString :str):
     '''
     Targeted string replacement. 
     Function looks for the line that startes with SearchString at the file directory of TargetFile and replaces it with Replacement String. 
     Function will replace the entire line and any information trailing the SearchString will be lost in this process. 
-    Probably a huge memory hog as it repeatedly reads, write then close the file. 
     '''
-    with open(TargetFile, 'r') as Rread_file:
-        filecontent = Rread_file.readlines()
-    with open(TargetFile, 'w') as Write_file:
-        for lineIndex in range(len(filecontent)):
-            if filecontent[lineIndex].startswith(SearchString):
-                newline = SearchString + "=" +ReplacementString+'\n' 
-                filecontent[lineIndex] = newline
-                break #exits after the first instance of match. Saves compute. 
-        Write_file.writelines( filecontent )
+    for lineIndex in range(len(TargetList)):
+        if TargetList[lineIndex].startswith(SearchString):
+            TargetList[lineIndex] = SearchString + ":" + ReplacementString + '\n' 
+            break #exits after the first instance of match. Saves compute. 
 
 def stringindexreplacement(SearchString :str , TargetList: str , ReplacementString :str = None):
     '''
@@ -34,20 +28,19 @@ def stringindexreplacement(SearchString :str , TargetList: str , ReplacementStri
 
 
 
-def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, filetype:str):
+def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
     '''
     Main function that handles the editting and changing of parameter files. 
     Uses the values and selectcomponent dictionary to reference for keys and value to replace. 
 
-    :filetype str: either .bat file or a generate_allproc.py file 
+    :filetype str: either "DICOM" or "CTDI"
     '''
     with open(TargetFile, 'r') as Rread_file:
         filecontent = Rread_file.readlines()
 
-    if filetype == '.bat':
+    if filetype == 'DICOM':
         stringindexreplacement('i:Ts/Seed', filecontent , change_dictionary['-SEED-']) 
         stringindexreplacement('i:Ts/NumberOfThreads', filecontent , change_dictionary['-THREAD-']) 
-
         stringindexreplacement('s:Ts/G4DataDirectory', filecontent , '\"'+change_dictionary['-G4FOLDERNAME-']+'\"') 
 
         stringindexreplacement('d:Ge/Patient/RotX', filecontent , change_dictionary['-DICOM_ROTX-']) 
@@ -66,7 +59,6 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
         stringindexreplacement('i:Sc/DoseOnRTGrid100kz17/ZBins', filecontent , change_dictionary['-DTMZB-']) 
         stringindexreplacement('i:Sc/DoseOnRTGrid_tle100kz17/ZBins', filecontent , change_dictionary['-TLEZB-']) 
 
-        #missing 2 other zbins
         stringindexreplacement('s:Ph/ListName', filecontent , '\"'+change_dictionary['-PHYLST-']+'\"') 
         stringindexreplacement('b:Ph/ListProcesses', filecontent , '\"'+change_dictionary['-PHYPRO-']+'\"') 
         stringindexreplacement('s:Ph/Default/Type', filecontent , '\"'+change_dictionary['-PHYDEFTY-']+'\"') 
@@ -97,7 +89,7 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
         stringindexreplacement('d:Ge/CollimatorsHorizontal/TransZ', filecontent , change_dictionary['-COLLHORTRANSZ-'] + ' + Ge/Coll1/LY') 
 
         stringindexreplacement('s:Ge/BowtieFilter/Type', filecontent , '\"'+change_dictionary['-BFTY-']+'\"') 
-        stringindexreplacement('dc:Ge/BowtieFilter/RotX', filecontent , change_dictionary['-BFROTX-']) 
+        stringindexreplacement('d:Ge/BowtieFilter/RotX', filecontent , change_dictionary['-BFROTX-']) 
         stringindexreplacement('d:Ge/BowtieFilter/RotY', filecontent , change_dictionary['-BFROTY-']) 
         stringindexreplacement('d:Ge/BowtieFilter/RotZ', filecontent , change_dictionary['-BFROTZ-']) 
         stringindexreplacement('d:Ge/BowtieFilter/TransX', filecontent , change_dictionary['-BFTRANSX-']) 
@@ -106,107 +98,107 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
 
         stringindexreplacement('s:Ge/Coll1/Type', filecontent , '\"'+change_dictionary['-Coll1TY-']+'\"') 
         stringindexreplacement('s:Ge/Coll1/Material', filecontent , '\"'+change_dictionary['-Coll1MAT-']+'\"') 
-        stringindexreplacement('dc:Ge/Coll1/TransX', filecontent , change_dictionary['-Coll1TRANSX-']) 
-        stringindexreplacement('dc:Ge/Coll1/TransY', filecontent , change_dictionary['-Coll1TRANSY-']) 
-        stringindexreplacement('dc:Ge/Coll1/TransZ', filecontent , change_dictionary['-Coll1TRANSZ-']) 
-        stringindexreplacement('dc:Ge/Coll1/RotX', filecontent , change_dictionary['-Coll1ROTX-']) 
-        stringindexreplacement('dc:Ge/Coll1/RotY', filecontent , change_dictionary['-Coll1ROTY-']) 
-        stringindexreplacement('dc:Ge/Coll1/RotZ', filecontent , change_dictionary['-Coll1ROTZ-']) 
-        stringindexreplacement('dc:Ge/Coll1/LZ', filecontent , change_dictionary['-Coll1LZ-']) 
-        stringindexreplacement('dc:Ge/Coll1/LY', filecontent , change_dictionary['-Coll1LY-']) 
-        stringindexreplacement('dc:Ge/Coll1/LX', filecontent , change_dictionary['-Coll1LX-']) 
-        stringindexreplacement('dc:Ge/Coll1/LTX', filecontent , change_dictionary['-Coll1LTX-']) 
+        stringindexreplacement('d:Ge/Coll1/TransX', filecontent , change_dictionary['-Coll1TRANSX-']) 
+        stringindexreplacement('d:Ge/Coll1/TransY', filecontent , change_dictionary['-Coll1TRANSY-']) 
+        stringindexreplacement('d:Ge/Coll1/TransZ', filecontent , change_dictionary['-Coll1TRANSZ-']) 
+        stringindexreplacement('d:Ge/Coll1/RotX', filecontent , change_dictionary['-Coll1ROTX-']) 
+        stringindexreplacement('d:Ge/Coll1/RotY', filecontent , change_dictionary['-Coll1ROTY-']) 
+        stringindexreplacement('d:Ge/Coll1/RotZ', filecontent , change_dictionary['-Coll1ROTZ-']) 
+        stringindexreplacement('d:Ge/Coll1/LZ', filecontent , change_dictionary['-Coll1LZ-']) 
+        stringindexreplacement('d:Ge/Coll1/LY', filecontent , change_dictionary['-Coll1LY-']) 
+        stringindexreplacement('d:Ge/Coll1/LX', filecontent , change_dictionary['-Coll1LX-']) 
+        stringindexreplacement('d:Ge/Coll1/LTX', filecontent , change_dictionary['-Coll1LTX-']) 
 
         stringindexreplacement('s:Ge/Coll2/Type', filecontent , '\"'+change_dictionary['-Coll2TY-']+'\"') 
         stringindexreplacement('s:Ge/Coll2/Material', filecontent , '\"'+change_dictionary['-Coll2MAT-']+'\"') 
-        stringindexreplacement('dc:Ge/Coll2/TransX', filecontent , change_dictionary['-Coll2TRANSX-']) 
-        stringindexreplacement('dc:Ge/Coll2/TransY', filecontent , change_dictionary['-Coll2TRANSY-']) 
-        stringindexreplacement('dc:Ge/Coll2/TransZ', filecontent , change_dictionary['-Coll2TRANSZ-']) 
-        stringindexreplacement('dc:Ge/Coll2/RotX', filecontent , change_dictionary['-Coll2ROTX-']) 
-        stringindexreplacement('dc:Ge/Coll2/RotY', filecontent , change_dictionary['-Coll2ROTY-']) 
-        stringindexreplacement('dc:Ge/Coll2/RotZ', filecontent , change_dictionary['-Coll2ROTZ-']) 
-        stringindexreplacement('dc:Ge/Coll2/LZ', filecontent , change_dictionary['-Coll2LZ-']) 
-        stringindexreplacement('dc:Ge/Coll2/LY', filecontent , change_dictionary['-Coll2LY-']) 
-        stringindexreplacement('dc:Ge/Coll2/LX', filecontent , change_dictionary['-Coll2LX-']) 
-        stringindexreplacement('dc:Ge/Coll2/LTX', filecontent , change_dictionary['-Coll2LTX-'])
+        stringindexreplacement('d:Ge/Coll2/TransX', filecontent , change_dictionary['-Coll2TRANSX-']) 
+        stringindexreplacement('d:Ge/Coll2/TransY', filecontent , change_dictionary['-Coll2TRANSY-']) 
+        stringindexreplacement('d:Ge/Coll2/TransZ', filecontent , change_dictionary['-Coll2TRANSZ-']) 
+        stringindexreplacement('d:Ge/Coll2/RotX', filecontent , change_dictionary['-Coll2ROTX-']) 
+        stringindexreplacement('d:Ge/Coll2/RotY', filecontent , change_dictionary['-Coll2ROTY-']) 
+        stringindexreplacement('d:Ge/Coll2/RotZ', filecontent , change_dictionary['-Coll2ROTZ-']) 
+        stringindexreplacement('d:Ge/Coll2/LZ', filecontent , change_dictionary['-Coll2LZ-']) 
+        stringindexreplacement('d:Ge/Coll2/LY', filecontent , change_dictionary['-Coll2LY-']) 
+        stringindexreplacement('d:Ge/Coll2/LX', filecontent , change_dictionary['-Coll2LX-']) 
+        stringindexreplacement('d:Ge/Coll2/LTX', filecontent , change_dictionary['-Coll2LTX-'])
 
         stringindexreplacement('s:Ge/Coll3/Type', filecontent , '\"'+change_dictionary['-Coll3TY-']+'\"') 
         stringindexreplacement('s:Ge/Coll3/Material', filecontent , '\"'+change_dictionary['-Coll3MAT-']+'\"') 
-        stringindexreplacement('dc:Ge/Coll3/TransX', filecontent , change_dictionary['-Coll3TRANSX-']) 
-        stringindexreplacement('dc:Ge/Coll3/TransY', filecontent , change_dictionary['-Coll3TRANSY-']) 
-        stringindexreplacement('dc:Ge/Coll3/TransZ', filecontent , change_dictionary['-Coll3TRANSZ-']) 
-        stringindexreplacement('dc:Ge/Coll3/RotX', filecontent , change_dictionary['-Coll3ROTX-']) 
-        stringindexreplacement('dc:Ge/Coll3/RotY', filecontent , change_dictionary['-Coll3ROTY-']) 
-        stringindexreplacement('dc:Ge/Coll3/RotZ', filecontent , change_dictionary['-Coll3ROTZ-']) 
-        stringindexreplacement('dc:Ge/Coll3/LZ', filecontent , change_dictionary['-Coll3LZ-']) 
-        stringindexreplacement('dc:Ge/Coll3/LY', filecontent , change_dictionary['-Coll3LY-']) 
-        stringindexreplacement('dc:Ge/Coll3/LX', filecontent , change_dictionary['-Coll3LX-']) 
-        stringindexreplacement('dc:Ge/Coll3/LTX', filecontent , change_dictionary['-Coll3LTX-'])
+        stringindexreplacement('d:Ge/Coll3/TransX', filecontent , change_dictionary['-Coll3TRANSX-']) 
+        stringindexreplacement('d:Ge/Coll3/TransY', filecontent , change_dictionary['-Coll3TRANSY-']) 
+        stringindexreplacement('d:Ge/Coll3/TransZ', filecontent , change_dictionary['-Coll3TRANSZ-']) 
+        stringindexreplacement('d:Ge/Coll3/RotX', filecontent , change_dictionary['-Coll3ROTX-']) 
+        stringindexreplacement('d:Ge/Coll3/RotY', filecontent , change_dictionary['-Coll3ROTY-']) 
+        stringindexreplacement('d:Ge/Coll3/RotZ', filecontent , change_dictionary['-Coll3ROTZ-']) 
+        stringindexreplacement('d:Ge/Coll3/LZ', filecontent , change_dictionary['-Coll3LZ-']) 
+        stringindexreplacement('d:Ge/Coll3/LY', filecontent , change_dictionary['-Coll3LY-']) 
+        stringindexreplacement('d:Ge/Coll3/LX', filecontent , change_dictionary['-Coll3LX-']) 
+        stringindexreplacement('d:Ge/Coll3/LTX', filecontent , change_dictionary['-Coll3LTX-'])
 
         stringindexreplacement('s:Ge/Coll4/Type', filecontent , '\"'+change_dictionary['-Coll4TY-']+'\"') 
         stringindexreplacement('s:Ge/Coll4/Material', filecontent , '\"'+change_dictionary['-Coll4MAT-']+'\"') 
-        stringindexreplacement('dc:Ge/Coll4/TransX', filecontent , change_dictionary['-Coll4TRANSX-']) 
-        stringindexreplacement('dc:Ge/Coll4/TransY', filecontent , change_dictionary['-Coll4TRANSY-']) 
-        stringindexreplacement('dc:Ge/Coll4/TransZ', filecontent , change_dictionary['-Coll4TRANSZ-']) 
-        stringindexreplacement('dc:Ge/Coll4/RotX', filecontent , change_dictionary['-Coll4ROTX-']) 
-        stringindexreplacement('dc:Ge/Coll4/RotY', filecontent , change_dictionary['-Coll4ROTY-']) 
-        stringindexreplacement('dc:Ge/Coll4/RotZ', filecontent , change_dictionary['-Coll4ROTZ-']) 
-        stringindexreplacement('dc:Ge/Coll4/LZ', filecontent , change_dictionary['-Coll4LZ-']) 
-        stringindexreplacement('dc:Ge/Coll4/LY', filecontent , change_dictionary['-Coll4LY-']) 
-        stringindexreplacement('dc:Ge/Coll4/LX', filecontent , change_dictionary['-Coll4LX-']) 
-        stringindexreplacement('dc:Ge/Coll4/LTX', filecontent , change_dictionary['-Coll4LTX-'])  
+        stringindexreplacement('d:Ge/Coll4/TransX', filecontent , change_dictionary['-Coll4TRANSX-']) 
+        stringindexreplacement('d:Ge/Coll4/TransY', filecontent , change_dictionary['-Coll4TRANSY-']) 
+        stringindexreplacement('d:Ge/Coll4/TransZ', filecontent , change_dictionary['-Coll4TRANSZ-']) 
+        stringindexreplacement('d:Ge/Coll4/RotX', filecontent , change_dictionary['-Coll4ROTX-']) 
+        stringindexreplacement('d:Ge/Coll4/RotY', filecontent , change_dictionary['-Coll4ROTY-']) 
+        stringindexreplacement('d:Ge/Coll4/RotZ', filecontent , change_dictionary['-Coll4ROTZ-']) 
+        stringindexreplacement('d:Ge/Coll4/LZ', filecontent , change_dictionary['-Coll4LZ-']) 
+        stringindexreplacement('d:Ge/Coll4/LY', filecontent , change_dictionary['-Coll4LY-']) 
+        stringindexreplacement('d:Ge/Coll4/LX', filecontent , change_dictionary['-Coll4LX-']) 
+        stringindexreplacement('d:Ge/Coll4/LTX', filecontent , change_dictionary['-Coll4LTX-'])  
 
         stringindexreplacement('s:Ge/Coll1steel/Type', filecontent , '\"'+change_dictionary['-Coll1steelTY-']+'\"') 
         stringindexreplacement('s:Ge/Coll1steel/Material', filecontent , '\"'+change_dictionary['-Coll1steelMAT-']+'\"') 
-        stringindexreplacement('dc:Ge/Coll1steel/TransX', filecontent , change_dictionary['-Coll1steelTRANSX-']) 
-        stringindexreplacement('dc:Ge/Coll1steel/TransY', filecontent , 'Ge/Coll1/TransY - ' + change_dictionary['-Coll1steelTRANSY-']) 
-        stringindexreplacement('dc:Ge/Coll1steel/TransZ', filecontent , change_dictionary['-Coll1steelTRANSZ-']) 
-        stringindexreplacement('dc:Ge/Coll1steel/RotX', filecontent , change_dictionary['-Coll1steelROTX-']) 
-        stringindexreplacement('dc:Ge/Coll1steel/RotY', filecontent , change_dictionary['-Coll1steelROTY-']) 
-        stringindexreplacement('dc:Ge/Coll1steel/RotZ', filecontent , change_dictionary['-Coll1steelROTZ-']) 
-        stringindexreplacement('dc:Ge/Coll1steel/LZ', filecontent , change_dictionary['-Coll1steelLZ-']) 
-        stringindexreplacement('dc:Ge/Coll1steel/LY', filecontent , change_dictionary['-Coll1steelLY-']) 
-        stringindexreplacement('dc:Ge/Coll1steel/LX', filecontent , change_dictionary['-Coll1steelLX-']) 
-        stringindexreplacement('dc:Ge/Coll1steel/LTX', filecontent , change_dictionary['-Coll1steelLTX-']) 
+        stringindexreplacement('d:Ge/Coll1steel/TransX', filecontent , change_dictionary['-Coll1steelTRANSX-']) 
+        stringindexreplacement('d:Ge/Coll1steel/TransY', filecontent , 'Ge/Coll1/TransY - ' + change_dictionary['-Coll1steelTRANSY-']) 
+        stringindexreplacement('d:Ge/Coll1steel/TransZ', filecontent , change_dictionary['-Coll1steelTRANSZ-']) 
+        stringindexreplacement('d:Ge/Coll1steel/RotX', filecontent , change_dictionary['-Coll1steelROTX-']) 
+        stringindexreplacement('d:Ge/Coll1steel/RotY', filecontent , change_dictionary['-Coll1steelROTY-']) 
+        stringindexreplacement('d:Ge/Coll1steel/RotZ', filecontent , change_dictionary['-Coll1steelROTZ-']) 
+        stringindexreplacement('d:Ge/Coll1steel/LZ', filecontent , change_dictionary['-Coll1steelLZ-']) 
+        stringindexreplacement('d:Ge/Coll1steel/LY', filecontent , change_dictionary['-Coll1steelLY-']) 
+        stringindexreplacement('d:Ge/Coll1steel/LX', filecontent , change_dictionary['-Coll1steelLX-']) 
+        stringindexreplacement('d:Ge/Coll1steel/LTX', filecontent , change_dictionary['-Coll1steelLTX-']) 
 
         stringindexreplacement('s:Ge/Coll2steel/Type', filecontent , '\"'+change_dictionary['-Coll2steelTY-']+'\"') 
         stringindexreplacement('s:Ge/Coll2steel/Material', filecontent , '\"'+change_dictionary['-Coll2steelMAT-']+'\"') 
-        stringindexreplacement('dc:Ge/Coll2steel/TransX', filecontent , change_dictionary['-Coll2steelTRANSX-']) 
-        stringindexreplacement('dc:Ge/Coll2steel/TransY', filecontent , 'Ge/Coll2/TransY + ' + change_dictionary['-Coll2steelTRANSY-']) 
-        stringindexreplacement('dc:Ge/Coll2steel/TransZ', filecontent , change_dictionary['-Coll2steelTRANSZ-']) 
-        stringindexreplacement('dc:Ge/Coll2steel/RotX', filecontent , change_dictionary['-Coll2steelROTX-']) 
-        stringindexreplacement('dc:Ge/Coll2steel/RotY', filecontent , change_dictionary['-Coll2steelROTY-']) 
-        stringindexreplacement('dc:Ge/Coll2steel/RotZ', filecontent , change_dictionary['-Coll2steelROTZ-']) 
-        stringindexreplacement('dc:Ge/Coll2steel/LZ', filecontent , change_dictionary['-Coll2steelLZ-']) 
-        stringindexreplacement('dc:Ge/Coll2steel/LY', filecontent , change_dictionary['-Coll2steelLY-']) 
-        stringindexreplacement('dc:Ge/Coll2steel/LX', filecontent , change_dictionary['-Coll2steelLX-']) 
-        stringindexreplacement('dc:Ge/Coll2steel/LTX', filecontent , change_dictionary['-Coll2steelLTX-']) 
+        stringindexreplacement('d:Ge/Coll2steel/TransX', filecontent , change_dictionary['-Coll2steelTRANSX-']) 
+        stringindexreplacement('d:Ge/Coll2steel/TransY', filecontent , 'Ge/Coll2/TransY + ' + change_dictionary['-Coll2steelTRANSY-']) 
+        stringindexreplacement('d:Ge/Coll2steel/TransZ', filecontent , change_dictionary['-Coll2steelTRANSZ-']) 
+        stringindexreplacement('d:Ge/Coll2steel/RotX', filecontent , change_dictionary['-Coll2steelROTX-']) 
+        stringindexreplacement('d:Ge/Coll2steel/RotY', filecontent , change_dictionary['-Coll2steelROTY-']) 
+        stringindexreplacement('d:Ge/Coll2steel/RotZ', filecontent , change_dictionary['-Coll2steelROTZ-']) 
+        stringindexreplacement('d:Ge/Coll2steel/LZ', filecontent , change_dictionary['-Coll2steelLZ-']) 
+        stringindexreplacement('d:Ge/Coll2steel/LY', filecontent , change_dictionary['-Coll2steelLY-']) 
+        stringindexreplacement('d:Ge/Coll2steel/LX', filecontent , change_dictionary['-Coll2steelLX-']) 
+        stringindexreplacement('d:Ge/Coll2steel/LTX', filecontent , change_dictionary['-Coll2steelLTX-']) 
 
         stringindexreplacement('s:Ge/Coll3steel/Type', filecontent , '\"'+change_dictionary['-Coll3steelTY-']+'\"') 
         stringindexreplacement('s:Ge/Coll3steel/Material', filecontent , '\"'+change_dictionary['-Coll3steelMAT-']+'\"') 
-        stringindexreplacement('dc:Ge/Coll3steel/TransX', filecontent , 'Ge/Coll3/TransX - '+ change_dictionary['-Coll3steelTRANSX-']) 
-        stringindexreplacement('dc:Ge/Coll3steel/TransY', filecontent , change_dictionary['-Coll3steelTRANSY-']) 
-        stringindexreplacement('dc:Ge/Coll3steel/TransZ', filecontent , change_dictionary['-Coll3steelTRANSZ-']) 
-        stringindexreplacement('dc:Ge/Coll3steel/RotX', filecontent , change_dictionary['-Coll3steelROTX-']) 
-        stringindexreplacement('dc:Ge/Coll3steel/RotY', filecontent , change_dictionary['-Coll3steelROTY-']) 
-        stringindexreplacement('dc:Ge/Coll3steel/RotZ', filecontent , change_dictionary['-Coll3steelROTZ-']) 
-        stringindexreplacement('dc:Ge/Coll3steel/LZ', filecontent , change_dictionary['-Coll3steelLZ-']) 
-        stringindexreplacement('dc:Ge/Coll3steel/LY', filecontent , change_dictionary['-Coll3steelLY-']) 
-        stringindexreplacement('dc:Ge/Coll3steel/LX', filecontent , change_dictionary['-Coll3steelLX-']) 
-        stringindexreplacement('dc:Ge/Coll3steel/LTX', filecontent , change_dictionary['-Coll3steelLTX-']) 
+        stringindexreplacement('d:Ge/Coll3steel/TransX', filecontent , 'Ge/Coll3/TransX - '+ change_dictionary['-Coll3steelTRANSX-']) 
+        stringindexreplacement('d:Ge/Coll3steel/TransY', filecontent , change_dictionary['-Coll3steelTRANSY-']) 
+        stringindexreplacement('d:Ge/Coll3steel/TransZ', filecontent , change_dictionary['-Coll3steelTRANSZ-']) 
+        stringindexreplacement('d:Ge/Coll3steel/RotX', filecontent , change_dictionary['-Coll3steelROTX-']) 
+        stringindexreplacement('d:Ge/Coll3steel/RotY', filecontent , change_dictionary['-Coll3steelROTY-']) 
+        stringindexreplacement('d:Ge/Coll3steel/RotZ', filecontent , change_dictionary['-Coll3steelROTZ-']) 
+        stringindexreplacement('d:Ge/Coll3steel/LZ', filecontent , change_dictionary['-Coll3steelLZ-']) 
+        stringindexreplacement('d:Ge/Coll3steel/LY', filecontent , change_dictionary['-Coll3steelLY-']) 
+        stringindexreplacement('d:Ge/Coll3steel/LX', filecontent , change_dictionary['-Coll3steelLX-']) 
+        stringindexreplacement('d:Ge/Coll3steel/LTX', filecontent , change_dictionary['-Coll3steelLTX-']) 
 
         stringindexreplacement('s:Ge/Coll4steel/Type', filecontent , '\"'+change_dictionary['-Coll4steelTY-']+'\"') 
         stringindexreplacement('s:Ge/Coll4steel/Material', filecontent , '\"'+change_dictionary['-Coll4steelMAT-']+'\"') 
-        stringindexreplacement('dc:Ge/Coll4steel/TransX', filecontent , 'Ge/Coll4/TransX + ' + change_dictionary['-Coll4steelTRANSX-']) 
-        stringindexreplacement('dc:Ge/Coll4steel/TransY', filecontent , change_dictionary['-Coll4steelTRANSY-']) 
-        stringindexreplacement('dc:Ge/Coll4steel/TransZ', filecontent , change_dictionary['-Coll4steelTRANSZ-']) 
-        stringindexreplacement('dc:Ge/Coll4steel/RotX', filecontent , change_dictionary['-Coll4steelROTX-']) 
-        stringindexreplacement('dc:Ge/Coll4steel/RotY', filecontent , change_dictionary['-Coll4steelROTY-']) 
-        stringindexreplacement('dc:Ge/Coll4steel/RotZ', filecontent , change_dictionary['-Coll4steelROTZ-']) 
-        stringindexreplacement('dc:Ge/Coll4steel/LZ', filecontent , change_dictionary['-Coll4steelLZ-']) 
-        stringindexreplacement('dc:Ge/Coll4steel/LY', filecontent , change_dictionary['-Coll4steelLY-']) 
-        stringindexreplacement('dc:Ge/Coll4steel/LX', filecontent , change_dictionary['-Coll4steelLX-']) 
-        stringindexreplacement('dc:Ge/Coll4steel/LTX', filecontent , change_dictionary['-Coll4steelLTX-']) 
+        stringindexreplacement('d:Ge/Coll4steel/TransX', filecontent , 'Ge/Coll4/TransX + ' + change_dictionary['-Coll4steelTRANSX-']) 
+        stringindexreplacement('d:Ge/Coll4steel/TransY', filecontent , change_dictionary['-Coll4steelTRANSY-']) 
+        stringindexreplacement('d:Ge/Coll4steel/TransZ', filecontent , change_dictionary['-Coll4steelTRANSZ-']) 
+        stringindexreplacement('d:Ge/Coll4steel/RotX', filecontent , change_dictionary['-Coll4steelROTX-']) 
+        stringindexreplacement('d:Ge/Coll4steel/RotY', filecontent , change_dictionary['-Coll4steelROTY-']) 
+        stringindexreplacement('d:Ge/Coll4steel/RotZ', filecontent , change_dictionary['-Coll4steelROTZ-']) 
+        stringindexreplacement('d:Ge/Coll4steel/LZ', filecontent , change_dictionary['-Coll4steelLZ-']) 
+        stringindexreplacement('d:Ge/Coll4steel/LY', filecontent , change_dictionary['-Coll4steelLY-']) 
+        stringindexreplacement('d:Ge/Coll4steel/LX', filecontent , change_dictionary['-Coll4steelLX-']) 
+        stringindexreplacement('d:Ge/Coll4steel/LTX', filecontent , change_dictionary['-Coll4steelLTX-']) 
 
 
         stringindexreplacement('s:Ge/DemoFlat/Type', filecontent , '\"'+change_dictionary['-DEMOFLATTY-']+'\"') 
@@ -229,10 +221,10 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
         stringindexreplacement('d:Ge/DemoRTrap/RotX', filecontent , change_dictionary['-DEMORTRAPROTX-']) 
         stringindexreplacement('d:Ge/DemoRTrap/RotY', filecontent , change_dictionary['-DEMORTRAPROTY-']) 
         stringindexreplacement('d:Ge/DemoRTrap/RotZ', filecontent , change_dictionary['-DEMORTRAPROTZ-']) 
-        stringindexreplacement('dc:Ge/DemoRTrap/LZ', filecontent , change_dictionary['-DEMORTRAPLZ-']) 
-        stringindexreplacement('dc:Ge/DemoRTrap/LY', filecontent , change_dictionary['-DEMORTRAPLY-']) 
-        stringindexreplacement('dc:Ge/DemoRTrap/LX', filecontent , change_dictionary['-DEMORTRAPLX-']) 
-        stringindexreplacement('dc:Ge/DemoRTrap/LTX', filecontent , change_dictionary['-DEMORTRAPLTX-']) 
+        stringindexreplacement('d:Ge/DemoRTrap/LZ', filecontent , change_dictionary['-DEMORTRAPLZ-']) 
+        stringindexreplacement('d:Ge/DemoRTrap/LY', filecontent , change_dictionary['-DEMORTRAPLY-']) 
+        stringindexreplacement('d:Ge/DemoRTrap/LX', filecontent , change_dictionary['-DEMORTRAPLX-']) 
+        stringindexreplacement('d:Ge/DemoRTrap/LTX', filecontent , change_dictionary['-DEMORTRAPLTX-']) 
 
         stringindexreplacement('s:Ge/DemoLTrap/Type', filecontent , '\"'+change_dictionary['-DEMOLTRAPTY-']+'\"') 
         stringindexreplacement('s:Ge/DemoLTrap/Material', filecontent , '\"'+change_dictionary['-DEMOLTRAPMAT-']+'\"') 
@@ -243,8 +235,8 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
         stringindexreplacement('d:Ge/DemoLTrap/RotY', filecontent , change_dictionary['-DEMOLTRAPROTY-']) 
         stringindexreplacement('d:Ge/DemoLTrap/RotZ', filecontent , change_dictionary['-DEMOLTRAPROTZ-']) 
         stringindexreplacement('d:Ge/DemoLTrap/LZ', filecontent , change_dictionary['-DEMOLTRAPLZ-']) 
-        stringindexreplacement('dc:Ge/DemoLTrap/LY', filecontent , change_dictionary['-DEMOLTRAPLY-']) 
-        stringindexreplacement('dc:Ge/DemoLTrap/LX', filecontent , change_dictionary['-DEMOLTRAPLX-']) 
+        stringindexreplacement('d:Ge/DemoLTrap/LY', filecontent , change_dictionary['-DEMOLTRAPLY-']) 
+        stringindexreplacement('d:Ge/DemoLTrap/LX', filecontent , change_dictionary['-DEMOLTRAPLX-']) 
         stringindexreplacement('d:Ge/DemoLTrap/LTX', filecontent , change_dictionary['-DEMOLTRAPLTX-']) 
 
         stringindexreplacement('s:Ge/topsidebox/Type', filecontent , '\"'+change_dictionary['-TSBTY-']+'\"') 
@@ -254,7 +246,7 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
         stringindexreplacement('d:Ge/topsidebox/HLZ', filecontent , change_dictionary['-TSBHLZ-']) 
         stringindexreplacement('d:Ge/topsidebox/TransX', filecontent , change_dictionary['-TSBTRANSX-']) 
         stringindexreplacement('d:Ge/topsidebox/TransY', filecontent , change_dictionary['-TSBTRANSY-'] + ' + Ge/DemoLTrap/TransY') 
-        stringindexreplacement('dc:Ge/topsidebox/TransZ', filecontent , change_dictionary['-TSBTRANSZ-']) 
+        stringindexreplacement('d:Ge/topsidebox/TransZ', filecontent , change_dictionary['-TSBTRANSZ-']) 
         stringindexreplacement('d:Ge/topsidebox/RotX', filecontent , change_dictionary['-TSBROTX-']) 
         stringindexreplacement('d:Ge/topsidebox/RotY', filecontent , change_dictionary['-TSBROTY-']) 
         stringindexreplacement('d:Ge/topsidebox/RotZ', filecontent , change_dictionary['-TSBROTZ-']) 
@@ -266,8 +258,8 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
         stringindexreplacement('d:Ge/bottomsidebox/HLZ', filecontent , change_dictionary['-BSBHLZ-']) 
         stringindexreplacement('d:Ge/bottomsidebox/TransX', filecontent , change_dictionary['-BSBTRANSX-']) 
         stringindexreplacement('d:Ge/bottomsidebox/TransY', filecontent , change_dictionary['-BSBTRANSY-'] + ' + Ge/DemoRTrap/TransY') 
-        stringindexreplacement('dc:Ge/bottomsidebox/TransZ', filecontent , change_dictionary['-BSBTRANSZ-']) 
-        stringindexreplacement('dc:Ge/bottomsidebox/RotX', filecontent , change_dictionary['-BSBROTX-']) 
+        stringindexreplacement('d:Ge/bottomsidebox/TransZ', filecontent , change_dictionary['-BSBTRANSZ-']) 
+        stringindexreplacement('d:Ge/bottomsidebox/RotX', filecontent , change_dictionary['-BSBROTX-']) 
         stringindexreplacement('d:Ge/bottomsidebox/RotY', filecontent , change_dictionary['-BSBROTY-']) 
         stringindexreplacement('d:Ge/bottomsidebox/RotZ', filecontent , change_dictionary['-BSBROTZ-']) 
 
@@ -305,183 +297,490 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
         stringindexreplacement('d:So/beam/BeamAngularSpreadY', filecontent , change_dictionary['-BEAMPOSANGSPREADY-']) 
         stringindexreplacement('i:So/beam/NumberOfHistoriesInRun', filecontent , change_dictionary['-HIST-']) 
         
-        if change_dictionary['-FAN-'] == 'Full fan':
-            ### First remove the other header, then edit the correct ones and add in shift of bowtie filter
-            stringindexreplacement('#halffanrotationrate', filecontent , ) 
-            ## Edits
-            stringindexreplacement('i:Tf/NumberOfSequentialTimes', filecontent , change_dictionary['-TIMESEQ-']) 
-            stringindexreplacement('i:Tf/Verbosity', filecontent , change_dictionary['-TIMEVERBO-']) 
-            stringindexreplacement('d:Tf/TimelineEnd', filecontent , change_dictionary['-TIMELINEEND-']) 
-            stringindexreplacement('s:Tf/Rotate/Function', filecontent , '\"' + change_dictionary['-TIMEROTFUNC-'] +'\"') 
-            stringindexreplacement('d:Tf/Rotate/Rate', filecontent , change_dictionary['-TIMEROTRATE-']) 
-            stringindexreplacement('d:Tf/Rotate/StartValue', filecontent , change_dictionary['-TIMEROTSTART-']) 
-            stringindexreplacement('i:Ts/ShowHistoryCountAtInterval', filecontent , change_dictionary['-TIMEHISTINT-']) 
+    if change_dictionary['-FAN-'] == 'Full fan':
+        ### First remove the other header, then edit the correct ones and add in shift of bowtie filter
+        stringindexreplacement('#halffanrotationrate', filecontent , ) 
+        ## Edits
+        stringindexreplacement('i:Tf/NumberOfSequentialTimes', filecontent , change_dictionary['-TIMESEQ-']) 
+        stringindexreplacement('i:Tf/Verbosity', filecontent , change_dictionary['-TIMEVERBO-']) 
+        stringindexreplacement('d:Tf/TimelineEnd', filecontent , change_dictionary['-TIMELINEEND-']) 
+        stringindexreplacement('s:Tf/Rotate/Function', filecontent , '\"' + change_dictionary['-TIMEROTFUNC-'] +'\"') 
+        stringindexreplacement('d:Tf/Rotate/Rate', filecontent , change_dictionary['-TIMEROTRATE-']) 
+        stringindexreplacement('d:Tf/Rotate/StartValue', filecontent , change_dictionary['-TIMEROTSTART-']) 
+        stringindexreplacement('i:Ts/ShowHistoryCountAtInterval', filecontent , change_dictionary['-TIMEHISTINT-']) 
+    elif change_dictionary['-FAN-'] == 'Half fan':
+        ### First remove the unwanted other option, then edit the correct ones
+        stringindexreplacement('#fullfanrotationrate', filecontent , )
+        ## Edits
+        stringindexreplacement('i:Tf/NumberOfSequentialTimes', filecontent , change_dictionary['-TIMESEQ-']) 
+        stringindexreplacement('i:Tf/Verbosity', filecontent , change_dictionary['-TIMEVERBO-']) 
+        stringindexreplacement('d:Tf/TimelineEnd', filecontent , change_dictionary['-TIMELINEEND-']) 
+        stringindexreplacement('s:Tf/Rotate/Function', filecontent , '\"'+change_dictionary['-TIMEROTFUNC-']+'\"') 
+        stringindexreplacement('d:Tf/Rotate/Rate', filecontent , change_dictionary['-TIMEROTRATE-']) 
+        stringindexreplacement('d:Tf/Rotate/StartValue', filecontent , change_dictionary['-TIMEROTSTART-']) 
+        stringindexreplacement('i:Ts/ShowHistoryCountAtInterval', filecontent , change_dictionary['-TIMEHISTINT-']) 
 
-        if change_dictionary['-FAN-'] == 'Half fan':
-            ### First remove the unwanted other option, then edit the correct ones
-            stringindexreplacement('#fullfanrotationrate', filecontent , )
-            ## Edits
-            stringindexreplacement('i:Tf/NumberOfSequentialTimes', filecontent , change_dictionary['-TIMESEQ-']) 
-            stringindexreplacement('i:Tf/Verbosity', filecontent , change_dictionary['-TIMEVERBO-']) 
-            stringindexreplacement('d:Tf/TimelineEnd', filecontent , change_dictionary['-TIMELINEEND-']) 
-            stringindexreplacement('s:Tf/Rotate/Function', filecontent , '\"'+change_dictionary['-TIMEROTFUNC-']+'\"') 
-            stringindexreplacement('d:Tf/Rotate/Rate', filecontent , change_dictionary['-TIMEROTRATE-']) 
-            stringindexreplacement('d:Tf/Rotate/StartValue', filecontent , change_dictionary['-TIMEROTSTART-']) 
-            stringindexreplacement('i:Ts/ShowHistoryCountAtInterval', filecontent , change_dictionary['-TIMEHISTINT-']) 
-
-        if change_dictionary['-GRAPHICS-'] ==False: 
-            stringindexreplacement('Ts/UseQt', filecontent , ) 
-            stringindexreplacement('s:Gr/ViewA/Type', filecontent , ) 
-            stringindexreplacement('b:Gr/Enable', filecontent , ' "F" ') 
-        elif change_dictionary['-GRAPHICS-'] ==True:
-            stringindexreplacement('Ts/UseQt', filecontent , ' "True" ') 
-            stringindexreplacement('s:Gr/ViewA/Type', filecontent , ' "OpenGL" ') 
-            stringindexreplacement('b:Gr/Enable', filecontent , ' "T" ') 
+    if change_dictionary['-GRAPHICS-'] ==False: 
+        stringindexreplacement('Ts/UseQt', filecontent , ) 
+        stringindexreplacement('s:Gr/ViewA/Type', filecontent , ) 
+        stringindexreplacement('b:Gr/Enable', filecontent , ' "F" ') 
+    elif change_dictionary['-GRAPHICS-'] ==True:
+        stringindexreplacement('Ts/UseQt', filecontent , ' "True" ') 
+        stringindexreplacement('s:Gr/ViewA/Type', filecontent , ' "OpenGL" ') 
+        stringindexreplacement('b:Gr/Enable', filecontent , ' "T" ') 
         
-        pass
+
+    if filetype == 'CTDI':
+        # CTDI specific 
+        if change_dictionary['-CPCTOG-'] == False: 
+            stringindexreplacement_Dictionary( '\''+'ChamberPlugCentre' +'\'', filecontent , '0,')
+            pass
+        if change_dictionary['-CPTTOG-'] == False: 
+            stringindexreplacement_Dictionary( '\''+'ChamberPlugTop'+'\'', filecontent , '0,')
+            pass
+        if change_dictionary['-CPBTOG-'] == False: 
+            stringindexreplacement_Dictionary( '\''+'ChamberPlugBottom'+'\'', filecontent , '0,')
+            pass
+        if change_dictionary['-CPLTOG-'] == False: 
+            stringindexreplacement_Dictionary( '\''+'ChamberPlugLeft'+'\'', filecontent , '0,')
+            pass
+        if change_dictionary['-CPRTOG-'] == False: 
+            stringindexreplacement_Dictionary( '\''+'ChamberPlugRight'+'\'', filecontent , '0,')
+            pass
+        if change_dictionary['-DTMTOG-'] == False: 
+            stringindexreplacement_Dictionary( '\''+'ChamberPlugDose_dtm'+'\'', filecontent , '0,')
+            pass
+        if change_dictionary['-TLETOG-'] == False: 
+            stringindexreplacement_Dictionary( '\''+'ChamberPlugDose_tle'+'\'', filecontent , '0,')
+            pass
+        if change_dictionary['-DTWTOG-'] == False: 
+            stringindexreplacement_Dictionary( '\''+'ChamberPlugDose_dtw'+'\'', filecontent , '0,')
+            pass
+        if change_dictionary['-COLLVERTOG-'] == False: 
+            stringindexreplacement_Dictionary( '\''+'CollimatorsVertical'+'\'', filecontent , '0,')
+            pass
+        if change_dictionary['-COLLHORTOG-'] == False: 
+            stringindexreplacement_Dictionary( '\''+'CollimatorsHorizontal'+'\'', filecontent , '0,')
+            pass
+        if change_dictionary['-TITFILTOG-'] == False: 
+            stringindexreplacement_Dictionary( '\''+'TitaniumFilter'+'\'', filecontent , '0,')
+            pass
+        if change_dictionary['-BTFILTOG-'] == False: 
+            stringindexreplacement_Dictionary( '\''+'BowtieFilter'+'\'', filecontent , '0,')
+            pass
+        if change_dictionary['-COLL1TOG-'] == False: 
+            stringindexreplacement_Dictionary( '\''+'Coll1'+'\'', filecontent , '0,')
+            pass
+        if change_dictionary['-COLL2TOG-'] == False: 
+            stringindexreplacement_Dictionary( '\''+'Coll2'+'\'', filecontent , '0,')
+            pass
+        if change_dictionary['-COLL3TOG-'] == False: 
+            stringindexreplacement_Dictionary( '\''+'Coll3'+'\'', filecontent , '0,')
+            pass
+        if change_dictionary['-COLL4TOG-'] == False: 
+            stringindexreplacement_Dictionary( '\''+'Coll4'+'\'', filecontent , '0,')
+            pass
+        if change_dictionary['-DEMOFLATTOG-'] == False: 
+            stringindexreplacement_Dictionary( '\''+'DemoFlat'+'\'', filecontent , '0,')
+            pass
+        if change_dictionary['-DEMORTRAPTOG-'] == False: 
+            stringindexreplacement_Dictionary( '\''+'DemoRTrap'+'\'', filecontent , '0,')
+            pass
+        if change_dictionary['-DEMOLTRAPTOG-'] == False: 
+            stringindexreplacement_Dictionary( '\''+'DemoLTrap'+'\'', filecontent , '0,')
+            pass
+        if change_dictionary['-TSBTOG-'] == False: 
+            stringindexreplacement_Dictionary( '\''+'topsidebox'+'\'', filecontent , '0,')
+            pass
+        if change_dictionary['-BSBTOG-'] == False: 
+            stringindexreplacement_Dictionary( '\''+'bottomsidebox'+'\'', filecontent , '0,') 
+            pass
+        if change_dictionary['-COHTOG-'] == False: 
+            stringindexreplacement_Dictionary( '\''+'couch'+'\'', filecontent , '0,') 
+            pass
+
+        stringindexreplacement( 'Seed', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'NumberOfThreads', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'G4DataDirectory', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'World_HLX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'World_HLY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'World_HLZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
 
 
-    if filetype == 'foo.py':
-        if toggle_dictionary['ChamberPlugCentre'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
 
-        if toggle_dictionary['ChamberPlugTop'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
+        stringindexreplacement( 'CTDI_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CTDI_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CTDI_Material', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CTDI_RMin', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CTDI_RMax', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CTDI_HL', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CTDI_SPhi', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CTDI_DPhi', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CTDI_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CTDI_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CTDI_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CTDI_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugCentre_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugCentre_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugCentre_Material', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugCentre_RMin', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugCentre_RMax', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugCentre_HL', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugCentre_SPhi', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugCentre_DPhi', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugCentre_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugCentre_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugCentre_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugCentre_isParallel', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugCentre_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugCentre_color', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugTop_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugTop_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugTop_Material', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugTop_RMin', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugTop_RMax', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugTop_HL', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugTop_SPhi', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugTop_DPhi', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugTop_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugTop_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugTop_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugTop_isParallel', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugTop_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugTop_color', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugBottom_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugBottom_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugBottom_Material', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugBottom_RMin', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugBottom_RMax', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugBottom_HL', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugBottom_SPhi', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugBottom_DPhi', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugBottom_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugBottom_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugBottom_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugBottom_isParallel', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugBottom_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugBottom_color', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugLeft_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugLeft_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugLeft_Material', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugLeft_RMin', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugLeft_RMax', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugLeft_HL', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugLeft_SPhi', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugLeft_DPhi', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugLeft_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugLeft_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugLeft_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugLeft_isParallel', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugLeft_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugLeft_color', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugRight_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugRight_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugRight_Material', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugRight_RMin', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugRight_RMax', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugRight_HL', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugRight_SPhi', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugRight_DPhi', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugRight_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugRight_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugRight_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugRight_isParallel', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugRight_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugRight_color', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugDose_tle_Quantity', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugDose_tle_InputFile', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugDose_tle_Component', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugDose_tle_IfOutputFileAlreadyExists', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugDose_tle_ZBins', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugDose_dtm_Quantity', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugDose_dtm_Component', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugDose_dtm_IfOutputFileAlreadyExists', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugDose_dtm_Material', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugDose_dtm_ZBins', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugDose_dtw_Quantity', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugDose_dtw_Component', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugDose_dtw_IfOutputFileAlreadyExists', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugDose_dtw_ZBins', filecontent, '\''+ change_dictionary['--'] +'\'' )
 
-        if toggle_dictionary['ChamberPlugBottom'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
-        if toggle_dictionary['ChamberPlugLeft'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
-        if toggle_dictionary['ChamberPlugRight'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
-        if toggle_dictionary['ChamberPlugDose_tle'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
-        if toggle_dictionary['ChamberPlugDose_dtm'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
-        if toggle_dictionary['ChamberPlugDose_dtw'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
-        if toggle_dictionary['CollimatorsVertical'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
-        if toggle_dictionary['CollimatorsHorizontal'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
-        if toggle_dictionary['TitaniumFilter'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
-        if toggle_dictionary['BowtieFilter'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
-        if toggle_dictionary['Coll1'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
-        if toggle_dictionary['Coll2'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
-        if toggle_dictionary['Coll3'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
-        if toggle_dictionary['Coll4'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
-        if toggle_dictionary['DemoFlat'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
-        if toggle_dictionary['DemoRTrap'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
-        if toggle_dictionary['DemoLTrap'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
-        if toggle_dictionary['topsidebox'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
-        if toggle_dictionary['bottomsidebox'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
-        if toggle_dictionary['couch'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
-        if toggle_dictionary['Graphics'] == 1: 
-            #make edits 
-            pass
-        else:
-            #comment 
-            pass
+        stringindexreplacement( 'ChamberPlugDose_tle_OutputFile', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugDose_dtm_OutputFile', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ChamberPlugDose_dtw_OutputFile', filecontent, '\''+ change_dictionary['--'] +'\'' )
+
+        stringindexreplacement( 'Ph_ListName', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Ph_ListProcesses', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Ph_Default_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Ph_Default_Modules', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Ph_Default_EMRangeMin', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Ph_Default_EMRangeMax', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Rotation_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Rotation_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Rotation_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Rotation_RotY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Rotation_RotZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Rotation_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Rotation_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Rotation_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CollimatorsVertical_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CollimatorsVertical_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CollimatorsVertical_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CollimatorsVertical_RotY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CollimatorsVertical_RotZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CollimatorsVertical_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CollimatorsHorizontal_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CollimatorsHorizontal_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CollimatorsHorizontal_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CollimatorsHorizontal_RotY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CollimatorsHorizontal_RotZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'CollimatorsHorizontal_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'BowtieFilter_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'BowtieFilter_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'BowtieFilter_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'BowtieFilter_RotY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'BowtieFilter_RotZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'BowtieFilter_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'BowtieFilter_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'BowtieFilter_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1_Material', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1_RotY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1_RotZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1_LZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1_LY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1_LX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1_LTX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1_Color', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2_Material', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2_RotY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2_RotZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2_LZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2_LY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2_LX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2_LTX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2_Color', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3_Material', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3_RotY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3_RotZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3_LZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3_LY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3_LX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3_LTX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3_Color', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4_Material', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4_RotY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4_RotZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4_LZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4_LY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4_LX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4_LTX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4_Color', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1steel_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1steel_Material', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1steel_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1steel_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1steel_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1steel_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1steel_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1steel_RotY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1steel_RotZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1steel_LZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1steel_LY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1steel_LX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll1steel_LTX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2steel_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2steel_Material', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2steel_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2steel_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2steel_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2steel_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2steel_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2steel_RotY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2steel_RotZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2steel_LZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2steel_LY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2steel_LX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll2steel_LTX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3steel_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3steel_Material', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3steel_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3steel_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3steel_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3steel_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3steel_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3steel_RotY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3steel_RotZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3steel_LZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3steel_LY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3steel_LX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll3steel_LTX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4steel_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4steel_Material', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4steel_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4steel_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4steel_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4steel_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4steel_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4steel_RotY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4steel_RotZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4steel_LZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4steel_LY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4steel_LX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Coll4steel_LTX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'TitaniumFilterGroup_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'TitaniumFilterGroup_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'TitaniumFilterGroup_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'TitaniumFilterGroup_RotY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'TitaniumFilterGroup_RotZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'TitaniumFilterGroup_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'TitaniumFilter_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'TitaniumFilter_Material', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'TitaniumFilter_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'TitaniumFilter_HLX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'TitaniumFilter_HLY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'TitaniumFilter_HLZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'TitaniumFilter_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'TitaniumFilter_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'TitaniumFilter_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'TitaniumFilter_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'TitaniumFilter_RotY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'TitaniumFilter_RotZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'TitaniumFilter_Color', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'TitaniumFilter_DrawingStyle', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoFlat_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoFlat_Material', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoFlat_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoFlat_HLX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoFlat_HLY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoFlat_HLZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoFlat_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoFlat_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoFlat_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoFlat_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoFlat_RotY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoFlat_RotZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoFlat_Color', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoRTrap_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoRTrap_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoRTrap_Material', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoRTrap_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoRTrap_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoRTrap_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoRTrap_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoRTrap_RotY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoRTrap_RotZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoRTrap_LZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoRTrap_LY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoRTrap_LX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoRTrap_LTX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoRTrap_Color', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoLTrap_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoLTrap_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoLTrap_Material', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoLTrap_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoLTrap_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoLTrap_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoLTrap_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoLTrap_RotY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoLTrap_RotZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoLTrap_LZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoLTrap_LY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoLTrap_LX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoLTrap_LTX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'DemoLTrap_Color', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'topsidebox_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'topsidebox_Material', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'topsidebox_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'topsidebox_HLX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'topsidebox_HLY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'topsidebox_HLZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'topsidebox_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'topsidebox_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'topsidebox_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'topsidebox_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'topsidebox_RotY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'topsidebox_RotZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'topsidebox_Color', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'bottomsidebox_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'bottomsidebox_Material', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'bottomsidebox_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'bottomsidebox_HLX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'bottomsidebox_HLY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'bottomsidebox_HLZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'bottomsidebox_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'bottomsidebox_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'bottomsidebox_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'bottomsidebox_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'bottomsidebox_RotY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'bottomsidebox_RotZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'bottomsidebox_Color', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'couch_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'couch_Material', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'couch_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'couch_HLX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'couch_HLY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'couch_HLZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'couch_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'couch_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'couch_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'couch_Color', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'BeamPosition_Parent', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'BeamPosition_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'BeamPosition_TransX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'BeamPosition_TransY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'BeamPosition_TransZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'BeamPosition_RotX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'BeamPosition_RotY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'BeamPosition_RotZ', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'BeamEnergySpectrumType', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'beam_Type', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'beam_Component', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'beam_BeamParticle', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'beam_BeamPositionDistribution', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'beam_BeamPositionCutoffShape', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'beam_BeamPositionCutoffX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'beam_BeamPositionCutoffY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'beam_BeamPositionSpreadX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'beam_BeamPositionSpreadY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'beam_BeamAngularDistribution', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'beam_BeamAngularCutoffX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'beam_BeamAngularCutoffY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'beam_BeamAngularSpreadX', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'beam_BeamAngularSpreadY', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'beam_NumberOfHistoriesInRun', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'NumberOfSequentialTimes', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Verbosity', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'TimelineEnd', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Rotate_Function', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Rotate_Rate', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'Rotate_StartValue', filecontent, '\''+ change_dictionary['--'] +'\'' )
+        stringindexreplacement( 'ShowHistoryCountAtInterval', filecontent, '\''+ change_dictionary['--'] +'\'' )
+
+
 
     with open(TargetFile, 'w') as Write_file:
         Write_file.writelines( filecontent )

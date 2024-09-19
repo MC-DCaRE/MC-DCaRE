@@ -95,7 +95,6 @@ window = sg.Window(title= "Imaging Dose Simulation", layout=layout, finalize=Tru
 #simulation subprocess is still running. if no other buttons get triggered while it loops
 #then no if block statement will run. though when the subprocess runs, the GUI seems to block 
 #all buttons and inputs
-num_of_csvresult = 5 
 DICOM_bool = USER_bool = False
 initiate = True
 reset_tmp()
@@ -106,7 +105,6 @@ while True:
 
     if initiate == True: 
         # Sets up default values for resetting to default parameters
-        selectcomponents_default = selectcomponents
         values_default = values
         # Brute force work around as reseting all parameter will clear the default Browse string
         values_default['Browse'] =values_default['Browse0']=values_default['Browse1']=values_default['Browse2']= "Browse"
@@ -116,8 +114,6 @@ while True:
         # HAS TO BE A LOOPED FUNCTION CAUSE PYSIMPLEGUI
         for i in values: 
             window[i].update(values_default[i])
-        # Does not work for selectcomponents YET
-        selectcomponents= selectcomponents_default            
         pass
     
     if event == sg.WIN_CLOSED:
@@ -130,8 +126,6 @@ while True:
         f = open('dump.txt', 'w')
         f.write( 'dict = '+repr(values)+ '\n')
         f.close()
-
-        # print(selectcomponents)
 
         # print(str(values['-G4FOLDERNAME-']))
         # Add a line search and replacement function here
@@ -169,6 +163,7 @@ while True:
         # add code to edit the tmp file
         tmp_file_path = path + '/tmp/generate_allproc.py'
         topas_application_path = values['-TOPAS-'] + " "
+        editor(values, tmp_file_path, 'CTDI')
         run_status = log_output(tmp_file_path, 'generate_allproc.py', topas_application_path)
         reset_tmp()
         sg.popup(run_status)
@@ -192,7 +187,7 @@ while True:
         ### add code to edit the tmp file ###
 
         topas_application_path = values['-TOPAS-'] + " "
-        editor(values, selectcomponents, tmp_file_path, '.bat')
+        editor(values, tmp_file_path, 'DICOM')
         run_status = log_output(tmp_file_path, 'dicom.bat', topas_application_path)
         reset_tmp()
         sg.popup(run_status)

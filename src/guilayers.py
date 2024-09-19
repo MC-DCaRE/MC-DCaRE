@@ -28,7 +28,7 @@ main_menu_information_layer = sg.Frame('Instructions on the usage of the GUI',
 
 runbuttons_layer= sg.Frame('Activate simulation', 
                            [
-                             [sg.Checkbox("Graphics toggle", enable_events=True, key='-GRAPHICS-')],
+                             [sg.Checkbox("Graphics toggle", enable_events=True, key='-GRAPHICS-', default= False)],
                              [sg.Button("Run", enable_events=True, key='-RUN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey')],
                             ], key ='-BUTTONSACTIVATE-', 
                               visible = False)

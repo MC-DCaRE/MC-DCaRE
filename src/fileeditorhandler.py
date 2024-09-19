@@ -55,13 +55,13 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
         stringindexreplacement('d:Ge/Patient/RotZ', filecontent , change_dictionary['-DICOM_ROTZ-']) 
         stringindexreplacement('s:Ge/Patient/DicomDirectory', filecontent , '\"'+change_dictionary['-DICOM-']+'\"') 
 
-        stringindexreplacement('dc:Ge/IsocenterX', filecontent , change_dictionary['-DICOM_TX-']) 
-        stringindexreplacement('dc:Ge/IsocenterY', filecontent , change_dictionary['-DICOM_TY-']) 
-        stringindexreplacement('dc:Ge/IsocenterZ', filecontent , change_dictionary['-DICOM_TZ-']) 
+        stringindexreplacement('dc:Ge/IsocenterX', filecontent , change_dictionary['-DICOM_ISOX-'])  
+        stringindexreplacement('dc:Ge/IsocenterY', filecontent , change_dictionary['-DICOM_ISOY-'])  
+        stringindexreplacement('dc:Ge/IsocenterZ', filecontent , change_dictionary['-DICOM_ISOZ-'])  
 
-        stringindexreplacement('dc:Ge/Patient/UserTransX', filecontent , change_dictionary['-DICOM_ISOX-']) 
-        stringindexreplacement('dc:Ge/Patient/UserTransY', filecontent , change_dictionary['-DICOM_ISOY-']) 
-        stringindexreplacement('dc:Ge/Patient/UserTransZ', filecontent , change_dictionary['-DICOM_ISOZ-']) 
+        stringindexreplacement('dc:Ge/Patient/UserTransX', filecontent , change_dictionary['-DICOM_TX-'])
+        stringindexreplacement('dc:Ge/Patient/UserTransY', filecontent , change_dictionary['-DICOM_TY-'])
+        stringindexreplacement('dc:Ge/Patient/UserTransZ', filecontent , change_dictionary['-DICOM_TZ-'])
 
         stringindexreplacement('i:Sc/DoseOnRTGrid_tle/ZBins', filecontent , change_dictionary['-TLEZB-']) 
         #missing 2 other zbins
@@ -86,13 +86,13 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
         stringindexreplacement('d:Ge/CollimatorsVertical/RotX', filecontent , change_dictionary['-COLLVERROTX-']) 
         stringindexreplacement('d:Ge/CollimatorsVertical/RotY', filecontent , change_dictionary['-COLLVERROTY-']) 
         stringindexreplacement('d:Ge/CollimatorsVertical/RotZ', filecontent , change_dictionary['-COLLVERROTZ-']) 
-        stringindexreplacement('d:Ge/CollimatorsVertical/TransZ', filecontent , change_dictionary['-COLLVERTRANSZ-']) 
+        stringindexreplacement('d:Ge/CollimatorsVertical/TransZ', filecontent , change_dictionary['-COLLVERTRANSZ-'] + ' + Ge/BeamPosition/TransZ') 
 
         stringindexreplacement('s:Ge/CollimatorsHorizontal/Type', filecontent , '\"'+change_dictionary['-COLLHORTY-']+'\"') 
         stringindexreplacement('d:Ge/CollimatorsHorizontal/RotX', filecontent , change_dictionary['-COLLHORROTX-']) 
         stringindexreplacement('d:Ge/CollimatorsHorizontal/RotY', filecontent , change_dictionary['-COLLHORROTY-']) 
         stringindexreplacement('d:Ge/CollimatorsHorizontal/RotZ', filecontent , change_dictionary['-COLLHORROTZ-']) 
-        stringindexreplacement('d:Ge/CollimatorsHorizontal/TransZ', filecontent , change_dictionary['-COLLHORTRANSZ-']) 
+        stringindexreplacement('d:Ge/CollimatorsHorizontal/TransZ', filecontent , change_dictionary['-COLLHORTRANSZ-'] + ' + Ge/Coll1/LY') 
 
         stringindexreplacement('s:Ge/BowtieFilter/Type', filecontent , '\"'+change_dictionary['-BFTY-']+'\"') 
         stringindexreplacement('dc:Ge/BowtieFilter/RotX', filecontent , change_dictionary['-BFROTX-']) 
@@ -157,7 +157,7 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
         stringindexreplacement('s:Ge/Coll1steel/Type', filecontent , '\"'+change_dictionary['-Coll1steelTY-']+'\"') 
         stringindexreplacement('s:Ge/Coll1steel/Material', filecontent , '\"'+change_dictionary['-Coll1steelMAT-']+'\"') 
         stringindexreplacement('dc:Ge/Coll1steel/TransX', filecontent , change_dictionary['-Coll1steelTRANSX-']) 
-        stringindexreplacement('dc:Ge/Coll1steel/TransY', filecontent , change_dictionary['-Coll1steelTRANSY-']) 
+        stringindexreplacement('dc:Ge/Coll1steel/TransY', filecontent , 'Ge/Coll1/TransY - ' + change_dictionary['-Coll1steelTRANSY-']) 
         stringindexreplacement('dc:Ge/Coll1steel/TransZ', filecontent , change_dictionary['-Coll1steelTRANSZ-']) 
         stringindexreplacement('dc:Ge/Coll1steel/RotX', filecontent , change_dictionary['-Coll1steelROTX-']) 
         stringindexreplacement('dc:Ge/Coll1steel/RotY', filecontent , change_dictionary['-Coll1steelROTY-']) 
@@ -170,7 +170,7 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
         stringindexreplacement('s:Ge/Coll2steel/Type', filecontent , '\"'+change_dictionary['-Coll2steelTY-']+'\"') 
         stringindexreplacement('s:Ge/Coll2steel/Material', filecontent , '\"'+change_dictionary['-Coll2steelMAT-']+'\"') 
         stringindexreplacement('dc:Ge/Coll2steel/TransX', filecontent , change_dictionary['-Coll2steelTRANSX-']) 
-        stringindexreplacement('dc:Ge/Coll2steel/TransY', filecontent , change_dictionary['-Coll2steelTRANSY-']) 
+        stringindexreplacement('dc:Ge/Coll2steel/TransY', filecontent , 'Ge/Coll2/TransY + ' + change_dictionary['-Coll2steelTRANSY-']) 
         stringindexreplacement('dc:Ge/Coll2steel/TransZ', filecontent , change_dictionary['-Coll2steelTRANSZ-']) 
         stringindexreplacement('dc:Ge/Coll2steel/RotX', filecontent , change_dictionary['-Coll2steelROTX-']) 
         stringindexreplacement('dc:Ge/Coll2steel/RotY', filecontent , change_dictionary['-Coll2steelROTY-']) 
@@ -182,7 +182,7 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
 
         stringindexreplacement('s:Ge/Coll3steel/Type', filecontent , '\"'+change_dictionary['-Coll3steelTY-']+'\"') 
         stringindexreplacement('s:Ge/Coll3steel/Material', filecontent , '\"'+change_dictionary['-Coll3steelMAT-']+'\"') 
-        stringindexreplacement('dc:Ge/Coll3steel/TransX', filecontent , change_dictionary['-Coll3steelTRANSX-']) 
+        stringindexreplacement('dc:Ge/Coll3steel/TransX', filecontent , 'Ge/Coll3/TransX - '+ change_dictionary['-Coll3steelTRANSX-']) 
         stringindexreplacement('dc:Ge/Coll3steel/TransY', filecontent , change_dictionary['-Coll3steelTRANSY-']) 
         stringindexreplacement('dc:Ge/Coll3steel/TransZ', filecontent , change_dictionary['-Coll3steelTRANSZ-']) 
         stringindexreplacement('dc:Ge/Coll3steel/RotX', filecontent , change_dictionary['-Coll3steelROTX-']) 
@@ -195,7 +195,7 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
 
         stringindexreplacement('s:Ge/Coll4steel/Type', filecontent , '\"'+change_dictionary['-Coll4steelTY-']+'\"') 
         stringindexreplacement('s:Ge/Coll4steel/Material', filecontent , '\"'+change_dictionary['-Coll4steelMAT-']+'\"') 
-        stringindexreplacement('dc:Ge/Coll4steel/TransX', filecontent , change_dictionary['-Coll4steelTRANSX-']) 
+        stringindexreplacement('dc:Ge/Coll4steel/TransX', filecontent , 'Ge/Coll4/TransX + ' + change_dictionary['-Coll4steelTRANSX-']) 
         stringindexreplacement('dc:Ge/Coll4steel/TransY', filecontent , change_dictionary['-Coll4steelTRANSY-']) 
         stringindexreplacement('dc:Ge/Coll4steel/TransZ', filecontent , change_dictionary['-Coll4steelTRANSZ-']) 
         stringindexreplacement('dc:Ge/Coll4steel/RotX', filecontent , change_dictionary['-Coll4steelROTX-']) 
@@ -222,7 +222,7 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
         stringindexreplacement('s:Ge/DemoRTrap/Type', filecontent , '\"'+change_dictionary['-DEMORTRAPTY-']+'\"') 
         stringindexreplacement('s:Ge/DemoRTrap/Material', filecontent , '\"'+change_dictionary['-DEMORTRAPMAT-']+'\"') 
         stringindexreplacement('d:Ge/DemoRTrap/TransX', filecontent , change_dictionary['-DEMORTRAPTRANSX-']) 
-        stringindexreplacement('d:Ge/DemoRTrap/TransY', filecontent , change_dictionary['-DEMORTRAPTRANSY-']) 
+        stringindexreplacement('d:Ge/DemoRTrap/TransY', filecontent , change_dictionary['-DEMORTRAPTRANSY-'] + ' - Ge/DemoFlat/HLY') 
         stringindexreplacement('d:Ge/DemoRTrap/TransZ', filecontent , change_dictionary['-DEMORTRAPTRANSZ-']) 
         stringindexreplacement('d:Ge/DemoRTrap/RotX', filecontent , change_dictionary['-DEMORTRAPROTX-']) 
         stringindexreplacement('d:Ge/DemoRTrap/RotY', filecontent , change_dictionary['-DEMORTRAPROTY-']) 
@@ -235,7 +235,7 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
         stringindexreplacement('s:Ge/DemoLTrap/Type', filecontent , '\"'+change_dictionary['-DEMOLTRAPTY-']+'\"') 
         stringindexreplacement('s:Ge/DemoLTrap/Material', filecontent , '\"'+change_dictionary['-DEMOLTRAPMAT-']+'\"') 
         stringindexreplacement('d:Ge/DemoLTrap/TransX', filecontent , change_dictionary['-DEMOLTRAPTRANSX-']) 
-        stringindexreplacement('d:Ge/DemoLTrap/TransY', filecontent , change_dictionary['-DEMOLTRAPTRANSY-']) 
+        stringindexreplacement('d:Ge/DemoLTrap/TransY', filecontent , change_dictionary['-DEMOLTRAPTRANSY-'] + ' + Ge/DemoFlat/HLY') 
         stringindexreplacement('d:Ge/DemoLTrap/TransZ', filecontent , change_dictionary['-DEMOLTRAPTRANSZ-']) 
         stringindexreplacement('d:Ge/DemoLTrap/RotX', filecontent , change_dictionary['-DEMOLTRAPROTX-']) 
         stringindexreplacement('d:Ge/DemoLTrap/RotY', filecontent , change_dictionary['-DEMOLTRAPROTY-']) 
@@ -251,7 +251,7 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
         stringindexreplacement('d:Ge/topsidebox/HLY', filecontent , change_dictionary['-TSBHLY-']) 
         stringindexreplacement('d:Ge/topsidebox/HLZ', filecontent , change_dictionary['-TSBHLZ-']) 
         stringindexreplacement('d:Ge/topsidebox/TransX', filecontent , change_dictionary['-TSBTRANSX-']) 
-        stringindexreplacement('d:Ge/topsidebox/TransY', filecontent , change_dictionary['-TSBTRANSY-']) 
+        stringindexreplacement('d:Ge/topsidebox/TransY', filecontent , change_dictionary['-TSBTRANSY-'] + ' + Ge/DemoLTrap/TransY') 
         stringindexreplacement('dc:Ge/topsidebox/TransZ', filecontent , change_dictionary['-TSBTRANSZ-']) 
         stringindexreplacement('d:Ge/topsidebox/RotX', filecontent , change_dictionary['-TSBROTX-']) 
         stringindexreplacement('d:Ge/topsidebox/RotY', filecontent , change_dictionary['-TSBROTY-']) 
@@ -263,7 +263,7 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
         stringindexreplacement('d:Ge/bottomsidebox/HLY', filecontent , change_dictionary['-BSBHLY-']) 
         stringindexreplacement('d:Ge/bottomsidebox/HLZ', filecontent , change_dictionary['-BSBHLZ-']) 
         stringindexreplacement('d:Ge/bottomsidebox/TransX', filecontent , change_dictionary['-BSBTRANSX-']) 
-        stringindexreplacement('d:Ge/bottomsidebox/TransY', filecontent , change_dictionary['-BSBTRANSY-']) 
+        stringindexreplacement('d:Ge/bottomsidebox/TransY', filecontent , change_dictionary['-BSBTRANSY-'] + ' + Ge/DemoRTrap/TransY') 
         stringindexreplacement('dc:Ge/bottomsidebox/TransZ', filecontent , change_dictionary['-BSBTRANSZ-']) 
         stringindexreplacement('dc:Ge/bottomsidebox/RotX', filecontent , change_dictionary['-BSBROTX-']) 
         stringindexreplacement('d:Ge/bottomsidebox/RotY', filecontent , change_dictionary['-BSBROTY-']) 
@@ -304,15 +304,8 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
         stringindexreplacement('i:So/beam/NumberOfHistoriesInRun', filecontent , change_dictionary['-HIST-']) 
         
         if change_dictionary['-FAN-'] == 'Full fan':
-            ### First remove the unwanted other option, then edit the correct ones
+            ### First remove the other header, then edit the correct ones and add in shift of bowtie filter
             stringindexreplacement('#halffanrotationrate', filecontent , ) 
-            stringindexreplacement('i:Tf/NumberOfSequentialTimes', filecontent , )
-            stringindexreplacement('i:Tf/Verbosity', filecontent , )
-            stringindexreplacement('d:Tf/TimelineEnd', filecontent , )
-            stringindexreplacement('s:Tf/Rotate/Function', filecontent , )
-            stringindexreplacement('d:Tf/Rotate/Rate', filecontent , )
-            stringindexreplacement('d:Tf/Rotate/StartValue', filecontent , )
-            stringindexreplacement('i:Ts/ShowHistoryCountAtInterval', filecontent , )
             ## Edits
             stringindexreplacement('i:Tf/NumberOfSequentialTimes', filecontent , change_dictionary['-TIMESEQ-']) 
             stringindexreplacement('i:Tf/Verbosity', filecontent , change_dictionary['-TIMEVERBO-']) 
@@ -324,14 +317,7 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
 
         if change_dictionary['-FAN-'] == 'Half fan':
             ### First remove the unwanted other option, then edit the correct ones
-            stringindexreplacement('#halffanrotationrate', filecontent , )
-            stringindexreplacement('i:Tf/NumberOfSequentialTimes', filecontent , )
-            stringindexreplacement('i:Tf/Verbosity', filecontent , )
-            stringindexreplacement('d:Tf/TimelineEnd', filecontent , )
-            stringindexreplacement('s:Tf/Rotate/Function', filecontent , )
-            stringindexreplacement('d:Tf/Rotate/Rate', filecontent , )
-            stringindexreplacement('d:Tf/Rotate/StartValue', filecontent , )
-            stringindexreplacement('i:Ts/ShowHistoryCountAtInterval', filecontent , )
+            stringindexreplacement('#fullfanrotationrate', filecontent , )
             ## Edits
             stringindexreplacement('i:Tf/NumberOfSequentialTimes', filecontent , change_dictionary['-TIMESEQ-']) 
             stringindexreplacement('i:Tf/Verbosity', filecontent , change_dictionary['-TIMEVERBO-']) 
@@ -348,7 +334,7 @@ def editor(change_dictionary: dict, toggle_dictionary: dict, TargetFile: str, fi
         elif change_dictionary['-GRAPHICS-'] ==True:
             stringindexreplacement('Ts/UseQt', filecontent , ' "True" ') 
             stringindexreplacement('s:Gr/ViewA/Type', filecontent , ' "OpenGL" ') 
-            stringindexreplacement('b:Gr/Enable', filecontent , ' "F" ') 
+            stringindexreplacement('b:Gr/Enable', filecontent , ' "T" ') 
         
         pass
 

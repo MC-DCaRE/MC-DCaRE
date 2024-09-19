@@ -34,7 +34,7 @@ s:Ge/Patient/DicomDirectory                        = "cherylair" #"CherylPhantom
 sv:Ge/Patient/DicomModalityTags                    = 1 "CT"
 # sv:Ge/Patient/ColorByRTStructNames                 = 2 "Lung_R" "Lung_L"
 # sv:Ge/Patient/ColorByRTStructColors                = 2 "Blue" "Red" 
-s:Ge/Patient/Color                                 = "green"
+s:Ge/Patient/Color                                 = "red"
 #s:Ge/Patient/DrawingStyle                          = "Cloud"
 b:Ge/Patient/IgnoreInconsistentFrameOfReferenceUID = "True"
 
@@ -47,9 +47,9 @@ dc:Ge/Patient/UserTransX = 0.0 mm
 dc:Ge/Patient/UserTransY = 0.0 mm
 dc:Ge/Patient/UserTransZ = 0.0 mm
 
-d:Ge/Patient/InterX = Ge/IsocenterX + Ge/Patient/UserTransX mm
-d:Ge/Patient/InterY = Ge/IsocenterY + Ge/Patient/UserTransY mm
-d:Ge/Patient/InterZ = Ge/IsocenterZ + Ge/Patient/UserTransZ mm
+d:Ge/Patient/InterX = Ge/IsocenterX - Ge/Patient/UserTransX mm
+d:Ge/Patient/InterY = Ge/IsocenterY - Ge/Patient/UserTransY mm
+d:Ge/Patient/InterZ = Ge/IsocenterZ - Ge/Patient/UserTransZ mm
 
 dc:Ge/Patient/DicomOriginX = 0.0 mm
 dc:Ge/Patient/DicomOriginY = 0.0 mm
@@ -70,13 +70,13 @@ s:Sc/DoseOnRTGrid100kz17/OutputType                  = "DICOM"
 s:Sc/DoseOnRtGrid/OutputFile                  = "Dose_PTV"
 b:Sc/DoseOnRTGrid100kz17/DICOMOutput32BitsPerPixel   = "True"
 
-s:Sc/DoseOnRTGrid_tle100kz17/Quantity="TrackLengthEstimator"#Zbinningcausescreationofaparallelworldforscoring
-s:Sc/DoseOnRTGrid_tle100kz17/InputFile="Muen.dat"
-s:Sc/DoseOnRTGrid_tle100kz17/Component="Patient"
-s:Sc/DoseOnRTGrid_tle100kz17/IfOutputFileAlreadyExists="Overwrite"
-i:Sc/DoseOnRTGrid_tle/ZBins=1 #1 mm/bin1.0mm/bin
-b:Sc/DoseOnRTGrid_tle100kz17/DICOMOutput32BitsPerPixel   = "True"
-s:Sc/DoseOnRTGrid_tle100kz17/OutputType                  = "DICOM" 
+#s:Sc/DoseOnRTGrid_tle100kz17/Quantity="TrackLengthEstimator"#Zbinningcausescreationofaparallelworldforscoring
+#s:Sc/DoseOnRTGrid_tle100kz17/InputFile="Muen.dat"
+#s:Sc/DoseOnRTGrid_tle100kz17/Component="Patient"
+#s:Sc/DoseOnRTGrid_tle100kz17/IfOutputFileAlreadyExists="Overwrite"
+#i:Sc/DoseOnRTGrid_tle/ZBins=1 #1 mm/bin1.0mm/bin
+#b:Sc/DoseOnRTGrid_tle100kz17/DICOMOutput32BitsPerPixel   = "True"
+#s:Sc/DoseOnRTGrid_tle100kz17/OutputType                  = "DICOM" 
 #Physics############################################
 
 #Usethisonlyforplacinggeometry-prototyping
@@ -298,7 +298,7 @@ d:Ge/DemoFlat/HLX=1. mm
 d:Ge/DemoFlat/HLY=1.7 mm
 d:Ge/DemoFlat/HLZ=75. mm
 d:Ge/DemoFlat/TransX=0.0 mm
-d:Ge/DemoFlat/TransY=0. m
+d:Ge/DemoFlat/TransY=0. mm
 d:Ge/DemoFlat/TransZ=0.0 mm
 d:Ge/DemoFlat/RotX=0. deg
 d:Ge/DemoFlat/RotY=-90. deg
@@ -389,9 +389,9 @@ s:Ge/bottomsidebox/Color="green"
 s:Ge/BeamPosition/Parent="Rotation"
 s:Ge/BeamPosition/Type="Group"
 d:Ge/BeamPosition/TransX=0. mm
-d:Ge/BeamPosition/TransY=0. m
+d:Ge/BeamPosition/TransY=0. mm
 #d:Ge/BeamPosition/TransZ=Ge/World/HLZ m
-d:Ge/BeamPosition/TransZ=-1. m
+d:Ge/BeamPosition/TransZ=-1000. mm
 d:Ge/BeamPosition/RotX=0. deg #originally180
 d:Ge/BeamPosition/RotY=0. deg
 d:Ge/BeamPosition/RotZ=0. deg
@@ -427,6 +427,7 @@ i:So/beam/NumberOfHistoriesInRun=150 #4000000#reducebyafactorof12566371fromtheac
 #Declarethatthesimulationshouldcontain8runs.
 
 #fullfanrotationrate
+#halffanrotationrate
 i:Tf/NumberOfSequentialTimes=501 #no.oftimesthissimulationwillreruneachtimewithparticles=numberofhistories
 i:Tf/Verbosity=0 #Setverbosityhighertogetmoreinformation
 d:Tf/TimelineEnd=501.0 s #Specifyanendtimefortherunsequence.
@@ -436,15 +437,15 @@ d:Tf/Rotate/Rate= -0.4 deg/s #2degree/0.6s->time/rotation=TimelineEnd/totalno.of
 d:Tf/Rotate/StartValue=290.0 deg
 i:Ts/ShowHistoryCountAtInterval=100000
 
-#halffanrotationrate
-i:Tf/NumberOfSequentialTimes=60 #no.oftimesthissimulationwillreruneachtimewithparticles=numberofhistories
-i:Tf/Verbosity=2#Setverbosityhighertogetmoreinformation
-d:Tf/TimelineEnd=60.0s#Specifyanendtimefortherunsequence.
-#ThefollowingfourparametersdefineaTimeFeaturewearecallingMyRotation.
-s:Tf/Rotate/Function="Linear deg"
-d:Tf/Rotate/Rate=6 deg/s#2degree/0.6s->time/rotation=TimelineEnd/totalno.ofangles
-d:Tf/Rotate/StartValue=0.0 deg
-i:Ts/ShowHistoryCountAtInterval=100000
+#halffanrotationrate leftover from previous version for comparing
+# i:Tf/NumberOfSequentialTimes=60 #no.oftimesthissimulationwillreruneachtimewithparticles=numberofhistories
+# i:Tf/Verbosity=2#Setverbosityhighertogetmoreinformation
+# d:Tf/TimelineEnd=60.0s#Specifyanendtimefortherunsequence.
+# #ThefollowingfourparametersdefineaTimeFeaturewearecallingMyRotation.
+# s:Tf/Rotate/Function="Linear deg"
+# d:Tf/Rotate/Rate=6 deg/s#2degree/0.6s->time/rotation=TimelineEnd/totalno.ofangles
+# d:Tf/Rotate/StartValue=0.0 deg
+# i:Ts/ShowHistoryCountAtInterval=100000
 
 
 

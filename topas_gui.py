@@ -2569,15 +2569,15 @@ while True:
                                       "#boundaries_list.append([ShowHistoryCountAtInterval_start",
                                       "#boundaries_name_list.append(['ShowHistoryCountAtInterval']",
                                       "#ShowHistoryCountAtInterval,i=str(values[i]),i+1")
-    if event =='-GRAPHICS-':
-        changed_bool = not bool(selectcomponents['Graphics'])
-        window['-GRAPHICS-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
-        if changed_bool:
-            # replacement_floatorint("'Graphics': 0","'Graphics': 1")
-            selectcomponents['Graphics'] = 1
-        elif not changed_bool:
-            # replacement_floatorint("'Graphics': 1","'Graphics': 0")
-            selectcomponents['Graphics'] = 0
+    # if event =='-GRAPHICS-':
+    #     changed_bool = not bool(selectcomponents['Graphics'])
+    #     window['-GRAPHICS-'].update(text='On' if changed_bool else 'Off', button_color='white on green' if changed_bool else 'white on red')
+    #     if changed_bool:
+    #         # replacement_floatorint("'Graphics': 0","'Graphics': 1")
+    #         selectcomponents['Graphics'] = 1
+    #     elif not changed_bool:
+    #         # replacement_floatorint("'Graphics': 1","'Graphics': 0")
+    #         selectcomponents['Graphics'] = 0
 
     if event == '-CPCTOG-':
         changed_bool = not bool(selectcomponents['ChamberPlugCentre'])

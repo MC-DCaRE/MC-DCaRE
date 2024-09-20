@@ -3,7 +3,7 @@
 ######################################################
 
 ## Include File ###############################
-includeFile = ConvertedTopasFile.txt
+includeFile = ConvertedTopasFile_head.txt
 includeFile= HUtoMaterialSchneider.txt
 
 ## Some Control Parameters ####################

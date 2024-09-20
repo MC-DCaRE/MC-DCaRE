@@ -137,7 +137,18 @@ while True:
 
     if event == '-DICOM-':
         # Add a line search and replacement function here
-        dicom_path = values['-DICOM-']
+        count_of_CT_images = 0
+        try:    
+            DICOM_PATH = values['-DICOM-']
+            list_of_files = os.listdir(DICOM_PATH)
+            for files in list_of_files: 
+                if  dcmread(os.path.join(DICOM_PATH,files)).Modality[:] == 'CT':
+                    count_of_CT_images += 1
+            sg.popup("Number of CT images found" , count_of_CT_images , auto_close= True, non_blocking=True)
+        except: 
+            sg.popup_error("No CT images found in the folder")
+        
+
 
     if event == '-DICOMACTIVATECHECK-':
         if USER_bool == False:

@@ -205,21 +205,4 @@ while True:
         
         
 
-    if event == '-GENRUN-':
-        command = ["python3 generate_allproc.py"]
-        subprocess.run(command, shell=True)
-        print(command)
-        command_topas = "python3 runfolder/topas_multiproc.py"
-        command_progressbar = f"python3 progressbar.py {path} {num_of_csvresult}"
-        commands = [command_topas,command_progressbar]
-        #commands = [command_progressbar]
-        procs = [subprocess.Popen(i,shell=True) for i in commands]
-        for p in procs:
-            #pass
-            p.wait()
-    if event == '-DICOMACTIVATE-':
-        pass
-        # window[2].update(visible=False)
-        
-
 window.close()

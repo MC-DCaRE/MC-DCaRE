@@ -2,8 +2,8 @@ import os
 import PySimpleGUI as sg
 import shutil
 from pydicom import dcmread
-from src.runtimehandler import log_output
-from src.fileeditorhandler import editor
+from src.runtime_handler import log_output
+from src.edits_handler import editor
 from src.guilayers import *
 
 #Useful functions###################################################
@@ -61,7 +61,7 @@ chamber_layout = [[CTDI_information_layer],
                   [ChamberPlugBottom_layer,ChamberPlugLeft_layer,ChamberPlugRight_layer]]
 
 dicom_layout = [[dicom_information_layer], 
-                [dicom_patient_layer, dicom_scan_layer], 
+                [dicom_patient_layer,dicom_protocol_layer,dicom_scan_layer], 
                 [dicom_planned_layer]]
 
 collimator_layout = [[Coll1_layer,Coll2_layer,Coll3_layer,Coll4_layer, CollimatorVerticalGroup_layer], 
@@ -142,7 +142,7 @@ while True:
             DICOM_PATH = values['-DICOM-']
             list_of_files = os.listdir(DICOM_PATH)
             for files in list_of_files: 
-                if  dcmread(os.path.join(DICOM_PATH,files)).Modality[:] == 'CT':
+                if  dcmread(os.path.join(DICOM_PATH,files)).Modality == 'CT':
                     count_of_CT_images += 1
             sg.popup("Number of CT images found" , count_of_CT_images , auto_close= True, non_blocking=True)
         except: 
@@ -202,6 +202,95 @@ while True:
         run_status = log_output(tmp_file_path, 'dicom.bat', topas_application_path)
         reset_tmp()
         sg.popup(run_status)
+    
+    if event == '-IMAGEMODE-':
+        if values['-IMAGEMODE-'] == 'Image Gently':
+            values['-FAN-'] = 'Full Fan'
+            values['-DICOM_X1-'] = '1 mm'
+            values['-DICOM_X2-'] = '2 mm'
+            values['-DICOM_Y1-'] = '3 mm'
+            values['-DICOM_Y2-'] = '4 mm'
+            window['-FAN-'].update(values['-FAN-'])
+            window['-DICOM_X1-'].update(values['-DICOM_X1-'])
+            window['-DICOM_X2-'].update(values['-DICOM_X2-'])
+            window['-DICOM_Y1-'].update(values['-DICOM_Y1-'])
+            window['-DICOM_Y2-'].update(values['-DICOM_Y2-'])
+
+        elif values['-IMAGEMODE-'] == 'Head':
+            values['-FAN-'] = 'Half Fan'
+            values['-DICOM_X1-'] = '1 mm'
+            values['-DICOM_X2-'] = '2 mm'
+            values['-DICOM_Y1-'] = '3 mm'
+            values['-DICOM_Y2-'] = '4 mm'
+            window['-FAN-'].update(values['-FAN-'])
+            window['-DICOM_X1-'].update(values['-DICOM_X1-'])
+            window['-DICOM_X2-'].update(values['-DICOM_X2-'])
+            window['-DICOM_Y1-'].update(values['-DICOM_Y1-'])
+            window['-DICOM_Y2-'].update(values['-DICOM_Y2-'])
+
+        elif values['-IMAGEMODE-'] == 'Short Thorax':
+            values['-FAN-'] = 'Half Fan'
+            values['-DICOM_X1-'] = '1 mm'
+            values['-DICOM_X2-'] = '2 mm'
+            values['-DICOM_Y1-'] = '3 mm'
+            values['-DICOM_Y2-'] = '4 mm'
+            window['-FAN-'].update(values['-FAN-'])
+            window['-DICOM_X1-'].update(values['-DICOM_X1-'])
+            window['-DICOM_X2-'].update(values['-DICOM_X2-'])
+            window['-DICOM_Y1-'].update(values['-DICOM_Y1-'])
+            window['-DICOM_Y2-'].update(values['-DICOM_Y2-'])
+
+        elif values['-IMAGEMODE-'] == 'Spotlight':
+            values['-FAN-'] = 'Half Fan'
+            values['-DICOM_X1-'] = '1 mm'
+            values['-DICOM_X2-'] = '2 mm'
+            values['-DICOM_Y1-'] = '3 mm'
+            values['-DICOM_Y2-'] = '4 mm'
+            window['-FAN-'].update(values['-FAN-'])
+            window['-DICOM_X1-'].update(values['-DICOM_X1-'])
+            window['-DICOM_X2-'].update(values['-DICOM_X2-'])
+            window['-DICOM_Y1-'].update(values['-DICOM_Y1-'])
+            window['-DICOM_Y2-'].update(values['-DICOM_Y2-'])
+
+        elif values['-IMAGEMODE-'] == 'Thorax':
+            values['-FAN-'] = 'Half Fan'
+            values['-DICOM_X1-'] = '1 mm'
+            values['-DICOM_X2-'] = '2 mm'
+            values['-DICOM_Y1-'] = '3 mm'
+            values['-DICOM_Y2-'] = '4 mm'
+            window['-FAN-'].update(values['-FAN-'])
+            window['-DICOM_X1-'].update(values['-DICOM_X1-'])
+            window['-DICOM_X2-'].update(values['-DICOM_X2-'])
+            window['-DICOM_Y1-'].update(values['-DICOM_Y1-'])
+            window['-DICOM_Y2-'].update(values['-DICOM_Y2-'])
+
+        elif values['-IMAGEMODE-'] == 'Pelvis':
+            values['-FAN-'] = 'Half Fan'
+            values['-DICOM_X1-'] = '1 mm'
+            values['-DICOM_X2-'] = '2 mm'
+            values['-DICOM_Y1-'] = '3 mm'
+            values['-DICOM_Y2-'] = '4 mm'
+            window['-FAN-'].update(values['-FAN-'])
+            window['-DICOM_X1-'].update(values['-DICOM_X1-'])
+            window['-DICOM_X2-'].update(values['-DICOM_X2-'])
+            window['-DICOM_Y1-'].update(values['-DICOM_Y1-'])
+            window['-DICOM_Y2-'].update(values['-DICOM_Y2-'])
+
+        elif values['-IMAGEMODE-'] == 'Pelvis Large':
+            values['-FAN-'] = 'Half Fan'
+            values['-DICOM_X1-'] = '1 mm'
+            values['-DICOM_X2-'] = '2 mm'
+            values['-DICOM_Y1-'] = '3 mm'
+            values['-DICOM_Y2-'] = '4 mm'
+            window['-FAN-'].update(values['-FAN-'])
+            window['-DICOM_X1-'].update(values['-DICOM_X1-'])
+            window['-DICOM_X2-'].update(values['-DICOM_X2-'])
+            window['-DICOM_Y1-'].update(values['-DICOM_Y1-'])
+            window['-DICOM_Y2-'].update(values['-DICOM_Y2-'])
+
+        else: 
+            pass
+
         
         
 

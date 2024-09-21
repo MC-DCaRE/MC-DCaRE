@@ -78,32 +78,42 @@ dicom_patient_layer = sg.Frame('Patient set up adjustments',
                         sg.In(default_text=default_DICOM_ROT_Z,key='-DICOM_ROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)], 
                     ])
 
-dicom_scan_layer = sg.Frame('Set up imaging parameters',
-                    [
-                        [sg.Text('Imaging mode',size = (15,1),font=('Helvetica', 12), text_color='black'),
-                         sg.Combo(['Image Gently', 'Head', 'Short Thorax', 'Sportlight', 'Thorax', 'Pelvis', 'Pelvis Large'],default_value='Image Gently', key='-IMAGEMODE-', readonly=True )],
+dicom_protocol_layer = sg.Frame('Imaging protocol',
+                      [ [sg.Text('Imaging mode',size = (15,1),font=('Helvetica', 12), text_color='black'),
+                         sg.Combo(['Image Gently', 'Head', 'Short Thorax', 'Spotlight', 'Thorax', 'Pelvis', 'Pelvis Large'],default_value='Image Gently', key='-IMAGEMODE-', readonly=True ,enable_events=True)],
                         [sg.Text('Fan mode selection',size = (15,1),font=('Helvetica', 12), text_color='black'),
-                         sg.Combo(['Full fan', 'Half fan'],default_value='Full fan', key='-FAN-', readonly=True )],
-                        [sg.Text('Start angle',size = (15,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text=default_DICOM_IMAGE_START_ANGLE,key='-DICOM_STARTROT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
+                         sg.In(default_text='Full fan', key='-FAN-',size = (15,1),font=('Helvetica', 12), text_color='black', enable_events=True,  readonly=True )],
+                        [sg.Text('Collimate X1', size = (15,1),font=('Helvetica', 12), text_color='black'),
+                         sg.In(default_text= "0 mm", key = '-DICOM_X1-',size = (15,1),font=('Helvetica', 12), text_color='black', enable_events=True, readonly=True)],
+                        [sg.Text('Collimate X2', size = (15,1),font=('Helvetica', 12), text_color='black'),
+                         sg.In(default_text= "0 mm", key = '-DICOM_X2-',size = (15,1),font=('Helvetica', 12), text_color='black', enable_events=True, readonly=True)],
+                        [sg.Text('Collimate Y1', size = (15,1),font=('Helvetica', 12), text_color='black'),
+                         sg.In(default_text= "0 mm", key = '-DICOM_Y1-',size = (15,1),font=('Helvetica', 12), text_color='black', enable_events=True, readonly=True)],
+                        [sg.Text('Collimate Y2', size = (15,1),font=('Helvetica', 12), text_color='black'),
+                         sg.In(default_text= "0 mm", key = '-DICOM_Y2-',size = (15,1),font=('Helvetica', 12), text_color='black', enable_events=True, readonly=True)],
+                      ])
+
+dicom_scan_layer = sg.Frame('Set up imaging parameters', 
+                      [ [sg.Text('Start angle',size = (15,1),font=('Helvetica', 12), text_color='black'),
+                         sg.In(default_text=default_DICOM_IMAGE_START_ANGLE,key='-DICOM_STARTROT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
                         [sg.Text('Stop angle',size = (15,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text=default_DICOM_IMAGE_STOP_ANGLE,key='-DICOM_STOPROT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
+                         sg.In(default_text=default_DICOM_IMAGE_STOP_ANGLE,key='-DICOM_STOPROT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
                         [sg.Text('Direction of rotation',size = (15,1),font=('Helvetica', 12), text_color='black'),
-                         sg.Combo(['Clockwise', 'Anticlockwise'], key='-DICOM_DIRECTROT-', readonly=True )],
-                        [sg.Text('Beam current',size = (15,1),font=('Helvetica', 12), text_color='black'),
+                         sg.Combo(['Clockwise', 'Anticlockwise'], default_value='Clockwise' ,key='-DICOM_DIRECTROT-', readonly=True )],
+                        [sg.Text('Anode voltage',size = (15,1),font=('Helvetica', 12), text_color='black'),
                         sg.In(default_text=default_DICOM_IMAGE_VOLTAGE,key='-DICOM_IMAGEVOLTAGE-',size=(10,1), font=('Helvetica', 12), enable_events=True)], 
                         [sg.Text('Beam current',size = (15,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text=default_DICOM_BEAM_CURRENT,key='-DICOM_BEAMCURRENT-',size=(10,1), font=('Helvetica', 12), enable_events=True)], 
-                    ])
+                        sg.In(default_text=default_DICOM_BEAM_CURRENT,key='-DICOM_BEAMCURRENT-',size=(10,1), font=('Helvetica', 12), enable_events=True)]
+                        ])
 
 dicom_planned_layer = sg.Frame('Treatment plan parameters',
                     [
                         [sg.Text('Isocenter X',size = (10,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text= default_DICOM_ISOCENTER_X, key='-DICOM_ISOX-',size=(10,1), font=('Helvetica', 12), background_color= 'light grey',enable_events=True)],
+                        sg.In(default_text= default_DICOM_ISOCENTER_X, key='-DICOM_ISOX-',size=(10,1), font=('Helvetica', 12), enable_events=True, readonly=True)],
                         [sg.Text('Isocenter Y',size = (10,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text=default_DICOM_ISOCENTER_Y, key='-DICOM_ISOY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
+                        sg.In(default_text=default_DICOM_ISOCENTER_Y, key='-DICOM_ISOY-',size=(10,1), font=('Helvetica', 12), enable_events=True, readonly=True)],
                         [sg.Text('Isocenter Z',size = (10,1),font=('Helvetica', 12), text_color='black'),
-                        sg.In(default_text=default_DICOM_ISOCENTER_Z, key='-DICOM_ISOZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
+                        sg.In(default_text=default_DICOM_ISOCENTER_Z, key='-DICOM_ISOZ-',size=(10,1), font=('Helvetica', 12), enable_events=True, readonly=True)],
                     ])
 
 toggle_layer = sg.pin(sg.Frame("Optimisation component toggle",

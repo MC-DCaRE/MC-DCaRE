@@ -1,7 +1,8 @@
-# from topas_gui import stringindexreplacement
+# This script is used to handle all the edits that must be made to the .batch and python files.
+
 def stringindexreplacement_Dictionary(SearchString :str , TargetList: str , ReplacementString :str):
     '''
-    Targeted string replacement. 
+    Targeted string replacement for dictionary. Only difference is that it uses : instead of =  
     Function looks for the line that startes with SearchString at the file directory of TargetFile and replaces it with Replacement String. 
     Function will replace the entire line and any information trailing the SearchString will be lost in this process. 
     '''
@@ -297,20 +298,14 @@ def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
         stringindexreplacement('d:So/beam/BeamAngularSpreadY', filecontent , change_dictionary['-BEAMPOSANGSPREADY-']) 
         stringindexreplacement('i:So/beam/NumberOfHistoriesInRun', filecontent , change_dictionary['-HIST-']) 
         
-    if change_dictionary['-FAN-'] == 'Full fan':
-        ### First remove the other header, then edit the correct ones and add in shift of bowtie filter
-        stringindexreplacement('#halffanrotationrate', filecontent , ) 
-        ## Edits
-        stringindexreplacement('i:Tf/NumberOfSequentialTimes', filecontent , change_dictionary['-TIMESEQ-']) 
-        stringindexreplacement('i:Tf/Verbosity', filecontent , change_dictionary['-TIMEVERBO-']) 
-        stringindexreplacement('d:Tf/TimelineEnd', filecontent , change_dictionary['-TIMELINEEND-']) 
-        stringindexreplacement('s:Tf/Rotate/Function', filecontent , '\"' + change_dictionary['-TIMEROTFUNC-'] +'\"') 
-        stringindexreplacement('d:Tf/Rotate/Rate', filecontent , change_dictionary['-TIMEROTRATE-']) 
-        stringindexreplacement('d:Tf/Rotate/StartValue', filecontent , change_dictionary['-TIMEROTSTART-']) 
-        stringindexreplacement('i:Ts/ShowHistoryCountAtInterval', filecontent , change_dictionary['-TIMEHISTINT-']) 
-    elif change_dictionary['-FAN-'] == 'Half fan':
-        ### First remove the unwanted other option, then edit the correct ones
-        stringindexreplacement('#fullfanrotationrate', filecontent , )
+        if change_dictionary['-FAN-'] == 'Full fan':
+            ### First remove the other header, then edit the correct ones and add in shift of bowtie filter
+            stringindexreplacement('#halffanrotationrate', filecontent , ) 
+            # ADD EDITS TO THE BOWTIE GEOMETRY 
+        elif change_dictionary['-FAN-'] == 'Half fan':
+            ### First remove the unwanted other option, then edit the correct ones
+            stringindexreplacement('#fullfanrotationrate', filecontent , )
+            # ADD EDITS TO THE BOWTIE GEOMETRY 
         ## Edits
         stringindexreplacement('i:Tf/NumberOfSequentialTimes', filecontent , change_dictionary['-TIMESEQ-']) 
         stringindexreplacement('i:Tf/Verbosity', filecontent , change_dictionary['-TIMEVERBO-']) 
@@ -320,14 +315,14 @@ def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
         stringindexreplacement('d:Tf/Rotate/StartValue', filecontent , change_dictionary['-TIMEROTSTART-']) 
         stringindexreplacement('i:Ts/ShowHistoryCountAtInterval', filecontent , change_dictionary['-TIMEHISTINT-']) 
 
-    if change_dictionary['-GRAPHICS-'] ==False: 
-        stringindexreplacement('Ts/UseQt', filecontent , ) 
-        stringindexreplacement('s:Gr/ViewA/Type', filecontent , ) 
-        stringindexreplacement('b:Gr/Enable', filecontent , ' "F" ') 
-    elif change_dictionary['-GRAPHICS-'] ==True:
-        stringindexreplacement('Ts/UseQt', filecontent , ' "True" ') 
-        stringindexreplacement('s:Gr/ViewA/Type', filecontent , ' "OpenGL" ') 
-        stringindexreplacement('b:Gr/Enable', filecontent , ' "T" ') 
+        if change_dictionary['-GRAPHICS-'] ==False: 
+            stringindexreplacement('Ts/UseQt', filecontent , ) 
+            stringindexreplacement('s:Gr/ViewA/Type', filecontent , ) 
+            stringindexreplacement('b:Gr/Enable', filecontent , ' "F" ') 
+        elif change_dictionary['-GRAPHICS-'] ==True:
+            stringindexreplacement('Ts/UseQt', filecontent , ' "True" ') 
+            stringindexreplacement('s:Gr/ViewA/Type', filecontent , ' "OpenGL" ') 
+            stringindexreplacement('b:Gr/Enable', filecontent , ' "T" ') 
         
 
     if filetype == 'CTDI':

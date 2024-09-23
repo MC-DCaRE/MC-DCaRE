@@ -8,6 +8,9 @@ from src.guilayers import *
 
 #Useful functions###################################################
 def reset_tmp():
+    '''
+    Helper function that resets the temporary files after each run to ensure smooth operation. 
+    '''
     path = os.getcwd()
     #generate a generate_allproc file from a boiler plate so we edit only that copy each time
     original_gen_file_path = path + '/src/boilerplates/generate_allproc_boilerplate.py'
@@ -34,21 +37,7 @@ def reset_tmp():
 
 ####################################################################
 
-#default settings###################################################
-
-# try
-# path = os.getcwd()
-# topas_application_path = 'Set your topas path'     #linux
-# G4_Data = 'Set your G4 data path' #linux
-
-# Fixed path for ease of user testing. User: JK
-path = os.getcwd()
-# topas_application_path = '/root/topas/bin/topas '     #linux
-# dicom_path = '/root/nccs/Topas_wrapper/test/cherylair'
-# G4_Data ='/root/G4Data' #linux
-
-
-# Creating a tabbed menu 
+#Seting up the GUI layout ##########################################
 main_layout = [[main_menu_information_layer],
                [general_layer],
                [function_layer],
@@ -61,8 +50,8 @@ chamber_layout = [[CTDI_information_layer],
                   [ChamberPlugBottom_layer,ChamberPlugLeft_layer,ChamberPlugRight_layer]]
 
 dicom_layout = [[dicom_information_layer], 
-                [dicom_patient_layer,dicom_protocol_layer,dicom_scan_layer], 
-                [dicom_planned_layer]]
+                [dicom_patient_layer,dicom_scan_layer], 
+                [dicom_protocol_layer,dicom_planned_layer]]
 
 collimator_layout = [[Coll1_layer,Coll2_layer,Coll3_layer,Coll4_layer, CollimatorVerticalGroup_layer], 
                      [Coll1steel_layer,Coll2steel_layer,Coll3steel_layer,Coll4steel_layer,CollimatorHorizontalGroup_layer ]]
@@ -84,21 +73,15 @@ layout = [[ sg.Text('Imaging Dose', size=(30,1),justification='center',font=('He
                         ]]
 
 sg.set_options(scaling=1)
-
 window = sg.Window(title= "Imaging Dose Simulation", layout=layout, finalize=True, auto_size_text=True, font ='Helvetica' ,debugger_enabled= True)
 # window.set_min_size(window.size) #might not be needed
 
-#default we will have 5 positions-chamberplugs and 3 quantities to score
-#this variable has to be outside of the while loop because after the RUN event updates
-#variable, the while loop continues to run and therefore it gets reassigned to 15 again
-#interestingly, this means the while loop continues to loop (again and again) even as the  
-#simulation subprocess is still running. if no other buttons get triggered while it loops
-#then no if block statement will run. though when the subprocess runs, the GUI seems to block 
-#all buttons and inputs
+# Defining some required values
+path = os.getcwd()
 DICOM_bool = USER_bool = False
 initiate = True
 reset_tmp()
-window["-G4FOLDERNAME-"].bind("<Return>","_ENTER") # for quick and dirty debuggin with G4 enter
+window["-G4FOLDERNAME-"].bind("<Return>","_ENTER") # for quick and dirty debuggin with G4 enter, remove for actual release
 
 while True:
     event,values = window.read()
@@ -106,7 +89,7 @@ while True:
     if initiate == True: 
         # Sets up default values for resetting to default parameters
         values_default = values
-        # Brute force work around as reseting all parameter will clear the default Browse string
+        # Brute force work around as reseting all parameter will clear the default 'Browse' string
         values_default['Browse'] =values_default['Browse0']=values_default['Browse1']=values_default['Browse2']= "Browse"
         initiate = False
     
@@ -115,9 +98,6 @@ while True:
         for i in values: 
             window[i].update(values_default[i])
         pass
-    
-    if event == sg.WIN_CLOSED:
-        break
 
     if event == '-G4FOLDERNAME-_ENTER':
         # THIS IS A PLACEHOLDER FOR QUICK AND DIRTY DEBUGGING
@@ -147,8 +127,6 @@ while True:
             sg.popup("Number of CT images found" , count_of_CT_images , auto_close= True, non_blocking=True)
         except: 
             sg.popup_error("No CT images found in the folder")
-        
-
 
     if event == '-DICOMACTIVATECHECK-':
         if USER_bool == False:
@@ -193,10 +171,10 @@ while True:
             sg.popup_error("No isocentre found")
 
     if event == '-DICOMBAT-':
+        # When users try to simulate DICOM imaging, this block will run. 
+        # Code will activate the editor() function to edit the tmp file
+        # Runtimehandler will then form the timestamp folder and drop the outputs there
         tmp_file_path = path + '/tmp/dicom.bat'
-
-        ### add code to edit the tmp file ###
-
         topas_application_path = values['-TOPAS-'] + " "
         editor(values, tmp_file_path, 'DICOM')
         run_status = log_output(tmp_file_path, 'dicom.bat', topas_application_path)
@@ -204,6 +182,8 @@ while True:
         sg.popup(run_status)
     
     if event == '-IMAGEMODE-':
+        # When users select the image protocol, this block will run and put input the imaging parameteres
+        # Hardcoded values for image protocol
         if values['-IMAGEMODE-'] == 'Image Gently':
             values['-FAN-'] = 'Full Fan'
             values['-DICOM_X1-'] = '1 mm'
@@ -290,6 +270,9 @@ while True:
 
         else: 
             pass
+    
+    if event == sg.WIN_CLOSED:
+        break
 
         
         

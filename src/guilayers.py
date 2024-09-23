@@ -1,3 +1,4 @@
+# Helper script to set up the GUI elements. Edits to elements should be made here. Another daughter script calused defaultvalues.py is used to store all the default parameters in a simple place. 
 import PySimpleGUI as sg
 sg.theme('Reddit')
 from src.defaultvalues import *
@@ -13,7 +14,7 @@ general_layer = sg.Frame('General Settings',
                   [sg.Text('Threads',size = (9,1),font=('Helvetica', 14),text_color='black'),
                     sg.In(default_text=default_Threads,key='-THREAD-',size=(10,1),font=('Helvetica',14),enable_events=True)],
                   [sg.Text('Histories',size = (9,1),font=('Helvetica',14),text_color='black'),
-                    sg.In(default_text='100000',key='-HIST-',size=(10,1),font=('Helvetica',14),enable_events=True),
+                    sg.In(default_text=default_Histories,key='-HIST-',size=(10,1),font=('Helvetica',14),enable_events=True),
                     sg.Push(),
                     sg.Button(button_text='Reset all parameters to default', key='-RESET-')],
               ])

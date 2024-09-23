@@ -1,3 +1,6 @@
+# This script is used to handle all the initialisation and running of the simulations. It will set up a date and timestamped folder in /runfolder and copy all the relevant files from /tmp and /src over into it
+# The duplication of the files are intended, this will allow for users to rerun the script as it was in case of downstream changes in the future. 
+# Future improvments would be to add in and logging function that logs the console output at runtime. This would allow for easier debugging  
 import os
 from datetime import datetime
 import shutil

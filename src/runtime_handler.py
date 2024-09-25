@@ -8,7 +8,6 @@ import subprocess
 import multiprocessing as mp
 
 def run_topas(x1):
-        print("command")
         command = x1[0][0]
         rundatadir = x1[1][0]
         subprocess.run("cd " + rundatadir, shell=True)

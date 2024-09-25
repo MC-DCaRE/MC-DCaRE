@@ -5,6 +5,7 @@ from pydicom import dcmread
 from src.runtime_handler import log_output
 from src.edits_handler import editor
 from src.guilayers import *
+import numpy as np
 
 #Useful functions###################################################
 def reset_tmp():
@@ -32,8 +33,31 @@ def reset_tmp():
     duplicate_dicom_file_path = path +"/tmp/dicom.bat"
     shutil.copy(original_dicom_file_path, duplicate_dicom_file_path)
 
-
-
+def iso_finder(dicomdirectory,dicomRPdirectory): 
+    slice_start = 100000000
+    slice_end = -100000000
+    for file in os.listdir(dicomdirectory):
+        try:
+            dcmct = dcmread(os.path.join(dicomdirectory , file))
+            if dcmct.Modality == 'CT':
+                if dcmct.SliceLocation > slice_end: 
+                    slice_end = dcmct.SliceLocation
+                if dcmct.SliceLocation < slice_start: 
+                    slice_start = dcmct.SliceLocation
+                known_CT_file = file
+        except:
+            pass
+    DCMRP=dcmread(dicomRPdirectory)        
+    if DCMRP.Modality == 'RTPLAN':
+        plan_iso = DCMRP.BeamSequence[0].ControlPointSequence[0].IsocenterPosition
+    dcm = dcmread(os.path.join(dicomdirectory , known_CT_file))
+    arbi_iso_x = (dcm.ImagePositionPatient[0]+(dcm.ReconstructionDiameter/2))/2
+    arbi_iso_y = (dcm.ImagePositionPatient[1]+(dcm.ReconstructionDiameter/2))
+    arbi_iso_z = (slice_end+slice_start)/2
+    correction_shift_x = arbi_iso_x - plan_iso[0]
+    correction_shift_y = arbi_iso_y - plan_iso[1]
+    correction_shift_z = arbi_iso_z - plan_iso[2]
+    return correction_shift_x, correction_shift_y, correction_shift_z
 
 ####################################################################
 
@@ -52,6 +76,7 @@ chamber_layout = [[CTDI_information_layer],
 dicom_layout = [[dicom_information_layer], 
                 [dicom_patient_layer,dicom_scan_layer], 
                 [dicom_protocol_layer,dicom_planned_layer]]
+                # [dicom_hidden_layer]]
 
 collimator_layout = [[Coll1_layer,Coll2_layer,Coll3_layer,Coll4_layer, CollimatorVerticalGroup_layer], 
                      [Coll1steel_layer,Coll2steel_layer,Coll3steel_layer,Coll4steel_layer,CollimatorHorizontalGroup_layer ]]
@@ -124,6 +149,9 @@ while True:
             for files in list_of_files: 
                 if  dcmread(os.path.join(DICOM_PATH,files)).Modality == 'CT':
                     count_of_CT_images += 1
+                    patient_ID = dcmread(os.path.join(DICOM_PATH,files)).PatientID
+            values['-PATID-'] = patient_ID
+            window['-PATID-'].update(values['-PATID-'])
             sg.popup("Number of CT images found" , count_of_CT_images , auto_close= True, non_blocking=True)
         except: 
             sg.popup_error("No CT images found in the folder")
@@ -158,28 +186,41 @@ while True:
         sg.popup(run_status)
 
     if event == '-DICOMRP-':
-        try:    
-            DICOM_RP = values['-DICOMRP-']
-            isocentre_coors = dcmread(DICOM_RP).BeamSequence[0].ControlPointSequence[0].IsocenterPosition
-            values['-DICOM_ISOX-'] = str(round(isocentre_coors[0], 5)) + ' mm' #figure out how to get units form dicom 
-            values['-DICOM_ISOY-'] = str(round(isocentre_coors[1], 5)) + ' mm'
-            values['-DICOM_ISOZ-'] = str(round(isocentre_coors[2], 5)) + ' mm'
-            window['-DICOM_ISOX-'].update(values['-DICOM_ISOX-'])
-            window['-DICOM_ISOY-'].update(values['-DICOM_ISOY-'])
-            window['-DICOM_ISOZ-'].update(values['-DICOM_ISOZ-'])
-        except: 
-            sg.popup_error("No isocentre found")
+        if dcmread(values['-DICOMRP-']).PatientID == values['-PATID-']: 
+            try:    
+                isocentre_coors = dcmread(values['-DICOMRP-']).BeamSequence[0].ControlPointSequence[0].IsocenterPosition
+                values['-DICOM_ISOX-'] = str(round(isocentre_coors[0], 5)) + ' mm' #figure out how to get units form dicom 
+                values['-DICOM_ISOY-'] = str(round(isocentre_coors[1], 5)) + ' mm'
+                values['-DICOM_ISOZ-'] = str(round(isocentre_coors[2], 5)) + ' mm'
+                window['-DICOM_ISOX-'].update(values['-DICOM_ISOX-'])
+                window['-DICOM_ISOY-'].update(values['-DICOM_ISOY-'])
+                window['-DICOM_ISOZ-'].update(values['-DICOM_ISOZ-'])
+                # correction_shift_x, correction_shift_y, correction_shift_z = iso_finder(values['-DICOM-'],values['-DICOMRP-'])
+                # values['-DICOM_X_CORRECTION-'] = str(correction_shift_x) + ' mm'
+                # values['-DICOM_Y_CORRECTION-'] = str(correction_shift_y) + ' mm'
+                # values['-DICOM_Z_CORRECTION-'] = str(correction_shift_z) + ' mm'
+                # window['-DICOM_X_CORRECTION-'].update(values['-DICOM_X_CORRECTION-'])
+                # window['-DICOM_Y_CORRECTION-'].update(values['-DICOM_Y_CORRECTION-'])
+                # window['-DICOM_Z_CORRECTION-'].update(values['-DICOM_Z_CORRECTION-'])
+            except: 
+                sg.popup_error("No isocentre found")
+        else: 
+            sg.popup_error('Patient ID for the CT image set and treatment plan does not match')
+
 
     if event == '-DICOMBAT-':
         # When users try to simulate DICOM imaging, this block will run. 
         # Code will activate the editor() function to edit the tmp file
         # Runtimehandler will then form the timestamp folder and drop the outputs there
-        tmp_file_path = path + '/tmp/dicom.bat'
-        topas_application_path = values['-TOPAS-'] + " "
-        editor(values, tmp_file_path, 'DICOM')
-        run_status = log_output(tmp_file_path, 'dicom.bat', topas_application_path)
-        reset_tmp()
-        sg.popup(run_status)
+        try: 
+            tmp_file_path = path + '/tmp/dicom.bat'
+            topas_application_path = values['-TOPAS-'] + " "
+            editor(values, tmp_file_path, 'DICOM')
+            run_status = log_output(tmp_file_path, 'dicom.bat', topas_application_path)
+            reset_tmp()
+            sg.popup(run_status)
+        except:
+            sg.popup_error("Ensure that you have specified a DICOM folder and file")
     
     if event == '-IMAGEMODE-':
         # When users select the image protocol, this block will run and put input the imaging parameteres
@@ -190,47 +231,63 @@ while True:
             values['-DICOM_X2-'] = '2 mm'
             values['-DICOM_Y1-'] = '3 mm'
             values['-DICOM_Y2-'] = '4 mm'
+            values['-DICOM_IMAGEVOLTAGE-'] = '80 kV'
+            values['-DICOM_BEAMCURRENT-'] = '100 mAs'
             window['-FAN-'].update(values['-FAN-'])
             window['-DICOM_X1-'].update(values['-DICOM_X1-'])
             window['-DICOM_X2-'].update(values['-DICOM_X2-'])
             window['-DICOM_Y1-'].update(values['-DICOM_Y1-'])
             window['-DICOM_Y2-'].update(values['-DICOM_Y2-'])
+            window['-DICOM_IMAGEVOLTAGE-'].update(values['-DICOM_IMAGEVOLTAGE-'])
+            window['-DICOM_BEAMCURRENT-'].update(values['-DICOM_BEAMCURRENT-'])
 
         elif values['-IMAGEMODE-'] == 'Head':
-            values['-FAN-'] = 'Half Fan'
+            values['-FAN-'] = 'Full Fan'
             values['-DICOM_X1-'] = '1 mm'
             values['-DICOM_X2-'] = '2 mm'
             values['-DICOM_Y1-'] = '3 mm'
             values['-DICOM_Y2-'] = '4 mm'
+            values['-DICOM_IMAGEVOLTAGE-'] = '100 kV'
+            values['-DICOM_BEAMCURRENT-'] = '150 mAs'
             window['-FAN-'].update(values['-FAN-'])
             window['-DICOM_X1-'].update(values['-DICOM_X1-'])
             window['-DICOM_X2-'].update(values['-DICOM_X2-'])
             window['-DICOM_Y1-'].update(values['-DICOM_Y1-'])
             window['-DICOM_Y2-'].update(values['-DICOM_Y2-'])
+            window['-DICOM_IMAGEVOLTAGE-'].update(values['-DICOM_IMAGEVOLTAGE-'])
+            window['-DICOM_BEAMCURRENT-'].update(values['-DICOM_BEAMCURRENT-'])
 
         elif values['-IMAGEMODE-'] == 'Short Thorax':
-            values['-FAN-'] = 'Half Fan'
+            values['-FAN-'] = 'Full Fan'
             values['-DICOM_X1-'] = '1 mm'
             values['-DICOM_X2-'] = '2 mm'
             values['-DICOM_Y1-'] = '3 mm'
             values['-DICOM_Y2-'] = '4 mm'
+            values['-DICOM_IMAGEVOLTAGE-'] = '125 kV'
+            values['-DICOM_BEAMCURRENT-'] = '210 mAs'
             window['-FAN-'].update(values['-FAN-'])
             window['-DICOM_X1-'].update(values['-DICOM_X1-'])
             window['-DICOM_X2-'].update(values['-DICOM_X2-'])
             window['-DICOM_Y1-'].update(values['-DICOM_Y1-'])
             window['-DICOM_Y2-'].update(values['-DICOM_Y2-'])
+            window['-DICOM_IMAGEVOLTAGE-'].update(values['-DICOM_IMAGEVOLTAGE-'])
+            window['-DICOM_BEAMCURRENT-'].update(values['-DICOM_BEAMCURRENT-'])
 
         elif values['-IMAGEMODE-'] == 'Spotlight':
-            values['-FAN-'] = 'Half Fan'
+            values['-FAN-'] = 'Full Fan'
             values['-DICOM_X1-'] = '1 mm'
             values['-DICOM_X2-'] = '2 mm'
             values['-DICOM_Y1-'] = '3 mm'
             values['-DICOM_Y2-'] = '4 mm'
+            values['-DICOM_IMAGEVOLTAGE-'] = '125 kV'
+            values['-DICOM_BEAMCURRENT-'] = '750 mAs'
             window['-FAN-'].update(values['-FAN-'])
             window['-DICOM_X1-'].update(values['-DICOM_X1-'])
             window['-DICOM_X2-'].update(values['-DICOM_X2-'])
             window['-DICOM_Y1-'].update(values['-DICOM_Y1-'])
             window['-DICOM_Y2-'].update(values['-DICOM_Y2-'])
+            window['-DICOM_IMAGEVOLTAGE-'].update(values['-DICOM_IMAGEVOLTAGE-'])
+            window['-DICOM_BEAMCURRENT-'].update(values['-DICOM_BEAMCURRENT-'])
 
         elif values['-IMAGEMODE-'] == 'Thorax':
             values['-FAN-'] = 'Half Fan'
@@ -238,11 +295,15 @@ while True:
             values['-DICOM_X2-'] = '2 mm'
             values['-DICOM_Y1-'] = '3 mm'
             values['-DICOM_Y2-'] = '4 mm'
+            values['-DICOM_IMAGEVOLTAGE-'] = '270 kV'
+            values['-DICOM_BEAMCURRENT-'] = '1080 mAs'
             window['-FAN-'].update(values['-FAN-'])
             window['-DICOM_X1-'].update(values['-DICOM_X1-'])
             window['-DICOM_X2-'].update(values['-DICOM_X2-'])
             window['-DICOM_Y1-'].update(values['-DICOM_Y1-'])
             window['-DICOM_Y2-'].update(values['-DICOM_Y2-'])
+            window['-DICOM_IMAGEVOLTAGE-'].update(values['-DICOM_IMAGEVOLTAGE-'])
+            window['-DICOM_BEAMCURRENT-'].update(values['-DICOM_BEAMCURRENT-'])
 
         elif values['-IMAGEMODE-'] == 'Pelvis':
             values['-FAN-'] = 'Half Fan'
@@ -250,11 +311,15 @@ while True:
             values['-DICOM_X2-'] = '2 mm'
             values['-DICOM_Y1-'] = '3 mm'
             values['-DICOM_Y2-'] = '4 mm'
+            values['-DICOM_IMAGEVOLTAGE-'] = '140 kV'
+            values['-DICOM_BEAMCURRENT-'] = '1688 mAs'
             window['-FAN-'].update(values['-FAN-'])
             window['-DICOM_X1-'].update(values['-DICOM_X1-'])
             window['-DICOM_X2-'].update(values['-DICOM_X2-'])
             window['-DICOM_Y1-'].update(values['-DICOM_Y1-'])
             window['-DICOM_Y2-'].update(values['-DICOM_Y2-'])
+            window['-DICOM_IMAGEVOLTAGE-'].update(values['-DICOM_IMAGEVOLTAGE-'])
+            window['-DICOM_BEAMCURRENT-'].update(values['-DICOM_BEAMCURRENT-'])
 
         elif values['-IMAGEMODE-'] == 'Pelvis Large':
             values['-FAN-'] = 'Half Fan'
@@ -262,11 +327,15 @@ while True:
             values['-DICOM_X2-'] = '2 mm'
             values['-DICOM_Y1-'] = '3 mm'
             values['-DICOM_Y2-'] = '4 mm'
+            values['-DICOM_IMAGEVOLTAGE-'] = '125 kV'
+            values['-DICOM_BEAMCURRENT-'] = '672 mAs'
             window['-FAN-'].update(values['-FAN-'])
             window['-DICOM_X1-'].update(values['-DICOM_X1-'])
             window['-DICOM_X2-'].update(values['-DICOM_X2-'])
             window['-DICOM_Y1-'].update(values['-DICOM_Y1-'])
             window['-DICOM_Y2-'].update(values['-DICOM_Y2-'])
+            window['-DICOM_IMAGEVOLTAGE-'].update(values['-DICOM_IMAGEVOLTAGE-'])
+            window['-DICOM_BEAMCURRENT-'].update(values['-DICOM_BEAMCURRENT-'])
 
         else: 
             pass

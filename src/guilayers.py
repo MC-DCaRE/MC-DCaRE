@@ -1,4 +1,4 @@
-# Helper script to set up the GUI elements. Edits to elements should be made here. Another daughter script calused defaultvalues.py is used to store all the default parameters in a simple place. 
+# Helper script to set up the GUI elements. Edits to elements should be made here. Another daughter script called defaultvalues.py is used to store all the default parameters. 
 import PySimpleGUI as sg
 sg.theme('Reddit')
 from src.defaultvalues import *
@@ -47,6 +47,8 @@ dicom_file_layer = sg.pin(sg.Frame("DICOM inputs",
                                 [sg.Text('DICOM Directory',size =(17,1),font=('Helvetica', 14),text_color='black'),
                                  sg.In(default_text=default_DICOM_Directory,key='-DICOM-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(font=('Helvetica', 14))
                                 ],
+                                [sg.Text('Loaded patient ID:',size =(17,1),font=('Helvetica', 14),text_color='black'),
+                                 sg.In(default_text = '', key = '-PATID-' ,size =(17,1),font=('Helvetica', 14),text_color='black', background_color='light grey', enable_events=True, readonly= True)],
                                 [sg.Text('DICOM RP file',size =(17,1),font=('Helvetica', 14),text_color='black'),
                                  sg.In(default_text=default_DICOM_RP_file,key='-DICOMRP-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FileBrowse(file_types= (("DICOM File",'*.dcm'),) ,font=('Helvetica', 14))
                                 ],
@@ -101,7 +103,7 @@ dicom_scan_layer = sg.Frame('Set up imaging parameters',
                          sg.In(default_text=default_DICOM_IMAGE_STOP_ANGLE,key='-DICOM_STOPROT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
                         [sg.Text('Direction of rotation',size = (15,1),font=('Helvetica', 12), text_color='black'),
                          sg.Combo(['Clockwise', 'Anticlockwise'], default_value='Clockwise' ,key='-DICOM_DIRECTROT-', readonly=True )],
-                        [sg.Text('Anode voltage',size = (15,1),font=('Helvetica', 12), text_color='black'),
+                        [sg.Text('kVp',size = (15,1),font=('Helvetica', 12), text_color='black'),
                         sg.In(default_text=default_DICOM_IMAGE_VOLTAGE,key='-DICOM_IMAGEVOLTAGE-',size=(10,1), font=('Helvetica', 12), enable_events=True)], 
                         [sg.Text('Beam current',size = (15,1),font=('Helvetica', 12), text_color='black'),
                         sg.In(default_text=default_DICOM_BEAM_CURRENT,key='-DICOM_BEAMCURRENT-',size=(10,1), font=('Helvetica', 12), enable_events=True)]
@@ -116,6 +118,16 @@ dicom_planned_layer = sg.Frame('Treatment plan parameters',
                         [sg.Text('Isocenter Z',size = (10,1),font=('Helvetica', 12), text_color='black'),
                         sg.In(default_text=default_DICOM_ISOCENTER_Z, key='-DICOM_ISOZ-',size=(10,1), font=('Helvetica', 12), enable_events=True, readonly=True)],
                     ])
+
+# dicom_hidden_layer = sg.Frame('Hidden developer parameters',
+#                     [
+#                         [sg.Text('X correction',size = (10,1),font=('Helvetica', 12), text_color='black'),
+#                         sg.In(default_text= '0. mm', key='-DICOM_X_CORRECTION-',size=(10,1), font=('Helvetica', 12), enable_events=True, readonly=True)],
+#                         [sg.Text('Y correction',size = (10,1),font=('Helvetica', 12), text_color='black'),
+#                         sg.In(default_text= '0. mm', key='-DICOM_Y_CORRECTION-',size=(10,1), font=('Helvetica', 12), enable_events=True, readonly=True)],
+#                         [sg.Text('Z correction',size = (10,1),font=('Helvetica', 12), text_color='black'),
+#                         sg.In(default_text= '0. mm', key='-DICOM_Z_CORRECTION-',size=(10,1), font=('Helvetica', 12), enable_events=True, readonly=True)],
+#                     ], visible=False)
 
 toggle_layer = sg.pin(sg.Frame("Optimisation component toggle",
                 [ [

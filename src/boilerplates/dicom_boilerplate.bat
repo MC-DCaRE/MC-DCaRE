@@ -39,9 +39,9 @@ s:Ge/Patient/Color                                 = "red"
 b:Ge/Patient/IgnoreInconsistentFrameOfReferenceUID = "True"
 
 #isocenter
-dc:Ge/IsocenterX   = 1.0  mm #1.0  mm  #r
-dc:Ge/IsocenterY   = -151.5 mm #i - s 
-dc:Ge/IsocenterZ   = 17.0 mm #17.22506896012784 mm  #p- a
+dc:Ge/IsocenterX   = 0 mm #1.0  mm  #r
+dc:Ge/IsocenterY   = 0 mm #i - s 
+dc:Ge/IsocenterZ   = 0 mm #17.22506896012784 mm  #p- a
 
 dc:Ge/Patient/UserTransX = 0.0 mm
 dc:Ge/Patient/UserTransY = 0.0 mm
@@ -55,9 +55,9 @@ dc:Ge/Patient/DicomOriginX = 0.0 mm
 dc:Ge/Patient/DicomOriginY = 0.0 mm
 dc:Ge/Patient/DicomOriginZ = 0.0 mm
 
-d:Ge/Patient/TransX  = Ge/Patient/DicomOriginX - Ge/Patient/InterX mm
-d:Ge/Patient/TransY  = Ge/Patient/DicomOriginY - Ge/Patient/InterY mm
-d:Ge/Patient/TransZ  = Ge/Patient/DicomOriginZ - Ge/Patient/InterZ mm
+dc:Ge/Patient/TransX  = Ge/Patient/DicomOriginX - Ge/Patient/InterX mm
+dc:Ge/Patient/TransY  = Ge/Patient/DicomOriginY - Ge/Patient/InterY mm
+dc:Ge/Patient/TransZ  = Ge/Patient/DicomOriginZ - Ge/Patient/InterZ mm
 
 #####################
 # Dose calculation  #
@@ -157,7 +157,7 @@ s:Ge/Coll2/Type="G4RTrap"
 s:Ge/Coll2/Parent="CollimatorsVertical"
 s:Ge/Coll2/Material="Lead"
 d:Ge/Coll2/TransX=0. mm 
-d:Ge/Coll2/TransY=-5.81 mm #52.67 mm
+d:Ge/Coll2/TransY=-58.1 mm #52.67 mm
 d:Ge/Coll2/TransZ=0. mm
 d:Ge/Coll2/RotX=-90. deg
 d:Ge/Coll2/RotY=270. deg

@@ -1,0 +1,308 @@
+# Models simple cone beam geometry
+######################################################
+
+## Include File ###############################
+includeFile=ConvertedTopasFile_head.txt
+# includeFile = fullfan.txt
+# includeFile = halffan.txt
+# includeFile = CTDIphantom.txt
+# includeFile = patientDICOM.txt
+
+
+## Some Control Parameters ####################
+i:Ts/Seed=9 #startingrandomseed
+i:Ts/NumberOfThreads=4 #60#NumberofCPUthreadstowhichworkwillbedistributed
+#negativenumbermeansuseallbutthesenumberofthreads
+#zeromeansuseall
+s:Ts/G4DataDirectory="/root/G4Data"
+
+##DefineWorldGeometry############################
+d:Ge/World/HLX=1.2 m #HalfLength
+d:Ge/World/HLY=1.2 m
+d:Ge/World/HLZ=1.2 m
+
+
+
+
+#Physics############################################
+
+#Usethisonlyforplacinggeometry-prototyping
+#sv:Ph/Default/Modules=1"g4em-standard_opt0"
+
+#defaultforwhenneedtoscore  
+s:Ph/ListName="Default"
+b:Ph/ListProcesses="False"#Settruetodumplistofactivephysicsprocessestoconsole
+s:Ph/Default/Type="Geant4_Modular"
+sv:Ph/Default/Modules=6 "g4em-standard_opt4" "g4h-phy_QGSP_BIC_HP" "g4decay" "g4ion-binarycascade" "g4h-elastic_HP" "g4stopping"
+
+#EMrangefromBrianHZapienCampos'MonteCarloModellingofthekVandMVImagingSystemsontheVarianTruebeamSTxLinac'
+d:Ph/Default/EMRangeMin=100. eV
+d:Ph/Default/EMRangeMax=521. MeV
+
+#GroupComponent###########################################
+
+#Activelyrotateimagingsystem
+s:Ge/Rotation/Type="Group"
+s:Ge/Rotation/Parent="World"
+dc:Ge/Rotation/RotX= 0. deg
+dc:Ge/Rotation/RotY= 180. deg
+dc:Ge/Rotation/RotZ= Tf/Rotate/Value deg #Timefeatureddefinedbelow #add90degtogetactualgantryanglereferencing
+d:Ge/Rotation/TransX=0.0 mm
+d:Ge/Rotation/TransY=0.0 mm
+d:Ge/Rotation/TransZ=0.0 mm
+
+#X-Ybladesgroup
+s:Ge/CollimatorsVertical/Type="Group"
+s:Ge/CollimatorsVertical/Parent="Rotation"
+d:Ge/CollimatorsVertical/RotX=90. deg
+d:Ge/CollimatorsVertical/RotY=0. deg
+d:Ge/CollimatorsVertical/RotZ=0. deg
+d:Ge/CollimatorsVertical/TransY=11.7 cm + Ge/BeamPosition/TransY #0.0745minfrontofsource-K.Sangroh
+
+s:Ge/CollimatorsHorizontal/Type="Group"
+s:Ge/CollimatorsHorizontal/Parent="CollimatorsVertical"
+dc:Ge/CollimatorsHorizontal/RotX=0. deg
+dc:Ge/CollimatorsHorizontal/RotY=0. deg
+dc:Ge/CollimatorsHorizontal/RotZ=180. deg
+d:Ge/CollimatorsHorizontal/TransZ=1.4 cm + Ge/Coll1/LY #preventgeometryoverlapwithvertical
+
+#BeamHardeningFiltergroup-filterexistinBrianHZCampospaperbutnotseeninTruebeamreferencepaper
+#willcomparewithandwithouttoseethedifferenceitmakes
+
+
+
+
+#topcollimator
+s:Ge/Coll1/Type="G4RTrap"
+s:Ge/Coll1/Parent="CollimatorsVertical"
+s:Ge/Coll1/Material="Lead"
+dc:Ge/Coll1/TransX=0 cm
+#dc:Ge/Coll1/TransY=5.205 cm#5.125+0.08 cm
+dc:Ge/Coll1/TransY=5.3 cm#5.197+0.07 cm#5.19sinceminimumb4overlap
+dc:Ge/Coll1/TransZ=0. cm
+dc:Ge/Coll1/RotX=-90. deg
+dc:Ge/Coll1/RotY=90. deg
+dc:Ge/Coll1/RotZ=0 deg
+dc:Ge/Coll1/LZ=120. mm
+dc:Ge/Coll1/LY=3. mm
+dc:Ge/Coll1/LX=100. mm
+dc:Ge/Coll1/LTX=92. mm
+s:Ge/Coll1/Color="red"
+
+#bottomcollimator
+s:Ge/Coll2/Type="G4RTrap"
+s:Ge/Coll2/Parent="CollimatorsVertical"
+s:Ge/Coll2/Material="Lead"
+dc:Ge/Coll2/TransX=0 cm
+dc:Ge/Coll2/TransY=-5.3 cm#5.267 cm
+dc:Ge/Coll2/TransZ=0. cm
+dc:Ge/Coll2/RotX=-90. deg
+dc:Ge/Coll2/RotY=270. deg
+dc:Ge/Coll2/RotZ=0 deg
+dc:Ge/Coll2/LZ=120. mm
+dc:Ge/Coll2/LY=3. mm
+dc:Ge/Coll2/LX=100. mm
+dc:Ge/Coll2/LTX=92. mm
+s:Ge/Coll2/Color="red"
+
+#rightcollimator
+s:Ge/Coll3/Type="G4RTrap"
+s:Ge/Coll3/Parent="CollimatorsHorizontal"
+s:Ge/Coll3/Material="Lead"
+dc:Ge/Coll3/TransX=5.3 cm#5.267 cm
+dc:Ge/Coll3/TransY=0. cm
+dc:Ge/Coll3/TransZ=0. cm
+dc:Ge/Coll3/RotX=-90. deg
+dc:Ge/Coll3/RotY=180. deg
+dc:Ge/Coll3/RotZ=0 deg
+dc:Ge/Coll3/LZ=120. mm
+dc:Ge/Coll3/LY=3. mm
+dc:Ge/Coll3/LX=100. mm
+dc:Ge/Coll3/LTX=92. mm
+s:Ge/Coll3/Color="red"
+
+#leftcollimator
+s:Ge/Coll4/Type="G4RTrap"
+s:Ge/Coll4/Parent="CollimatorsHorizontal"
+s:Ge/Coll4/Material="Lead"
+dc:Ge/Coll4/TransX=-5.3 cm#-5.267 cm
+dc:Ge/Coll4/TransY=0. cm
+dc:Ge/Coll4/TransZ=0. cm
+dc:Ge/Coll4/RotX=-90. deg
+dc:Ge/Coll4/RotY=0. deg
+dc:Ge/Coll4/RotZ=0 deg
+dc:Ge/Coll4/LZ=120. mm
+dc:Ge/Coll4/LY=3. mm
+dc:Ge/Coll4/LX=100. mm
+dc:Ge/Coll4/LTX=92. mm
+s:Ge/Coll4/Color="red"
+
+
+#topcollimator
+s:Ge/Coll1steel/Type="G4RTrap"
+s:Ge/Coll1steel/Parent="CollimatorsVertical"
+s:Ge/Coll1steel/Material="Steel"
+dc:Ge/Coll1steel/TransX=0 cm
+#dc:Ge/Coll1/TransY=5.205 cm#5.125+0.08 cm
+dc:Ge/Coll1steel/TransY=Ge/Coll1/TransY - 0.2 cm #5.27 cm#5.197+0.07 cm#5.19sinceminimumb4overlap
+dc:Ge/Coll1steel/TransZ=-0.25 cm #varian manual
+dc:Ge/Coll1steel/RotX=-90. deg
+dc:Ge/Coll1steel/RotY=90. deg
+dc:Ge/Coll1steel/RotZ=0 deg
+dc:Ge/Coll1steel/LZ=120. mm
+dc:Ge/Coll1steel/LY=2. mm
+dc:Ge/Coll1steel/LX=100. mm
+dc:Ge/Coll1steel/LTX=100. mm
+s:Ge/Coll1steel/Color="pink"
+
+#bottomcollimator
+s:Ge/Coll2steel/Type="G4RTrap"
+s:Ge/Coll2steel/Parent="CollimatorsVertical"
+s:Ge/Coll2steel/Material="Steel"
+dc:Ge/Coll2steel/TransX=0 cm
+dc:Ge/Coll2steel/TransY=Ge/Coll2/TransY + 0.2 cm#5.267 cm
+dc:Ge/Coll2steel/TransZ=-0.25 cm #varian manual
+dc:Ge/Coll2steel/RotX=-90. deg
+dc:Ge/Coll2steel/RotY=270. deg
+dc:Ge/Coll2steel/RotZ=0 deg
+dc:Ge/Coll2steel/LZ=120. mm
+dc:Ge/Coll2steel/LY=2. mm
+dc:Ge/Coll2steel/LX=100. mm
+dc:Ge/Coll2steel/LTX=100. mm
+s:Ge/Coll2steel/Color="pink"
+
+#rightcollimator
+s:Ge/Coll3steel/Type="G4RTrap"
+s:Ge/Coll3steel/Parent="CollimatorsHorizontal"
+s:Ge/Coll3steel/Material="Steel"
+dc:Ge/Coll3steel/TransX=Ge/Coll3/TransX - 0.2 cm#5.267 cm
+dc:Ge/Coll3steel/TransY=0. cm
+dc:Ge/Coll3steel/TransZ=-0.25 cm #varian manual
+dc:Ge/Coll3steel/RotX=-90. deg
+dc:Ge/Coll3steel/RotY=180. deg
+dc:Ge/Coll3steel/RotZ=0 deg
+dc:Ge/Coll3steel/LZ=120. mm
+dc:Ge/Coll3steel/LY=2. mm
+dc:Ge/Coll3steel/LX=100. mm
+dc:Ge/Coll3steel/LTX=100. mm
+s:Ge/Coll3steel/Color="pink"
+
+#leftcollimator
+s:Ge/Coll4steel/Type="G4RTrap"
+s:Ge/Coll4steel/Parent="CollimatorsHorizontal"
+s:Ge/Coll4steel/Material="Steel"
+dc:Ge/Coll4steel/TransX=Ge/Coll4/TransX + 0.2 cm#-5.267 cm
+dc:Ge/Coll4steel/TransY=0. cm
+dc:Ge/Coll4steel/TransZ=-0.25 cm #varian manual
+dc:Ge/Coll4steel/RotX=-90. deg
+dc:Ge/Coll4steel/RotY=0. deg
+dc:Ge/Coll4steel/RotZ=0 deg
+dc:Ge/Coll4steel/LZ=120. mm
+dc:Ge/Coll4steel/LY=2. mm
+dc:Ge/Coll4steel/LX=100. mm
+dc:Ge/Coll4steel/LTX=100. mm
+s:Ge/Coll4steel/Color="pink"
+
+#BeamHardeningFilter
+
+#BeamHardeningFiltergroup-filterexistinBrianHZCampospaperbutnotseeninTruebeamreferencepaper
+#willcomparewithandwithouttoseethedifferenceitmakes
+s:Ge/BeamHardeningFilterGroup/Type="Group"
+s:Ge/BeamHardeningFilterGroup/Parent="CollimatorsHorizontal"
+d:Ge/BeamHardeningFilterGroup/RotX=0. deg
+d:Ge/BeamHardeningFilterGroup/RotY=0. deg
+d:Ge/BeamHardeningFilterGroup/RotZ=0. deg
+d:Ge/BeamHardeningFilterGroup/TransZ=1.59 cm #preventgeometryoverlapwithvertical
+
+#BeamHardeningFilter
+s:Ge/BeamHardeningFilter/Type="TsBox"
+s:Ge/BeamHardeningFilter/Material="Titanium"
+s:Ge/BeamHardeningFilter/Parent="BeamHardeningFilterGroup"
+d:Ge/BeamHardeningFilter/HLX=0.1 m
+d:Ge/BeamHardeningFilter/HLY=0.1 m
+d:Ge/BeamHardeningFilter/HLZ=0.7 mm
+d:Ge/BeamHardeningFilter/TransX=0. m
+d:Ge/BeamHardeningFilter/TransY=0. m
+d:Ge/BeamHardeningFilter/TransZ=0. m#topreventoverlapwithtopandbottomcollimator
+dc:Ge/BeamHardeningFilter/RotX=0. deg
+dc:Ge/BeamHardeningFilter/RotY=0. deg
+dc:Ge/BeamHardeningFilter/RotZ=0. deg
+s:Ge/BeamHardeningFilter/Color="lightblue"
+s:Ge/BeamHardeningFilter/DrawingStyle="WireFrame"
+
+
+
+
+
+###########################################################
+#Definebeamsource-conebeam
+###########################################################
+#Definelocatonofsourceingeometry##################
+s:Ge/BeamPosition/Parent="Rotation"
+s:Ge/BeamPosition/Type = "Group"
+d:Ge/BeamPosition/TransX=0. cm
+d:Ge/BeamPosition/TransY=-1000. mm
+d:Ge/BeamPosition/TransZ=0. m
+d:Ge/BeamPosition/RotX = 90. deg
+d:Ge/BeamPosition/RotY = 0. deg
+d:Ge/BeamPosition/RotZ = 0. deg
+#spectrum-needinputfromspekpy
+s:So/beam/BeamEnergySpectrumType = "Continuous"
+s:So/beam/Type = "Beam"
+s:So/beam/Component = "BeamPosition"
+s:So/beam/BeamParticle = "gamma"
+#### useful for debugging 
+#d:So/beam/BeamEnergy=50 MeV
+#s:So/beam/BeamParticle = "proton"
+#d:So/beam/BeamEnergy=500 MeV
+#s:So/beam/BeamParticle = "gamma"
+#### End debugging 
+s:So/beam/BeamPositionDistribution = "Gaussian"
+s:So/beam/BeamPositionCutoffShape = "Rectangle"
+d:So/beam/BeamPositionCutoffX = 1. mm
+d:So/beam/BeamPositionCutoffY = 1. mm
+d:So/beam/BeamPositionSpreadX = 0.0001 mm
+d:So/beam/BeamPositionSpreadY = 0.0001 mm
+s:So/beam/BeamAngularDistribution = "Gaussian"
+d:So/beam/BeamAngularCutoffX = 1. deg
+d:So/beam/BeamAngularCutoffY = 1. deg
+d:So/beam/BeamAngularSpreadX = 0.001 deg
+d:So/beam/BeamAngularSpreadY = 0.001 deg
+#i:So/beam/NumberOfHistoriesInRun=25257086363570 #ActualtotalnumberofparticlesfromSpekPy(fluence*area)
+
+i:So/beam/NumberOfHistoriesInRun = 20
+#i:So/beam/NumberOfHistoriesInRun=500000 #justforprototyping
+
+#TimeFeature####################################
+
+#eventuallyrunthis
+#doesnotmakesensetorunthisforscoringPDDandbeamprofile
+
+#fromtruebeamtechnicalreferenceguidevol.2imaging:pg.72fullfanscanarc200degree
+#Declarethatthesimulationshouldcontain8runs.
+
+#fullfanrotationrate
+i:Tf/NumberOfSequentialTimes = 10
+i:Tf/Verbosity = 0
+d:Tf/TimelineEnd = 4 s
+#ThefollowingfourparametersdefineaTimeFeaturewearecallingMyRotation.
+s:Tf/Rotate/Function = "Linear deg"
+d:Tf/Rotate/Rate = 0 deg/s
+d:Tf/Rotate/StartValue = 0 deg
+i:Ts/ShowHistoryCountAtInterval = 100000
+
+##Graphicsoutput###############################
+# Ts/UseQt="True"#ShowGUI#hashthislinetosuppressgui
+# s:Gr/ViewA/Type="OpenGL"#Showsimulation#hashthislinetosuppressgui
+# b:Gr/Enable="T"
+# b:Ph/ListProcesses = "True" # Set true to dump list of active physics processes to console
+#b:Gr/Enable="F"
+i:Gr/ViewA/WindowSizeX=1024
+i:Gr/ViewA/WindowSizeY=768
+#u:Gr/ViewA/Zoom=1.25
+d:Gr/ViewA/Theta=70.0 deg
+d:Gr/ViewA/Phi=10.0 deg
+b:Gr/ViewA/IncludeAxes="True"
+d:Gr/ViewA/AxesSize=0.5 m
+b:Ts/ShowCPUTime="True"
+

@@ -1,0 +1,57 @@
+includeFile= HUtoMaterialSchneider.txt
+
+####################################
+# Including DICOM file for patient #
+####################################
+s:Ge/Patient/Parent                                = "World"
+s:Ge/Patient/Material                              = "G4_WATER"
+s:Ge/Patient/Type                                  = "TsDicomPatient"
+#s:Ge/Patient/HUtoMaterialConversionMethod          = "Schneider"
+s:Ge/Patient/ImagingtoMaterialConverter            = "Schneider"
+d:Ge/Patient/RotX = 0. deg
+d:Ge/Patient/RotY = 0. deg
+d:Ge/Patient/RotZ = 0. deg
+s:Ge/Patient/DicomDirectory = "/root/nccs/Sample_dicom_file/"
+sv:Ge/Patient/DicomModalityTags                    = 1 "CT"
+b:Ge/Patient/IgnoreInconsistentFrameOfReferenceUID = "True"
+
+#isocenter
+dc:Ge/IsocenterX = 0 mm
+dc:Ge/IsocenterY = 0 mm
+dc:Ge/IsocenterZ = 0 mm
+
+dc:Ge/Patient/UserTransX = 0 mm
+dc:Ge/Patient/UserTransY = 0 mm
+dc:Ge/Patient/UserTransZ = 0 mm
+
+d:Ge/Patient/InterX = Ge/IsocenterX + Ge/Patient/UserTransX mm
+d:Ge/Patient/InterY = Ge/IsocenterY + Ge/Patient/UserTransY mm
+d:Ge/Patient/InterZ = Ge/IsocenterZ + Ge/Patient/UserTransZ mm
+
+dc:Ge/Patient/DicomOriginX = 0.0 mm
+dc:Ge/Patient/DicomOriginY = 0.0 mm
+dc:Ge/Patient/DicomOriginZ = 0.0 mm
+
+dc:Ge/Patient/TransX  = Ge/Patient/DicomOriginX - Ge/Patient/InterX mm
+dc:Ge/Patient/TransY  = Ge/Patient/DicomOriginY - Ge/Patient/InterY mm
+dc:Ge/Patient/TransZ  = Ge/Patient/DicomOriginZ - Ge/Patient/InterZ mm
+
+#####################
+# Dose calculation  #
+##Scoring###########################################
+s:Sc/DoseOnRTGrid100kz17/Quantity                    = "DoseToMedium"
+s:Sc/DoseOnRTGrid100kz17/Component                   = "Patient"
+s:Sc/DoseOnRTGrid100kz17/IfOutputFileAlreadyExists   = "Overwrite"
+s:Sc/DoseOnRTGrid100kz17/OutputType                  = "DICOM" 
+s:Sc/DoseOnRtGrid/OutputFile                  = "Dose_PTV"
+b:Sc/DoseOnRTGrid100kz17/DICOMOutput32BitsPerPixel   = "True"
+i:Sc/DoseOnRTGrid100kz17/ZBins=10
+
+s:Sc/DoseOnRTGrid_tle100kz17/Quantity="TrackLengthEstimator"#Zbinningcausescreationofaparallelworldforscoring
+s:Sc/DoseOnRTGrid_tle100kz17/InputFile="Muen.dat"
+s:Sc/DoseOnRTGrid_tle100kz17/Component="Patient"
+s:Sc/DoseOnRTGrid_tle100kz17/IfOutputFileAlreadyExists="Overwrite"
+s:Sc/DoseOnRTGrid_tle100kz17/OutputType                  = "DICOM" 
+s:Sc/DoseOnRTGrid_tle100kz17/OutputFile                  = "Dose_PTV_TLE"
+b:Sc/DoseOnRTGrid_tle100kz17/DICOMOutput32BitsPerPixel   = "True"
+i:Sc/DoseOnRTGrid_tle100kz17/ZBins=10 #1 mm/bin1.0mm/bin

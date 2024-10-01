@@ -57,29 +57,13 @@ def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
         stringindexreplacement('dc:Ge/Patient/UserTransY', filecontent , change_dictionary['-DICOM_TY-'])
         stringindexreplacement('dc:Ge/Patient/UserTransZ', filecontent , change_dictionary['-DICOM_TZ-'])
 
-        # stringindexreplacement('dc:Ge/Patient/correctionX', filecontent , change_dictionary['-DICOM_X_CORRECTION-'])
-        # stringindexreplacement('dc:Ge/Patient/correctionY', filecontent , change_dictionary['-DICOM_Y_CORRECTION-'])
-        # stringindexreplacement('dc:Ge/Patient/correctionZ', filecontent , change_dictionary['-DICOM_Z_CORRECTION-'])
-
         stringindexreplacement('i:Sc/DoseOnRTGrid100kz17/ZBins', filecontent , change_dictionary['-DTMZB-']) 
         stringindexreplacement('i:Sc/DoseOnRTGrid_tle100kz17/ZBins', filecontent , change_dictionary['-TLEZB-']) 
-
-        stringindexreplacement('s:Ph/ListName', filecontent , '\"'+change_dictionary['-PHYLST-']+'\"') 
-        stringindexreplacement('b:Ph/ListProcesses', filecontent , '\"'+change_dictionary['-PHYPRO-']+'\"') 
-        stringindexreplacement('s:Ph/Default/Type', filecontent , '\"'+change_dictionary['-PHYDEFTY-']+'\"') 
-        stringindexreplacement('sv:Ph/Default/Modules', filecontent , change_dictionary['-PHYDEFMO-']) 
 
         stringindexreplacement('d:Ph/Default/EMRangeMin', filecontent , change_dictionary['-PHYEMIN-']) 
         stringindexreplacement('d:Ph/Default/EMRangeMax', filecontent , change_dictionary['-PHYEMAX-']) 
 
 
-        stringindexreplacement('s:Ge/Rotation/Type', filecontent , '\"'+change_dictionary['-ROTTY-']+'\"') 
-        stringindexreplacement('d:Ge/Rotation/RotX', filecontent , change_dictionary['-ROTROTX-']) 
-        stringindexreplacement('d:Ge/Rotation/RotY', filecontent , change_dictionary['-ROTROTY-']) 
-        stringindexreplacement('d:Ge/Rotation/RotZ', filecontent , change_dictionary['-ROTROTZ-']) 
-        stringindexreplacement('d:Ge/Rotation/TransX', filecontent , change_dictionary['-ROTTRANSX-']) 
-        stringindexreplacement('d:Ge/Rotation/TransY', filecontent , change_dictionary['-ROTTRANSY-']) 
-        stringindexreplacement('d:Ge/Rotation/TransZ', filecontent , change_dictionary['-ROTTRANSZ-']) 
 
         stringindexreplacement('s:Ge/BeamPosition/Type', filecontent , '\"'+change_dictionary['-BEAMGRPTY-']+'\"') 
         stringindexreplacement('d:Ge/BeamPosition/TransX', filecontent , change_dictionary['-BEAMGRPTRANSX-']) 

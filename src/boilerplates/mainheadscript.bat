@@ -5,7 +5,8 @@
 includeFile=ConvertedTopasFile_head.txt
 # includeFile = fullfan.txt
 # includeFile = halffan.txt
-# includeFile = CTDIphantom.txt
+# includeFile = CTDIphantom_16.txt
+# includeFile = CTDIphantom_32.txt
 # includeFile = patientDICOM.txt
 
 
@@ -259,15 +260,15 @@ s:So/beam/BeamParticle = "gamma"
 #### End debugging 
 s:So/beam/BeamPositionDistribution = "Gaussian"
 s:So/beam/BeamPositionCutoffShape = "Rectangle"
-d:So/beam/BeamPositionCutoffX = 1. mm
-d:So/beam/BeamPositionCutoffY = 1. mm
-d:So/beam/BeamPositionSpreadX = 0.0001 mm
-d:So/beam/BeamPositionSpreadY = 0.0001 mm
+d:So/beam/BeamPositionCutoffX = 50. mm
+d:So/beam/BeamPositionCutoffY = 50. mm
+d:So/beam/BeamPositionSpreadX = 0.4246 mm
+d:So/beam/BeamPositionSpreadY = 0.4246 mm
 s:So/beam/BeamAngularDistribution = "Gaussian"
-d:So/beam/BeamAngularCutoffX = 1. deg
-d:So/beam/BeamAngularCutoffY = 1. deg
-d:So/beam/BeamAngularSpreadX = 0.001 deg
-d:So/beam/BeamAngularSpreadY = 0.001 deg
+d:So/beam/BeamAngularCutoffX = 90. deg
+d:So/beam/BeamAngularCutoffY = 90. deg
+d:So/beam/BeamAngularSpreadX = 28 deg
+d:So/beam/BeamAngularSpreadY = 28 deg
 #i:So/beam/NumberOfHistoriesInRun=25257086363570 #ActualtotalnumberofparticlesfromSpekPy(fluence*area)
 
 i:So/beam/NumberOfHistoriesInRun = 20
@@ -282,13 +283,13 @@ i:So/beam/NumberOfHistoriesInRun = 20
 #Declarethatthesimulationshouldcontain8runs.
 
 #fullfanrotationrate
-i:Tf/NumberOfSequentialTimes = 10
+i:Tf/NumberOfSequentialTimes = 501
 i:Tf/Verbosity = 0
-d:Tf/TimelineEnd = 4 s
+d:Tf/TimelineEnd = 501 s
 #ThefollowingfourparametersdefineaTimeFeaturewearecallingMyRotation.
 s:Tf/Rotate/Function = "Linear deg"
-d:Tf/Rotate/Rate = 0 deg/s
-d:Tf/Rotate/StartValue = 0 deg
+d:Tf/Rotate/Rate = 0.4 deg/s
+d:Tf/Rotate/StartValue = 90 deg
 i:Ts/ShowHistoryCountAtInterval = 100000
 
 ##Graphicsoutput###############################

@@ -327,7 +327,7 @@ cython_debug/
 /runfolder/datafolder/
 /generate_allproc.py
 /runfolder/topas_multiproc.py 
-/tmp/*
+
 /runfolder/
 
 

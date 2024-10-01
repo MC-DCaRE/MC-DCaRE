@@ -33,31 +33,6 @@ def reset_tmp():
     duplicate_dicom_file_path = path +"/tmp/dicom.bat"
     shutil.copy(original_dicom_file_path, duplicate_dicom_file_path)
 
-def iso_finder(dicomdirectory,dicomRPdirectory): 
-    slice_start = 100000000
-    slice_end = -100000000
-    for file in os.listdir(dicomdirectory):
-        try:
-            dcmct = dcmread(os.path.join(dicomdirectory , file))
-            if dcmct.Modality == 'CT':
-                if dcmct.SliceLocation > slice_end: 
-                    slice_end = dcmct.SliceLocation
-                if dcmct.SliceLocation < slice_start: 
-                    slice_start = dcmct.SliceLocation
-                known_CT_file = file
-        except:
-            pass
-    DCMRP=dcmread(dicomRPdirectory)        
-    if DCMRP.Modality == 'RTPLAN':
-        plan_iso = DCMRP.BeamSequence[0].ControlPointSequence[0].IsocenterPosition
-    dcm = dcmread(os.path.join(dicomdirectory , known_CT_file))
-    arbi_iso_x = (dcm.ImagePositionPatient[0]+(dcm.ReconstructionDiameter/2))/2
-    arbi_iso_y = (dcm.ImagePositionPatient[1]+(dcm.ReconstructionDiameter/2))
-    arbi_iso_z = (slice_end+slice_start)/2
-    correction_shift_x = arbi_iso_x - plan_iso[0]
-    correction_shift_y = arbi_iso_y - plan_iso[1]
-    correction_shift_z = arbi_iso_z - plan_iso[2]
-    return correction_shift_x, correction_shift_y, correction_shift_z
 
 ####################################################################
 
@@ -66,45 +41,35 @@ main_layout = [[main_menu_information_layer],
                [general_layer],
                [function_layer],
                [dicom_file_layer],
-               [toggle_layer], 
                [runbuttons_layer]]
 
 chamber_layout = [[CTDI_information_layer],
-                  [CTDI_layer,ChamberPlugCentre_layer,ChamberPlugTop_layer],
-                  [ChamberPlugBottom_layer,ChamberPlugLeft_layer,ChamberPlugRight_layer]]
+                  [CTDI_layer,Couch_layer]]
 
 dicom_layout = [[dicom_information_layer], 
-                [dicom_patient_layer,dicom_scan_layer], 
-                [dicom_protocol_layer,dicom_planned_layer]]
-                # [dicom_hidden_layer]]
+                [dicom_patient_layer,dicom_planned_layer], ]
 
-collimator_layout = [[Coll1_layer,Coll2_layer,Coll3_layer,Coll4_layer, CollimatorVerticalGroup_layer], 
-                     [Coll1steel_layer,Coll2steel_layer,Coll3steel_layer,Coll4steel_layer,CollimatorHorizontalGroup_layer ]]
 
-filter_layout = [[TITFIL_layer, DemoFlat_layer,TopSideBox_layer,BottomSideBox_layer],
-                 [DemoRTrap_layer,DemoLTrap_layer,TitaniumGroup_layer,Bowtie_layer]]
+others_layout = [[Time_layer,Physics_layer, Scoring_layer], 
+                 [Beam_layer],
+                 [imaging_protocol_layer, imaging_scan_layer]]
 
-others_layout = [[Time_layer,Physics_layer, Scoring_layer,RotationGroup_layer], 
-                 [Couch_layer,BeamGroup_layer,Beam_layer]]
-
-layout = [[ sg.Text('Imaging Dose', size=(30,1),justification='center',font=('Helvetica 50 bold'), text_color='dark blue')],
+layout = [[ sg.Text('Monte Carlo - Dose Calculation for Risk Evaluation', justification='center',font=('Helvetica 30 bold'), text_color='dark blue')],
           [sg.TabGroup([[sg.Tab('Main menu' , main_layout),
                          sg.Tab('DICOM adjustments menu', dicom_layout, key= '-HIDEDICOMTAB-', visible=False),
                          sg.Tab('CTDI phantom menu' , chamber_layout, key= '-HIDESIMUTAB-', visible=False),
-                         sg.Tab('Collimator menu', collimator_layout),
-                         sg.Tab('Filter menu', filter_layout),
                          sg.Tab('Others menu', others_layout)]],
                          key='-TAB GROUP-', font=(40) ,expand_x=True, expand_y=True),
                         ]]
 
 sg.set_options(scaling=1)
-window = sg.Window(title= "Imaging Dose Simulation", layout=layout, finalize=True, auto_size_text=True, font ='Helvetica' ,debugger_enabled= True)
+window = sg.Window(title= "MC-DCaRE", layout=layout, finalize=True, auto_size_text=True, font ='Helvetica' ,debugger_enabled= True)
 # window.set_min_size(window.size) #might not be needed
 
 # Defining some required values
 path = os.getcwd()
 DICOM_bool = USER_bool = False
-initiate = True
+initiate =couch_bool_change = True
 reset_tmp()
 window["-G4FOLDERNAME-"].bind("<Return>","_ENTER") # for quick and dirty debuggin with G4 enter, remove for actual release
 
@@ -169,7 +134,6 @@ while True:
     if event == '-USERACTIVATECHECK-':
         if DICOM_bool == False:
             USER_bool = not USER_bool
-            window['-USERACTIVATE-'].update(visible=USER_bool)
             window['-HIDESIMUTAB-'].update(visible=USER_bool)
             window['-BUTTONSACTIVATE-'].update(visible=USER_bool)
         else:
@@ -195,13 +159,6 @@ while True:
                 window['-DICOM_ISOX-'].update(values['-DICOM_ISOX-'])
                 window['-DICOM_ISOY-'].update(values['-DICOM_ISOY-'])
                 window['-DICOM_ISOZ-'].update(values['-DICOM_ISOZ-'])
-                # correction_shift_x, correction_shift_y, correction_shift_z = iso_finder(values['-DICOM-'],values['-DICOMRP-'])
-                # values['-DICOM_X_CORRECTION-'] = str(correction_shift_x) + ' mm'
-                # values['-DICOM_Y_CORRECTION-'] = str(correction_shift_y) + ' mm'
-                # values['-DICOM_Z_CORRECTION-'] = str(correction_shift_z) + ' mm'
-                # window['-DICOM_X_CORRECTION-'].update(values['-DICOM_X_CORRECTION-'])
-                # window['-DICOM_Y_CORRECTION-'].update(values['-DICOM_Y_CORRECTION-'])
-                # window['-DICOM_Z_CORRECTION-'].update(values['-DICOM_Z_CORRECTION-'])
             except: 
                 sg.popup_error("No isocentre found")
         else: 
@@ -227,119 +184,122 @@ while True:
         # Hardcoded values for image protocol
         if values['-IMAGEMODE-'] == 'Image Gently':
             values['-FAN-'] = 'Full Fan'
-            values['-DICOM_X1-'] = '1 mm'
-            values['-DICOM_X2-'] = '2 mm'
-            values['-DICOM_Y1-'] = '3 mm'
-            values['-DICOM_Y2-'] = '4 mm'
-            values['-DICOM_IMAGEVOLTAGE-'] = '80 kV'
-            values['-DICOM_BEAMCURRENT-'] = '100 mAs'
+            values['-BLADE_X1-'] = '1 mm'
+            values['-BLADE_X2-'] = '2 mm'
+            values['-BLADE_Y1-'] = '3 mm'
+            values['-BLADE_Y2-'] = '4 mm'
+            values['-IMAGEVOLTAGE-'] = '80 kV'
+            values['-BEAMCURRENT-'] = '100 mAs'
             window['-FAN-'].update(values['-FAN-'])
-            window['-DICOM_X1-'].update(values['-DICOM_X1-'])
-            window['-DICOM_X2-'].update(values['-DICOM_X2-'])
-            window['-DICOM_Y1-'].update(values['-DICOM_Y1-'])
-            window['-DICOM_Y2-'].update(values['-DICOM_Y2-'])
-            window['-DICOM_IMAGEVOLTAGE-'].update(values['-DICOM_IMAGEVOLTAGE-'])
-            window['-DICOM_BEAMCURRENT-'].update(values['-DICOM_BEAMCURRENT-'])
+            window['-BLADE_X1-'].update(values['-BLADE_X1-'])
+            window['-BLADE_X2-'].update(values['-BLADE_X2-'])
+            window['-BLADE_Y1-'].update(values['-BLADE_Y1-'])
+            window['-BLADE_Y2-'].update(values['-BLADE_Y2-'])
+            window['-IMAGEVOLTAGE-'].update(values['-IMAGEVOLTAGE-'])
+            window['-BEAMCURRENT-'].update(values['-BEAMCURRENT-'])
 
         elif values['-IMAGEMODE-'] == 'Head':
             values['-FAN-'] = 'Full Fan'
-            values['-DICOM_X1-'] = '1 mm'
-            values['-DICOM_X2-'] = '2 mm'
-            values['-DICOM_Y1-'] = '3 mm'
-            values['-DICOM_Y2-'] = '4 mm'
-            values['-DICOM_IMAGEVOLTAGE-'] = '100 kV'
-            values['-DICOM_BEAMCURRENT-'] = '150 mAs'
+            values['-X1-'] = '1 mm'
+            values['-X2-'] = '2 mm'
+            values['-Y1-'] = '3 mm'
+            values['-Y2-'] = '4 mm'
+            values['-IMAGEVOLTAGE-'] = '100 kV'
+            values['-BEAMCURRENT-'] = '150 mAs'
             window['-FAN-'].update(values['-FAN-'])
-            window['-DICOM_X1-'].update(values['-DICOM_X1-'])
-            window['-DICOM_X2-'].update(values['-DICOM_X2-'])
-            window['-DICOM_Y1-'].update(values['-DICOM_Y1-'])
-            window['-DICOM_Y2-'].update(values['-DICOM_Y2-'])
-            window['-DICOM_IMAGEVOLTAGE-'].update(values['-DICOM_IMAGEVOLTAGE-'])
-            window['-DICOM_BEAMCURRENT-'].update(values['-DICOM_BEAMCURRENT-'])
+            window['-BLADE_X1-'].update(values['-BLADE_X1-'])
+            window['-BLADE_X2-'].update(values['-BLADE_X2-'])
+            window['-BLADE_Y1-'].update(values['-BLADE_Y1-'])
+            window['-BLADE_Y2-'].update(values['-BLADE_Y2-'])
+            window['-IMAGEVOLTAGE-'].update(values['-IMAGEVOLTAGE-'])
+            window['-BEAMCURRENT-'].update(values['-BEAMCURRENT-'])
 
         elif values['-IMAGEMODE-'] == 'Short Thorax':
             values['-FAN-'] = 'Full Fan'
-            values['-DICOM_X1-'] = '1 mm'
-            values['-DICOM_X2-'] = '2 mm'
-            values['-DICOM_Y1-'] = '3 mm'
-            values['-DICOM_Y2-'] = '4 mm'
-            values['-DICOM_IMAGEVOLTAGE-'] = '125 kV'
-            values['-DICOM_BEAMCURRENT-'] = '210 mAs'
+            values['-X1-'] = '1 mm'
+            values['-X2-'] = '2 mm'
+            values['-Y1-'] = '3 mm'
+            values['-Y2-'] = '4 mm'
+            values['-IMAGEVOLTAGE-'] = '125 kV'
+            values['-BEAMCURRENT-'] = '210 mAs'
             window['-FAN-'].update(values['-FAN-'])
-            window['-DICOM_X1-'].update(values['-DICOM_X1-'])
-            window['-DICOM_X2-'].update(values['-DICOM_X2-'])
-            window['-DICOM_Y1-'].update(values['-DICOM_Y1-'])
-            window['-DICOM_Y2-'].update(values['-DICOM_Y2-'])
-            window['-DICOM_IMAGEVOLTAGE-'].update(values['-DICOM_IMAGEVOLTAGE-'])
-            window['-DICOM_BEAMCURRENT-'].update(values['-DICOM_BEAMCURRENT-'])
+            window['-BLADE_X1-'].update(values['-BLADE_X1-'])
+            window['-BLADE_X2-'].update(values['-BLADE_X2-'])
+            window['-BLADE_Y1-'].update(values['-BLADE_Y1-'])
+            window['-BLADE_Y2-'].update(values['-BLADE_Y2-'])
+            window['-IMAGEVOLTAGE-'].update(values['-IMAGEVOLTAGE-'])
+            window['-BEAMCURRENT-'].update(values['-BEAMCURRENT-'])
 
         elif values['-IMAGEMODE-'] == 'Spotlight':
             values['-FAN-'] = 'Full Fan'
-            values['-DICOM_X1-'] = '1 mm'
-            values['-DICOM_X2-'] = '2 mm'
-            values['-DICOM_Y1-'] = '3 mm'
-            values['-DICOM_Y2-'] = '4 mm'
-            values['-DICOM_IMAGEVOLTAGE-'] = '125 kV'
-            values['-DICOM_BEAMCURRENT-'] = '750 mAs'
+            values['-X1-'] = '1 mm'
+            values['-X2-'] = '2 mm'
+            values['-Y1-'] = '3 mm'
+            values['-Y2-'] = '4 mm'
+            values['-IMAGEVOLTAGE-'] = '125 kV'
+            values['-BEAMCURRENT-'] = '750 mAs'
             window['-FAN-'].update(values['-FAN-'])
-            window['-DICOM_X1-'].update(values['-DICOM_X1-'])
-            window['-DICOM_X2-'].update(values['-DICOM_X2-'])
-            window['-DICOM_Y1-'].update(values['-DICOM_Y1-'])
-            window['-DICOM_Y2-'].update(values['-DICOM_Y2-'])
-            window['-DICOM_IMAGEVOLTAGE-'].update(values['-DICOM_IMAGEVOLTAGE-'])
-            window['-DICOM_BEAMCURRENT-'].update(values['-DICOM_BEAMCURRENT-'])
+            window['-BLADE_X1-'].update(values['-BLADE_X1-'])
+            window['-BLADE_X2-'].update(values['-BLADE_X2-'])
+            window['-BLADE_Y1-'].update(values['-BLADE_Y1-'])
+            window['-BLADE_Y2-'].update(values['-BLADE_Y2-'])
+            window['-IMAGEVOLTAGE-'].update(values['-IMAGEVOLTAGE-'])
+            window['-BEAMCURRENT-'].update(values['-BEAMCURRENT-'])
 
         elif values['-IMAGEMODE-'] == 'Thorax':
             values['-FAN-'] = 'Half Fan'
-            values['-DICOM_X1-'] = '1 mm'
-            values['-DICOM_X2-'] = '2 mm'
-            values['-DICOM_Y1-'] = '3 mm'
-            values['-DICOM_Y2-'] = '4 mm'
-            values['-DICOM_IMAGEVOLTAGE-'] = '270 kV'
-            values['-DICOM_BEAMCURRENT-'] = '1080 mAs'
+            values['-X1-'] = '1 mm'
+            values['-X2-'] = '2 mm'
+            values['-Y1-'] = '3 mm'
+            values['-Y2-'] = '4 mm'
+            values['-IMAGEVOLTAGE-'] = '270 kV'
+            values['-BEAMCURRENT-'] = '1080 mAs'
             window['-FAN-'].update(values['-FAN-'])
-            window['-DICOM_X1-'].update(values['-DICOM_X1-'])
-            window['-DICOM_X2-'].update(values['-DICOM_X2-'])
-            window['-DICOM_Y1-'].update(values['-DICOM_Y1-'])
-            window['-DICOM_Y2-'].update(values['-DICOM_Y2-'])
-            window['-DICOM_IMAGEVOLTAGE-'].update(values['-DICOM_IMAGEVOLTAGE-'])
-            window['-DICOM_BEAMCURRENT-'].update(values['-DICOM_BEAMCURRENT-'])
+            window['-BLADE_X1-'].update(values['-BLADE_X1-'])
+            window['-BLADE_X2-'].update(values['-BLADE_X2-'])
+            window['-BLADE_Y1-'].update(values['-BLADE_Y1-'])
+            window['-BLADE_Y2-'].update(values['-BLADE_Y2-'])
+            window['-IMAGEVOLTAGE-'].update(values['-IMAGEVOLTAGE-'])
+            window['-BEAMCURRENT-'].update(values['-BEAMCURRENT-'])
 
         elif values['-IMAGEMODE-'] == 'Pelvis':
             values['-FAN-'] = 'Half Fan'
-            values['-DICOM_X1-'] = '1 mm'
-            values['-DICOM_X2-'] = '2 mm'
-            values['-DICOM_Y1-'] = '3 mm'
-            values['-DICOM_Y2-'] = '4 mm'
-            values['-DICOM_IMAGEVOLTAGE-'] = '140 kV'
-            values['-DICOM_BEAMCURRENT-'] = '1688 mAs'
+            values['-X1-'] = '1 mm'
+            values['-X2-'] = '2 mm'
+            values['-Y1-'] = '3 mm'
+            values['-Y2-'] = '4 mm'
+            values['-IMAGEVOLTAGE-'] = '140 kV'
+            values['-BEAMCURRENT-'] = '1688 mAs'
             window['-FAN-'].update(values['-FAN-'])
-            window['-DICOM_X1-'].update(values['-DICOM_X1-'])
-            window['-DICOM_X2-'].update(values['-DICOM_X2-'])
-            window['-DICOM_Y1-'].update(values['-DICOM_Y1-'])
-            window['-DICOM_Y2-'].update(values['-DICOM_Y2-'])
-            window['-DICOM_IMAGEVOLTAGE-'].update(values['-DICOM_IMAGEVOLTAGE-'])
-            window['-DICOM_BEAMCURRENT-'].update(values['-DICOM_BEAMCURRENT-'])
+            window['-BLADE_X1-'].update(values['-BLADE_X1-'])
+            window['-BLADE_X2-'].update(values['-BLADE_X2-'])
+            window['-BLADE_Y1-'].update(values['-BLADE_Y1-'])
+            window['-BLADE_Y2-'].update(values['-BLADE_Y2-'])
+            window['-IMAGEVOLTAGE-'].update(values['-IMAGEVOLTAGE-'])
+            window['-BEAMCURRENT-'].update(values['-BEAMCURRENT-'])
 
         elif values['-IMAGEMODE-'] == 'Pelvis Large':
             values['-FAN-'] = 'Half Fan'
-            values['-DICOM_X1-'] = '1 mm'
-            values['-DICOM_X2-'] = '2 mm'
-            values['-DICOM_Y1-'] = '3 mm'
-            values['-DICOM_Y2-'] = '4 mm'
-            values['-DICOM_IMAGEVOLTAGE-'] = '125 kV'
-            values['-DICOM_BEAMCURRENT-'] = '672 mAs'
+            values['-X1-'] = '1 mm'
+            values['-X2-'] = '2 mm'
+            values['-Y1-'] = '3 mm'
+            values['-Y2-'] = '4 mm'
+            values['-IMAGEVOLTAGE-'] = '125 kV'
+            values['-BEAMCURRENT-'] = '672 mAs'
             window['-FAN-'].update(values['-FAN-'])
-            window['-DICOM_X1-'].update(values['-DICOM_X1-'])
-            window['-DICOM_X2-'].update(values['-DICOM_X2-'])
-            window['-DICOM_Y1-'].update(values['-DICOM_Y1-'])
-            window['-DICOM_Y2-'].update(values['-DICOM_Y2-'])
-            window['-DICOM_IMAGEVOLTAGE-'].update(values['-DICOM_IMAGEVOLTAGE-'])
-            window['-DICOM_BEAMCURRENT-'].update(values['-DICOM_BEAMCURRENT-'])
+            window['-BLADE_X1-'].update(values['-BLADE_X1-'])
+            window['-BLADE_X2-'].update(values['-BLADE_X2-'])
+            window['-BLADE_Y1-'].update(values['-BLADE_Y1-'])
+            window['-BLADE_Y2-'].update(values['-BLADE_Y2-'])
+            window['-IMAGEVOLTAGE-'].update(values['-IMAGEVOLTAGE-'])
+            window['-BEAMCURRENT-'].update(values['-BEAMCURRENT-'])
 
         else: 
             pass
     
+    if event == '-COUCH_TOG-':
+        window['-COUCH-'].update(visible=values['-COUCH_TOG-'])
+
     if event == sg.WIN_CLOSED:
         break
 

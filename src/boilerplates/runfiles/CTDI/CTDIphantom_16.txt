@@ -1,3 +1,4 @@
+#16cm phantom
 ####################################
 # Chamber plug made of G4_WATER  will overlay CTDI phantom when measurement takes place in that particular port-otherwise will be PMMA
 sv:Ph/Default/LayeredMassGeometryWorlds = 5 "ChamberPlugCentre" "ChamberPlugTop" "ChamberPlugBottom" "ChamberPlugLeft" "ChamberPlugRight"
@@ -10,9 +11,24 @@ d:Ma/PMMA/MeanExcitationEnergy = 85.7 eV #nist say 74 eV? #85.7 eV on topas exam
 s:Ma/PMMA/DefaultColor = "Silver"
 
 
+#couch
+s:Ge/couchgroup/Type="Group"
+s:Ge/couchgroup/Parent="World"
+
+s:Ge/couch/Type="TsBox"
+s:Ge/couch/Material="Aluminum"
+s:Ge/couch/Parent="couchgroup"
+d:Ge/couch/HLX=260. mm
+d:Ge/couch/HLY= 0.4 mm
+d:Ge/couch/HLZ= 1000 mm
+d:Ge/couch/TransX=0.0 mm
+d:Ge/couch/TransY=  Ge/CTDI/RMax + Ge/couch/HLY mm
+d:Ge/couch/TransZ= 0 mm 
+s:Ge/couch/Color="red"
+
 #Scorers#######################################################
 s:Ge/CTDI/Type="TsCylinder"
-s:Ge/CTDI/Parent="World"
+s:Ge/CTDI/Parent="couchgroup"
 s:Ge/CTDI/Material="PMMA"
 d:Ge/CTDI/RMin=0.0 mm
 d:Ge/CTDI/RMax=80.0 mm
@@ -22,11 +38,10 @@ d:Ge/CTDI/DPhi=360. deg
 d:Ge/CTDI/TransX=0.0 mm
 d:Ge/CTDI/TransY=0.0 mm
 d:Ge/CTDI/TransZ=0.0 mm
-d:Ge/CTDI/RotX=-90 deg
 
 #ChamberPlugs
 s:Ge/ChamberPlugCentre/Type="TsCylinder"
-s:Ge/ChamberPlugCentre/Parent="World"
+s:Ge/ChamberPlugCentre/Parent="couchgroup"
 s:Ge/ChamberPlugCentre/Material="PMMA"
 d:Ge/ChamberPlugCentre/RMin=0.0 mm
 d:Ge/ChamberPlugCentre/RMax=6.55 mm
@@ -37,11 +52,10 @@ d:Ge/ChamberPlugCentre/TransX=0.0 mm
 d:Ge/ChamberPlugCentre/TransY=0.0 mm
 d:Ge/ChamberPlugCentre/TransZ=0.0 mm
 b:Ge/ChamberPlugCentre/isParallel="True"
-d:Ge/ChamberPlugCentre/RotX=-90 deg
-s:Ge/ChamberPlugCentre/color="skyblue"
+s:Ge/ChamberPlugCentre/color="Skyblue"
 
 s:Ge/ChamberPlugTop/Type="TsCylinder"
-s:Ge/ChamberPlugTop/Parent="World"
+s:Ge/ChamberPlugTop/Parent="couchgroup"
 s:Ge/ChamberPlugTop/Material="PMMA"
 d:Ge/ChamberPlugTop/RMin=0.0 mm
 d:Ge/ChamberPlugTop/RMax=6.55 mm
@@ -49,14 +63,13 @@ d:Ge/ChamberPlugTop/HL=50.0 mm
 d:Ge/ChamberPlugTop/SPhi=0. deg
 d:Ge/ChamberPlugTop/DPhi=360. deg
 d:Ge/ChamberPlugTop/TransX=0.0 mm
-d:Ge/ChamberPlugTop/TransY=0.0 mm
-d:Ge/ChamberPlugTop/TransZ=-70.0 mm
+d:Ge/ChamberPlugTop/TransY=-70.0 mm
+d:Ge/ChamberPlugTop/TransZ=0.0 mm
 b:Ge/ChamberPlugTop/isParallel="True"
-d:Ge/ChamberPlugTop/RotX=-90 deg
 s:Ge/ChamberPlugTop/color="Magenta"
 
 s:Ge/ChamberPlugBottom/Type="TsCylinder"
-s:Ge/ChamberPlugBottom/Parent="World"
+s:Ge/ChamberPlugBottom/Parent="couchgroup"
 s:Ge/ChamberPlugBottom/Material="PMMA"
 d:Ge/ChamberPlugBottom/RMin=0.0 mm
 d:Ge/ChamberPlugBottom/RMax=6.55 mm
@@ -64,14 +77,13 @@ d:Ge/ChamberPlugBottom/HL=50.0 mm
 d:Ge/ChamberPlugBottom/SPhi=0. deg
 d:Ge/ChamberPlugBottom/DPhi=360. deg
 d:Ge/ChamberPlugBottom/TransX=0.0 mm
-d:Ge/ChamberPlugBottom/TransY=0.0 mm
-d:Ge/ChamberPlugBottom/TransZ=70.0 mm
+d:Ge/ChamberPlugBottom/TransY=70.0 mm
+d:Ge/ChamberPlugBottom/TransZ=0.0 mm
 b:Ge/ChamberPlugBottom/isParallel="True"
-d:Ge/ChamberPlugBottom/RotX=-90 deg
 s:Ge/ChamberPlugBottom/color="Lime"
 
 s:Ge/ChamberPlugLeft/Type="TsCylinder"
-s:Ge/ChamberPlugLeft/Parent="World"
+s:Ge/ChamberPlugLeft/Parent="couchgroup"
 s:Ge/ChamberPlugLeft/Material="PMMA"
 d:Ge/ChamberPlugLeft/RMin=0.0 mm
 d:Ge/ChamberPlugLeft/RMax=6.55 mm
@@ -82,11 +94,10 @@ d:Ge/ChamberPlugLeft/TransX=-70.0 mm
 d:Ge/ChamberPlugLeft/TransY=0.0 mm
 d:Ge/ChamberPlugLeft/TransZ=0.0 mm
 b:Ge/ChamberPlugLeft/isParallel="True"
-d:Ge/ChamberPlugLeft/RotX=-90 deg
 s:Ge/ChamberPlugLeft/color="Orange"
 
 s:Ge/ChamberPlugRight/Type="TsCylinder"
-s:Ge/ChamberPlugRight/Parent="World"
+s:Ge/ChamberPlugRight/Parent="couchgroup"
 s:Ge/ChamberPlugRight/Material="PMMA"
 d:Ge/ChamberPlugRight/RMin=0.0 mm
 d:Ge/ChamberPlugRight/RMax=6.55 mm
@@ -97,7 +108,6 @@ d:Ge/ChamberPlugRight/TransX=70.0 mm
 d:Ge/ChamberPlugRight/TransY=0.0 mm
 d:Ge/ChamberPlugRight/TransZ=0.0 mm
 b:Ge/ChamberPlugRight/isParallel="True"
-d:Ge/ChamberPlugRight/RotX=-90 deg
 s:Ge/ChamberPlugRight/color="Brown"
 
 

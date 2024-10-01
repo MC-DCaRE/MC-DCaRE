@@ -39,32 +39,32 @@ def reset_tmp():
 #Seting up the GUI layout ##########################################
 main_layout = [[main_menu_information_layer],
                [general_layer],
-               [function_layer],
-               [dicom_file_layer],
-               [runbuttons_layer]]
+               [function_layer]]
 
 chamber_layout = [[CTDI_information_layer],
-                  [CTDI_layer,Couch_layer]]
+                  [CTDI_layer, Couch_layer],
+                  [CTDI_run_layer]]
 
 dicom_layout = [[dicom_information_layer], 
-                [dicom_patient_layer,dicom_planned_layer], ]
+                [dicom_file_layer],
+                [dicom_patient_layer, dicom_planned_layer]]
 
 
-others_layout = [[Time_layer,Physics_layer, Scoring_layer], 
-                 [Beam_layer],
+others_layout = [[settings_layout],
+                 [Time_layer, Scoring_layer], 
                  [imaging_protocol_layer, imaging_scan_layer]]
 
 layout = [[ sg.Text('Monte Carlo - Dose Calculation for Risk Evaluation', justification='center',font=('Helvetica 30 bold'), text_color='dark blue')],
           [sg.TabGroup([[sg.Tab('Main menu' , main_layout),
+                         sg.Tab('Simulation settings', others_layout),
                          sg.Tab('DICOM adjustments menu', dicom_layout, key= '-HIDEDICOMTAB-', visible=False),
                          sg.Tab('CTDI phantom menu' , chamber_layout, key= '-HIDESIMUTAB-', visible=False),
-                         sg.Tab('Others menu', others_layout)]],
+                         ]],
                          key='-TAB GROUP-', font=(40) ,expand_x=True, expand_y=True),
                         ]]
 
 sg.set_options(scaling=1)
-window = sg.Window(title= "MC-DCaRE", layout=layout, finalize=True, auto_size_text=True, font ='Helvetica' ,debugger_enabled= True)
-# window.set_min_size(window.size) #might not be needed
+window = sg.Window(title= "MC-DCaRE", layout=layout, finalize=True, auto_size_text=True, font ='Helvetica' )
 
 # Defining some required values
 path = os.getcwd()
@@ -200,10 +200,10 @@ while True:
 
         elif values['-IMAGEMODE-'] == 'Head':
             values['-FAN-'] = 'Full Fan'
-            values['-X1-'] = '1 mm'
-            values['-X2-'] = '2 mm'
-            values['-Y1-'] = '3 mm'
-            values['-Y2-'] = '4 mm'
+            values['-BLADE_X1-'] = '1 mm'
+            values['-BLADE_X2-'] = '2 mm'
+            values['-BLADE_Y1-'] = '3 mm'
+            values['-BLADE_Y2-'] = '4 mm'
             values['-IMAGEVOLTAGE-'] = '100 kV'
             values['-BEAMCURRENT-'] = '150 mAs'
             window['-FAN-'].update(values['-FAN-'])
@@ -216,10 +216,10 @@ while True:
 
         elif values['-IMAGEMODE-'] == 'Short Thorax':
             values['-FAN-'] = 'Full Fan'
-            values['-X1-'] = '1 mm'
-            values['-X2-'] = '2 mm'
-            values['-Y1-'] = '3 mm'
-            values['-Y2-'] = '4 mm'
+            values['-BLADE_X1-'] = '1 mm'
+            values['-BLADE_X2-'] = '2 mm'
+            values['-BLADE_Y1-'] = '3 mm'
+            values['-BLADE_Y2-'] = '4 mm'
             values['-IMAGEVOLTAGE-'] = '125 kV'
             values['-BEAMCURRENT-'] = '210 mAs'
             window['-FAN-'].update(values['-FAN-'])
@@ -232,10 +232,10 @@ while True:
 
         elif values['-IMAGEMODE-'] == 'Spotlight':
             values['-FAN-'] = 'Full Fan'
-            values['-X1-'] = '1 mm'
-            values['-X2-'] = '2 mm'
-            values['-Y1-'] = '3 mm'
-            values['-Y2-'] = '4 mm'
+            values['-BLADE_X1-'] = '1 mm'
+            values['-BLADE_X2-'] = '2 mm'
+            values['-BLADE_Y1-'] = '3 mm'
+            values['-BLADE_Y2-'] = '4 mm'
             values['-IMAGEVOLTAGE-'] = '125 kV'
             values['-BEAMCURRENT-'] = '750 mAs'
             window['-FAN-'].update(values['-FAN-'])
@@ -248,10 +248,10 @@ while True:
 
         elif values['-IMAGEMODE-'] == 'Thorax':
             values['-FAN-'] = 'Half Fan'
-            values['-X1-'] = '1 mm'
-            values['-X2-'] = '2 mm'
-            values['-Y1-'] = '3 mm'
-            values['-Y2-'] = '4 mm'
+            values['-BLADE_X1-'] = '1 mm'
+            values['-BLADE_X2-'] = '2 mm'
+            values['-BLADE_Y1-'] = '3 mm'
+            values['-BLADE_Y2-'] = '4 mm'
             values['-IMAGEVOLTAGE-'] = '270 kV'
             values['-BEAMCURRENT-'] = '1080 mAs'
             window['-FAN-'].update(values['-FAN-'])
@@ -264,10 +264,10 @@ while True:
 
         elif values['-IMAGEMODE-'] == 'Pelvis':
             values['-FAN-'] = 'Half Fan'
-            values['-X1-'] = '1 mm'
-            values['-X2-'] = '2 mm'
-            values['-Y1-'] = '3 mm'
-            values['-Y2-'] = '4 mm'
+            values['-BLADE_X1-'] = '1 mm'
+            values['-BLADE_X2-'] = '2 mm'
+            values['-BLADE_Y1-'] = '3 mm'
+            values['-BLADE_Y2-'] = '4 mm'
             values['-IMAGEVOLTAGE-'] = '140 kV'
             values['-BEAMCURRENT-'] = '1688 mAs'
             window['-FAN-'].update(values['-FAN-'])
@@ -280,10 +280,10 @@ while True:
 
         elif values['-IMAGEMODE-'] == 'Pelvis Large':
             values['-FAN-'] = 'Half Fan'
-            values['-X1-'] = '1 mm'
-            values['-X2-'] = '2 mm'
-            values['-Y1-'] = '3 mm'
-            values['-Y2-'] = '4 mm'
+            values['-BLADE_X1-'] = '1 mm'
+            values['-BLADE_X2-'] = '2 mm'
+            values['-BLADE_Y1-'] = '3 mm'
+            values['-BLADE_Y2-'] = '4 mm'
             values['-IMAGEVOLTAGE-'] = '125 kV'
             values['-BEAMCURRENT-'] = '672 mAs'
             window['-FAN-'].update(values['-FAN-'])

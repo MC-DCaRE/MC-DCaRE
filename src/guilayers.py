@@ -9,14 +9,7 @@ general_layer = sg.Frame('General Settings',
                     sg.In(default_text=default_G4_Directory,key='-G4FOLDERNAME-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FolderBrowse(button_text= "Browse", key= 'Browse' , font=('Helvetica', 14))],
                   [sg.Text('TOPAS Directory',size =(17,1),font=('Helvetica', 14),text_color='black'),
                     sg.In(default_text=default_TOPAS_Directory,key='-TOPAS-',size=(50,1),font=('Helvetica', 14),enable_events=True),sg.FileBrowse(button_text= "Browse", key= 'Browse0',font=('Helvetica', 14))],
-                  [sg.Text('Seed',size =(9,1),font=('Helvetica', 14),text_color='black'),
-                    sg.In(default_text=default_Seed,key='-SEED-',size=(10,1),font=('Helvetica', 14),enable_events=True)],
-                  [sg.Text('Threads',size = (9,1),font=('Helvetica', 14),text_color='black'),
-                    sg.In(default_text=default_Threads,key='-THREAD-',size=(10,1),font=('Helvetica',14),enable_events=True)],
-                  [sg.Text('Histories',size = (9,1),font=('Helvetica',14),text_color='black'),
-                    sg.In(default_text=default_Histories,key='-HIST-',size=(10,1),font=('Helvetica',14),enable_events=True),
-                    sg.Push(),
-                    sg.Button(button_text='Reset all parameters to default', key='-RESET-')],
+                  [sg.Button(button_text='Reset all parameters to default', key='-RESET-')],
               ])
 
 main_menu_information_layer = sg.Frame('Instructions on the usage of the GUI', 
@@ -28,7 +21,7 @@ main_menu_information_layer = sg.Frame('Instructions on the usage of the GUI',
                                [sg.Text('By default all lengths are in units of mm and all angles are in units of degrees.')],
                              ]) 
 
-runbuttons_layer= sg.Frame('Activate simulation', 
+CTDI_run_layer= sg.Frame('Activate CTDI simulation', 
                            [
                              [sg.Checkbox("Graphics toggle", enable_events=True, key='-GRAPHICS-', default= False)],
                              [sg.Button("Run", enable_events=True, key='-RUN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey')],
@@ -83,7 +76,7 @@ dicom_patient_layer = sg.Frame('Patient set up adjustments',
 
 imaging_protocol_layer = sg.Frame('Imaging protocol',
                       [ [sg.Text('Imaging mode',size = (15,1),font=('Helvetica', 12), text_color='black'),
-                         sg.Combo(['Image Gently', 'Head', 'Short Thorax', 'Spotlight', 'Thorax', 'Pelvis', 'Pelvis Large'],default_value='Image Gently', key='-IMAGEMODE-', readonly=True ,enable_events=True)],
+                         sg.Combo(['Image Gently', 'Head', 'Short Thorax', 'Spotlight', 'Thorax', 'Pelvis', 'Pelvis Large'],default_value=None, key='-IMAGEMODE-', readonly=True ,enable_events=True)],
                         [sg.Text('Fan mode selection',size = (15,1),font=('Helvetica', 12), text_color='black'),
                          sg.In(default_text='Full fan', key='-FAN-',size = (15,1),font=('Helvetica', 12), text_color='black', enable_events=True,  readonly=True )],
                         [sg.Text('Collimate X1', size = (15,1),font=('Helvetica', 12), text_color='black'),
@@ -122,11 +115,10 @@ dicom_planned_layer = sg.Frame('Treatment plan parameters',
 
 CTDI_information_layer = sg.Frame('Instructions on the usage of the CTDI phantom parameters', 
                              [ 
-                               [sg.Text('Select the CTDI phantom used for the CTDI validation.')],
+                               [sg.Text('Select the CTDI phantom used for the CTDI validation. The phantom will be automatically centered at isocenter.')],
                                [sg.Text('Simulation will automatically generate and run 5 CTDI simulations for all 5 possible detector position.')],
                                [sg.Text('Use the other tabs to make edits to other parameters like collimator openings and beam current. ')],
-                               [sg.Text('The phantom will be automatically centered at isocenter.')],
-                               [sg.Text('Use the couch toggle to select or remove the couch from the simulation, the phantom is automatically on top of the couch.')],
+                               [sg.Text('Use the couch toggle to select or remove the couch from the simulation, the phantom is automatically placed on top of the couch.')],
                                [sg.Text('You can also choose to change the thickeness of the couch in terms of its aluminium thickness.')]
                              ]) 
 
@@ -143,12 +135,18 @@ CTDI_layer = sg.Frame('CTDI phantom',
 
 Scoring_layer = sg.Frame("Scoring",
                 [
-                   [sg.Text('DTM_Zbins',size = (10,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text=default_DTM_Zbins,key='-DTMZB-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TLE_Zbins',size = (10,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text=default_TLE_Zbins,key='-TLEZB-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                  #  [sg.Text('DTW_Zbins',size = (10,1),font=('Helvetica', 12), text_color='black'),
-                  #    sg.In(default_text='100',key='-DTWZB-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
+                  [sg.Text('Seed',size =(10,1),font=('Helvetica', 12),text_color='black'),
+                   sg.In(default_text=default_Seed,key='-SEED-',size=(10,1),font=('Helvetica', 12),enable_events=True)],
+                  [sg.Text('Threads',size = (10,1),font=('Helvetica', 12),text_color='black'),
+                   sg.In(default_text=default_Threads,key='-THREAD-',size=(10,1),font=('Helvetica',12),enable_events=True)],
+                  [sg.Text('Histories',size = (10,1),font=('Helvetica',12),text_color='black'),
+                   sg.In(default_text=default_Histories,key='-HIST-',size=(10,1),font=('Helvetica',12),enable_events=True)],
+                  [sg.Text('DTM_Zbins',size = (10,1),font=('Helvetica', 12), text_color='black'),
+                   sg.In(default_text=default_DTM_Zbins,key='-DTMZB-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
+                  [sg.Text('TLE_Zbins',size = (10,1),font=('Helvetica', 12), text_color='black'),
+                   sg.In(default_text=default_TLE_Zbins,key='-TLEZB-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
+                  [sg.Text('DTW_Zbins',size = (10,1),font=('Helvetica', 12), text_color='black'),
+                   sg.In(default_text='100',key='-DTWZB-',size=(10,1), font=('Helvetica', 12), enable_events=True)]
                 ])
 
 Physics_layer = sg.Frame("Physics",
@@ -170,10 +168,6 @@ Physics_layer = sg.Frame("Physics",
 
 Couch_layer = sg.Frame("Couch",
                 [
-                   [sg.Text('Type',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.Text(text=default_COUCH_TYPE,size=(10,1), font=('Helvetica', 12))],
-                   [sg.Text('Material',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text=default_COUCH_MATERIAL,key='-COUCHMAT-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
                    [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
                      sg.In(default_text=default_COUCH_TRANS_X,key='-COUCHTRANSX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
                    [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
@@ -188,41 +182,6 @@ Couch_layer = sg.Frame("Couch",
                      sg.In(default_text=default_COUCH_HLX,key='-COUCHHLX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
                    
                 ], key='-COUCH-', visible= True )
-
-
-Beam_layer = sg.Frame("Beam",
-                [   
-                   [sg.Text('EnergySpec',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text=default_BEAM_PARAMS_ENERGYSPEC,key='-BEAMSPECTY-',size=(10,1), font=('Helvetica', 12), enable_events=True),
-                    sg.Text('Type',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text=default_BEAM_PARAMS_TYPE,key='-BEAMTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('Component',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text=default_BEAM_PARAMS_COMPONENT,key='-BEAMCOMPO-',size=(10,1), font=('Helvetica', 12), enable_events=True),
-                    sg.Text('Particle',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text=default_BEAM_PARAMS_PARTICLE,key='-BEAMPAR-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('PosDistro',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text=default_BEAM_PARAMS_POS_DISTRO,key='-BEAMPOSDISTRO-',size=(10,1), font=('Helvetica', 12), enable_events=True),
-                    sg.Text('CutOffShape',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text=default_BEAM_PARAMS_CUTOFF_SHAPE,key='-BEAMPOSHAPE-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('CutOffX',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text=default_BEAM_PARAMS_CUTOFF_X,key='-BEAMPOSCUTOFFX-',size=(10,1), font=('Helvetica', 12), enable_events=True),
-                    sg.Text('CutOffY',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text=default_BEAM_PARAMS_CUTOFF_Y,key='-BEAMPOSCUTTOFFY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('SpreadX',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text=default_BEAM_PARAMS_SPREAD_X,key='-BEAMPOSSPRDX-',size=(10,1), font=('Helvetica', 12), enable_events=True),
-                    sg.Text('SpreadY',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text=default_BEAM_PARAMS_SPREAD_Y,key='-BEAMPOSSPRDY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('AngDistro',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text=default_BEAM_PARAMS_ANG_DISTRO,key='-BEAMSPOSANGDISTRO-',size=(10,1), font=('Helvetica', 12), enable_events=True),
-                    sg.Text('AngCutoffX',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text=default_BEAM_PARAMS_ANG_CUTOFF_X,key='-BEAMPOSANGCUTOFFX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('AngCutoffY',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text=default_BEAM_PARAMS_ANG_CUTOFF_Y,key='-BEAMPOSANGCUTOFFY-',size=(10,1), font=('Helvetica', 12), enable_events=True),
-                    sg.Text('AngSpreadX',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text=default_BEAM_PARAMS_ANG_SPREAD_X,key='-BEAMPOSANGSPREADX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('AngSpreadY',size = (11,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text=default_BEAM_PARAMS_ANG_SPREAD_Y,key='-BEAMPOSANGSPREADY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                ])
 
 Time_layer = sg.Frame("Time Feature",
                 [   
@@ -243,4 +202,9 @@ Time_layer = sg.Frame("Time Feature",
                      
                 ])
 
-                
+settings_layout = sg.Frame("General settings", 
+                           [
+                               [sg.Text('This page contains general settings used for all simulations.')],
+                               [sg.Text('You will be able to control the granularity of the simulations along with the scan parameters here')],
+                               [sg.Text('')],
+                           ])                

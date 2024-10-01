@@ -5,7 +5,6 @@ from pydicom import dcmread
 from src.runtime_handler import log_output
 from src.edits_handler import editor
 from src.guilayers import *
-import numpy as np
 
 #Useful functions###################################################
 def reset_tmp():
@@ -57,8 +56,8 @@ others_layout = [[settings_layout],
 layout = [[ sg.Text('Monte Carlo - Dose Calculation for Risk Evaluation', justification='center',font=('Helvetica 30 bold'), text_color='dark blue')],
           [sg.TabGroup([[sg.Tab('Main menu' , main_layout),
                          sg.Tab('Simulation settings', others_layout),
-                         sg.Tab('DICOM adjustments menu', dicom_layout, key= '-HIDEDICOMTAB-', visible=False),
-                         sg.Tab('CTDI phantom menu' , chamber_layout, key= '-HIDESIMUTAB-', visible=False),
+                         sg.Tab('DICOM adjustments menu', dicom_layout, key= '-DICOM_TAB-', visible=False),
+                         sg.Tab('CTDI phantom menu' , chamber_layout, key= '-CTDI_TAB-', visible=False),
                          ]],
                          key='-TAB GROUP-', font=(40) ,expand_x=True, expand_y=True),
                         ]]
@@ -68,8 +67,7 @@ window = sg.Window(title= "MC-DCaRE", layout=layout, finalize=True, auto_size_te
 
 # Defining some required values
 path = os.getcwd()
-DICOM_bool = USER_bool = False
-initiate =couch_bool_change = True
+initiate = True
 reset_tmp()
 window["-G4FOLDERNAME-"].bind("<Return>","_ENTER") # for quick and dirty debuggin with G4 enter, remove for actual release
 
@@ -79,7 +77,7 @@ while True:
     if initiate == True: 
         # Sets up default values for resetting to default parameters
         values_default = values
-        # Brute force work around as reseting all parameter will clear the default 'Browse' string
+        # Brute force work around as reseting all parameter will clear the default 'Browse' string on the buttons
         values_default['Browse'] =values_default['Browse0']=values_default['Browse1']=values_default['Browse2']= "Browse"
         initiate = False
     
@@ -97,9 +95,6 @@ while True:
         f.write( 'dict = '+repr(values)+ '\n')
         f.close()
 
-        # print(str(values['-G4FOLDERNAME-']))
-        # Add a line search and replacement function here
-        # G4_Data = '\"' +str(values['-G4FOLDERNAME-'])+ '\"' 
 
     if event == '-TOPAS-':
         # Add a line search and replacement function here
@@ -121,24 +116,13 @@ while True:
         except: 
             sg.popup_error("No CT images found in the folder")
 
-    if event == '-DICOMACTIVATECHECK-':
-        if USER_bool == False:
-            DICOM_bool = not DICOM_bool
-            window['-DICOMACTIVATE-'].update(visible=DICOM_bool)
-            window['-HIDEDICOMTAB-'].update(visible=DICOM_bool)
-            
-        else:
-            sg.popup_error('Choose 1 option')
-            window['-DICOMACTIVATECHECK-'].update(value=False)
-
-    if event == '-USERACTIVATECHECK-':
-        if DICOM_bool == False:
-            USER_bool = not USER_bool
-            window['-HIDESIMUTAB-'].update(visible=USER_bool)
-            window['-BUTTONSACTIVATE-'].update(visible=USER_bool)
-        else:
-            sg.popup_error('Choose 1 option')
-            window['-USERACTIVATECHECK-'].update(value=False)
+    if event == '-FUNCTION_CHECK-':
+        if values['-FUNCTION_CHECK-'] == 'DICOM':
+            window['-DICOM_TAB-'].update(visible=True)
+            window['-CTDI_TAB-'].update(visible=False)
+        elif values['-FUNCTION_CHECK-'] == 'CTDI validation':
+            window['-CTDI_TAB-'].update(visible=True)
+            window['-DICOM_TAB-'].update(visible=False)
         
     if event == '-RUN-':
         # add code to edit the tmp file

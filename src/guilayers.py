@@ -25,14 +25,13 @@ CTDI_run_layer= sg.Frame('Activate CTDI simulation',
                            [
                              [sg.Checkbox("Graphics toggle", enable_events=True, key='-GRAPHICS-', default= False)],
                              [sg.Button("Run", enable_events=True, key='-RUN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey')],
-                            ], key ='-BUTTONSACTIVATE-', 
-                              visible = False)
+                            ])
 
 function_layer = sg.Frame('Choose your function',
                           [
-                            [sg.Checkbox('Use DICOM', enable_events=True, key='-DICOMACTIVATECHECK-'),
-                             sg.Checkbox('CTDI validation', enable_events=True , key='-USERACTIVATECHECK-')
-                             ],
+                            [sg.Text('Simulation type',size = (15,1),font=('Helvetica', 12), text_color='black'),
+                             sg.Combo(['DICOM', 'CTDI validation'], default_value=None ,key='-FUNCTION_CHECK-', readonly=True, enable_events=True )],
+
                           ])
 
 dicom_file_layer = sg.pin(sg.Frame("DICOM inputs",
@@ -47,8 +46,6 @@ dicom_file_layer = sg.pin(sg.Frame("DICOM inputs",
                                 ],
                                 [sg.Button("Run set up imaging dose simulation",enable_events=True, key='-DICOMBAT-',font=('Helvetica', 14),size=(35,1))],
                               ],
-                              key ='-DICOMACTIVATE-', 
-                              visible = False
                               ) )
 
 dicom_information_layer = sg.Frame('Instructions on the usage of the DICOM adjustments', 

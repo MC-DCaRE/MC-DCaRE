@@ -11,7 +11,8 @@ def run_topas(x1):
         command = x1[0][0]
         rundatadir = x1[1][0]
         subprocess.run("cd " + rundatadir, shell=True)
-        subprocess.run(command, cwd= rundatadir, shell =True)
+        result = subprocess.run(command, cwd= rundatadir, shell =True, capture_output=True, text=True)
+        print(result.stdout) #Gives console output
         print('ran')
 
 def log_output(input_file_path, tag, topas_application_path, fan_tag):

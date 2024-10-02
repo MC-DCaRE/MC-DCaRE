@@ -42,12 +42,10 @@ Time_layer = sg.Frame("Time Feature",
                      sg.In(default_text=default_TIME_VERBOSITY,key='-TIMEVERBO-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
                     [sg.Text('Timeline End',size = (14,1),font=('Helvetica', 12), text_color='black'),
                      sg.In(default_text=default_TIME_TIME_END,key='-TIMELINEEND-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                    [sg.Text('')],
-                    [sg.Text('')],
-                    [sg.Text('')],
+
                 ])
 
-Scoring_layer = sg.Frame("Scoring",
+Scoring_layer = sg.Frame("Simulations settings",
                 [
                   [sg.Text('Seed',size =(10,1),font=('Helvetica', 12),text_color='black'),
                    sg.In(default_text=default_Seed,key='-SEED-',size=(10,1),font=('Helvetica', 12),enable_events=True)],
@@ -55,12 +53,6 @@ Scoring_layer = sg.Frame("Scoring",
                    sg.In(default_text=default_Threads,key='-THREAD-',size=(10,1),font=('Helvetica',12),enable_events=True)],
                   [sg.Text('Histories',size = (10,1),font=('Helvetica',12),text_color='black'),
                    sg.In(default_text=default_Histories,key='-HIST-',size=(10,1),font=('Helvetica',12),enable_events=True)],
-                  [sg.Text('DTM_Zbins',size = (10,1),font=('Helvetica', 12), text_color='black'),
-                   sg.In(default_text=default_DTM_Zbins,key='-DTMZB-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                  [sg.Text('TLE_Zbins',size = (10,1),font=('Helvetica', 12), text_color='black'),
-                   sg.In(default_text=default_TLE_Zbins,key='-TLEZB-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                  [sg.Text('DTW_Zbins',size = (10,1),font=('Helvetica', 12), text_color='black'),
-                   sg.In(default_text=default_DTW_Zbins,key='-DTWZB-',size=(10,1), font=('Helvetica', 12), enable_events=True)]
                 ], vertical_alignment='top')
 
 imaging_protocol_layer = sg.Frame('Imaging protocol',
@@ -148,29 +140,28 @@ CTDI_information_layer = sg.Frame('Instructions on the usage of the CTDI phantom
                                [sg.Text('You can also choose to change the thickeness of the couch in terms of its aluminium thickness.')]
                              ]) 
 
-CTDI_layer = sg.Frame('CTDI phantom',
+CTDI_layer = sg.Frame('CTDI options',
                     [
                       [sg.Text('CTDI phantom used',size = (15,1),font=('Helvetica', 12), text_color='black'),
                        sg.Combo(['16 cm', '32 cm'], default_value='16 cm' ,key='-CTDI_PHANTOM-', readonly=True )],
+                      [sg.Text('DTM_Zbins',size = (15,1),font=('Helvetica', 12), text_color='black'),
+                      sg.In(default_text=default_DTM_Zbins,key='-DTMZB-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
+                      [sg.Text('TLE_Zbins',size = (15,1),font=('Helvetica', 12), text_color='black'),
+                      sg.In(default_text=default_TLE_Zbins,key='-TLEZB-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
+                      [sg.Text('DTW_Zbins',size = (15,1),font=('Helvetica', 12), text_color='black'),
+                      sg.In(default_text=default_DTW_Zbins,key='-DTWZB-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
                       [sg.Checkbox("Couch toggle", enable_events=True, key='-COUCH_TOG-', default= True)],
-                      [sg.Text('5 Chamber plugs ')]
                     ], vertical_alignment='top')
 
 Couch_layer = sg.pin(sg.Frame("Couch",
                 [
-                   [sg.Text('TransX',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text=default_COUCH_TRANS_X,key='-COUCHTRANSX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text=default_COUCH_TRANS_Y,key='-COUCHTRANSY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('TransZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text=default_COUCH_TRANS_Z,key='-COUCHTRANSZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('HLZ',size = (8,1),font=('Helvetica', 12), text_color='black'),
+                   [sg.Text('Length',size = (8,1),font=('Helvetica', 12), text_color='black'),
                      sg.In(default_text=default_COUCH_HLZ,key='-COUCHHLZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('HLY',size = (8,1),font=('Helvetica', 12), text_color='black'),
-                     sg.In(default_text=default_COUCH_HLY,key='-COUCHHLY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                   [sg.Text('HLX',size = (8,1),font=('Helvetica', 12), text_color='black'),
+                   [sg.Text('Width',size = (8,1),font=('Helvetica', 12), text_color='black'),
                      sg.In(default_text=default_COUCH_HLX,key='-COUCHHLX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                ], key='-COUCH-', visible= True ), shrink=False)
+                   [sg.Text('Thickness',size = (8,1),font=('Helvetica', 12), text_color='black'),
+                     sg.In(default_text=default_COUCH_HLY,key='-COUCHHLY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
+                ], key='-COUCH-', visible= True, vertical_alignment='top' ), shrink=False, vertical_alignment='top' )
 
 CTDI_run_layer= sg.Frame('Activate CTDI simulation', 
                            [

@@ -83,9 +83,6 @@ def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
             stringindexreplacement('dc:Ge/Patient/UserTransX', filecontent , change_dictionary['-DICOM_TX-'])
             stringindexreplacement('dc:Ge/Patient/UserTransY', filecontent , change_dictionary['-DICOM_TY-'])
             stringindexreplacement('dc:Ge/Patient/UserTransZ', filecontent , change_dictionary['-DICOM_TZ-'])
-            stringindexreplacement('i:Sc/DoseOnRTGrid100kz17/ZBins', filecontent , change_dictionary['-DTMZB-']) 
-            stringindexreplacement('i:Sc/DoseOnRTGrid_tle100kz17/ZBins', filecontent , change_dictionary['-TLEZB-']) 
-            # stringindexreplacement('i:Sc/DoseOnRTGrid_tle100kz17/ZBins', filecontent , change_dictionary['-DTWZB-']) 
             
         elif change_dictionary['-FUNCTION_CHECK-'] == 'CTDI validation':
             if change_dictionary['-COUCH_TOG-'] == False: 
@@ -94,9 +91,6 @@ def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
             stringindexreplacement( 'd:Ge/couch/HLX', filecontent, change_dictionary['-COUCHHLX-'] )
             stringindexreplacement( 'd:Ge/couch/HLY', filecontent, change_dictionary['-COUCHHLY-'] )
             stringindexreplacement( 'd:Ge/couch/HLZ', filecontent, change_dictionary['-COUCHHLZ-'] )
-            stringindexreplacement( 'd:Ge/couch/TransX', filecontent, change_dictionary['-COUCHTRANSX-'] )
-            stringindexreplacement( 'd:Ge/couch/TransY', filecontent, change_dictionary['-COUCHTRANSY-'] )
-            stringindexreplacement( 'd:Ge/couch/TransZ', filecontent, change_dictionary['-COUCHTRANSZ-'] )
             stringindexreplacement( 'i:Sc/ChamberPlugDose_dtm/ZBins', filecontent , change_dictionary['-DTMZB-']) 
             stringindexreplacement( 'i:Sc/ChamberPlugDose_tle/ZBins', filecontent , change_dictionary['-TLEZB-']) 
             stringindexreplacement( 'i:Sc/ChamberPlugDose_dtw/ZBins', filecontent , change_dictionary['-DTWZB-']) 

@@ -32,10 +32,10 @@ def log_output(input_file_path, tag, topas_application_path, fan_tag):
                        shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/fullfan.txt', rundatadir)
                 elif fan_tag == 'Half Fan':
                        shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/halffan.txt', rundatadir)
-                shutil.copy(path + '/tmp/headsourcecode.bat', rundatadir)
+                shutil.copy(path + '/tmp/headsourcecode.txt', rundatadir)
                 shutil.copy(path + '/tmp/patientDICOM.txt', rundatadir)
 
-                command = [topas_application_path + ' ' + rundatadir + '/headsourcecode.bat']
+                command = [topas_application_path + ' ' + rundatadir + '/headsourcecode.txt']
                 pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
                 pool.map_async(run_topas, [(command, [rundatadir])])
                 pool.close()
@@ -53,10 +53,10 @@ def log_output(input_file_path, tag, topas_application_path, fan_tag):
                        shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/fullfan.txt', rundatadir)
                 elif fan_tag == 'Half Fan':
                        shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/halffan.txt', rundatadir)
-                shutil.copy(path + '/tmp/headsourcecode.bat', rundatadir)
+                shutil.copy(path + '/tmp/headsourcecode.txt', rundatadir)
                 shutil.copy(path + '/tmp/CTDIphantom_16.txt', rundatadir)
 
-                command = [topas_application_path + ' ' + rundatadir + '/headsourcecode.bat']
+                command = [topas_application_path + ' ' + rundatadir + '/headsourcecode.txt']
                 pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
                 pool.map_async(run_topas, [(command, [rundatadir])])
                 pool.close()
@@ -74,10 +74,10 @@ def log_output(input_file_path, tag, topas_application_path, fan_tag):
                        shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/fullfan.txt', rundatadir)
                 elif fan_tag == 'Half Fan':
                        shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/halffan.txt', rundatadir)
-                shutil.copy(path + '/tmp/headsourcecode.bat', rundatadir)
+                shutil.copy(path + '/tmp/headsourcecode.txt', rundatadir)
                 shutil.copy(path + '/tmp/CTDIphantom_32.txt', rundatadir)
 
-                command = [topas_application_path + ' ' + rundatadir + '/headsourcecode.bat']
+                command = [topas_application_path + ' ' + rundatadir + '/headsourcecode.txt']
                 pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
                 pool.map_async(run_topas, [(command, [rundatadir])])
                 pool.close()

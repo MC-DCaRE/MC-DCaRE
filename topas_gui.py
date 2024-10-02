@@ -13,8 +13,8 @@ def reset_tmp():
     '''
     path = os.getcwd()
     #generate a headsource file from a boiler plate so we edit only that copy each time
-    original_headsource_file_path = path + '/src/boilerplates/headsourcecode_boilerplate.bat'
-    duplicate_headsource_file_path = path + "/tmp/headsourcecode.bat"
+    original_headsource_file_path = path + '/src/boilerplates/headsourcecode_boilerplate.txt'
+    duplicate_headsource_file_path = path + "/tmp/headsourcecode.txt"
     shutil.copy(original_headsource_file_path, duplicate_headsource_file_path)
 
     #generate a dicom includefile from a boiler plate so we edit only that copy each time
@@ -141,8 +141,8 @@ while True:
         # When users try to simulate DICOM imaging, this block will run. 
         # Code will activate the editor() function to edit the tmp file
         # Runtimehandler will then form the timestamp folder and drop the outputs there
-        # try: 
-            tmp_headsource_file_path = path + '/tmp/headsourcecode.bat'
+        try: 
+            tmp_headsource_file_path = path + '/tmp/headsourcecode.txt'
             editor(values, tmp_headsource_file_path, 'main')
             tmp_patient_file_path = path + '/tmp/patientDICOM.txt'
             editor(values, tmp_patient_file_path, 'sub')
@@ -150,12 +150,12 @@ while True:
             run_status = log_output(tmp_headsource_file_path, 'dicom', topas_application_path, values['-FAN-'])
             reset_tmp()
             sg.popup(run_status)
-        # except:
-        #     sg.popup_error("Ensure that you have specified a DICOM folder and file")
+        except:
+            sg.popup_error("Ensure that you have specified a DICOM folder and file")
     
     if event == '-RUN-':
         # add code to edit the tmp file
-        tmp_headsource_file_path = path + '/tmp/headsourcecode.bat'
+        tmp_headsource_file_path = path + '/tmp/headsourcecode.txt'
         editor(values, tmp_headsource_file_path, 'main')
         topas_application_path = values['-TOPAS-'] + " "
         if values['-CTDI_PHANTOM-'] == '16 cm': 

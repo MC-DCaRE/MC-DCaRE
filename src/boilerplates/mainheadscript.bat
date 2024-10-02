@@ -3,11 +3,12 @@
 
 ## Include File ###############################
 includeFile=ConvertedTopasFile_head.txt
-# includeFile = fullfan.txt
-# includeFile = halffan.txt
-# includeFile = CTDIphantom_16.txt
-# includeFile = CTDIphantom_32.txt
-# includeFile = patientDICOM.txt
+includeFile = fullfan.txt
+includeFile = halffan.txt
+includeFile = CTDIphantom_16.txt
+includeFile = CTDIphantom_32.txt
+includeFile = patientDICOM.txt
+includeFile = Graphics.txt
 
 
 ## Some Control Parameters ####################

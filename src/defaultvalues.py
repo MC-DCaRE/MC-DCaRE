@@ -27,13 +27,8 @@ default_DICOM_ISOCENTER_Z = '0. mm'
 
 default_DTM_Zbins = '100'
 default_TLE_Zbins = '100'
+default_DTW_Zbins = '100'
 
-default_PHYSICS_LIST = 'Default'
-default_PHYSICS_PROCESS ='False'
-default_PHYSICS_TYPE = 'Geant4_Modular'
-default_PHYSICS_MODULES = '6 "g4em-standard_opt4" "g4h-phy_QGSP_BIC_HP" "g4decay" "g4ion-binarycascade" "g4h-elastic_HP" "g4stopping"'
-default_PHYSICS_EM_MIN ='100. eV'
-default_PHYSICS_EM_MAX ='521. MeV'
 
 default_COUCH_TYPE = 'TsBox'
 default_COUCH_MATERIAL = 'Aluminum'

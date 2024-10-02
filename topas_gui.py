@@ -46,10 +46,11 @@ chamber_layout = [[CTDI_information_layer],
 
 dicom_layout = [[dicom_information_layer], 
                 [dicom_file_layer],
+                [sg.Text('')],
                 [dicom_patient_layer, dicom_planned_layer]]
 
 
-others_layout = [[settings_layout],
+others_layout = [[settings_information_layout],
                  [Time_layer, Scoring_layer], 
                  [imaging_protocol_layer, imaging_scan_layer]]
 
@@ -128,7 +129,7 @@ while True:
         # add code to edit the tmp file
         tmp_file_path = path + '/tmp/generate_allproc.py'
         topas_application_path = values['-TOPAS-'] + " "
-        editor(values, tmp_file_path, 'CTDI')
+        editor(values, tmp_file_path, 'main')
         run_status = log_output(tmp_file_path, 'generate_allproc.py', topas_application_path)
         reset_tmp()
         sg.popup(run_status)
@@ -156,7 +157,7 @@ while True:
         try: 
             tmp_file_path = path + '/tmp/dicom.bat'
             topas_application_path = values['-TOPAS-'] + " "
-            editor(values, tmp_file_path, 'DICOM')
+            editor(values, tmp_file_path, 'main')
             run_status = log_output(tmp_file_path, 'dicom.bat', topas_application_path)
             reset_tmp()
             sg.popup(run_status)

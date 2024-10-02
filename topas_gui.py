@@ -12,25 +12,25 @@ def reset_tmp():
     Helper function that resets the temporary files after each run to ensure smooth operation. 
     '''
     path = os.getcwd()
-    #generate a generate_allproc file from a boiler plate so we edit only that copy each time
-    original_gen_file_path = path + '/src/boilerplates/generate_allproc_boilerplate.py'
-    duplicate_gen_file_path = path + "/tmp/generate_allproc.py"
-    shutil.copy(original_gen_file_path, duplicate_gen_file_path)
-
     #generate a headsource file from a boiler plate so we edit only that copy each time
     original_headsource_file_path = path + '/src/boilerplates/headsourcecode_boilerplate.bat'
     duplicate_headsource_file_path = path + "/tmp/headsourcecode.bat"
     shutil.copy(original_headsource_file_path, duplicate_headsource_file_path)
 
-    #generate a multi_allproc file from a boiler plate so we edit only that copy each time
-    original_multiproc_file_path = path + '/src/boilerplates/topas_multiproc_boilerplate.py'
-    duplicate_multiproc_file_path = path + "/tmp/topas_multiproc.py"
-    shutil.copy(original_multiproc_file_path, duplicate_multiproc_file_path)
-
-    #generate a dicom bat file from a boiler plate so we edit only that copy each time
-    original_dicom_file_path = path + '/src/boilerplates/dicom_boilerplate.bat'
-    duplicate_dicom_file_path = path +"/tmp/dicom.bat"
+    #generate a dicom includefile from a boiler plate so we edit only that copy each time
+    original_dicom_file_path = path + '/src/boilerplates/TOPAS_includeFiles/patientDICOM.txt'
+    duplicate_dicom_file_path = path + "/tmp/patientDICOM.txt"
     shutil.copy(original_dicom_file_path, duplicate_dicom_file_path)
+
+    #generate a CTDI 16cm includefile from a boiler plate so we edit only that copy each time
+    original_CTDI_16_file_path = path + '/src/boilerplates/TOPAS_includeFiles/CTDIphantom_16.txt'
+    duplicate_CTDI_16_file_path = path + "/tmp/CTDIphantom_16.txt"
+    shutil.copy(original_CTDI_16_file_path, duplicate_CTDI_16_file_path)
+
+    #generate a CTDI 32cm includefile from a boiler plate so we edit only that copy each time
+    original_CTDI_32_file_path = path + '/src/boilerplates/TOPAS_includeFiles/CTDIphantom_32.txt'
+    duplicate_CTDI_32_file_path = path + "/tmp/CTDIphantom_32.txt"
+    shutil.copy(original_CTDI_32_file_path, duplicate_CTDI_32_file_path)
 
 
 ####################################################################
@@ -96,13 +96,18 @@ while True:
         f.write( 'dict = '+repr(values)+ '\n')
         f.close()
 
-
     if event == '-TOPAS-':
-        # Add a line search and replacement function here
         topas_application_path = values['-TOPAS-'] + " "
 
+    if event == '-FUNCTION_CHECK-':
+        if values['-FUNCTION_CHECK-'] == 'DICOM':
+            window['-DICOM_TAB-'].update(visible=True)
+            window['-CTDI_TAB-'].update(visible=False)
+        elif values['-FUNCTION_CHECK-'] == 'CTDI validation':
+            window['-CTDI_TAB-'].update(visible=True)
+            window['-DICOM_TAB-'].update(visible=False)
+            
     if event == '-DICOM-':
-        # Add a line search and replacement function here
         count_of_CT_images = 0
         try:    
             DICOM_PATH = values['-DICOM-']
@@ -117,23 +122,6 @@ while True:
         except: 
             sg.popup_error("No CT images found in the folder")
 
-    if event == '-FUNCTION_CHECK-':
-        if values['-FUNCTION_CHECK-'] == 'DICOM':
-            window['-DICOM_TAB-'].update(visible=True)
-            window['-CTDI_TAB-'].update(visible=False)
-        elif values['-FUNCTION_CHECK-'] == 'CTDI validation':
-            window['-CTDI_TAB-'].update(visible=True)
-            window['-DICOM_TAB-'].update(visible=False)
-        
-    if event == '-RUN-':
-        # add code to edit the tmp file
-        tmp_file_path = path + '/tmp/generate_allproc.py'
-        topas_application_path = values['-TOPAS-'] + " "
-        editor(values, tmp_file_path, 'main')
-        run_status = log_output(tmp_file_path, 'generate_allproc.py', topas_application_path)
-        reset_tmp()
-        sg.popup(run_status)
-
     if event == '-DICOMRP-':
         if dcmread(values['-DICOMRP-']).PatientID == values['-PATID-']: 
             try:    
@@ -147,23 +135,42 @@ while True:
             except: 
                 sg.popup_error("No isocentre found")
         else: 
-            sg.popup_error('Patient ID for the CT image set and treatment plan does not match')
-
+            sg.popup_error('Patient ID for the CT image set and treatment plan does not match')        
 
     if event == '-DICOMBAT-':
         # When users try to simulate DICOM imaging, this block will run. 
         # Code will activate the editor() function to edit the tmp file
         # Runtimehandler will then form the timestamp folder and drop the outputs there
-        try: 
-            tmp_file_path = path + '/tmp/dicom.bat'
+        # try: 
+            tmp_headsource_file_path = path + '/tmp/headsourcecode.bat'
+            editor(values, tmp_headsource_file_path, 'main')
+            tmp_patient_file_path = path + '/tmp/patientDICOM.txt'
+            editor(values, tmp_patient_file_path, 'sub')
             topas_application_path = values['-TOPAS-'] + " "
-            editor(values, tmp_file_path, 'main')
-            run_status = log_output(tmp_file_path, 'dicom.bat', topas_application_path)
+            run_status = log_output(tmp_headsource_file_path, 'dicom', topas_application_path, values['-FAN-'])
             reset_tmp()
             sg.popup(run_status)
-        except:
-            sg.popup_error("Ensure that you have specified a DICOM folder and file")
+        # except:
+        #     sg.popup_error("Ensure that you have specified a DICOM folder and file")
     
+    if event == '-RUN-':
+        # add code to edit the tmp file
+        tmp_headsource_file_path = path + '/tmp/headsourcecode.bat'
+        editor(values, tmp_headsource_file_path, 'main')
+        topas_application_path = values['-TOPAS-'] + " "
+        if values['-CTDI_PHANTOM-'] == '16 cm': 
+            tmp_16cm_file_path = path + '/tmp/CTDIphantom_16.txt'
+            editor(values, tmp_16cm_file_path, 'sub')
+            run_status = log_output(tmp_headsource_file_path, 'ctdi16', topas_application_path, values['-FAN-'])
+            reset_tmp()
+            sg.popup(run_status)        
+        elif values['-CTDI_PHANTOM-'] == '32 cm': 
+            tmp_32cm_file_path = path + '/tmp/CTDIphantom_32.txt'
+            editor(values, tmp_32cm_file_path, 'sub')
+            run_status = log_output(tmp_headsource_file_path, 'ctdi32', topas_application_path, values['-FAN-'])
+            reset_tmp()
+            sg.popup(run_status)
+
     if event == '-IMAGEMODE-':
         # When users select the image protocol, this block will run and put input the imaging parameteres
         # Hardcoded values for image protocol
@@ -282,6 +289,14 @@ while True:
         else: 
             pass
     
+    if event == '-DIRECTROT-':
+        if values['-DIRECTROT-'] == 'Clockwise':
+            values['-TIMEROTRATE-'] = '0.4 deg/s'
+            window['-TIMEROTRATE-'].update(values['-TIMEROTRATE-'])
+        elif values['-DIRECTROT-'] == 'Anticlockwise':
+            values['-TIMEROTRATE-'] = '-0.4 deg/s'
+            window['-TIMEROTRATE-'].update(values['-TIMEROTRATE-'])
+
     if event == '-COUCH_TOG-':
         window['-COUCH-'].update(visible=values['-COUCH_TOG-'])
 

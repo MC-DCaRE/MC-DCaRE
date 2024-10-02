@@ -35,10 +35,8 @@ def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
         stringindexreplacement('i:Tf/NumberOfSequentialTimes', filecontent , change_dictionary['-TIMESEQ-']) 
         stringindexreplacement('i:Tf/Verbosity', filecontent , change_dictionary['-TIMEVERBO-']) 
         stringindexreplacement('d:Tf/TimelineEnd', filecontent , change_dictionary['-TIMELINEEND-']) 
-        stringindexreplacement('s:Tf/Rotate/Function', filecontent , '\"'+change_dictionary['-TIMEROTFUNC-']+'\"') 
         stringindexreplacement('d:Tf/Rotate/Rate', filecontent , change_dictionary['-TIMEROTRATE-']) 
-        stringindexreplacement('d:Tf/Rotate/StartValue', filecontent , change_dictionary['-TIMEROTSTART-']) 
-        stringindexreplacement('i:Ts/ShowHistoryCountAtInterval', filecontent , change_dictionary['-TIMEHISTINT-']) 
+        stringindexreplacement('d:Tf/Rotate/StartValue', filecontent , change_dictionary['-STARTANGLEROT-']) 
         stringindexreplacement('i:Ts/Seed', filecontent , change_dictionary['-SEED-']) 
         stringindexreplacement('i:Ts/NumberOfThreads', filecontent , change_dictionary['-THREAD-']) 
         stringindexreplacement('i:So/beam/NumberOfHistoriesInRun', filecontent , change_dictionary['-HIST-']) 
@@ -49,11 +47,11 @@ def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
         elif change_dictionary['-GRAPHICS-'] ==True:
             pass 
             
-        if change_dictionary['-FAN-'] == 'Full fan':
+        if change_dictionary['-FAN-'] == 'Full Fan':
             ### Removes the includeFile line for half bowtie
             stringindexreplacement('includeFile = halffan.txt', filecontent , ) 
             # ADD EDITS TO THE BOWTIE GEOMETRY 
-        elif change_dictionary['-FAN-'] == 'Half fan':
+        elif change_dictionary['-FAN-'] == 'Half Fan':
             ### Removes the includeFile line for full bowtie
             stringindexreplacement('includeFile = fullfan.txt', filecontent , )
 
@@ -89,15 +87,18 @@ def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
             # stringindexreplacement('i:Sc/DoseOnRTGrid_tle100kz17/ZBins', filecontent , change_dictionary['-DTWZB-']) 
             
         elif change_dictionary['-FUNCTION_CHECK-'] == 'CTDI validation':
-            stringindexreplacement( 'couch_HLX', filecontent, '\''+ change_dictionary['-COUCHHLX-'] +'\'' )
-            stringindexreplacement( 'couch_HLY', filecontent, '\''+ change_dictionary['-COUCHHLY-'] +'\'' )
-            stringindexreplacement( 'couch_HLZ', filecontent, '\''+ change_dictionary['-COUCHHLZ-'] +'\'' )
-            stringindexreplacement( 'couch_TransX', filecontent, '\''+ change_dictionary['-COUCHTRANSX-'] +'\'' )
-            stringindexreplacement( 'couch_TransY', filecontent, '\''+ change_dictionary['-COUCHTRANSY-'] +'\'' )
-            stringindexreplacement( 'couch_TransZ', filecontent, '\''+ change_dictionary['-COUCHTRANSZ-'] +'\'' )
-            stringindexreplacement('i:Sc/ChamberPlugDose_dtm/ZBins', filecontent , change_dictionary['-DTMZB-']) 
-            stringindexreplacement('i:Sc/ChamberPlugDose_tle/ZBins', filecontent , change_dictionary['-TLEZB-']) 
-            stringindexreplacement('i:Sc/ChamberPlugDose_dtw/ZBins', filecontent , change_dictionary['-DTWZB-']) 
+            if change_dictionary['-COUCH_TOG-'] == False: 
+                # by removing the parent group link, the component is removed
+                stringindexreplacement( 's:Ge/couch/Parent="couchgroup"', filecontent,  )
+            stringindexreplacement( 'd:Ge/couch/HLX', filecontent, change_dictionary['-COUCHHLX-'] )
+            stringindexreplacement( 'd:Ge/couch/HLY', filecontent, change_dictionary['-COUCHHLY-'] )
+            stringindexreplacement( 'd:Ge/couch/HLZ', filecontent, change_dictionary['-COUCHHLZ-'] )
+            stringindexreplacement( 'd:Ge/couch/TransX', filecontent, change_dictionary['-COUCHTRANSX-'] )
+            stringindexreplacement( 'd:Ge/couch/TransY', filecontent, change_dictionary['-COUCHTRANSY-'] )
+            stringindexreplacement( 'd:Ge/couch/TransZ', filecontent, change_dictionary['-COUCHTRANSZ-'] )
+            stringindexreplacement( 'i:Sc/ChamberPlugDose_dtm/ZBins', filecontent , change_dictionary['-DTMZB-']) 
+            stringindexreplacement( 'i:Sc/ChamberPlugDose_tle/ZBins', filecontent , change_dictionary['-TLEZB-']) 
+            stringindexreplacement( 'i:Sc/ChamberPlugDose_dtw/ZBins', filecontent , change_dictionary['-DTWZB-']) 
 
 
 

@@ -14,44 +14,75 @@ def run_topas(x1):
         subprocess.run(command, cwd= rundatadir, shell =True)
         print('ran')
 
-def log_output(input_file_path, filename, topas_application_path):
+def log_output(input_file_path, tag, topas_application_path, fan_tag):
         rundatadir = os.path.join(
                 os.getcwd() +"/runfolder",
                 datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
         os.makedirs(rundatadir) #creates a folder marked by date and time 
         shutil.copy(input_file_path, rundatadir)
+        path = os.getcwd()
         
-        if filename == 'dicom.bat':
-                shutil.copy('/root/nccs/Topas_wrapper/src/boilerplates/runfiles/dicomfiles/HUtoMaterialSchneider.txt', rundatadir)
-                shutil.copy('/root/nccs/Topas_wrapper/src/boilerplates/runfiles/dicomfiles/ConvertedTopasFile_head.txt', rundatadir)
-                shutil.copy('/root/nccs/Topas_wrapper/src/boilerplates/runfiles/dicomfiles/Muen.dat', rundatadir)
-                shutil.copy('/root/nccs/Topas_wrapper/src/boilerplates/runfiles/dicomfiles/NbParticlesInTime.txt', rundatadir)
-                command = [topas_application_path + ' ' + rundatadir + '/dicom.bat']
+        if tag == 'dicom':
+                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/HUtoMaterialSchneider.txt', rundatadir)
+                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/ConvertedTopasFile_head.txt', rundatadir)
+                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Muen.dat', rundatadir)
+                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/NbParticlesInTime.txt', rundatadir)
+                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Graphics.txt', rundatadir)
+                if fan_tag == 'Full Fan':
+                       shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/fullfan.txt', rundatadir)
+                elif fan_tag == 'Half Fan':
+                       shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/halffan.txt', rundatadir)
+                shutil.copy(path + '/tmp/headsourcecode.bat', rundatadir)
+                shutil.copy(path + '/tmp/patientDICOM.txt', rundatadir)
+
+                command = [topas_application_path + ' ' + rundatadir + '/headsourcecode.bat']
                 pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
                 pool.map_async(run_topas, [(command, [rundatadir])])
                 pool.close()
                 pool.join()
                 run_status= "DICOM simulation completed"
 
-        elif filename == 'generate_allproc.py':
-        #       edit the file to add timestamp corrections
-                shutil.copy('/root/nccs/Topas_wrapper/tmp/headsourcecode.bat', rundatadir)
-                shutil.copy('/root/nccs/Topas_wrapper/src/boilerplates/runfiles/CTDI/ConvertedTopasFile.txt', rundatadir)
-                shutil.copy('/root/nccs/Topas_wrapper/src/boilerplates/runfiles/CTDI/Muen.dat', rundatadir)
-                command_topas = "python3 " + rundatadir + "/generate_allproc.py"
-                subprocess.run(command_topas, cwd= rundatadir , shell =True)
-              
-                batch_files = ['Bottomhead_default.bat', 'Centrehead_default.bat', 'Lefthead_default.bat', 'Righthead_default.bat', 'Tophead_default.bat']
-                command = []
-                for filename in batch_files:
-                        command.append(topas_application_path+ rundatadir + "/" + str(filename))
+        elif tag == 'ctdi16':
+                # Needs plus position generator 
+                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/ConvertedTopasFile_head.txt', rundatadir)
+                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Muen.dat', rundatadir)
+                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/NbParticlesInTime.txt', rundatadir)
+                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Graphics.txt', rundatadir)
 
-                print(command)
+                if fan_tag == 'Full Fan':
+                       shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/fullfan.txt', rundatadir)
+                elif fan_tag == 'Half Fan':
+                       shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/halffan.txt', rundatadir)
+                shutil.copy(path + '/tmp/headsourcecode.bat', rundatadir)
+                shutil.copy(path + '/tmp/CTDIphantom_16.txt', rundatadir)
+
+                command = [topas_application_path + ' ' + rundatadir + '/headsourcecode.bat']
                 pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
                 pool.map_async(run_topas, [(command, [rundatadir])])
                 pool.close()
                 pool.join()
-                run_status= "CTDI simulation completed"
+                run_status= "CTDI simulation completed" 
+
+        elif tag == 'ctdi32':
+                # Needs plus position generator 
+                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/ConvertedTopasFile_head.txt', rundatadir)
+                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Muen.dat', rundatadir)
+                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/NbParticlesInTime.txt', rundatadir)
+                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Graphics.txt', rundatadir)
+
+                if fan_tag == 'Full Fan':
+                       shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/fullfan.txt', rundatadir)
+                elif fan_tag == 'Half Fan':
+                       shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/halffan.txt', rundatadir)
+                shutil.copy(path + '/tmp/headsourcecode.bat', rundatadir)
+                shutil.copy(path + '/tmp/CTDIphantom_32.txt', rundatadir)
+
+                command = [topas_application_path + ' ' + rundatadir + '/headsourcecode.bat']
+                pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
+                pool.map_async(run_topas, [(command, [rundatadir])])
+                pool.close()
+                pool.join()
+                run_status= "CTDI simulation completed" 
 
         else:
               run_status = 'Error encountered' 

@@ -59,6 +59,7 @@ def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
             ### Removes both CTDI phantom includeFile
             stringindexreplacement('includeFile = CTDIphantom_16.txt', filecontent , )
             stringindexreplacement('includeFile = CTDIphantom_32.txt', filecontent , )
+            stringindexreplacement('sv:Ph/Default/LayeredMassGeometryWorlds', filecontent , )
         elif change_dictionary['-FUNCTION_CHECK-'] == 'CTDI validation':
             ### Removes DICOM includeFile and the other phantom file
             stringindexreplacement('includeFile = patientDICOM.txt', filecontent , )

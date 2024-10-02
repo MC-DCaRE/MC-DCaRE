@@ -1,7 +1,7 @@
 #16cm phantom
 ####################################
 # Chamber plug made of G4_WATER  will overlay CTDI phantom when measurement takes place in that particular port-otherwise will be PMMA
-sv:Ph/Default/LayeredMassGeometryWorlds = 5 "ChamberPlugCentre" "ChamberPlugTop" "ChamberPlugBottom" "ChamberPlugLeft" "ChamberPlugRight"
+#sv:Ph/Default/LayeredMassGeometryWorlds = 5 "ChamberPlugCentre" "ChamberPlugTop" "ChamberPlugBottom" "ChamberPlugLeft" "ChamberPlugRight"
 
 # PMMA
 sv:Ma/PMMA/Components = 3 "Carbon" "Hydrogen" "Oxygen"

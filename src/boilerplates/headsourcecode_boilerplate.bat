@@ -9,6 +9,7 @@ includeFile = CTDIphantom_16.txt
 includeFile = CTDIphantom_32.txt
 includeFile = patientDICOM.txt
 includeFile = Graphics.txt
+sv:Ph/Default/LayeredMassGeometryWorlds = 5 "ChamberPlugCentre" "ChamberPlugTop" "ChamberPlugBottom" "ChamberPlugLeft" "ChamberPlugRight"
 
 
 ## Some Control Parameters ####################
@@ -293,18 +294,5 @@ d:Tf/Rotate/Rate = 0.4 deg/s
 d:Tf/Rotate/StartValue = 90 deg
 i:Ts/ShowHistoryCountAtInterval = 100000
 
-##Graphicsoutput###############################
-# Ts/UseQt="True"#ShowGUI#hashthislinetosuppressgui
-# s:Gr/ViewA/Type="OpenGL"#Showsimulation#hashthislinetosuppressgui
-# b:Gr/Enable="T"
-# b:Ph/ListProcesses = "True" # Set true to dump list of active physics processes to console
-#b:Gr/Enable="F"
-i:Gr/ViewA/WindowSizeX=1024
-i:Gr/ViewA/WindowSizeY=768
-#u:Gr/ViewA/Zoom=1.25
-d:Gr/ViewA/Theta=70.0 deg
-d:Gr/ViewA/Phi=10.0 deg
-b:Gr/ViewA/IncludeAxes="True"
-d:Gr/ViewA/AxesSize=0.5 m
-b:Ts/ShowCPUTime="True"
+
 

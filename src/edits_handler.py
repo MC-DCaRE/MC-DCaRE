@@ -43,7 +43,9 @@ def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
 
         if change_dictionary['-GRAPHICS-'] ==False: 
             ### Removes the includeFile line
-            stringindexreplacement('includeFile = Graphics.txt', filecontent , ) 
+            stringindexreplacement('Ts/UseQt', filecontent , ) 
+            stringindexreplacement('s:Gr/ViewA/Type', filecontent , ) 
+            stringindexreplacement('b:Gr/Enable', filecontent , ) 
         elif change_dictionary['-GRAPHICS-'] ==True:
             pass 
             

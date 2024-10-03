@@ -28,7 +28,6 @@ def log_output(input_file_path, tag, topas_application_path, fan_tag):
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/ConvertedTopasFile_head.txt', rundatadir)
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Muen.dat', rundatadir)
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/NbParticlesInTime.txt', rundatadir)
-                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Graphics.txt', rundatadir)
                 if fan_tag == 'Full Fan':
                        shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/fullfan.txt', rundatadir)
                 elif fan_tag == 'Half Fan':
@@ -48,7 +47,6 @@ def log_output(input_file_path, tag, topas_application_path, fan_tag):
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/ConvertedTopasFile_head.txt', rundatadir)
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Muen.dat', rundatadir)
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/NbParticlesInTime.txt', rundatadir)
-                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Graphics.txt', rundatadir)
                 ### ADD 5 plugs generation
                 if fan_tag == 'Full Fan':
                        shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/fullfan.txt', rundatadir)
@@ -69,7 +67,6 @@ def log_output(input_file_path, tag, topas_application_path, fan_tag):
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/ConvertedTopasFile_head.txt', rundatadir)
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Muen.dat', rundatadir)
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/NbParticlesInTime.txt', rundatadir)
-                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Graphics.txt', rundatadir)
                 ### ADD 5 plugs generation
                 if fan_tag == 'Full Fan':
                        shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/fullfan.txt', rundatadir)

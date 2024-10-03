@@ -41,13 +41,6 @@ def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
         stringindexreplacement('i:Ts/NumberOfThreads', filecontent , change_dictionary['-THREAD-']) 
         stringindexreplacement('i:So/beam/NumberOfHistoriesInRun', filecontent , change_dictionary['-HIST-']) 
 
-        if change_dictionary['-GRAPHICS-'] ==False: 
-            ### Removes the includeFile line
-            stringindexreplacement('Ts/UseQt', filecontent , ) 
-            stringindexreplacement('s:Gr/ViewA/Type', filecontent , ) 
-            stringindexreplacement('b:Gr/Enable', filecontent , ) 
-        elif change_dictionary['-GRAPHICS-'] ==True:
-            pass 
             
         if change_dictionary['-FAN-'] == 'Full Fan':
             ### Removes the includeFile line for half bowtie
@@ -62,9 +55,22 @@ def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
             stringindexreplacement('includeFile = CTDIphantom_16.txt', filecontent , )
             stringindexreplacement('includeFile = CTDIphantom_32.txt', filecontent , )
             stringindexreplacement('sv:Ph/Default/LayeredMassGeometryWorlds', filecontent , )
+            if change_dictionary['-DICOM_GRAPHICS-'] ==False: 
+                ### Removes the includeFile line
+                stringindexreplacement('Ts/UseQt', filecontent , ) 
+                stringindexreplacement('s:Gr/ViewA/Type', filecontent , ) 
+                stringindexreplacement('b:Gr/Enable', filecontent , ) 
         elif change_dictionary['-FUNCTION_CHECK-'] == 'CTDI validation':
             ### Removes DICOM includeFile and the other phantom file
             stringindexreplacement('includeFile = patientDICOM.txt', filecontent , )
+            if change_dictionary['-CTDI_GRAPHICS-'] ==False: 
+                ### Removes the includeFile line
+                stringindexreplacement('Ts/UseQt', filecontent , ) 
+                stringindexreplacement('s:Gr/ViewA/Type', filecontent , ) 
+                stringindexreplacement('b:Gr/Enable', filecontent , ) 
+        elif change_dictionary['-GRAPHICS-'] ==True:
+            pass 
+
             if change_dictionary['-CTDI_PHANTOM-'] == '16 cm': 
                 stringindexreplacement('includeFile = CTDIphantom_32.txt', filecontent , )
             elif change_dictionary['-CTDI_PHANTOM-'] == '32 cm': 

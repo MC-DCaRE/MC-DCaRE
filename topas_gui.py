@@ -47,7 +47,7 @@ chamber_layout = [[CTDI_information_layer],
 dicom_layout = [[dicom_information_layer], 
                 [dicom_file_layer],
                 [sg.Text('')],
-                [dicom_patient_layer, dicom_planned_layer]]
+                [dicom_patient_layer, dicom_planned_layer, dicom_graphics_layer]]
 
 
 others_layout = [[settings_information_layout],
@@ -290,13 +290,15 @@ while True:
             pass
     
     if event == '-DIRECTROT-':
-        if values['-DIRECTROT-'] == 'Clockwise':
+        if values['-DIRECTROT-'] == 'CBCT Clockwise':
             values['-TIMEROTRATE-'] = '0.4 deg/s'
             window['-TIMEROTRATE-'].update(values['-TIMEROTRATE-'])
-        elif values['-DIRECTROT-'] == 'Anticlockwise':
+        elif values['-DIRECTROT-'] == 'CBCT Anticlockwise':
             values['-TIMEROTRATE-'] = '-0.4 deg/s'
             window['-TIMEROTRATE-'].update(values['-TIMEROTRATE-'])
-
+        elif values['-DIRECTROT-'] == 'kVkV':
+            values['-TIMEROTRATE-'] = '0 deg/s'
+            window['-TIMEROTRATE-'].update(values['-TIMEROTRATE-'])
     if event == '-COUCH_TOG-':
         window['-COUCH-'].update(visible=values['-COUCH_TOG-'])
 

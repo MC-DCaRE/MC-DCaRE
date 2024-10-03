@@ -17,8 +17,9 @@ main_menu_information_layer = sg.Frame('Instructions on the usage of the GUI',
                                [sg.Text('Select your Topas and G4 data directories. Next, select the function you would like to enable. ')],
                                [sg.Text('   DICOM allows the user to specify a patient DICOM CT image folder to run simulations on')],
                                [sg.Text('   CTDI validation if for running simulations on CTDI phantom')],
-                               [sg.Text('In the following pages, type in your desired value with the units. ')],
-                               [sg.Text('By default all lengths are in units of mm and all angles are in units of degrees.')],
+                               [sg.Text('In the following pages, type in your desired value a whitespace followed by the unit. ')],
+                               [sg.Text('XYZ corresponds to patient coordinate system; Left = +X, Posterior = +Y, Head = +Z')],
+                               [sg.Text('The scan angle is defined from the kV imaging source, if the kV source in on top of the patient, this is 0 degrees')],
                              ]) 
 
 function_layer = sg.Frame('Choose your function',
@@ -60,21 +61,21 @@ imaging_protocol_layer = sg.Frame('Imaging protocol',
                          sg.Combo(['Image Gently', 'Head', 'Short Thorax', 'Spotlight', 'Thorax', 'Pelvis', 'Pelvis Large'],default_value=None, key='-IMAGEMODE-', readonly=True ,enable_events=True)],
                         [sg.Text('Fan mode',size = (15,1),font=('Helvetica', 12), text_color='black'),
                          sg.In(default_text='Full Fan', key='-FAN-',size = (15,1),font=('Helvetica', 12), text_color='black', enable_events=True,  readonly=True )],
-                        [sg.Text('Collimate X1', size = (15,1),font=('Helvetica', 12), text_color='black'),
-                         sg.In(default_text= "0 mm", key = '-BLADE_X1-',size = (15,1),font=('Helvetica', 12), text_color='black', enable_events=True, readonly=True)],
-                        [sg.Text('Collimate X2', size = (15,1),font=('Helvetica', 12), text_color='black'),
-                         sg.In(default_text= "0 mm", key = '-BLADE_X2-',size = (15,1),font=('Helvetica', 12), text_color='black', enable_events=True, readonly=True)],
-                        [sg.Text('Collimate Y1', size = (15,1),font=('Helvetica', 12), text_color='black'),
-                         sg.In(default_text= "0 mm", key = '-BLADE_Y1-',size = (15,1),font=('Helvetica', 12), text_color='black', enable_events=True, readonly=True)],
-                        [sg.Text('Collimate Y2', size = (15,1),font=('Helvetica', 12), text_color='black'),
-                         sg.In(default_text= "0 mm", key = '-BLADE_Y2-',size = (15,1),font=('Helvetica', 12), text_color='black', enable_events=True, readonly=True)],
+                        [sg.Text('Blade X1', size = (15,1),font=('Helvetica', 12), text_color='black'),
+                         sg.In(default_text= "0 cm", key = '-BLADE_X1-',size = (15,1),font=('Helvetica', 12), text_color='black', enable_events=True, readonly=True)],
+                        [sg.Text('Blade X2', size = (15,1),font=('Helvetica', 12), text_color='black'),
+                         sg.In(default_text= "0 cm", key = '-BLADE_X2-',size = (15,1),font=('Helvetica', 12), text_color='black', enable_events=True, readonly=True)],
+                        [sg.Text('Blade Y1', size = (15,1),font=('Helvetica', 12), text_color='black'),
+                         sg.In(default_text= "0 cm", key = '-BLADE_Y1-',size = (15,1),font=('Helvetica', 12), text_color='black', enable_events=True, readonly=True)],
+                        [sg.Text('Blade Y2', size = (15,1),font=('Helvetica', 12), text_color='black'),
+                         sg.In(default_text= "0 cm", key = '-BLADE_Y2-',size = (15,1),font=('Helvetica', 12), text_color='black', enable_events=True, readonly=True)],
                       ])
 
 imaging_scan_layer = sg.Frame('Set up imaging parameters', 
                       [ [sg.Text('Start angle',size = (15,1),font=('Helvetica', 12), text_color='black'),
                          sg.In(default_text=default_DICOM_IMAGE_START_ANGLE,key='-STARTANGLEROT-',size=(15,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('Direction of rotation',size = (15,1),font=('Helvetica', 12), text_color='black'),
-                         sg.Combo(['Clockwise', 'Anticlockwise'], default_value='Clockwise' ,key='-DIRECTROT-', readonly=True ,enable_events=True)],
+                        [sg.Text('CBCT or kVkV',size = (15,1),font=('Helvetica', 12), text_color='black'),
+                         sg.Combo(['CBCT Clockwise', 'CBCT Anticlockwise', 'kVkV'], default_value='CBCT Clockwise' ,key='-DIRECTROT-', readonly=True ,enable_events=True)],
                         [sg.Text('Rotate Rate',size = (15,1),font=('Helvetica', 12), text_color='black'),
                         sg.In(default_text=default_TIME_ROT_RATE,key='-TIMEROTRATE-',size=(15,1), font=('Helvetica', 12), enable_events=True, readonly=True)],
                         [sg.Text('kVp',size = (15,1),font=('Helvetica', 12), text_color='black'),
@@ -86,8 +87,10 @@ imaging_scan_layer = sg.Frame('Set up imaging parameters',
 dicom_information_layer = sg.Frame('Instructions on the usage of the DICOM adjustments', 
                              [ 
                                [sg.Text('The programme automatically shifts the patient such that the isocentre of the treatment plan is matched to the isocentre of the beam.')],
-                               [sg.Text('In the next page, make any adjustments relative to the ioscentre of the treatment plan.')],
-                               [sg.Text('Use the other tabs to make edits to other parameters like collimator openings and beam current. ')],
+                               [sg.Text('For patient set up adjustments, make any adjustments relative to the ioscentre of the treatment plan.')],
+                               [sg.Text('If the first imaging scan was Left, Posterior and Superior of the planned isocentre, this would be a positve XYZ input.')],
+                               [sg.Text('Use the previous tab to make edits to other parameters like collimator openings and beam current. ')],
+                               [sg.Text('The programme currently only supports CT modality.')],
                              ]) 
 
 dicom_file_layer = sg.Frame("DICOM inputs",
@@ -105,17 +108,17 @@ dicom_file_layer = sg.Frame("DICOM inputs",
 
 dicom_patient_layer = sg.Frame('Patient set up adjustments',
                     [
-                        [sg.Text('TransX',size = (10,1),font=('Helvetica', 12), text_color='black'),
+                        [sg.Text('X shift from iso',size = (14,1),font=('Helvetica', 12), text_color='black'),
                         sg.In(default_text=default_DICOM_TRANS_X,key='-DICOM_TX-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('TransY',size = (10,1),font=('Helvetica', 12), text_color='black'),
+                        [sg.Text('Y shift from iso',size = (14,1),font=('Helvetica', 12), text_color='black'),
                         sg.In(default_text=default_DICOM_TRANS_Y,key='-DICOM_TY-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('TransZ',size = (10,1),font=('Helvetica', 12), text_color='black'),
+                        [sg.Text('Z shift from iso',size = (14,1),font=('Helvetica', 12), text_color='black'),
                         sg.In(default_text=default_DICOM_TRANS_Z,key='-DICOM_TZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)],
-                        [sg.Text('RotX',size = (10,1),font=('Helvetica', 12), text_color='black'),
+                        [sg.Text('Pitch',size = (14,1),font=('Helvetica', 12), text_color='black'),
                         sg.In(default_text=default_DICOM_ROT_X,key='-DICOM_ROTX-',size=(10,1), font=('Helvetica', 12), enable_events=True)], 
-                        [sg.Text('RotY',size = (10,1),font=('Helvetica', 12), text_color='black'),
+                        [sg.Text('Roll',size = (14,1),font=('Helvetica', 12), text_color='black'),
                         sg.In(default_text=default_DICOM_ROT_Y,key='-DICOM_ROTY-',size=(10,1), font=('Helvetica', 12), enable_events=True)], 
-                        [sg.Text('RotZ',size = (10,1),font=('Helvetica', 12), text_color='black'),
+                        [sg.Text('Yaw',size = (14,1),font=('Helvetica', 12), text_color='black'),
                         sg.In(default_text=default_DICOM_ROT_Z,key='-DICOM_ROTZ-',size=(10,1), font=('Helvetica', 12), enable_events=True)], 
                     ])
 
@@ -129,6 +132,12 @@ dicom_planned_layer = sg.Frame('Treatment plan parameters',
                         [sg.Text('Isocenter Z',size = (10,1),font=('Helvetica', 12), text_color='black'),
                         sg.In(default_text=default_DICOM_ISOCENTER_Z, key='-DICOM_ISOZ-',size=(10,1), font=('Helvetica', 12), enable_events=True, readonly=True)],
                     ], vertical_alignment='top')
+
+dicom_graphics_layer = sg.Frame('DICOM simulation graphics',
+                               [[sg.Checkbox("DICOM graphics toggle", enable_events=True, key='-DICOM_GRAPHICS-', default= False)],
+                                [sg.Text('It is highly recommended to never use this ')],
+                                [sg.Text('due to excessive lag from the large image set. ')],
+                                ], vertical_alignment='top')
 
 
 CTDI_information_layer = sg.Frame('Instructions on the usage of the CTDI phantom parameters', 
@@ -165,7 +174,7 @@ Couch_layer = sg.pin(sg.Frame("Couch",
 
 CTDI_run_layer= sg.Frame('Activate CTDI simulation', 
                            [
-                             [sg.Checkbox("Graphics toggle", enable_events=True, key='-GRAPHICS-', default= False)],
+                             [sg.Checkbox("CTDI graphics toggle", enable_events=True, key='-CTDI_GRAPHICS-', default= False)],
                              [sg.Button("Run", enable_events=True, key='-RUN-', disabled=False, font=('Helvetica', 14), disabled_button_color='grey')],
                             ])
      

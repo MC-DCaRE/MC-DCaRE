@@ -11,9 +11,45 @@ def run_topas(x1):
         command = x1[0][0]
         rundatadir = x1[1][0]
         subprocess.run("cd " + rundatadir, shell=True)
-        result = subprocess.run(command, cwd= rundatadir, shell =True, capture_output=True, text=True)
+        # result = subprocess.run(command, cwd= rundatadir, shell =True, capture_output=True, text=True)
+        result = subprocess.run(command, cwd= rundatadir, shell =True) #for console output 
         print(result.stdout) #Gives console output
         print('ran')
+
+def plugsgenerator(phantomsize, rundatadir, topas_application_path): 
+        path = os.getcwd()
+        plugs_position = ['ChamberPlugCentre', 'ChamberPlugTop', 'ChamberPlugBottom', 'ChamberPlugLeft', 'ChamberPlugRight']
+        commands = []
+        for position in plugs_position:
+                file1 = open(path + '/tmp/headsourcecode.txt', 'r')
+                if phantomsize == 'ctdi16':
+                        file2 = open(path +'/tmp/CTDIphantom_16.txt', 'r')
+                if phantomsize == 'ctdi32':
+                        file2 = open(path +'/tmp/CTDIphantom_16.txt', 'r')
+                content1 = file1.read()
+                file1.close()
+                content2 = file2.read()
+                file2.close()
+                combinedtext= open(path +'/tmp/plugsourcecode.txt', 'w')
+                combinedtext.write(content1 +content2)
+                positionfile = rundatadir + '/'+ position + '.txt'
+                shutil.copy(path + '/tmp/plugsourcecode.txt', positionfile)
+                # positionfile = '/root/nccs/Topas_wrapper/test/samplefile/dumpster' + '/'+ position + '.txt'
+                # shutil.copy('/root/nccs/Topas_wrapper/test/samplefile/testreplace.txt', positionfile)
+                search_text1 = '@@PLACEHOLDER@@'
+                replace_text1 = position
+                search_text2 = 's:Ge/'+ position + '/Material="PMMA"'
+                replace_text2 = 's:Ge/'+ position + '/Material="Air"'
+                with open(path +'/tmp/plugsourcecode.txt', 'r') as file:
+                        file_data = file.read()
+                        file_data = file_data.replace(search_text1, replace_text1)
+                        file_data = file_data.replace(search_text2, replace_text2)
+                with open(positionfile, 'w') as file:
+                        file.write(file_data)
+                commands.append(topas_application_path + ' ' + rundatadir + '/'+ position + '.txt')
+                print(commands)
+        
+        return commands 
 
 def log_output(input_file_path, tag, topas_application_path, fan_tag):
         rundatadir = os.path.join(
@@ -43,41 +79,35 @@ def log_output(input_file_path, tag, topas_application_path, fan_tag):
                 run_status= "DICOM simulation completed"
 
         elif tag == 'ctdi16':
-                # Needs plus position generator 
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/ConvertedTopasFile_head.txt', rundatadir)
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Muen.dat', rundatadir)
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/NbParticlesInTime.txt', rundatadir)
-                ### ADD 5 plugs generation
                 if fan_tag == 'Full Fan':
                        shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/fullfan.txt', rundatadir)
                 elif fan_tag == 'Half Fan':
                        shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/halffan.txt', rundatadir)
-                shutil.copy(path + '/tmp/headsourcecode.txt', rundatadir)
-                shutil.copy(path + '/tmp/CTDIphantom_16.txt', rundatadir)
+                commands = plugsgenerator('ctdi16', rundatadir, topas_application_path)
 
-                command = [topas_application_path + ' ' + rundatadir + '/headsourcecode.txt']
+                # command = [topas_application_path + ' ' + rundatadir + '/headsourcecode.txt'] #Fix here
                 pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
-                pool.map_async(run_topas, [(command, [rundatadir])])
+                pool.map_async(run_topas, [(commands, [rundatadir])])
                 pool.close()
                 pool.join()
                 run_status= "CTDI simulation completed" 
 
         elif tag == 'ctdi32':
-                # Needs plus position generator 
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/ConvertedTopasFile_head.txt', rundatadir)
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Muen.dat', rundatadir)
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/NbParticlesInTime.txt', rundatadir)
-                ### ADD 5 plugs generation
                 if fan_tag == 'Full Fan':
                        shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/fullfan.txt', rundatadir)
                 elif fan_tag == 'Half Fan':
                        shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/halffan.txt', rundatadir)
-                shutil.copy(path + '/tmp/headsourcecode.txt', rundatadir)
-                shutil.copy(path + '/tmp/CTDIphantom_32.txt', rundatadir)
+                commands =plugsgenerator('ctdi32', rundatadir, topas_application_path)
 
-                command = [topas_application_path + ' ' + rundatadir + '/headsourcecode.txt']
+                # command = [topas_application_path + ' ' + rundatadir + '/headsourcecode.txt']
                 pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
-                pool.map_async(run_topas, [(command, [rundatadir])])
+                pool.map_async(run_topas, [(commands, [rundatadir])])
                 pool.close()
                 pool.join()
                 run_status= "CTDI simulation completed" 

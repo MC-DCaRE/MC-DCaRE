@@ -116,23 +116,23 @@ s:Ge/ChamberPlugRight/color="Brown"
 #Scoringalongcylindricalaxis
 s:Sc/ChamberPlugDose_tle/Quantity="TrackLengthEstimator"#Zbinningcausescreationofaparallelworldforscoring
 s:Sc/ChamberPlugDose_tle/InputFile="Muen.dat"
-s:Sc/ChamberPlugDose_tle/Component="ChamberPlugCentre"
+s:Sc/ChamberPlugDose_tle/Component="@@PLACEHOLDER@@"
 s:Sc/ChamberPlugDose_tle/IfOutputFileAlreadyExists="Overwrite"
 i:Sc/ChamberPlugDose_tle/ZBins=100 #0.1 cm/bin1.0mm/bin
 
 s:Sc/ChamberPlugDose_dtm/Quantity="DoseToMaterial"#Zbinningcausescreationofaparallelworldforscoring
-s:Sc/ChamberPlugDose_dtm/Component="ChamberPlugCentre"
+s:Sc/ChamberPlugDose_dtm/Component="@@PLACEHOLDER@@"
 s:Sc/ChamberPlugDose_dtm/IfOutputFileAlreadyExists="Overwrite"
 i:Sc/ChamberPlugDose_dtm/ZBins=100 #0.1 cm/bin1.0mm/bin
 s:Sc/ChamberPlugDose_dtm/Material="Air"
 b:Sc/ChamberPlugDose_dtm/PreCalculateStoppingPowerRatios ="True"
 
 s:Sc/ChamberPlugDose_dtw/Quantity="DoseToWater"#Zbinningcausescreationofaparallelworldforscoring
-s:Sc/ChamberPlugDose_dtw/Component="ChamberPlugCentre"
+s:Sc/ChamberPlugDose_dtw/Component="@@PLACEHOLDER@@"
 s:Sc/ChamberPlugDose_dtw/IfOutputFileAlreadyExists="Overwrite"
 b:Sc/ChamberPlugDose_dtw/PreCalculateStoppingPowerRatios ="True"
 i:Sc/ChamberPlugDose_dtw/ZBins=100 #0.1 cm/bin1.0mm/bin
 
-s:Sc/ChamberPlugDose_tle/OutputFile="ChamberPlugCentre_tle"
-s:Sc/ChamberPlugDose_dtm/OutputFile="ChamberPlugCentre_dtm"
-s:Sc/ChamberPlugDose_dtw/OutputFile="ChamberPlugCentre_dtw"
+s:Sc/ChamberPlugDose_tle/OutputFile="@@PLACEHOLDER@@_tle"
+s:Sc/ChamberPlugDose_dtm/OutputFile="@@PLACEHOLDER@@_dtm"
+s:Sc/ChamberPlugDose_dtw/OutputFile="@@PLACEHOLDER@@_dtw"

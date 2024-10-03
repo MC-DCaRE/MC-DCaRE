@@ -5,8 +5,6 @@
 includeFile=ConvertedTopasFile_head.txt
 includeFile = fullfan.txt
 includeFile = halffan.txt
-includeFile = CTDIphantom_16.txt
-includeFile = CTDIphantom_32.txt
 includeFile = patientDICOM.txt
 sv:Ph/Default/LayeredMassGeometryWorlds = 5 "ChamberPlugCentre" "ChamberPlugTop" "ChamberPlugBottom" "ChamberPlugLeft" "ChamberPlugRight"
 
@@ -307,3 +305,4 @@ b:Gr/ViewA/IncludeAxes="True"
 d:Gr/ViewA/AxesSize=0.5 m
 b:Ts/ShowCPUTime="True"
 sv:Gr/ViewA/VisibleWorlds = 1 "All"
+

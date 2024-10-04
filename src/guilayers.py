@@ -1,5 +1,5 @@
 # Helper script to set up the GUI elements. Edits to elements should be made here. Another daughter script called defaultvalues.py is used to store all the default parameters. 
-import PySimpleGUI as sg
+import FreeSimpleGUI as sg
 sg.theme('Reddit')
 from src.defaultvalues import *
 

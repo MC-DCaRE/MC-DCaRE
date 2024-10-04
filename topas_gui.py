@@ -1,5 +1,5 @@
 import os
-import PySimpleGUI as sg
+import FreeSimpleGUI as sg
 import shutil
 from pydicom import dcmread
 from src.runtime_handler import log_output

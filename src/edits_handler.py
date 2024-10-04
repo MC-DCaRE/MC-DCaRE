@@ -22,15 +22,17 @@ def stringindexreplacement(SearchString :str , TargetList: str , ReplacementStri
 def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
     '''
     Main function that handles the editting and changing of parameter files. 
-    Uses the values and selectcomponent dictionary to reference for keys and value to replace. 
-
-    :filetype str: either "main" or "sub" ; "main" is for the mainheadscript and "sub" if for includefiles
+    As the user inputs are saved in the values dictionary, this is passed in as change_dictionary and we can use the associated key to reference it and pull the data. 
+    The function opens the Targetfile and saves it as a list on memory to be editted before rewriting after all edits are done on the list. 
+    All edits must be hardcoded here. 
+    
+    :filetype str: either "main" or "sub" ; "main" is for the mainheadscript and "sub" is for includefiles
     '''
     with open(TargetFile, 'r') as Rread_file:
         filecontent = Rread_file.readlines()
 
     if filetype == 'main':
-        ##General edits
+        # Edits for mainheadsource
         stringindexreplacement('s:Ts/G4DataDirectory', filecontent , '\"'+change_dictionary['-G4FOLDERNAME-']+'\"') 
         stringindexreplacement('i:Tf/NumberOfSequentialTimes', filecontent , change_dictionary['-TIMESEQ-']) 
         stringindexreplacement('i:Tf/Verbosity', filecontent , change_dictionary['-TIMEVERBO-']) 
@@ -56,20 +58,19 @@ def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
             stringindexreplacement('includeFile = CTDIphantom_32.txt', filecontent , )
             stringindexreplacement('sv:Ph/Default/LayeredMassGeometryWorlds', filecontent , )
             if change_dictionary['-DICOM_GRAPHICS-'] ==False: 
-                ### Removes the includeFile line
+                ### Removes graphics 
                 stringindexreplacement('Ts/UseQt', filecontent , ) 
                 stringindexreplacement('s:Gr/ViewA/Type', filecontent , ) 
                 stringindexreplacement('b:Gr/Enable', filecontent , ) 
+
         elif change_dictionary['-FUNCTION_CHECK-'] == 'CTDI validation':
             ### Removes DICOM includeFile and the other phantom file
             stringindexreplacement('includeFile = patientDICOM.txt', filecontent , )
             if change_dictionary['-CTDI_GRAPHICS-'] ==False: 
-                ### Removes the includeFile line
+                ### Removes graphics 
                 stringindexreplacement('Ts/UseQt', filecontent , ) 
                 stringindexreplacement('s:Gr/ViewA/Type', filecontent , ) 
                 stringindexreplacement('b:Gr/Enable', filecontent , ) 
-        elif change_dictionary['-GRAPHICS-'] ==True:
-            pass 
 
             if change_dictionary['-CTDI_PHANTOM-'] == '16 cm': 
                 stringindexreplacement('includeFile = CTDIphantom_32.txt', filecontent , )
@@ -78,6 +79,7 @@ def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
 
 
     if filetype == 'sub':
+        # Edits related to includeFiles 
         if change_dictionary['-FUNCTION_CHECK-'] == 'DICOM':
             stringindexreplacement('d:Ge/Patient/RotX', filecontent , change_dictionary['-DICOM_ROTX-']) 
             stringindexreplacement('d:Ge/Patient/RotY', filecontent , change_dictionary['-DICOM_ROTY-']) 

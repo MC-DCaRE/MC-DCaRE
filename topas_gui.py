@@ -96,10 +96,8 @@ while True:
         f.write( 'dict = '+repr(values)+ '\n')
         f.close()
 
-    if event == '-TOPAS-':
-        topas_application_path = values['-TOPAS-'] + " "
-
     if event == '-FUNCTION_CHECK-':
+        # Turns on or off visibility of the tab when checkbox is selected
         if values['-FUNCTION_CHECK-'] == 'DICOM':
             window['-DICOM_TAB-'].update(visible=True)
             window['-CTDI_TAB-'].update(visible=False)
@@ -108,6 +106,7 @@ while True:
             window['-DICOM_TAB-'].update(visible=False)
             
     if event == '-DICOM-':
+        # Takes DICOM imageset location and checks it for CT images and pulls relevant data tags
         count_of_CT_images = 0
         try:    
             DICOM_PATH = values['-DICOM-']
@@ -123,6 +122,7 @@ while True:
             sg.popup_error("No CT images found in the folder")
 
     if event == '-DICOMRP-':
+        # Takes DICOM RT plan and checks patientID match and pulls out isocentre data. 
         if dcmread(values['-DICOMRP-']).PatientID == values['-PATID-']: 
             try:    
                 isocentre_coors = dcmread(values['-DICOMRP-']).BeamSequence[0].ControlPointSequence[0].IsocenterPosition
@@ -151,10 +151,12 @@ while True:
             reset_tmp()
             sg.popup(run_status)
         except:
-            sg.popup_error("Ensure that you have specified a DICOM folder and file")
+            sg.popup_error("Ensure that you have specified a valid DICOM folder and file")
     
     if event == '-RUN-':
-        # add code to edit the tmp file
+        # When users try to simulate CTDI , this block will run. 
+        # Code will activate the editor() function to edit the tmp file
+        # Runtimehandler will then form the timestamp folder and drop the outputs there
         tmp_headsource_file_path = path + '/tmp/headsourcecode.txt'
         editor(values, tmp_headsource_file_path, 'main')
         topas_application_path = values['-TOPAS-'] + " "
@@ -172,7 +174,7 @@ while True:
             sg.popup(run_status)
 
     if event == '-IMAGEMODE-':
-        # When users select the image protocol, this block will run and put input the imaging parameteres
+        # When users select the image protocol, this block will run and input the imaging parameteres
         # Hardcoded values for image protocol
         if values['-IMAGEMODE-'] == 'Image Gently':
             values['-FAN-'] = 'Full Fan'
@@ -290,6 +292,7 @@ while True:
             pass
     
     if event == '-DIRECTROT-':
+        # This switches the direction of rotation depending on mode 
         if values['-DIRECTROT-'] == 'CBCT Clockwise':
             values['-TIMEROTRATE-'] = '0.4 deg/s'
             window['-TIMEROTRATE-'].update(values['-TIMEROTRATE-'])

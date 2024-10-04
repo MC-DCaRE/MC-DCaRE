@@ -15,8 +15,6 @@ Full descriptions of the simulation and beam model is in pre-publication.
 
 Version: Beta Prerelease 
 
-User type: End user version 
-
 
 ## How to install and run 
 
@@ -28,5 +26,7 @@ User type: End user version
 
 Take note of the file directory for TOPASMC and Geant4. 
 
-To run MC-DCaRE, run the python script `topas_gui.py`. In the main menu, specify the your Geant4 directory and the file location of your topas binary.
+### Running MC-DCaRE
+To run MC-DCaRE, run the python script `topas_gui.py`. In the main menu, specify the your Geant4 directory and the file location of your topas binary. 
+Select your function and input your parameters to be processed. 
 

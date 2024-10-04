@@ -93,6 +93,8 @@ def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
             stringindexreplacement('dc:Ge/Patient/UserTransX', filecontent , change_dictionary['-DICOM_TX-'])
             stringindexreplacement('dc:Ge/Patient/UserTransY', filecontent , change_dictionary['-DICOM_TY-'])
             stringindexreplacement('dc:Ge/Patient/UserTransZ', filecontent , change_dictionary['-DICOM_TZ-'])
+
+            stringindexreplacement('s:Sc/DoseOnRTGrid100kz17/OutputFile', filecontent , '\"' +change_dictionary['-PATID-'] + '_DOSE_PTV' +'\"') 
             
         elif change_dictionary['-FUNCTION_CHECK-'] == 'CTDI validation':
             if change_dictionary['-COUCH_TOG-'] == False: 

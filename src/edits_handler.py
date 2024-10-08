@@ -43,7 +43,13 @@ def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
         stringindexreplacement('i:Ts/NumberOfThreads', filecontent , change_dictionary['-THREAD-']) 
         stringindexreplacement('i:So/beam/NumberOfHistoriesInRun', filecontent , change_dictionary['-HIST-']) 
 
-            
+        # For blade openings 
+        # stringindexreplacement('dc:Ge/Coll1/TransY', filecontent , '\"'+change_dictionary['-BLADE_X1-']+'\"') 
+        # stringindexreplacement('dc:Ge/Coll2/TransY', filecontent , '\"'+change_dictionary['-BLADE_X2-']+'\"') 
+        # stringindexreplacement('dc:Ge/Coll3/TransX', filecontent , '\"'+change_dictionary['-BLADE_Y1-']+'\"') 
+        # stringindexreplacement('dc:Ge/Coll4/TransX', filecontent , '\"'+change_dictionary['-BLADE_Y2-']+'\"') 
+
+
         if change_dictionary['-FAN-'] == 'Full Fan':
             ### Removes the includeFile line for half bowtie
             stringindexreplacement('includeFile = halffan.txt', filecontent , ) 

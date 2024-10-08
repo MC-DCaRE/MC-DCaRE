@@ -54,7 +54,7 @@ others_layout = [[settings_information_layout],
                  [Time_layer, Scoring_layer], 
                  [imaging_protocol_layer, imaging_scan_layer]]
 
-layout = [[ sg.Text('Monte Carlo - Dose Calculation for Risk Evaluation', justification='center',font=('Helvetica 30 bold'), text_color='dark blue')],
+layout = [[ sg.Text('Monte Carlo - Dose Calculation for Risk Evaluation', justification='center',font=('Arial 30 bold'), text_color='dark blue')],
           [sg.TabGroup([[sg.Tab('Main menu' , main_layout),
                          sg.Tab('Simulation settings', others_layout),
                          sg.Tab('DICOM adjustments menu', dicom_layout, key= '-DICOM_TAB-', visible=False),
@@ -64,7 +64,7 @@ layout = [[ sg.Text('Monte Carlo - Dose Calculation for Risk Evaluation', justif
                         ]]
 
 sg.set_options(scaling=1)
-window = sg.Window(title= "MC-DCaRE", layout=layout, finalize=True, auto_size_text=True, font ='Helvetica' )
+window = sg.Window(title= "MC-DCaRE", layout=layout, finalize=True, auto_size_text=True, font ='Arial' )
 
 # Defining some required values
 path = os.getcwd()
@@ -86,6 +86,8 @@ while True:
         # HAS TO BE A LOOPED FUNCTION CAUSE PYSIMPLEGUI
         for i in values: 
             window[i].update(values_default[i])
+        window['-CTDI_TAB-'].update(visible=False)
+        window['-DICOM_TAB-'].update(visible=False)
         pass
 
     if event == '-G4FOLDERNAME-_ENTER':

@@ -180,10 +180,10 @@ while True:
         # Hardcoded values for image protocol
         if values['-IMAGEMODE-'] == 'Image Gently':
             values['-FAN-'] = 'Full Fan'
-            values['-BLADE_X1-'] = '1 mm'
-            values['-BLADE_X2-'] = '2 mm'
-            values['-BLADE_Y1-'] = '3 mm'
-            values['-BLADE_Y2-'] = '4 mm'
+            values['-BLADE_X1-'] = '14.0 cm'
+            values['-BLADE_X2-'] = '14.0 cm'
+            values['-BLADE_Y1-'] = '10.7 cm'
+            values['-BLADE_Y2-'] = '10.7 cm'
             values['-IMAGEVOLTAGE-'] = '80 kV'
             values['-BEAMCURRENT-'] = '100 mAs'
             window['-FAN-'].update(values['-FAN-'])
@@ -196,10 +196,10 @@ while True:
 
         elif values['-IMAGEMODE-'] == 'Head':
             values['-FAN-'] = 'Full Fan'
-            values['-BLADE_X1-'] = '1 mm'
-            values['-BLADE_X2-'] = '2 mm'
-            values['-BLADE_Y1-'] = '3 mm'
-            values['-BLADE_Y2-'] = '4 mm'
+            values['-BLADE_X1-'] = '14.0 cm'
+            values['-BLADE_X2-'] = '14.0 cm'
+            values['-BLADE_Y1-'] = '10.7 cm'
+            values['-BLADE_Y2-'] = '10.7 cm'
             values['-IMAGEVOLTAGE-'] = '100 kV'
             values['-BEAMCURRENT-'] = '150 mAs'
             window['-FAN-'].update(values['-FAN-'])
@@ -212,10 +212,10 @@ while True:
 
         elif values['-IMAGEMODE-'] == 'Short Thorax':
             values['-FAN-'] = 'Full Fan'
-            values['-BLADE_X1-'] = '1 mm'
-            values['-BLADE_X2-'] = '2 mm'
-            values['-BLADE_Y1-'] = '3 mm'
-            values['-BLADE_Y2-'] = '4 mm'
+            values['-BLADE_X1-'] = '14.0 cm'
+            values['-BLADE_X2-'] = '14.0 cm'
+            values['-BLADE_Y1-'] = '10.7 cm'
+            values['-BLADE_Y2-'] = '10.7 cm'
             values['-IMAGEVOLTAGE-'] = '125 kV'
             values['-BEAMCURRENT-'] = '210 mAs'
             window['-FAN-'].update(values['-FAN-'])
@@ -228,10 +228,10 @@ while True:
 
         elif values['-IMAGEMODE-'] == 'Spotlight':
             values['-FAN-'] = 'Full Fan'
-            values['-BLADE_X1-'] = '1 mm'
-            values['-BLADE_X2-'] = '2 mm'
-            values['-BLADE_Y1-'] = '3 mm'
-            values['-BLADE_Y2-'] = '4 mm'
+            values['-BLADE_X1-'] = '14.0 cm'
+            values['-BLADE_X2-'] = '14.0 cm'
+            values['-BLADE_Y1-'] = '10.7 cm'
+            values['-BLADE_Y2-'] = '10.7 cm'
             values['-IMAGEVOLTAGE-'] = '125 kV'
             values['-BEAMCURRENT-'] = '750 mAs'
             window['-FAN-'].update(values['-FAN-'])
@@ -244,10 +244,10 @@ while True:
 
         elif values['-IMAGEMODE-'] == 'Thorax':
             values['-FAN-'] = 'Half Fan'
-            values['-BLADE_X1-'] = '1 mm'
-            values['-BLADE_X2-'] = '2 mm'
-            values['-BLADE_Y1-'] = '3 mm'
-            values['-BLADE_Y2-'] = '4 mm'
+            values['-BLADE_X1-'] = '14.0 cm'
+            values['-BLADE_X2-'] = '14.0 cm'
+            values['-BLADE_Y1-'] = '10.7 cm'
+            values['-BLADE_Y2-'] = '10.7 cm'
             values['-IMAGEVOLTAGE-'] = '270 kV'
             values['-BEAMCURRENT-'] = '1080 mAs'
             window['-FAN-'].update(values['-FAN-'])
@@ -260,10 +260,10 @@ while True:
 
         elif values['-IMAGEMODE-'] == 'Pelvis':
             values['-FAN-'] = 'Half Fan'
-            values['-BLADE_X1-'] = '1 mm'
-            values['-BLADE_X2-'] = '2 mm'
-            values['-BLADE_Y1-'] = '3 mm'
-            values['-BLADE_Y2-'] = '4 mm'
+            values['-BLADE_X1-'] = '24.7 cm'
+            values['-BLADE_X2-'] = '3.3 cm'
+            values['-BLADE_Y1-'] = '10.7 cm'
+            values['-BLADE_Y2-'] = '10.7 cm'
             values['-IMAGEVOLTAGE-'] = '140 kV'
             values['-BEAMCURRENT-'] = '1688 mAs'
             window['-FAN-'].update(values['-FAN-'])
@@ -276,10 +276,10 @@ while True:
 
         elif values['-IMAGEMODE-'] == 'Pelvis Large':
             values['-FAN-'] = 'Half Fan'
-            values['-BLADE_X1-'] = '1 mm'
-            values['-BLADE_X2-'] = '2 mm'
-            values['-BLADE_Y1-'] = '3 mm'
-            values['-BLADE_Y2-'] = '4 mm'
+            values['-BLADE_X1-'] = '24.7 cm'
+            values['-BLADE_X2-'] = '3.3 cm'
+            values['-BLADE_Y1-'] = '10.7 cm'
+            values['-BLADE_Y2-'] = '10.7 cm'
             values['-IMAGEVOLTAGE-'] = '125 kV'
             values['-BEAMCURRENT-'] = '672 mAs'
             window['-FAN-'].update(values['-FAN-'])

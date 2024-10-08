@@ -117,12 +117,8 @@ dicom_patient_layer = sg.Frame('Patient set up adjustments',
                         sg.In(default_text=default_DICOM_TRANS_Y,key='-DICOM_TY-',size=(10,1),  enable_events=True)],
                         [sg.Text('Z shift from iso',size = (14,1), text_color='black'),
                         sg.In(default_text=default_DICOM_TRANS_Z,key='-DICOM_TZ-',size=(10,1),  enable_events=True)],
-                        [sg.Text('Pitch',size = (14,1), text_color='black'),
-                        sg.In(default_text=default_DICOM_ROT_X,key='-DICOM_ROTX-',size=(10,1),  enable_events=True)], 
-                        [sg.Text('Roll',size = (14,1), text_color='black'),
-                        sg.In(default_text=default_DICOM_ROT_Y,key='-DICOM_ROTY-',size=(10,1),  enable_events=True)], 
                         [sg.Text('Yaw',size = (14,1), text_color='black'),
-                        sg.In(default_text=default_DICOM_ROT_Z,key='-DICOM_ROTZ-',size=(10,1),  enable_events=True)], 
+                        sg.In(default_text=default_DICOM_ROT_Z,key='-DICOM_YAW-',size=(10,1),  enable_events=True)], 
                     ])
 
 

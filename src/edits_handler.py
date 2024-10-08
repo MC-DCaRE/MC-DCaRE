@@ -87,9 +87,7 @@ def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
     if filetype == 'sub':
         # Edits related to includeFiles 
         if change_dictionary['-FUNCTION_CHECK-'] == 'DICOM':
-            stringindexreplacement('d:Ge/Patient/RotX', filecontent , change_dictionary['-DICOM_ROTX-']) 
-            stringindexreplacement('d:Ge/Patient/RotY', filecontent , change_dictionary['-DICOM_ROTY-']) 
-            stringindexreplacement('d:Ge/Patient/RotZ', filecontent , change_dictionary['-DICOM_ROTZ-']) 
+            stringindexreplacement('d:Ge/patrotation/yaw', filecontent , change_dictionary['-DICOM_YAW-']) 
             stringindexreplacement('s:Ge/Patient/DicomDirectory', filecontent , '\"'+change_dictionary['-DICOM-']+'\"') 
 
             stringindexreplacement('dc:Ge/IsocenterX', filecontent , change_dictionary['-DICOM_ISOX-'])  

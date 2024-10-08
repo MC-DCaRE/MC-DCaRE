@@ -64,7 +64,7 @@ layout = [[ sg.Text('Monte Carlo - Dose Calculation for Risk Evaluation', justif
                         ]]
 
 sg.set_options(scaling=1)
-window = sg.Window(title= "MC-DCaRE", layout=layout, finalize=True, auto_size_text=True, font = ('DejaVuSerif', 15))
+window = sg.Window(title= "MC-DCaRE", layout=layout, finalize=True, auto_size_text=True, font = ('', 15))
 
 # Defining some required values
 path = os.getcwd()

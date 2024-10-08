@@ -54,17 +54,17 @@ others_layout = [[settings_information_layout],
                  [Time_layer, Scoring_layer], 
                  [imaging_protocol_layer, imaging_scan_layer]]
 
-layout = [[ sg.Text('Monte Carlo - Dose Calculation for Risk Evaluation', justification='center',font=('Arial 30 bold'), text_color='dark blue')],
+layout = [[ sg.Text('Monte Carlo - Dose Calculation for Risk Evaluation', justification='center', text_color='dark blue', font=('',40,'bold'))],
           [sg.TabGroup([[sg.Tab('Main menu' , main_layout),
                          sg.Tab('Simulation settings', others_layout),
                          sg.Tab('DICOM adjustments menu', dicom_layout, key= '-DICOM_TAB-', visible=False),
                          sg.Tab('CTDI phantom menu' , chamber_layout, key= '-CTDI_TAB-', visible=False),
                          ]],
-                         key='-TAB GROUP-', font=(40) ,expand_x=True, expand_y=True),
+                         key='-TAB GROUP-' ,expand_x=True, expand_y=True),
                         ]]
 
 sg.set_options(scaling=1)
-window = sg.Window(title= "MC-DCaRE", layout=layout, finalize=True, auto_size_text=True, font ='Arial' )
+window = sg.Window(title= "MC-DCaRE", layout=layout, finalize=True, auto_size_text=True, font = ('DejaVuSerif', 15))
 
 # Defining some required values
 path = os.getcwd()

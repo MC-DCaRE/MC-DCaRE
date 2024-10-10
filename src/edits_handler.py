@@ -35,7 +35,6 @@ def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
         # Edits for mainheadsource
         stringindexreplacement('s:Ts/G4DataDirectory', filecontent , '\"'+change_dictionary['-G4FOLDERNAME-']+'\"') 
         stringindexreplacement('i:Tf/NumberOfSequentialTimes', filecontent , change_dictionary['-TIMESEQ-']) 
-        stringindexreplacement('i:Tf/Verbosity', filecontent , change_dictionary['-TIMEVERBO-']) 
         stringindexreplacement('d:Tf/TimelineEnd', filecontent , change_dictionary['-TIMELINEEND-']) 
         stringindexreplacement('d:Tf/Rotate/Rate', filecontent , change_dictionary['-TIMEROTRATE-']) 
         stringindexreplacement('d:Tf/Rotate/StartValue', filecontent , change_dictionary['-STARTANGLEROT-']) 
@@ -44,10 +43,10 @@ def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
         stringindexreplacement('i:So/beam/NumberOfHistoriesInRun', filecontent , change_dictionary['-HIST-']) 
 
         # For blade openings 
-        # stringindexreplacement('dc:Ge/Coll1/TransY', filecontent , '\"'+change_dictionary['-BLADE_X1-']+'\"') 
-        # stringindexreplacement('dc:Ge/Coll2/TransY', filecontent , '\"'+change_dictionary['-BLADE_X2-']+'\"') 
-        # stringindexreplacement('dc:Ge/Coll3/TransX', filecontent , '\"'+change_dictionary['-BLADE_Y1-']+'\"') 
-        # stringindexreplacement('dc:Ge/Coll4/TransX', filecontent , '\"'+change_dictionary['-BLADE_Y2-']+'\"') 
+        stringindexreplacement('dc:Ge/Coll1/TransY', filecontent , change_dictionary['-BLADE_X1-']) 
+        stringindexreplacement('dc:Ge/Coll2/TransY', filecontent , change_dictionary['-BLADE_X2-']) 
+        stringindexreplacement('dc:Ge/Coll3/TransX', filecontent , change_dictionary['-BLADE_Y1-']) 
+        stringindexreplacement('dc:Ge/Coll4/TransX', filecontent , change_dictionary['-BLADE_Y2-']) 
 
 
         if change_dictionary['-FAN-'] == 'Full Fan':
@@ -98,8 +97,8 @@ def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
             stringindexreplacement('dc:Ge/Patient/UserTransY', filecontent , change_dictionary['-DICOM_TY-'])
             stringindexreplacement('dc:Ge/Patient/UserTransZ', filecontent , change_dictionary['-DICOM_TZ-'])
 
-            stringindexreplacement('s:Sc/DoseOnRTGrid100kz17/OutputFile', filecontent , '\"' +change_dictionary['-PATID-'] + '_DOSE_PTV' +'\"') 
-            
+            stringindexreplacement('s:Sc/DoseOnRTGrid100kz17/OutputFile', filecontent , '\"' +change_dictionary['-PATID-'] +'_'+ change_dictionary['-DIRECTROT-'] +'_'+ change_dictionary['-IMAGEMODE-'] +'_'+change_dictionary['-STARTANGLEROT-'] + '_DOSE_PTV' +'\"') 
+
         elif change_dictionary['-FUNCTION_CHECK-'] == 'CTDI validation':
             if change_dictionary['-COUCH_TOG-'] == False: 
                 # by removing the parent group link, the component is removed

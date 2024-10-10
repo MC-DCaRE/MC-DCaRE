@@ -5,6 +5,7 @@ from pydicom import dcmread
 from src.runtime_handler import log_output
 from src.edits_handler import editor
 from src.guilayers import *
+from src.imaging_modes_lookuptable import imaging_modes_lookup
 
 #Useful functions###################################################
 def reset_tmp():
@@ -51,8 +52,9 @@ dicom_layout = [[dicom_information_layer],
 
 
 others_layout = [[settings_information_layout],
-                 [Time_layer, Scoring_layer], 
-                 [imaging_protocol_layer, imaging_scan_layer]]
+                 [ imaging_scan_layer, imaging_protocol_layer, History_layer],
+                 [ Hidden_layer], 
+                 ]
 
 layout = [[ sg.Text('Monte Carlo - Dose Calculation for Risk Evaluation', justification='center', text_color='dark blue', font=('',40,'bold'))],
           [sg.TabGroup([[sg.Tab('Main menu' , main_layout),
@@ -97,6 +99,9 @@ while True:
         f = open('dump.txt', 'w')
         f.write( 'dict = '+repr(values)+ '\n')
         f.close()
+        imagemode = values['-DIRECTROT-'] +'_'+ values['-IMAGEMODE-']
+        print(imagemode)
+
 
     if event == '-FUNCTION_CHECK-':
         # Turns on or off visibility of the tab when checkbox is selected
@@ -175,137 +180,46 @@ while True:
             reset_tmp()
             sg.popup(run_status)
 
-    if event == '-IMAGEMODE-':
+    if event == '-IMAGEMODE-' or event == '-DIRECTROT-':
         # When users select the image protocol, this block will run and input the imaging parameteres
         # Hardcoded values for image protocol
-        if values['-IMAGEMODE-'] == 'Image Gently':
-            values['-FAN-'] = 'Full Fan'
-            values['-BLADE_X1-'] = '14.0 cm'
-            values['-BLADE_X2-'] = '14.0 cm'
-            values['-BLADE_Y1-'] = '10.7 cm'
-            values['-BLADE_Y2-'] = '10.7 cm'
-            values['-IMAGEVOLTAGE-'] = '80 kV'
-            values['-BEAMCURRENT-'] = '100 mAs'
-            window['-FAN-'].update(values['-FAN-'])
-            window['-BLADE_X1-'].update(values['-BLADE_X1-'])
-            window['-BLADE_X2-'].update(values['-BLADE_X2-'])
-            window['-BLADE_Y1-'].update(values['-BLADE_Y1-'])
-            window['-BLADE_Y2-'].update(values['-BLADE_Y2-'])
-            window['-IMAGEVOLTAGE-'].update(values['-IMAGEVOLTAGE-'])
-            window['-BEAMCURRENT-'].update(values['-BEAMCURRENT-'])
+        # Varian console shows scan field size. There the on screen value has to be converted to actaul blade position. 
+        imagemode = values['-DIRECTROT-'] +'_'+ values['-IMAGEMODE-']
+        rotrate, voltage , current, fan, timeend, fieldx1, fieldx2, fieldy1, fieldy2, bladex1, bladex2, bladey1, bladey2 = imaging_modes_lookup[imagemode]
+        # selection = ['Rotation Rate', 'kVp', 'beam current', 'Fan', 'BLADE_X1', 'BLADE_X2', 'BLADE_Y1', 'BLADE_Y2', 'FIELD_X1', 'FIELD_X2', 'FIELD_Y1', 'FIELD_Y2']
+        values['-TIMEROTRATE-'] = rotrate
+        values['-IMAGEVOLTAGE-'] = voltage
+        values['-BEAMCURRENT-'] = current       
+        values['-FAN-'] = fan
+        values['-TIMELINEEND-'] = timeend
+        values['-FIELD_X1-'] = fieldx1
+        values['-FIELD_X2-'] = fieldx2
+        values['-FIELD_Y1-'] = fieldy1
+        values['-FIELD_Y2-'] = fieldy2
+        values['-BLADE_X1-'] = bladex1
+        values['-BLADE_X2-'] = bladex2
+        values['-BLADE_Y1-'] = bladey1
+        values['-BLADE_Y2-'] = bladey2
 
-        elif values['-IMAGEMODE-'] == 'Head':
-            values['-FAN-'] = 'Full Fan'
-            values['-BLADE_X1-'] = '14.0 cm'
-            values['-BLADE_X2-'] = '14.0 cm'
-            values['-BLADE_Y1-'] = '10.7 cm'
-            values['-BLADE_Y2-'] = '10.7 cm'
-            values['-IMAGEVOLTAGE-'] = '100 kV'
-            values['-BEAMCURRENT-'] = '150 mAs'
-            window['-FAN-'].update(values['-FAN-'])
-            window['-BLADE_X1-'].update(values['-BLADE_X1-'])
-            window['-BLADE_X2-'].update(values['-BLADE_X2-'])
-            window['-BLADE_Y1-'].update(values['-BLADE_Y1-'])
-            window['-BLADE_Y2-'].update(values['-BLADE_Y2-'])
-            window['-IMAGEVOLTAGE-'].update(values['-IMAGEVOLTAGE-'])
-            window['-BEAMCURRENT-'].update(values['-BEAMCURRENT-'])
+        # values['-TIMEROTRATE-'], values['-IMAGEVOLTAGE-'], values['-BEAMCURRENT-'], values['-FAN-'], values['-TIMELINEEND-'] , values['-FIELD_X1-'], values['-FIELD_X2-'], values['-FIELD_Y1-'], values['-FIELD_Y2-'],a,b,c,d = imaging_modes_lookup[imagemode]
 
-        elif values['-IMAGEMODE-'] == 'Short Thorax':
-            values['-FAN-'] = 'Full Fan'
-            values['-BLADE_X1-'] = '14.0 cm'
-            values['-BLADE_X2-'] = '14.0 cm'
-            values['-BLADE_Y1-'] = '10.7 cm'
-            values['-BLADE_Y2-'] = '10.7 cm'
-            values['-IMAGEVOLTAGE-'] = '125 kV'
-            values['-BEAMCURRENT-'] = '210 mAs'
-            window['-FAN-'].update(values['-FAN-'])
-            window['-BLADE_X1-'].update(values['-BLADE_X1-'])
-            window['-BLADE_X2-'].update(values['-BLADE_X2-'])
-            window['-BLADE_Y1-'].update(values['-BLADE_Y1-'])
-            window['-BLADE_Y2-'].update(values['-BLADE_Y2-'])
-            window['-IMAGEVOLTAGE-'].update(values['-IMAGEVOLTAGE-'])
-            window['-BEAMCURRENT-'].update(values['-BEAMCURRENT-'])
+        window['-TIMEROTRATE-'].update(values['-TIMEROTRATE-'])
+        window['-IMAGEVOLTAGE-'].update(values['-IMAGEVOLTAGE-'])
+        window['-BEAMCURRENT-'].update(values['-BEAMCURRENT-'])
+        window['-FAN-'].update(values['-FAN-'])
+        window['-TIMELINEEND-'].update(values['-TIMELINEEND-'])
+        window['-FIELD_X1-'].update(values['-FIELD_X1-'])
+        window['-FIELD_X2-'].update(values['-FIELD_X2-'])
+        window['-FIELD_Y1-'].update(values['-FIELD_Y1-'])
+        window['-FIELD_Y2-'].update(values['-FIELD_Y2-'])
+        window['-BLADE_X1-'].update(values['-BLADE_X1-'])
+        window['-BLADE_X2-'].update(values['-BLADE_X2-'])
+        window['-BLADE_Y1-'].update(values['-BLADE_Y1-'])
+        window['-BLADE_Y2-'].update(values['-BLADE_Y2-'])
 
-        elif values['-IMAGEMODE-'] == 'Spotlight':
-            values['-FAN-'] = 'Full Fan'
-            values['-BLADE_X1-'] = '14.0 cm'
-            values['-BLADE_X2-'] = '14.0 cm'
-            values['-BLADE_Y1-'] = '10.7 cm'
-            values['-BLADE_Y2-'] = '10.7 cm'
-            values['-IMAGEVOLTAGE-'] = '125 kV'
-            values['-BEAMCURRENT-'] = '750 mAs'
-            window['-FAN-'].update(values['-FAN-'])
-            window['-BLADE_X1-'].update(values['-BLADE_X1-'])
-            window['-BLADE_X2-'].update(values['-BLADE_X2-'])
-            window['-BLADE_Y1-'].update(values['-BLADE_Y1-'])
-            window['-BLADE_Y2-'].update(values['-BLADE_Y2-'])
-            window['-IMAGEVOLTAGE-'].update(values['-IMAGEVOLTAGE-'])
-            window['-BEAMCURRENT-'].update(values['-BEAMCURRENT-'])
-
-        elif values['-IMAGEMODE-'] == 'Thorax':
-            values['-FAN-'] = 'Half Fan'
-            values['-BLADE_X1-'] = '14.0 cm'
-            values['-BLADE_X2-'] = '14.0 cm'
-            values['-BLADE_Y1-'] = '10.7 cm'
-            values['-BLADE_Y2-'] = '10.7 cm'
-            values['-IMAGEVOLTAGE-'] = '270 kV'
-            values['-BEAMCURRENT-'] = '1080 mAs'
-            window['-FAN-'].update(values['-FAN-'])
-            window['-BLADE_X1-'].update(values['-BLADE_X1-'])
-            window['-BLADE_X2-'].update(values['-BLADE_X2-'])
-            window['-BLADE_Y1-'].update(values['-BLADE_Y1-'])
-            window['-BLADE_Y2-'].update(values['-BLADE_Y2-'])
-            window['-IMAGEVOLTAGE-'].update(values['-IMAGEVOLTAGE-'])
-            window['-BEAMCURRENT-'].update(values['-BEAMCURRENT-'])
-
-        elif values['-IMAGEMODE-'] == 'Pelvis':
-            values['-FAN-'] = 'Half Fan'
-            values['-BLADE_X1-'] = '24.7 cm'
-            values['-BLADE_X2-'] = '3.3 cm'
-            values['-BLADE_Y1-'] = '10.7 cm'
-            values['-BLADE_Y2-'] = '10.7 cm'
-            values['-IMAGEVOLTAGE-'] = '140 kV'
-            values['-BEAMCURRENT-'] = '1688 mAs'
-            window['-FAN-'].update(values['-FAN-'])
-            window['-BLADE_X1-'].update(values['-BLADE_X1-'])
-            window['-BLADE_X2-'].update(values['-BLADE_X2-'])
-            window['-BLADE_Y1-'].update(values['-BLADE_Y1-'])
-            window['-BLADE_Y2-'].update(values['-BLADE_Y2-'])
-            window['-IMAGEVOLTAGE-'].update(values['-IMAGEVOLTAGE-'])
-            window['-BEAMCURRENT-'].update(values['-BEAMCURRENT-'])
-
-        elif values['-IMAGEMODE-'] == 'Pelvis Large':
-            values['-FAN-'] = 'Half Fan'
-            values['-BLADE_X1-'] = '24.7 cm'
-            values['-BLADE_X2-'] = '3.3 cm'
-            values['-BLADE_Y1-'] = '10.7 cm'
-            values['-BLADE_Y2-'] = '10.7 cm'
-            values['-IMAGEVOLTAGE-'] = '125 kV'
-            values['-BEAMCURRENT-'] = '672 mAs'
-            window['-FAN-'].update(values['-FAN-'])
-            window['-BLADE_X1-'].update(values['-BLADE_X1-'])
-            window['-BLADE_X2-'].update(values['-BLADE_X2-'])
-            window['-BLADE_Y1-'].update(values['-BLADE_Y1-'])
-            window['-BLADE_Y2-'].update(values['-BLADE_Y2-'])
-            window['-IMAGEVOLTAGE-'].update(values['-IMAGEVOLTAGE-'])
-            window['-BEAMCURRENT-'].update(values['-BEAMCURRENT-'])
-
-        else: 
-            pass
-    
-    if event == '-DIRECTROT-':
-        # This switches the direction of rotation depending on mode 
-        if values['-DIRECTROT-'] == 'CBCT Clockwise':
-            values['-TIMEROTRATE-'] = '0.4 deg/s'
-            window['-TIMEROTRATE-'].update(values['-TIMEROTRATE-'])
-        elif values['-DIRECTROT-'] == 'CBCT Anticlockwise':
-            values['-TIMEROTRATE-'] = '-0.4 deg/s'
-            window['-TIMEROTRATE-'].update(values['-TIMEROTRATE-'])
-        elif values['-DIRECTROT-'] == 'kVkV':
-            values['-TIMEROTRATE-'] = '0 deg/s'
-            window['-TIMEROTRATE-'].update(values['-TIMEROTRATE-'])
     if event == '-COUCH_TOG-':
         window['-COUCH-'].update(visible=values['-COUCH_TOG-'])
+
 
     if event == sg.WIN_CLOSED:
         break

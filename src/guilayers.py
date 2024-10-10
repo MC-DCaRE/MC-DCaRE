@@ -32,58 +32,61 @@ settings_information_layout = sg.Frame("General settings",
                            [
                                [sg.Text('This page contains general settings used for all simulations.')],
                                [sg.Text('You will be able to control the granularity of the simulations along with the scan parameters here.')],
-                               [sg.Text('To use kVkV option, the user will have to manually input the desired angle.')],
-                               [sg.Text('For 2 or more kVkV angles, please run the indivual angles separately.')],
+                               [sg.Text('To use kV-kV option, the user will have to manually input the desired angle.')],
+                               [sg.Text('For 2 or more kV-kV angles, please run the indivual angles separately.')],
                                [sg.Text('It is a known issue where using more threads than what your computer can support will result in the simulation failing.')],
 
                            ])           
 
-Time_layer = sg.Frame("Time Feature",
+Hidden_layer = sg.Frame("Time Feature and other hidden values",
                 [   
-                    [sg.Text('Seq Time',size = (14,1), text_color='black'),
-                     sg.In(default_text=default_TIME_SEQ_TIME,key='-TIMESEQ-',size=(10,1),  enable_events=True)],
                     [sg.Text('Verbosity',size = (14,1), text_color='black'),
                      sg.In(default_text=default_TIME_VERBOSITY,key='-TIMEVERBO-',size=(10,1),  enable_events=True)],
                     [sg.Text('Timeline End',size = (14,1), text_color='black'),
                      sg.In(default_text=default_TIME_TIME_END,key='-TIMELINEEND-',size=(10,1),  enable_events=True)],
+                    [sg.Text('Rotate Rate',size = (14,1), text_color='black'),
+                    sg.In(default_text=default_TIME_ROT_RATE,key='-TIMEROTRATE-',size=(15,1),  enable_events=True, readonly=True)],
+                    [sg.In(default_text= default_BLADE_X1, key = '-BLADE_X1-',size = (10,1), text_color='black', enable_events=True, readonly=True)],
+                    [sg.In(default_text= default_BLADE_X2, key = '-BLADE_X2-',size = (10,1), text_color='black', enable_events=True, readonly=True)],
+                    [sg.In(default_text= default_BLADE_Y1, key = '-BLADE_Y1-',size = (10,1), text_color='black', enable_events=True, readonly=True)],
+                    [sg.In(default_text= default_BLADE_Y2, key = '-BLADE_Y2-',size = (10,1), text_color='black', enable_events=True, readonly=True)],
+                ], visible=False)
 
-                ])
-
-Scoring_layer = sg.Frame("Simulations settings",
+History_layer = sg.Frame("Simulation settings",
                 [
                   [sg.Text('Seed',size =(10,1),text_color='black'),
                    sg.In(default_text=default_Seed,key='-SEED-',size=(10,1),enable_events=True)],
                   [sg.Text('Threads',size = (10,1),text_color='black'),
                    sg.In(default_text=default_Threads,key='-THREAD-',size=(10,1),enable_events=True)],
+                  [sg.Text('Seq Time',size = (10,1), text_color='black'),
+                    sg.In(default_text=default_TIME_SEQ_TIME,key='-TIMESEQ-',size=(10,1),  enable_events=True)],
                   [sg.Text('Histories',size = (10,1),text_color='black'),
                    sg.In(default_text=default_Histories,key='-HIST-',size=(10,1),enable_events=True)],
                 ], vertical_alignment='top')
 
 imaging_protocol_layer = sg.Frame('Imaging protocol',
-                      [ [sg.Text('Imaging mode',size = (15,1), text_color='black'),
-                         sg.Combo(['Image Gently', 'Head', 'Short Thorax', 'Spotlight', 'Thorax', 'Pelvis', 'Pelvis Large'],default_value=None, key='-IMAGEMODE-', readonly=True ,enable_events=True)],
-                        [sg.Text('Fan mode',size = (15,1), text_color='black'),
-                         sg.In(default_text='Full Fan', key='-FAN-',size = (15,1), text_color='black', enable_events=True,  readonly=True )],
-                        [sg.Text('Blade X1', size = (15,1), text_color='black'),
-                         sg.In(default_text= "0 cm", key = '-BLADE_X1-',size = (15,1), text_color='black', enable_events=True, readonly=True)],
-                        [sg.Text('Blade X2', size = (15,1), text_color='black'),
-                         sg.In(default_text= "0 cm", key = '-BLADE_X2-',size = (15,1), text_color='black', enable_events=True, readonly=True)],
-                        [sg.Text('Blade Y1', size = (15,1), text_color='black'),
-                         sg.In(default_text= "0 cm", key = '-BLADE_Y1-',size = (15,1), text_color='black', enable_events=True, readonly=True)],
-                        [sg.Text('Blade Y2', size = (15,1), text_color='black'),
-                         sg.In(default_text= "0 cm", key = '-BLADE_Y2-',size = (15,1), text_color='black', enable_events=True, readonly=True)],
+                      [ [sg.Text('Imaging mode',size = (10,1), text_color='black'),
+                         sg.Combo(['Image Gently', 'Head', 'Short Thorax', 'Spotlight', 'Thorax', 'Pelvis', 'Pelvis Large'],default_value='Image Gently', key='-IMAGEMODE-', readonly=True ,enable_events=True)],
+                        [sg.Text('Fan mode',size = (10,1), text_color='black'),
+                         sg.In(default_text=default_FAN_MODE, key='-FAN-',size = (15,1), text_color='black', enable_events=True,  readonly=True )],
+                        [sg.Text('Blade X1', size = (10,1), text_color='black'),
+                         sg.In(default_text= default_FIELD_X1, key = '-FIELD_X1-',size = (15,1), text_color='black', enable_events=True, readonly=True)],
+                        [sg.Text('Blade X2', size = (10,1), text_color='black'),
+                         sg.In(default_text= default_FIELD_X2, key = '-FIELD_X2-',size = (15,1), text_color='black', enable_events=True, readonly=True)],
+                        [sg.Text('Blade Y1', size = (10,1), text_color='black'),
+                         sg.In(default_text= default_FIELD_Y1, key = '-FIELD_Y1-',size = (15,1), text_color='black', enable_events=True, readonly=True)],
+                        [sg.Text('Blade Y2', size = (10,1), text_color='black'),
+                         sg.In(default_text= default_FIELD_Y2, key = '-FIELD_Y2-',size = (15,1), text_color='black', enable_events=True, readonly=True)],
                       ])
 
 imaging_scan_layer = sg.Frame('Set up imaging parameters', 
-                      [ [sg.Text('Start angle',size = (15,1), text_color='black'),
+                      [ [sg.Text('Start angle',size = (12,1), text_color='black'),
                          sg.In(default_text=default_DICOM_IMAGE_START_ANGLE,key='-STARTANGLEROT-',size=(15,1),  enable_events=True)],
-                        [sg.Text('CBCT or kVkV',size = (15,1), text_color='black'),
-                         sg.Combo(['CBCT Clockwise', 'CBCT Anticlockwise', 'kVkV'], default_value='CBCT Clockwise' ,key='-DIRECTROT-', readonly=True ,enable_events=True)],
-                        [sg.Text('Rotate Rate',size = (15,1), text_color='black'),
-                        sg.In(default_text=default_TIME_ROT_RATE,key='-TIMEROTRATE-',size=(15,1),  enable_events=True, readonly=True)],
-                        [sg.Text('kVp',size = (15,1), text_color='black'),
+                        [sg.Text('CBCT or kV-kV',size = (12,1), text_color='black'),
+                         sg.Combo(['CBCT Clockwise', 'CBCT Anticlockwise', 'kV-kV'], default_value='CBCT Clockwise' ,key='-DIRECTROT-', readonly=True ,enable_events=True, size=(15,1))],
+                        [sg.Text('kVp',size = (12,1), text_color='black'),
                         sg.In(default_text=default_DICOM_IMAGE_VOLTAGE,key='-IMAGEVOLTAGE-',size=(15,1),  enable_events=True)], 
-                        [sg.Text('Beam current',size = (15,1), text_color='black'),
+                        [sg.Text('Beam current',size = (12,1), text_color='black'),
                         sg.In(default_text=default_DICOM_BEAM_CURRENT,key='-BEAMCURRENT-',size=(15,1),  enable_events=True)]
                         ], vertical_alignment='top')
 

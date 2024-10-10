@@ -6,6 +6,7 @@ from src.runtime_handler import log_output
 from src.edits_handler import editor
 from src.guilayers import *
 from src.imaging_modes_lookuptable import imaging_modes_lookup
+from src.Energyspectrum import generate_new_topas_beam_profile
 
 #Useful functions###################################################
 def reset_tmp():
@@ -32,6 +33,31 @@ def reset_tmp():
     original_CTDI_32_file_path = path + '/src/boilerplates/TOPAS_includeFiles/CTDIphantom_32.txt'
     duplicate_CTDI_32_file_path = path + "/tmp/CTDIphantom_32.txt"
     shutil.copy(original_CTDI_32_file_path, duplicate_CTDI_32_file_path)
+
+    #generate a blank head_calibration file a boiler plate so we edit only that copy each time
+    original_headcali_file_path = path + '/src/head_calibration_factor_boilerplate.txt'
+    duplicate_headcali_file_path = path + "/tmp/head_calibration_factor.txt"
+    shutil.copy(original_headcali_file_path, duplicate_headcali_file_path)
+
+    #generate a blank convertedtopas includefile from a boiler plate so we edit only that copy each time
+    original_convertedtopas_file_path = path + '/src/boilerplates/TOPAS_includeFiles/ConvertedTopasFile_boilerplate.txt'
+    duplicate_convertedtopas_file_path = path + "/tmp/ConvertedTopasFile.txt"
+    shutil.copy(original_convertedtopas_file_path, duplicate_convertedtopas_file_path)
+
+
+def quantity_unit_stripper(string_value):
+    ''' 
+    Helper script to split an input into its float value and string. Eg string_value = '-5 cm' will return -5 , 'cm'
+    This assumes the value comes in the form of float(quantity)`whitespace`str(unit)
+    '''
+    # quantity = []
+    # unit = []
+    for t in string_value.split():
+        try:
+            quantity = float(t) 
+        except ValueError:
+            unit = t
+    return quantity , unit
 
 
 ####################################################################
@@ -99,8 +125,8 @@ while True:
         f = open('dump.txt', 'w')
         f.write( 'dict = '+repr(values)+ '\n')
         f.close()
-        imagemode = values['-DIRECTROT-'] +'_'+ values['-IMAGEMODE-']
-        print(imagemode)
+        # imagemode = values['-DIRECTROT-'] +'_'+ values['-IMAGEMODE-']
+        # print(imagemode)
 
 
     if event == '-FUNCTION_CHECK-':
@@ -144,7 +170,7 @@ while True:
         else: 
             sg.popup_error('Patient ID for the CT image set and treatment plan does not match')        
 
-    if event == '-DICOMBAT-':
+    if event == '-DICOM_RUN-':
         # When users try to simulate DICOM imaging, this block will run. 
         # Code will activate the editor() function to edit the tmp file
         # Runtimehandler will then form the timestamp folder and drop the outputs there
@@ -154,19 +180,26 @@ while True:
             tmp_patient_file_path = path + '/tmp/patientDICOM.txt'
             editor(values, tmp_patient_file_path, 'sub')
             topas_application_path = values['-TOPAS-'] + " "
+            float_anode_voltage, unit_anode_voltage = quantity_unit_stripper(values['-IMAGEVOLTAGE-'])
+            float_exposure, unit_exposure = quantity_unit_stripper(values['-EXPOSURE-'])
+            generate_new_topas_beam_profile(float_anode_voltage, float_exposure, values['-HIST-'], path)
             run_status = log_output(tmp_headsource_file_path, 'dicom', topas_application_path, values['-FAN-'])
             reset_tmp()
             sg.popup(run_status)
         except:
             sg.popup_error("Ensure that you have specified a valid DICOM folder and file")
     
-    if event == '-RUN-':
+    if event == '-CTDI_RUN-':
         # When users try to simulate CTDI , this block will run. 
         # Code will activate the editor() function to edit the tmp file
         # Runtimehandler will then form the timestamp folder and drop the outputs there
         tmp_headsource_file_path = path + '/tmp/headsourcecode.txt'
         editor(values, tmp_headsource_file_path, 'main')
         topas_application_path = values['-TOPAS-'] + " "
+        float_anode_voltage, unit_anode_voltage = quantity_unit_stripper(values['-IMAGEVOLTAGE-'])
+        float_exposure, unit_exposure = quantity_unit_stripper(values['-EXPOSURE-'])
+        generate_new_topas_beam_profile(float_anode_voltage, float_exposure, values['-HIST-'], path)
+
         if values['-CTDI_PHANTOM-'] == '16 cm': 
             tmp_16cm_file_path = path + '/tmp/CTDIphantom_16.txt'
             editor(values, tmp_16cm_file_path, 'sub')
@@ -185,11 +218,11 @@ while True:
         # Hardcoded values for image protocol
         # Varian console shows scan field size. There the on screen value has to be converted to actaul blade position. 
         imagemode = values['-DIRECTROT-'] +'_'+ values['-IMAGEMODE-']
-        rotrate, voltage , current, fan, timeend, fieldx1, fieldx2, fieldy1, fieldy2, bladex1, bladex2, bladey1, bladey2 = imaging_modes_lookup[imagemode]
-        # selection = ['Rotation Rate', 'kVp', 'beam current', 'Fan', 'BLADE_X1', 'BLADE_X2', 'BLADE_Y1', 'BLADE_Y2', 'FIELD_X1', 'FIELD_X2', 'FIELD_Y1', 'FIELD_Y2']
+        rotrate, voltage , exposure, fan, timeend, fieldx1, fieldx2, fieldy1, fieldy2, bladex1, bladex2, bladey1, bladey2 = imaging_modes_lookup[imagemode]
+        # selection = ['Rotation Rate', 'kVp', 'exposure', 'Fan', 'BLADE_X1', 'BLADE_X2', 'BLADE_Y1', 'BLADE_Y2', 'FIELD_X1', 'FIELD_X2', 'FIELD_Y1', 'FIELD_Y2']
         values['-TIMEROTRATE-'] = rotrate
         values['-IMAGEVOLTAGE-'] = voltage
-        values['-BEAMCURRENT-'] = current       
+        values['-EXPOSURE-'] = exposure       
         values['-FAN-'] = fan
         values['-TIMELINEEND-'] = timeend
         values['-FIELD_X1-'] = fieldx1
@@ -201,11 +234,11 @@ while True:
         values['-BLADE_Y1-'] = bladey1
         values['-BLADE_Y2-'] = bladey2
 
-        # values['-TIMEROTRATE-'], values['-IMAGEVOLTAGE-'], values['-BEAMCURRENT-'], values['-FAN-'], values['-TIMELINEEND-'] , values['-FIELD_X1-'], values['-FIELD_X2-'], values['-FIELD_Y1-'], values['-FIELD_Y2-'],a,b,c,d = imaging_modes_lookup[imagemode]
+        # values['-TIMEROTRATE-'], values['-IMAGEVOLTAGE-'], values['-EXPOSURE-'], values['-FAN-'], values['-TIMELINEEND-'] , values['-FIELD_X1-'], values['-FIELD_X2-'], values['-FIELD_Y1-'], values['-FIELD_Y2-'],a,b,c,d = imaging_modes_lookup[imagemode]
 
         window['-TIMEROTRATE-'].update(values['-TIMEROTRATE-'])
         window['-IMAGEVOLTAGE-'].update(values['-IMAGEVOLTAGE-'])
-        window['-BEAMCURRENT-'].update(values['-BEAMCURRENT-'])
+        window['-EXPOSURE-'].update(values['-EXPOSURE-'])
         window['-FAN-'].update(values['-FAN-'])
         window['-TIMELINEEND-'].update(values['-TIMELINEEND-'])
         window['-FIELD_X1-'].update(values['-FIELD_X1-'])

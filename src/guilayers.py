@@ -81,13 +81,13 @@ imaging_protocol_layer = sg.Frame('Imaging protocol',
 
 imaging_scan_layer = sg.Frame('Set up imaging parameters', 
                       [ [sg.Text('Start angle',size = (12,1), text_color='black'),
-                         sg.In(default_text=default_DICOM_IMAGE_START_ANGLE,key='-STARTANGLEROT-',size=(15,1),  enable_events=True)],
+                         sg.In(default_text=default_IMAGE_START_ANGLE,key='-STARTANGLEROT-',size=(15,1),  enable_events=True)],
                         [sg.Text('CBCT or kV-kV',size = (12,1), text_color='black'),
                          sg.Combo(['CBCT Clockwise', 'CBCT Anticlockwise', 'kV-kV'], default_value='CBCT Clockwise' ,key='-DIRECTROT-', readonly=True ,enable_events=True, size=(15,1))],
                         [sg.Text('kVp',size = (12,1), text_color='black'),
-                        sg.In(default_text=default_DICOM_IMAGE_VOLTAGE,key='-IMAGEVOLTAGE-',size=(15,1),  enable_events=True)], 
-                        [sg.Text('Beam current',size = (12,1), text_color='black'),
-                        sg.In(default_text=default_DICOM_BEAM_CURRENT,key='-BEAMCURRENT-',size=(15,1),  enable_events=True)]
+                        sg.In(default_text=default_IMAGE_VOLTAGE,key='-IMAGEVOLTAGE-',size=(15,1),  enable_events=True)], 
+                        [sg.Text('Exposure',size = (12,1), text_color='black'),
+                        sg.In(default_text=default_EXPOSURE,key='-EXPOSURE-',size=(15,1),  enable_events=True)]
                         ], vertical_alignment='top')
 
 dicom_information_layer = sg.Frame('Instructions on the usage of the DICOM adjustments', 
@@ -95,7 +95,7 @@ dicom_information_layer = sg.Frame('Instructions on the usage of the DICOM adjus
                                [sg.Text('The programme automatically shifts the patient such that the isocentre of the treatment plan is matched to the isocentre of the beam.')],
                                [sg.Text('For patient set up adjustments, make any adjustments relative to the ioscentre of the treatment plan.')],
                                [sg.Text('If the first imaging scan was Left, Posterior and Superior of the planned isocentre, this would be a positve XYZ input.')],
-                               [sg.Text('Use the previous tab to make edits to other parameters like collimator openings and beam current. ')],
+                               [sg.Text('Use the previous tab to make edits to other parameters like collimator openings and exposure. ')],
                                [sg.Text('The programme currently only supports CT modality.')],
                              ]) 
 
@@ -109,7 +109,7 @@ dicom_file_layer = sg.Frame("DICOM inputs",
                                 [sg.Text('DICOM RP file',size =(17,1),text_color='black'),
                                  sg.In(default_text=default_DICOM_RP_file,key='-DICOMRP-',size=(50,1),enable_events=True),sg.FileBrowse(button_text= "Browse", key= 'Browse2' ,file_types= (("DICOM File",'*.dcm'),) )
                                 ],
-                                [sg.Button("Run set up imaging dose simulation",enable_events=True, key='-DICOMBAT-',size=(35,1))],
+                                [sg.Button("Run set up imaging dose simulation",enable_events=True, key='-DICOM_RUN-',size=(35,1))],
                               ])
 
 dicom_patient_layer = sg.Frame('Patient set up adjustments',
@@ -146,7 +146,7 @@ CTDI_information_layer = sg.Frame('Instructions on the usage of the CTDI phantom
                              [ 
                                [sg.Text('Select the CTDI phantom used for the CTDI validation. The phantom will be automatically centered at isocenter.')],
                                [sg.Text('Simulation will automatically generate and run 5 CTDI simulations for all 5 possible detector position.')],
-                               [sg.Text('Use the previous tab to make edits to other parameters like collimator openings and beam current. ')],
+                               [sg.Text('Use the previous tab to make edits to other parameters like collimator openings and exposure. ')],
                                [sg.Text('Use the couch toggle to select or remove the couch from the simulation, depending on your set up')],
                                [sg.Text('The phantom is automatically placed on top of the couch if the couch is selected.')],
                                [sg.Text('You can also choose to change the thickeness of the couch in terms of its aluminium thickness.')]
@@ -178,6 +178,6 @@ Couch_layer = sg.pin(sg.Frame("Couch",
 CTDI_run_layer= sg.Frame('Activate CTDI simulation', 
                            [
                              [sg.Checkbox("CTDI graphics toggle", enable_events=True, key='-CTDI_GRAPHICS-', default= False)],
-                             [sg.Button("Run", enable_events=True, key='-RUN-', disabled=False, disabled_button_color='grey')],
+                             [sg.Button("Run", enable_events=True, key='-CTDI_RUN-', disabled=False, disabled_button_color='grey')],
                             ])
      

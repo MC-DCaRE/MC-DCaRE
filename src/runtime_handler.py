@@ -63,13 +63,14 @@ def log_output(input_file_path, tag, topas_application_path, fan_tag):
         
         if tag == 'dicom':
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/HUtoMaterialSchneider.txt', rundatadir)
-                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/ConvertedTopasFile_head.txt', rundatadir)
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Muen.dat', rundatadir)
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/NbParticlesInTime.txt', rundatadir)
                 if fan_tag == 'Full Fan':
                        shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/fullfan.txt', rundatadir)
                 elif fan_tag == 'Half Fan':
                        shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/halffan.txt', rundatadir)
+                shutil.copy(path + '/tmp/ConvertedTopasFile.txt', rundatadir)
+                shutil.copy(path + '/tmp/head_calibration_factor.txt', rundatadir)
                 shutil.copy(path + '/tmp/headsourcecode.txt', rundatadir)
                 shutil.copy(path + '/tmp/patientDICOM.txt', rundatadir)
 
@@ -81,9 +82,10 @@ def log_output(input_file_path, tag, topas_application_path, fan_tag):
                 run_status= "DICOM simulation completed"
 
         elif tag == 'ctdi16':
-                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/ConvertedTopasFile_head.txt', rundatadir)
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Muen.dat', rundatadir)
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/NbParticlesInTime.txt', rundatadir)
+                shutil.copy(path + '/tmp/ConvertedTopasFile.txt', rundatadir)
+                shutil.copy(path + '/tmp/head_calibration_factor.txt', rundatadir)
                 if fan_tag == 'Full Fan':
                        shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/fullfan.txt', rundatadir)
                 elif fan_tag == 'Half Fan':
@@ -97,9 +99,11 @@ def log_output(input_file_path, tag, topas_application_path, fan_tag):
                 run_status= "CTDI simulation completed" 
 
         elif tag == 'ctdi32':
-                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/ConvertedTopasFile_head.txt', rundatadir)
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Muen.dat', rundatadir)
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/NbParticlesInTime.txt', rundatadir)
+                shutil.copy(path + '/tmp/ConvertedTopasFile.txt', rundatadir)
+                shutil.copy(path + '/tmp/head_calibration_factor.txt', rundatadir)
+
                 if fan_tag == 'Full Fan':
                        shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/fullfan.txt', rundatadir)
                 elif fan_tag == 'Half Fan':
@@ -118,5 +122,5 @@ def log_output(input_file_path, tag, topas_application_path, fan_tag):
         return run_status
 
 if __name__ == "__main__":
-    log_output()
+    pass
     

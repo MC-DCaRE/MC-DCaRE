@@ -2,7 +2,7 @@
 ######################################################
 
 ## Include File ###############################
-includeFile=ConvertedTopasFile_head.txt
+includeFile=ConvertedTopasFile.txt
 includeFile = fullfan.txt
 includeFile = halffan.txt
 includeFile = patientDICOM.txt

@@ -30,7 +30,7 @@ def plugsgenerator(phantomsize: str , rundatadir: str , topas_application_path: 
                 if phantomsize == 'ctdi16':
                         file2 = open(path +'/tmp/CTDIphantom_16.txt', 'r')
                 if phantomsize == 'ctdi32':
-                        file2 = open(path +'/tmp/CTDIphantom_16.txt', 'r')
+                        file2 = open(path +'/tmp/CTDIphantom_32.txt', 'r')
                 content1 = file1.read()
                 file1.close()
                 content2 = file2.read()

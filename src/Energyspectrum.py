@@ -16,7 +16,7 @@ def generate_new_topas_beam_profile(anode_voltage, exposure, Histories, path):
     no_particles = 4*np.pi*0.1**2*s.get_flu()
     
     #multiply dose by this factor to get absolute dose - since reduce the numberhistories to 2009895
-    calib_factor = no_particles/2009895 # no_particles/Histories
+    calib_factor = no_particles/Histories # no_particles/Histories
     with open(path + '/tmp/head_calibration_factor.txt', 'w') as f:
         f.write('%d' % calib_factor)
         f.write('\nMultiply dose by the factor above to get absolute dose \n')

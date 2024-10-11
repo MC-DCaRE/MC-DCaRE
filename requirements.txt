@@ -1,5 +1,5 @@
 FreeSimpleGUI==5.1.1
 FreeSimpleGUI==5.1.1
-matplotlib==3.9.2
+numpy==2.1.0
 pydicom==3.0.1
 spekpy==2.0.13

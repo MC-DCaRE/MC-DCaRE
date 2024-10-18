@@ -146,13 +146,19 @@ while True:
             list_of_files = os.listdir(DICOM_PATH)
             for files in list_of_files: 
                 if  dcmread(os.path.join(DICOM_PATH,files)).Modality == 'CT':
-                    count_of_CT_images += 1
-                    patient_ID = dcmread(os.path.join(DICOM_PATH,files)).PatientID
+                    if count_of_CT_images == 0:
+                        count_of_CT_images += 1
+                        patient_ID = dcmread(os.path.join(DICOM_PATH,files)).PatientID
+                    elif count_of_CT_images != 0 : 
+                        if dcmread(os.path.join(DICOM_PATH,files)).PatientID == patient_ID:
+                            count_of_CT_images += 1
+                        else:
+                            raise 
             values['-PATID-'] = patient_ID
             window['-PATID-'].update(values['-PATID-'])
-            sg.popup("Number of CT images found" , count_of_CT_images , auto_close= True, non_blocking=True)
+            sg.popup("Number of " + patient_ID + " CT images found" , count_of_CT_images , auto_close= True, non_blocking=True)
         except: 
-            sg.popup_error("No CT images found in the folder")
+            sg.popup_error("No CT images found in the folder or more than 1 patient file found")
 
     if event == '-DICOMRP-':
         # Takes DICOM RT plan and checks patientID match and pulls out isocentre data. 

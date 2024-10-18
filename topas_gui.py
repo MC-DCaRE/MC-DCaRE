@@ -34,15 +34,15 @@ def reset_tmp():
     duplicate_CTDI_32_file_path = path + "/tmp/CTDIphantom_32.txt"
     shutil.copy(original_CTDI_32_file_path, duplicate_CTDI_32_file_path)
 
-    #generate a blank head_calibration file a boiler plate so we edit only that copy each time
-    original_headcali_file_path = path + '/src/head_calibration_factor_boilerplate.txt'
-    duplicate_headcali_file_path = path + "/tmp/head_calibration_factor.txt"
-    shutil.copy(original_headcali_file_path, duplicate_headcali_file_path)
+    # #generate a blank head_calibration file a boiler plate so we edit only that copy each time
+    # original_headcali_file_path = path + '/src/head_calibration_factor_boilerplate.txt'
+    # duplicate_headcali_file_path = path + "/tmp/head_calibration_factor.txt"
+    # shutil.copy(original_headcali_file_path, duplicate_headcali_file_path)
 
     #generate a blank convertedtopas includefile from a boiler plate so we edit only that copy each time
-    original_convertedtopas_file_path = path + '/src/boilerplates/TOPAS_includeFiles/ConvertedTopasFile_boilerplate.txt'
-    duplicate_convertedtopas_file_path = path + "/tmp/ConvertedTopasFile.txt"
-    shutil.copy(original_convertedtopas_file_path, duplicate_convertedtopas_file_path)
+    # original_convertedtopas_file_path = path + '/src/boilerplates/TOPAS_includeFiles/ConvertedTopasFile_boilerplate.txt'
+    # duplicate_convertedtopas_file_path = path + "/tmp/ConvertedTopasFile.txt"
+    # shutil.copy(original_convertedtopas_file_path, duplicate_convertedtopas_file_path)
 
 
 def quantity_unit_stripper(string_value):

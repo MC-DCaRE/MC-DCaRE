@@ -1,7 +1,7 @@
 import spekpy as sp
 import numpy as np
 
-def generate_new_topas_beam_profile(anode_voltage, exposure, Histories, path):
+def generate_new_topas_beam_profile(anode_voltage:float, exposure:float, Histories:str, path):
     s=sp.Spek(kvp=anode_voltage,th=14,mas =exposure,dk = 0.2, z=0.1) # unfiltered spectrum at 1mm 
     s.filter('Al',2.7) #2.7mm filter at the kV xray tube exit window from manual
 
@@ -16,11 +16,11 @@ def generate_new_topas_beam_profile(anode_voltage, exposure, Histories, path):
     no_particles = 4*np.pi*0.1**2*s.get_flu()
     
     #multiply dose by this factor to get absolute dose - since reduce the numberhistories to 2009895
-    calib_factor = no_particles/Histories # no_particles/Histories
+    calib_factor = no_particles/int(Histories) # no_particles/Histories
     with open(path + '/tmp/head_calibration_factor.txt', 'w') as f:
         f.write('%d' % calib_factor)
         f.write('\nMultiply dose by the factor above to get absolute dose \n')
-        f.write('The number of histories in this run was: ' + str(Histories)+'\n')
+        f.write('The number of histories in this run was: ' + Histories+'\n')
         f.write('Calibration facotr = Number of particles/Histories\n')
         f.write('\n')
         f.write(summary_of_inputs)

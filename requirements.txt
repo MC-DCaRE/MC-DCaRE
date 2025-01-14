@@ -1,4 +1,4 @@
-FreeSimpleGUI==5.1.1
+tkinter==8.6
 FreeSimpleGUI==5.1.1
 numpy==2.1.0
 pydicom==3.0.1

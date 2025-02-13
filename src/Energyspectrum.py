@@ -3,7 +3,7 @@ import numpy as np
 
 def generate_new_topas_beam_profile(anode_voltage:float, exposure:float, Histories:str, path):
     s=sp.Spek(kvp=anode_voltage,th=14,mas =exposure,dk = 0.2, z=0.1) # unfiltered spectrum at 1mm 
-    s.filter('Al',2.7) #2.7mm filter at the kV xray tube exit window from manual
+    # s.filter('Al',2.7) #2.7mm filter at the kV xray tube exit window from manual
 
     summary_of_inputs = s.state.get_current_state_str('full', s.get_std_results())
     # Export (save) spectrum to file, doesnt seem to be used
@@ -57,9 +57,9 @@ def generate_new_topas_beam_profile(anode_voltage:float, exposure:float, Histori
 
 if __name__ == '__main__' : 
     # input values
-    anode_voltage = 100 #'100 kV'
+    anode_voltage = 125 #'100 kV'
     exposure = 100 #'100 mAs'
-    Histories = 1000
-    generate_new_topas_beam_profile(anode_voltage, exposure, Histories, '/root/nccs/Topas_wrapper')
+    Histories = "100"
+    generate_new_topas_beam_profile(anode_voltage, exposure, Histories, '/home/jkgan/MC-DCaRE')
 
 

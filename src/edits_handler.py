@@ -1,4 +1,5 @@
 # This script is used to handle all the edits that must be made to the .batch and python files.
+from src.fieldtobladeopening import fieldtobladeopening
 
 def stringindexreplacement(SearchString :str , TargetList: str , ReplacementString :str = None):
     '''
@@ -76,6 +77,15 @@ def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
                 stringindexreplacement('Ts/UseQt', filecontent , ) 
                 stringindexreplacement('s:Gr/ViewA/Type', filecontent , ) 
                 stringindexreplacement('b:Gr/Enable', filecontent , ) 
+
+            if change_dictionary['-CTDI_BLADE_TOG-'] == True:
+                calculated_blade_positions = fieldtobladeopening([change_dictionary['-CTDI_FIELD_X1-'],change_dictionary['-CTDI_FIELD_X2-'],change_dictionary['-CTDI_FIELD_Y1-'],change_dictionary['-CTDI_FIELD_Y2-']])
+
+                stringindexreplacement('dc:Ge/Coll1/TransY', filecontent , calculated_blade_positions[0]) 
+                stringindexreplacement('dc:Ge/Coll2/TransY', filecontent , calculated_blade_positions[1]) 
+                stringindexreplacement('dc:Ge/Coll3/TransX', filecontent , calculated_blade_positions[2]) 
+                stringindexreplacement('dc:Ge/Coll4/TransX', filecontent , calculated_blade_positions[3]) 
+                
 
             if change_dictionary['-CTDI_PHANTOM-'] == '16 cm': 
                 stringindexreplacement('includeFile = CTDIphantom_32.txt', filecontent , )

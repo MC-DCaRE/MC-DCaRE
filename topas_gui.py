@@ -68,7 +68,7 @@ main_layout = [[main_menu_information_layer],
                [function_layer]]
 
 chamber_layout = [[CTDI_information_layer],
-                  [CTDI_layer, Couch_layer],
+                  [CTDI_layer, Couch_layer, CTDI_blade_layer],
                   [CTDI_run_layer]]
 
 dicom_layout = [[dicom_information_layer], 
@@ -259,6 +259,8 @@ while True:
     if event == '-COUCH_TOG-':
         window['-COUCH-'].update(visible=values['-COUCH_TOG-'])
 
+    if event == '-CTDI_BLADE_TOG-':
+        window['-CTDI_BLADE-'].update(visible=values['-CTDI_BLADE_TOG-'])
 
     if event == sg.WIN_CLOSED:
         break

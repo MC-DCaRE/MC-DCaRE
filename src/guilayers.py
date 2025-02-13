@@ -163,6 +163,7 @@ CTDI_layer = sg.Frame('CTDI options',
                       [sg.Text('Dose to water Zbins',size = (25,1), text_color='black'),
                       sg.In(default_text=default_DTW_Zbins,key='-DTWZB-',size=(10,1),  enable_events=True)],
                       [sg.Checkbox("Couch toggle",  enable_events=True, key='-COUCH_TOG-', default= True)],
+                      [sg.Checkbox("CTDI user blade toggle (Defaults to imaging settings)",  enable_events=True, key='-CTDI_BLADE_TOG-', default= False)],
                     ], vertical_alignment='top')
 
 Couch_layer = sg.pin(sg.Frame("Couch",
@@ -174,6 +175,18 @@ Couch_layer = sg.pin(sg.Frame("Couch",
                    [sg.Text('Thickness',size = (8,1), text_color='black'),
                      sg.In(default_text=default_COUCH_HLY,key='-COUCHHLY-',size=(10,1),  enable_events=True)],
                 ], key='-COUCH-', visible= True, vertical_alignment='top' ), shrink=False, vertical_alignment='top' )
+
+CTDI_blade_layer = sg.pin(sg.Frame("CTDI user specified jaw",
+                [
+                  [sg.Text('Blade X1', size = (10,1), text_color='black'),
+                    sg.In(default_text= default_FIELD_X1, key = '-CTDI_FIELD_X1-',size = (15,1), text_color='black', enable_events=True)],
+                  [sg.Text('Blade X2', size = (10,1), text_color='black'),
+                    sg.In(default_text= default_FIELD_X2, key = '-CTDI_FIELD_X2-',size = (15,1), text_color='black', enable_events=True)],
+                  [sg.Text('Blade Y1', size = (10,1), text_color='black'),
+                    sg.In(default_text= default_FIELD_Y1, key = '-CTDI_FIELD_Y1-',size = (15,1), text_color='black', enable_events=True)],
+                  [sg.Text('Blade Y2', size = (10,1), text_color='black'),
+                    sg.In(default_text= default_FIELD_Y2, key = '-CTDI_FIELD_Y2-',size = (15,1), text_color='black', enable_events=True)],
+                ], key='-CTDI_BLADE-', visible= False, vertical_alignment='top' ), shrink=False, vertical_alignment='top' )
 
 CTDI_run_layer= sg.Frame('Activate CTDI simulation', 
                            [

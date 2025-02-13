@@ -267,8 +267,8 @@ d:So/beam/BeamPositionSpreadY = 0.4246 mm
 s:So/beam/BeamAngularDistribution = "Gaussian"
 d:So/beam/BeamAngularCutoffX = 90. deg
 d:So/beam/BeamAngularCutoffY = 90. deg
-d:So/beam/BeamAngularSpreadX = 28 deg
-d:So/beam/BeamAngularSpreadY = 28 deg
+d:So/beam/BeamAngularSpreadX = 26.1 deg
+d:So/beam/BeamAngularSpreadY = 27.5 deg
 #i:So/beam/NumberOfHistoriesInRun=25257086363570 #ActualtotalnumberofparticlesfromSpekPy(fluence*area)
 
 i:So/beam/NumberOfHistoriesInRun = 20

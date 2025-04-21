@@ -21,7 +21,7 @@ def generate_new_topas_beam_profile(anode_voltage:float, exposure:float, Histori
         f.write('%d' % calib_factor)
         f.write('\nMultiply dose by the factor above to get absolute dose \n')
         f.write('The number of histories in this run was: ' + Histories+'\n')
-        f.write('Calibration facotr = Number of particles/Histories\n')
+        f.write('Calibration factor = Number of particles/Histories\n')
         f.write('\n')
         f.write(summary_of_inputs)
 
@@ -58,7 +58,7 @@ def generate_new_topas_beam_profile(anode_voltage:float, exposure:float, Histori
 if __name__ == '__main__' : 
     # input values
     anode_voltage = 125 #'100 kV'
-    exposure = 100 #'100 mAs'
+    exposure = 10 #'100 mAs'
     Histories = "100"
     generate_new_topas_beam_profile(anode_voltage, exposure, Histories, '/home/jkgan/MC-DCaRE')
 

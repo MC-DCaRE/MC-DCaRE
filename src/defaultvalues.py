@@ -9,8 +9,8 @@ default_Threads  = '1'
 default_Histories = '100000'
 
 # DICOM specific stuff
-default_DICOM_Directory = '/root/nccs/Topas_wrapper/test/sampledicom/cherylair'
-default_DICOM_RP_file = '/root/nccs/Topas_wrapper/test/sampledicom/cherylair/RP.Cheryl Phantom CTDI.Physics.dcm'
+default_DICOM_Directory = '/sampledicom/setA'
+default_DICOM_RP_file = '/sampledicom/RP.sample.dcm'
 default_DICOM_TRANS_X = '0. mm'
 default_DICOM_TRANS_Y = '0. mm'
 default_DICOM_TRANS_Z = '0. mm'

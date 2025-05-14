@@ -2,15 +2,15 @@
 # default_ = 
 
 
-default_G4_Directory = '/root/G4Data'
-default_TOPAS_Directory = '/root/topas/bin/topas '
+default_G4_Directory = '/home/jkgan/G4Data'
+default_TOPAS_Directory = '/home/jkgan/topas/bin/topas '
 default_Seed = '9'
 default_Threads  = '1'
 default_Histories = '100000'
 
 # DICOM specific stuff
-default_DICOM_Directory = '/sampledicom/setA'
-default_DICOM_RP_file = '/sampledicom/RP.sample.dcm'
+default_DICOM_Directory = '/home/jkgan/sampledicom/Cheryl/cherylair'
+default_DICOM_RP_file = '/home/jkgan/sampledicom/Cheryl/cherylair/RP.Cheryl Phantom CTDI.Physics.dcm'
 default_DICOM_TRANS_X = '0. mm'
 default_DICOM_TRANS_Y = '0. mm'
 default_DICOM_TRANS_Z = '0. mm'
@@ -50,5 +50,5 @@ default_BLADE_X2 = '-6.175536078965273 cm'
 default_BLADE_Y1 = '5.814471115800571 cm'
 default_BLADE_Y2 = '-5.814471115800571 cm'
 default_IMAGE_START_ANGLE = '0 deg'
-default_IMAGE_VOLTAGE = '100 kV'
+default_IMAGE_VOLTAGE = '80 kV'
 default_EXPOSURE = '100 mAs'

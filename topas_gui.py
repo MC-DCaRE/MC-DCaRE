@@ -224,13 +224,15 @@ while True:
         # Hardcoded values for image protocol
         # Varian console shows scan field size. There the on screen value has to be converted to actaul blade position. 
         imagemode = values['-DIRECTROT-'] +'_'+ values['-IMAGEMODE-']
-        rotrate, voltage , exposure, fan, timeend, fieldx1, fieldx2, fieldy1, fieldy2, bladex1, bladex2, bladey1, bladey2 = imaging_modes_lookup[imagemode]
+        rotrate, voltage , exposure, fan, timeend, NumofSeqence, NumofHistory, fieldx1, fieldx2, fieldy1, fieldy2, bladex1, bladex2, bladey1, bladey2 = imaging_modes_lookup[imagemode]
         # selection = ['Rotation Rate', 'kVp', 'exposure', 'Fan', 'BLADE_X1', 'BLADE_X2', 'BLADE_Y1', 'BLADE_Y2', 'FIELD_X1', 'FIELD_X2', 'FIELD_Y1', 'FIELD_Y2']
         values['-TIMEROTRATE-'] = rotrate
         values['-IMAGEVOLTAGE-'] = voltage
         values['-EXPOSURE-'] = exposure       
         values['-FAN-'] = fan
         values['-TIMELINEEND-'] = timeend
+        values['-TIMESEQ-'] = NumofSeqence
+        values['-HIST-'] = NumofHistory
         values['-FIELD_X1-'] = fieldx1
         values['-FIELD_X2-'] = fieldx2
         values['-FIELD_Y1-'] = fieldy1
@@ -247,6 +249,8 @@ while True:
         window['-EXPOSURE-'].update(values['-EXPOSURE-'])
         window['-FAN-'].update(values['-FAN-'])
         window['-TIMELINEEND-'].update(values['-TIMELINEEND-'])
+        window['-TIMESEQ-'].update(values['-TIMESEQ-'])
+        window['-HIST-'].update(values['-HIST-'])
         window['-FIELD_X1-'].update(values['-FIELD_X1-'])
         window['-FIELD_X2-'].update(values['-FIELD_X2-'])
         window['-FIELD_Y1-'].update(values['-FIELD_Y1-'])

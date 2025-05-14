@@ -59,7 +59,7 @@ History_layer = sg.Frame("Simulation settings",
                   [sg.Text('Threads',size = (10,1),text_color='black'),
                    sg.In(default_text=default_Threads,key='-THREAD-',size=(10,1),enable_events=True)],
                   [sg.Text('Seq Time',size = (10,1), text_color='black'),
-                    sg.In(default_text=default_TIME_SEQ_TIME,key='-TIMESEQ-',size=(10,1),  enable_events=True)],
+                    sg.In(default_text=default_TIME_SEQ_TIME,key='-TIMESEQ-',size=(10,1),  enable_events=True, readonly=True)],
                   [sg.Text('Histories',size = (10,1),text_color='black'),
                    sg.In(default_text=default_Histories,key='-HIST-',size=(10,1),enable_events=True)],
                 ], vertical_alignment='top')

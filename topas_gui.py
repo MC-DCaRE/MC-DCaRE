@@ -282,7 +282,7 @@ while True:
         window['-BLADE_Y1-'].update(values['-BLADE_Y1-'])
         window['-BLADE_Y2-'].update(values['-BLADE_Y2-'])
         if values['-DICOM_OUTPUT_NAME_TOG-'] == True:
-            values['-DICOM_OUTPUT_NAME_TOG-'] = values['-PATID-'] +'_'+ values['-DIRECTROT-'] +'_'+ values['-IMAGEMODE-'] +'_'+values['-STARTANGLEROT-']
+            values['-DICOM_OUTPUT_NAME_TOG-'] = (values['-PATID-'] +'_'+ values['-DIRECTROT-'] +'_'+ values['-IMAGEMODE-'] +'_'+values['-STARTANGLEROT-']).replace(" ", "")
             window['-DICOM_OUTPUT_NAME-'].update(values['-DICOM_OUTPUT_NAME_TOG-'])
 
 

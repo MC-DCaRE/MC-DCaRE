@@ -255,7 +255,10 @@ while True:
             )
             float_exposure, unit_exposure = quantity_unit_stripper(values["-EXPOSURE-"])
             generate_new_topas_beam_profile(
-                float_anode_voltage, float_exposure, values["-HIST-"], path
+                float_anode_voltage,
+                float_exposure,
+                str(int(values["-TIMESEQ-"]) * int(values["-HIST-"])),
+                path,
             )
             run_status = log_output(
                 tmp_headsource_file_path,

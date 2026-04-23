@@ -1,5 +1,10 @@
-tkinter==8.6
-FreeSimpleGUI==5.1.1
-numpy==2.1.0
-pydicom==3.0.1
-spekpy==2.0.13
+# tkinter==8.6
+FreeSimpleGUI
+numpy
+pandas
+pydicom
+spekpy
+typer
+pytest
+pytest-mock
+pytest-cov

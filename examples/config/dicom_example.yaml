@@ -1,0 +1,58 @@
+# MC-DCaRE DICOM simulation configuration example
+# Generate a template: uv run python run_simulation.py generate-config
+# Validate:            uv run python run_simulation.py validate config.yaml
+
+general:
+  g4_data_directory: /path/to/G4Data
+  topas_directory: /path/to/topas/bin/topas
+  seed: '9'
+  threads: '4'
+  histories: '100000'
+imaging:
+  simulation_type: DICOM
+  start_angle: 0 deg
+  rotation_direction: CBCT Clockwise
+  anode_voltage: 100 kV
+  exposure: 100 mAs
+  fan_mode: Full Fan
+  imaging_mode: Head
+  rotation_rate: 0.4 deg/s
+  timeline_end: 501.0 s
+  sequential_times: '1000'
+  time_verbosity: '0'
+  field_x1: 14 cm
+  field_x2: 14 cm
+  field_y1: 10.7 cm
+  field_y2: 10.7 cm
+  blade_x1: 6.175536078965273 cm
+  blade_x2: -6.175536078965273 cm
+  blade_y1: 5.814471115800571 cm
+  blade_y2: -5.814471115800571 cm
+dicom:
+  dicom_directory: /path/to/dicom/folder
+  dicom_rp_file: /path/to/RTPlan.dcm
+  patient_id: ''
+  isocenter_x: 0 mm
+  isocenter_y: 0 mm
+  isocenter_z: 0 mm
+  patient_shift_x: 0. mm
+  patient_shift_y: 0. mm
+  patient_shift_z: 0. mm
+  patient_yaw: 0. deg
+  graphics_enabled: false
+# CTDI section is ignored for DICOM simulations
+ctdi:
+  phantom_size: 16 cm
+  dose_to_medium_zbins: '100'
+  tle_zbins: '100'
+  dose_to_water_zbins: '100'
+  couch_enabled: true
+  couch_width: 260. mm
+  couch_thickness: 0.4 mm
+  couch_length: 1000 mm
+  user_blade_enabled: false
+  user_field_x1: 14 cm
+  user_field_x2: 14 cm
+  user_field_y1: 10.7 cm
+  user_field_y2: 10.7 cm
+  graphics_enabled: false

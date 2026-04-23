@@ -23,7 +23,11 @@ dependencies = [
     "pydicom>=2.4.4",
     "pytest-mock>=3.14.1",
     "pytest-cov>=5.0.0",
+    "pyyaml",
 ]
+
+[project.scripts]
+mc-dcare = "run_simulation:app"
 
 [project.optional-dependencies]
 dev = [

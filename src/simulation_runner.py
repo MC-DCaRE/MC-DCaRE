@@ -11,7 +11,14 @@ class SimulationRunner:
     @staticmethod
     def run_topas(command: str, working_dir: str) -> None:
         logger.info("Running TOPAS: %s in %s", command, working_dir)
-        subprocess.run(command, cwd=working_dir, shell=True)
+        result = subprocess.run(command, cwd=working_dir, shell=True)
+        if result.returncode != 0:
+            logger.error(
+                "TOPAS exited with code %d: %s", result.returncode, command
+            )
+            raise RuntimeError(
+                "TOPAS process failed with return code {}".format(result.returncode)
+            )
 
     @staticmethod
     def run_dicom(topas_path: str, rundatadir: str) -> None:

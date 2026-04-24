@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import logging
+import os
+import shutil
 from abc import ABC, abstractmethod
 from typing import List
 
@@ -37,3 +39,26 @@ class SimulationMode(ABC):
         rundir: str,
         project_root: str,
     ) -> None: ...
+
+    @staticmethod
+    def copy_common_files(
+        rundatadir: str, config: SimulationConfig, project_root: str
+    ) -> None:
+        include_dir = os.path.join(
+            project_root, "src", "boilerplates", "TOPAS_includeFiles"
+        )
+        shutil.copy(os.path.join(include_dir, "Muen.dat"), rundatadir)
+        shutil.copy(os.path.join(include_dir, "NbParticlesInTime.txt"), rundatadir)
+        shutil.copy(
+            os.path.join(project_root, "tmp", "ConvertedTopasFile.txt"),
+            rundatadir,
+        )
+        shutil.copy(
+            os.path.join(project_root, "tmp", "head_calibration_factor.txt"),
+            rundatadir,
+        )
+        fan_mode = config.imaging.fan_mode
+        if fan_mode == "Full Fan":
+            shutil.copy(os.path.join(include_dir, "fullfan.txt"), rundatadir)
+        elif fan_mode == "Half Fan":
+            shutil.copy(os.path.join(include_dir, "halffan.txt"), rundatadir)

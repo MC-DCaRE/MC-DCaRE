@@ -70,35 +70,12 @@ class DicomMode(SimulationMode):
         )
         shutil.copy(os.path.join(project_root, "tmp", "headsourcecode.txt"), rundir)
         shutil.copy(os.path.join(include_dir, "HUtoMaterialSchneider.txt"), rundir)
-        self._copy_common_files(rundir, config, project_root)
+        self.copy_common_files(rundir, config, project_root)
         shutil.copy(
             os.path.join(project_root, "tmp", self.get_sub_file_name(config)),
             rundir,
         )
         logger.info("Prepared DICOM run files in %s", rundir)
-
-    @staticmethod
-    def _copy_common_files(
-        rundatadir: str, config: SimulationConfig, project_root: str
-    ) -> None:
-        include_dir = os.path.join(
-            project_root, "src", "boilerplates", "TOPAS_includeFiles"
-        )
-        shutil.copy(os.path.join(include_dir, "Muen.dat"), rundatadir)
-        shutil.copy(os.path.join(include_dir, "NbParticlesInTime.txt"), rundatadir)
-        shutil.copy(
-            os.path.join(project_root, "tmp", "ConvertedTopasFile.txt"),
-            rundatadir,
-        )
-        shutil.copy(
-            os.path.join(project_root, "tmp", "head_calibration_factor.txt"),
-            rundatadir,
-        )
-        fan_mode = config.imaging.fan_mode
-        if fan_mode == "Full Fan":
-            shutil.copy(os.path.join(include_dir, "fullfan.txt"), rundatadir)
-        elif fan_mode == "Half Fan":
-            shutil.copy(os.path.join(include_dir, "halffan.txt"), rundatadir)
 
     def execute(
         self,

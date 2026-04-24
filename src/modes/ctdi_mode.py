@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 import os
-import shutil
 from typing import List, Tuple
 
 from src.config import SimulationConfig
@@ -72,7 +71,7 @@ class CtdiMode(SimulationMode):
         rundir: str,
         project_root: str,
     ) -> None:
-        self._copy_common_files(rundir, config, project_root)
+        self.copy_common_files(rundir, config, project_root)
         logger.info("Prepared CTDI run files in %s", rundir)
 
     def execute(
@@ -88,28 +87,6 @@ class CtdiMode(SimulationMode):
             project_root,
         )
         SimulationRunner.run_ctdi(config.general.topas_directory, rundir, commands)
-
-    @staticmethod
-    def _copy_common_files(
-        rundatadir: str, config: SimulationConfig, project_root: str
-    ) -> None:
-        include_dir = os.path.join(
-            project_root, "src", "boilerplates", "TOPAS_includeFiles"
-        )
-        shutil.copy(os.path.join(include_dir, "Muen.dat"), rundatadir)
-        shutil.copy(os.path.join(include_dir, "NbParticlesInTime.txt"), rundatadir)
-        shutil.copy(
-            os.path.join(project_root, "tmp", "ConvertedTopasFile.txt"), rundatadir
-        )
-        shutil.copy(
-            os.path.join(project_root, "tmp", "head_calibration_factor.txt"),
-            rundatadir,
-        )
-        fan_mode = config.imaging.fan_mode
-        if fan_mode == "Full Fan":
-            shutil.copy(os.path.join(include_dir, "fullfan.txt"), rundatadir)
-        elif fan_mode == "Half Fan":
-            shutil.copy(os.path.join(include_dir, "halffan.txt"), rundatadir)
 
     @staticmethod
     def _generate_plug_files(

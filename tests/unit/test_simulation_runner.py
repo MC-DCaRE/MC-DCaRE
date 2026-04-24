@@ -13,6 +13,7 @@ from src.simulation_runner import SimulationRunner
 class TestRunTopas:
     @patch("src.simulation_runner.subprocess.run")
     def test_calls_subprocess_run_with_correct_args(self, mock_run: MagicMock) -> None:
+        mock_run.return_value.returncode = 0
         SimulationRunner.run_topas("/topas bin/topas file.txt", "/working/dir")
         mock_run.assert_called_once_with(
             "/topas bin/topas file.txt", cwd="/working/dir", shell=True
@@ -22,14 +23,27 @@ class TestRunTopas:
     def test_does_not_print_after_execution(
         self, mock_run: MagicMock, capsys: object
     ) -> None:
+        mock_run.return_value.returncode = 0
         SimulationRunner.run_topas("command", "dir")
         captured = capsys.readouterr()
         assert captured.out == ""
+
+    @patch("src.simulation_runner.subprocess.run")
+    def test_raises_on_nonzero_return_code(self, mock_run: MagicMock) -> None:
+        mock_run.return_value.returncode = 1
+        with pytest.raises(RuntimeError, match="return code 1"):
+            SimulationRunner.run_topas("bad_command", "/dir")
+
+    @patch("src.simulation_runner.subprocess.run")
+    def test_succeeds_on_zero_return_code(self, mock_run: MagicMock) -> None:
+        mock_run.return_value.returncode = 0
+        SimulationRunner.run_topas("command", "/dir")
 
 
 class TestRunDicom:
     @patch("src.simulation_runner.subprocess.run")
     def test_calls_run_topas_with_correct_command(self, mock_run: MagicMock) -> None:
+        mock_run.return_value.returncode = 0
         topas_path = "/usr/local/topas/bin/topas"
         rundatadir = "/runfolder/2024-01-01_12-00-00"
 

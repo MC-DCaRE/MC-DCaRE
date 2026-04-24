@@ -1,4 +1,6 @@
+import logging
 import os
+
 import FreeSimpleGUI as sg
 from pydicom import dcmread
 from src.config import SimulationConfig
@@ -91,9 +93,7 @@ while True:
         window["-DICOM_TAB-"].update(visible=False)
 
     if event == "-G4_DATA_DIR-_ENTER":
-        f = open("dump.txt", "w")
-        f.write("dict = " + repr(values) + "\n")
-        f.close()
+        logging.debug("GUI values dump: %s", repr(values))
 
     if event == "-SIM_TYPE-":
         if values["-SIM_TYPE-"] == "DICOM":
@@ -120,7 +120,9 @@ while True:
                         ):
                             count_of_CT_images += 1
                         else:
-                            raise
+                            raise RuntimeError(
+                                "Multiple different patient IDs found in CT image set"
+                            )
             values["-PATIENT_ID-"] = patient_ID
             window["-PATIENT_ID-"].update(values["-PATIENT_ID-"])
             sg.popup(

@@ -12,10 +12,10 @@ def fieldtobladeopening(field_size_list: List[str]) -> List[str]:
     # yfieldopening = lambda blade : 17.3699885452463 * blade - 90.2972966781214
     # xfieldopening = lambda blade : 13.9904761904762 * blade - 72.3986904761904
     # Inverse it
-    def ybladeopening(field):
+    def ybladeopening(field: float) -> float:
         return (field + 90.2972966781214) / 17.3699885452463
 
-    def xbladeopening(field):
+    def xbladeopening(field: float) -> float:
         return (field + 72.3986904761904) / 13.9904761904762
 
     blade_position_list: List[str] = []

@@ -24,7 +24,7 @@ class Quantity:
         return cls(parsed_value, parsed_unit)
 
     def __str__(self) -> str:
-        return "{} {}".format(self.value, self.unit)
+        return "{} {}".format(format(self.value, "g"), self.unit)
 
     def to_tuple(self) -> Tuple[float, str]:
         return (self.value, self.unit)

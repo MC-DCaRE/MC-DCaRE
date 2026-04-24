@@ -136,7 +136,7 @@ class GUIController:
         self.view.update_imaging_mode_fields(mode)
 
     def _on_couch_toggle(self, values: Dict[str, Any]) -> None:
-        self.view.set_couch_visible(values[COUCH_ENABLED])
+        self.view.set_couch_visible(bool(values[COUCH_ENABLED]))
 
     def _on_user_blade_toggle(self, values: Dict[str, Any]) -> None:
-        self.view.set_blade_visible(values[CTDI_USER_BLADE])
+        self.view.set_blade_visible(bool(values[CTDI_USER_BLADE]))

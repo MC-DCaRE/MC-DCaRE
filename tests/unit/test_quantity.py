@@ -45,7 +45,12 @@ class TestQuantityParse:
 class TestQuantityStr:
     def test_str_roundtrip(self) -> None:
         q: Quantity = Quantity(100.0, "kV")
-        assert str(q) == "100.0 kV"
+        assert str(q) == "100 kV"
+
+    def test_str_strips_trailing_zeros(self) -> None:
+        assert str(Quantity(100.0, "kV")) == "100 kV"
+        assert str(Quantity(0.4, "deg/s")) == "0.4 deg/s"
+        assert str(Quantity(5.0, "mm")) == "5 mm"
 
     def test_frozen(self) -> None:
         q: Quantity = Quantity(5.0, "mm")

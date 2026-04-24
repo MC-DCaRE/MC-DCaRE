@@ -110,14 +110,13 @@ class CtdiMode(SimulationMode):
         with open(phantom_path, "r") as f:
             phantom_content = f.read()
 
+        headsource_path = os.path.join(project_root, "tmp", "headsourcecode.txt")
+        with open(headsource_path, "r") as f:
+            headsource_content = f.read()
+
         commands: List[Tuple[str, str]] = []
         for position in _PLUG_POSITIONS:
-            with open(
-                os.path.join(project_root, "tmp", "headsourcecode.txt"), "r"
-            ) as f:
-                content1 = f.read()
-
-            combined = content1 + phantom_content
+            combined = headsource_content + phantom_content
             combined = combined.replace("@@PLACEHOLDER@@", position)
             combined = combined.replace(
                 "s:Ge/" + position + '/Material="PMMA"',

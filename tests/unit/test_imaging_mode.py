@@ -78,9 +78,5 @@ class TestImagingModesLookup:
 
     def test_half_fan_modes(self) -> None:
         for name in ["Thorax", "Pelvis", "Pelvis Large"]:
-            mode: ImagingMode = IMAGING_MODES[
-                "CBCT Clockwise_" + name
-            ]
-            assert mode.fan_mode == "Half Fan", (
-                "Expected Half Fan for " + name
-            )
+            mode: ImagingMode = IMAGING_MODES["CBCT Clockwise_" + name]
+            assert mode.fan_mode == "Half Fan", "Expected Half Fan for " + name

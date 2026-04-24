@@ -1,13 +1,127 @@
+from __future__ import annotations
+
 import logging
 import os
 from dataclasses import asdict, dataclass, field
-from typing import Dict, Tuple
+from typing import Any, Dict, List, Tuple
 
 import yaml
 
+from src.models.keys import (
+    BLADE_X1,
+    BLADE_X2,
+    BLADE_Y1,
+    BLADE_Y2,
+    COUCH_ENABLED,
+    COUCH_LENGTH,
+    COUCH_THICKNESS,
+    COUCH_WIDTH,
+    CTDI_FIELD_X1,
+    CTDI_FIELD_X2,
+    CTDI_FIELD_Y1,
+    CTDI_FIELD_Y2,
+    CTDI_GRAPHICS,
+    CTDI_PHANTOM,
+    CTDI_USER_BLADE,
+    DICOM_DIR,
+    DICOM_GRAPHICS,
+    DICOM_RP,
+    DTM_ZBINS,
+    DTW_ZBINS,
+    EXPOSURE,
+    FAN_MODE,
+    FIELD_X1,
+    FIELD_X2,
+    FIELD_Y1,
+    FIELD_Y2,
+    G4_DATA_DIR,
+    HISTORIES,
+    IMAGING_MODE,
+    ISO_X,
+    ISO_Y,
+    ISO_Z,
+    PATIENT_ID,
+    PATIENT_YAW,
+    ROTATION_RATE,
+    SCAN_TYPE,
+    SEED,
+    SEQ_TIMES,
+    SHIFT_X,
+    SHIFT_Y,
+    SHIFT_Z,
+    SIM_TYPE,
+    THREADS,
+    TIMELINE_END,
+    TIME_VERBOSITY,
+    TOPAS_DIR,
+    TLE_ZBINS,
+    TUBE_VOLTAGE,
+    START_ANGLE,
+)
 from src.models.quantity import Quantity
 
 logger = logging.getLogger(__name__)
+
+_PLACEHOLDER_MAP: List[Tuple[str, str, str, Any]] = [
+    ("general", "g4_data_directory", G4_DATA_DIR, ""),
+    ("general", "topas_directory", TOPAS_DIR, ""),
+    ("general", "seed", SEED, "9"),
+    ("general", "threads", THREADS, "1"),
+    ("general", "histories", HISTORIES, "100000"),
+    ("imaging", "simulation_type", SIM_TYPE, "DICOM"),
+    ("imaging", "start_angle", START_ANGLE, "0 deg"),
+    ("imaging", "rotation_direction", SCAN_TYPE, "CBCT Clockwise"),
+    ("imaging", "anode_voltage", TUBE_VOLTAGE, "100 kV"),
+    ("imaging", "exposure", EXPOSURE, "100 mAs"),
+    ("imaging", "fan_mode", FAN_MODE, "Full Fan"),
+    ("imaging", "imaging_mode", IMAGING_MODE, "Image Gently"),
+    ("imaging", "rotation_rate", ROTATION_RATE, "0.4 deg/s"),
+    ("imaging", "timeline_end", TIMELINE_END, "501.0 s"),
+    ("imaging", "sequential_times", SEQ_TIMES, "1000"),
+    ("imaging", "time_verbosity", TIME_VERBOSITY, "0"),
+    ("imaging", "field_x1", FIELD_X1, "14 cm"),
+    ("imaging", "field_x2", FIELD_X2, "14 cm"),
+    ("imaging", "field_y1", FIELD_Y1, "10.7 cm"),
+    ("imaging", "field_y2", FIELD_Y2, "10.7 cm"),
+    ("imaging", "blade_x1", BLADE_X1, "6.175536078965273 cm"),
+    ("imaging", "blade_x2", BLADE_X2, "-6.175536078965273 cm"),
+    ("imaging", "blade_y1", BLADE_Y1, "5.814471115800571 cm"),
+    ("imaging", "blade_y2", BLADE_Y2, "-5.814471115800571 cm"),
+    ("dicom", "dicom_directory", DICOM_DIR, "/sampledicom/setA"),
+    ("dicom", "dicom_rp_file", DICOM_RP, "/sampledicom/RP.sample.dcm"),
+    ("dicom", "patient_id", PATIENT_ID, ""),
+    ("dicom", "isocenter_x", ISO_X, "0 mm"),
+    ("dicom", "isocenter_y", ISO_Y, "0 mm"),
+    ("dicom", "isocenter_z", ISO_Z, "0 mm"),
+    ("dicom", "patient_shift_x", SHIFT_X, "0. mm"),
+    ("dicom", "patient_shift_y", SHIFT_Y, "0. mm"),
+    ("dicom", "patient_shift_z", SHIFT_Z, "0. mm"),
+    ("dicom", "patient_yaw", PATIENT_YAW, "0. deg"),
+    ("dicom", "graphics_enabled", DICOM_GRAPHICS, False),
+    ("ctdi", "phantom_size", CTDI_PHANTOM, "16 cm"),
+    ("ctdi", "dose_to_medium_zbins", DTM_ZBINS, "100"),
+    ("ctdi", "tle_zbins", TLE_ZBINS, "100"),
+    ("ctdi", "dose_to_water_zbins", DTW_ZBINS, "100"),
+    ("ctdi", "couch_enabled", COUCH_ENABLED, True),
+    ("ctdi", "couch_width", COUCH_WIDTH, "260. mm"),
+    ("ctdi", "couch_thickness", COUCH_THICKNESS, "0.4 mm"),
+    ("ctdi", "couch_length", COUCH_LENGTH, "1000 mm"),
+    ("ctdi", "user_blade_enabled", CTDI_USER_BLADE, False),
+    ("ctdi", "user_field_x1", CTDI_FIELD_X1, "14 cm"),
+    ("ctdi", "user_field_x2", CTDI_FIELD_X2, "14 cm"),
+    ("ctdi", "user_field_y1", CTDI_FIELD_Y1, "10.7 cm"),
+    ("ctdi", "user_field_y2", CTDI_FIELD_Y2, "10.7 cm"),
+    ("ctdi", "graphics_enabled", CTDI_GRAPHICS, False),
+]
+
+_BOOL_FIELDS: Dict[str, str] = {}
+for _section, _field, _key, _default in _PLACEHOLDER_MAP:
+    if isinstance(_default, bool):
+        _BOOL_FIELDS[(_section + "." + _field)] = _key
+
+
+def _parse_bool(value: object) -> bool:
+    return value is True or str(value) == "True"
 
 
 @dataclass
@@ -83,57 +197,12 @@ class SimulationConfig:
     ctdi: CtdiConfig = field(default_factory=CtdiConfig)
 
     def to_dict(self) -> Dict[str, str]:
-        return {
-            "-G4_DATA_DIR-": self.general.g4_data_directory,
-            "-TOPAS_DIR-": self.general.topas_directory,
-            "-SEED-": self.general.seed,
-            "-THREADS-": self.general.threads,
-            "-HISTORIES-": self.general.histories,
-            "-SIM_TYPE-": self.imaging.simulation_type,
-            "-START_ANGLE-": self.imaging.start_angle,
-            "-SCAN_TYPE-": self.imaging.rotation_direction,
-            "-TUBE_VOLTAGE-": self.imaging.anode_voltage,
-            "-EXPOSURE-": self.imaging.exposure,
-            "-FAN_MODE-": self.imaging.fan_mode,
-            "-IMAGING_MODE-": self.imaging.imaging_mode,
-            "-ROTATION_RATE-": self.imaging.rotation_rate,
-            "-TIMELINE_END-": self.imaging.timeline_end,
-            "-SEQ_TIMES-": self.imaging.sequential_times,
-            "-TIME_VERBOSITY-": self.imaging.time_verbosity,
-            "-FIELD_X1-": self.imaging.field_x1,
-            "-FIELD_X2-": self.imaging.field_x2,
-            "-FIELD_Y1-": self.imaging.field_y1,
-            "-FIELD_Y2-": self.imaging.field_y2,
-            "-BLADE_X1-": self.imaging.blade_x1,
-            "-BLADE_X2-": self.imaging.blade_x2,
-            "-BLADE_Y1-": self.imaging.blade_y1,
-            "-BLADE_Y2-": self.imaging.blade_y2,
-            "-DICOM_DIR-": self.dicom.dicom_directory,
-            "-DICOM_RP-": self.dicom.dicom_rp_file,
-            "-PATIENT_ID-": self.dicom.patient_id,
-            "-ISO_X-": self.dicom.isocenter_x,
-            "-ISO_Y-": self.dicom.isocenter_y,
-            "-ISO_Z-": self.dicom.isocenter_z,
-            "-SHIFT_X-": self.dicom.patient_shift_x,
-            "-SHIFT_Y-": self.dicom.patient_shift_y,
-            "-SHIFT_Z-": self.dicom.patient_shift_z,
-            "-PATIENT_YAW-": self.dicom.patient_yaw,
-            "-DICOM_GRAPHICS-": str(self.dicom.graphics_enabled),
-            "-CTDI_PHANTOM-": self.ctdi.phantom_size,
-            "-DTM_ZBINS-": self.ctdi.dose_to_medium_zbins,
-            "-TLE_ZBINS-": self.ctdi.tle_zbins,
-            "-DTW_ZBINS-": self.ctdi.dose_to_water_zbins,
-            "-COUCH_ENABLED-": str(self.ctdi.couch_enabled),
-            "-COUCH_WIDTH-": self.ctdi.couch_width,
-            "-COUCH_THICKNESS-": self.ctdi.couch_thickness,
-            "-COUCH_LENGTH-": self.ctdi.couch_length,
-            "-CTDI_USER_BLADE-": str(self.ctdi.user_blade_enabled),
-            "-CTDI_FIELD_X1-": self.ctdi.user_field_x1,
-            "-CTDI_FIELD_X2-": self.ctdi.user_field_x2,
-            "-CTDI_FIELD_Y1-": self.ctdi.user_field_y1,
-            "-CTDI_FIELD_Y2-": self.ctdi.user_field_y2,
-            "-CTDI_GRAPHICS-": str(self.ctdi.graphics_enabled),
-        }
+        result: Dict[str, str] = {}
+        for section_name, field_name, key, _default in _PLACEHOLDER_MAP:
+            section = getattr(self, section_name)
+            value = getattr(section, field_name)
+            result[key] = str(value)
+        return result
 
     def to_yaml(self, path: str) -> None:
         data = {
@@ -158,68 +227,24 @@ class SimulationConfig:
 
     @classmethod
     def from_gui_values(cls, values: Dict[str, str]) -> "SimulationConfig":
+        sections: Dict[str, Dict[str, Any]] = {
+            "general": {},
+            "imaging": {},
+            "dicom": {},
+            "ctdi": {},
+        }
+        for section_name, field_name, key, default in _PLACEHOLDER_MAP:
+            raw: Any = values.get(key, default)
+            bool_key: str = section_name + "." + field_name
+            if bool_key in _BOOL_FIELDS:
+                sections[section_name][field_name] = _parse_bool(raw)
+            else:
+                sections[section_name][field_name] = raw
         return cls(
-            general=GeneralConfig(
-                g4_data_directory=values.get("-G4_DATA_DIR-", ""),
-                topas_directory=values.get("-TOPAS_DIR-", ""),
-                seed=values.get("-SEED-", "9"),
-                threads=values.get("-THREADS-", "1"),
-                histories=values.get("-HISTORIES-", "100000"),
-            ),
-            imaging=ImagingConfig(
-                simulation_type=values.get("-SIM_TYPE-", "DICOM"),
-                start_angle=values.get("-START_ANGLE-", "0 deg"),
-                rotation_direction=values.get("-SCAN_TYPE-", "CBCT Clockwise"),
-                anode_voltage=values.get("-TUBE_VOLTAGE-", "100 kV"),
-                exposure=values.get("-EXPOSURE-", "100 mAs"),
-                fan_mode=values.get("-FAN_MODE-", "Full Fan"),
-                imaging_mode=values.get("-IMAGING_MODE-", "Image Gently"),
-                rotation_rate=values.get("-ROTATION_RATE-", "0.4 deg/s"),
-                timeline_end=values.get("-TIMELINE_END-", "501.0 s"),
-                sequential_times=values.get("-SEQ_TIMES-", "1000"),
-                time_verbosity=values.get("-TIME_VERBOSITY-", "0"),
-                field_x1=values.get("-FIELD_X1-", "14 cm"),
-                field_x2=values.get("-FIELD_X2-", "14 cm"),
-                field_y1=values.get("-FIELD_Y1-", "10.7 cm"),
-                field_y2=values.get("-FIELD_Y2-", "10.7 cm"),
-                blade_x1=values.get("-BLADE_X1-", "6.175536078965273 cm"),
-                blade_x2=values.get("-BLADE_X2-", "-6.175536078965273 cm"),
-                blade_y1=values.get("-BLADE_Y1-", "5.814471115800571 cm"),
-                blade_y2=values.get("-BLADE_Y2-", "-5.814471115800571 cm"),
-            ),
-            dicom=DicomConfig(
-                dicom_directory=values.get("-DICOM_DIR-", "/sampledicom/setA"),
-                dicom_rp_file=values.get("-DICOM_RP-", "/sampledicom/RP.sample.dcm"),
-                patient_id=values.get("-PATIENT_ID-", ""),
-                isocenter_x=values.get("-ISO_X-", "0 mm"),
-                isocenter_y=values.get("-ISO_Y-", "0 mm"),
-                isocenter_z=values.get("-ISO_Z-", "0 mm"),
-                patient_shift_x=values.get("-SHIFT_X-", "0. mm"),
-                patient_shift_y=values.get("-SHIFT_Y-", "0. mm"),
-                patient_shift_z=values.get("-SHIFT_Z-", "0. mm"),
-                patient_yaw=values.get("-PATIENT_YAW-", "0. deg"),
-                graphics_enabled=values.get("-DICOM_GRAPHICS-", False) is True
-                or values.get("-DICOM_GRAPHICS-", "False") == "True",
-            ),
-            ctdi=CtdiConfig(
-                phantom_size=values.get("-CTDI_PHANTOM-", "16 cm"),
-                dose_to_medium_zbins=values.get("-DTM_ZBINS-", "100"),
-                tle_zbins=values.get("-TLE_ZBINS-", "100"),
-                dose_to_water_zbins=values.get("-DTW_ZBINS-", "100"),
-                couch_enabled=values.get("-COUCH_ENABLED-", True) is True
-                or values.get("-COUCH_ENABLED-", "True") == "True",
-                couch_width=values.get("-COUCH_WIDTH-", "260. mm"),
-                couch_thickness=values.get("-COUCH_THICKNESS-", "0.4 mm"),
-                couch_length=values.get("-COUCH_LENGTH-", "1000 mm"),
-                user_blade_enabled=values.get("-CTDI_USER_BLADE-", False) is True
-                or values.get("-CTDI_USER_BLADE-", "False") == "True",
-                user_field_x1=values.get("-CTDI_FIELD_X1-", "14 cm"),
-                user_field_x2=values.get("-CTDI_FIELD_X2-", "14 cm"),
-                user_field_y1=values.get("-CTDI_FIELD_Y1-", "10.7 cm"),
-                user_field_y2=values.get("-CTDI_FIELD_Y2-", "10.7 cm"),
-                graphics_enabled=values.get("-CTDI_GRAPHICS-", False) is True
-                or values.get("-CTDI_GRAPHICS-", "False") == "True",
-            ),
+            general=GeneralConfig(**sections["general"]),
+            imaging=ImagingConfig(**sections["imaging"]),
+            dicom=DicomConfig(**sections["dicom"]),
+            ctdi=CtdiConfig(**sections["ctdi"]),
         )
 
     @classmethod

@@ -12,12 +12,8 @@ from src.simulation_runner import SimulationRunner
 
 class TestRunTopas:
     @patch("src.simulation_runner.subprocess.run")
-    def test_calls_subprocess_run_with_correct_args(
-        self, mock_run: MagicMock
-    ) -> None:
-        SimulationRunner.run_topas(
-            "/topas bin/topas file.txt", "/working/dir"
-        )
+    def test_calls_subprocess_run_with_correct_args(self, mock_run: MagicMock) -> None:
+        SimulationRunner.run_topas("/topas bin/topas file.txt", "/working/dir")
         mock_run.assert_called_once_with(
             "/topas bin/topas file.txt", cwd="/working/dir", shell=True
         )
@@ -33,34 +29,22 @@ class TestRunTopas:
 
 class TestRunDicom:
     @patch("src.simulation_runner.subprocess.run")
-    def test_calls_run_topas_with_correct_command(
-        self, mock_run: MagicMock
-    ) -> None:
+    def test_calls_run_topas_with_correct_command(self, mock_run: MagicMock) -> None:
         topas_path = "/usr/local/topas/bin/topas"
         rundatadir = "/runfolder/2024-01-01_12-00-00"
 
         SimulationRunner.run_dicom(topas_path, rundatadir)
 
-        expected_command = (
-            topas_path + " " + rundatadir + "/headsourcecode.txt"
-        )
-        mock_run.assert_called_once_with(
-            expected_command, cwd=rundatadir, shell=True
-        )
+        expected_command = topas_path + " " + rundatadir + "/headsourcecode.txt"
+        mock_run.assert_called_once_with(expected_command, cwd=rundatadir, shell=True)
 
 
 class TestRunCtdi:
     @patch("src.simulation_runner.mp.Pool")
-    def test_calls_run_topas_for_each_command(
-        self, mock_pool_class: MagicMock
-    ) -> None:
+    def test_calls_run_topas_for_each_command(self, mock_pool_class: MagicMock) -> None:
         mock_pool = MagicMock()
-        mock_pool_class.return_value.__enter__ = MagicMock(
-            return_value=mock_pool
-        )
-        mock_pool_class.return_value.__exit__ = MagicMock(
-            return_value=False
-        )
+        mock_pool_class.return_value.__enter__ = MagicMock(return_value=mock_pool)
+        mock_pool_class.return_value.__exit__ = MagicMock(return_value=False)
 
         topas_path = "/usr/local/topas/bin/topas"
         rundatadir = "/runfolder/2024-01-01_12-00-00"
@@ -81,9 +65,7 @@ class TestRunCtdi:
 
         SimulationRunner.run_ctdi(topas_path, rundatadir, commands)
 
-        mock_pool.starmap.assert_called_once_with(
-            SimulationRunner.run_topas, commands
-        )
+        mock_pool.starmap.assert_called_once_with(SimulationRunner.run_topas, commands)
 
 
 if __name__ == "__main__":

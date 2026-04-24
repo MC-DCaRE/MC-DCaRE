@@ -70,6 +70,4 @@ class TestQuantityBackwardCompat:
         ]:
             old_result = quantity_unit_stripper(input_str)
             new_result = Quantity.parse(input_str).to_tuple()
-            assert old_result == new_result, (
-                "Mismatch for " + input_str
-            )
+            assert old_result == new_result, "Mismatch for " + input_str

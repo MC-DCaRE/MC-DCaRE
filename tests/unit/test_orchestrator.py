@@ -2,7 +2,6 @@ import os
 import sys
 from unittest.mock import MagicMock, mock_open, patch
 
-import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
@@ -212,7 +211,9 @@ class TestRunCtdiSimulation:
         orch = Orchestrator("/project")
         with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
             mock_bm_cls.return_value.get_headsource_path.return_value = "/tmp/head.txt"
-            mock_bm_cls.return_value.get_tmp_path.return_value = "/tmp/CTDIphantom_16.txt"
+            mock_bm_cls.return_value.get_tmp_path.return_value = (
+                "/tmp/CTDIphantom_16.txt"
+            )
             with patch("builtins.open", mock_open(read_data=MAIN_FILE_CONTENT)):
                 with patch.object(orch, "_create_runfolder", return_value="/rundir"):
                     with patch.object(CtdiMode, "prepare_run"):
@@ -229,15 +230,15 @@ class TestRunCtdiSimulation:
         orch = Orchestrator("/project")
         with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
             mock_bm_cls.return_value.get_headsource_path.return_value = "/tmp/head.txt"
-            mock_bm_cls.return_value.get_tmp_path.return_value = "/tmp/CTDIphantom_16.txt"
+            mock_bm_cls.return_value.get_tmp_path.return_value = (
+                "/tmp/CTDIphantom_16.txt"
+            )
             with patch("builtins.open", mock_open(read_data=MAIN_FILE_CONTENT)):
                 with patch.object(orch, "_create_runfolder", return_value="/rundir"):
                     with patch.object(CtdiMode, "prepare_run"):
                         with patch.object(CtdiMode, "execute"):
                             orch.run_ctdi_simulation(config)
-        mock_sg_cls.generate.assert_called_once_with(
-            80.0, 50.0, "100000", "/project"
-        )
+        mock_sg_cls.generate.assert_called_once_with(80.0, 50.0, "100000", "/project")
 
     def test_returns_rundir(
         self,
@@ -248,7 +249,9 @@ class TestRunCtdiSimulation:
         orch = Orchestrator("/project")
         with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
             mock_bm_cls.return_value.get_headsource_path.return_value = "/tmp/head.txt"
-            mock_bm_cls.return_value.get_tmp_path.return_value = "/tmp/CTDIphantom_16.txt"
+            mock_bm_cls.return_value.get_tmp_path.return_value = (
+                "/tmp/CTDIphantom_16.txt"
+            )
             with patch("builtins.open", mock_open(read_data=MAIN_FILE_CONTENT)):
                 with patch.object(orch, "_create_runfolder", return_value="/rundir"):
                     with patch.object(CtdiMode, "prepare_run"):
@@ -286,7 +289,9 @@ class TestPrepareOnly:
         orch = Orchestrator("/project")
         with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
             mock_bm_cls.return_value.get_headsource_path.return_value = "/tmp/head.txt"
-            mock_bm_cls.return_value.get_tmp_path.return_value = "/tmp/CTDIphantom_16.txt"
+            mock_bm_cls.return_value.get_tmp_path.return_value = (
+                "/tmp/CTDIphantom_16.txt"
+            )
             with patch("builtins.open", mock_open(read_data=MAIN_FILE_CONTENT)):
                 with patch.object(orch, "_create_runfolder", return_value="/rundir"):
                     with patch.object(CtdiMode, "prepare_run"):

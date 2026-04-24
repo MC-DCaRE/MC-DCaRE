@@ -1,7 +1,13 @@
+import logging
 import os
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from typing import Dict, Tuple
+
 import yaml
+
+from src.models.quantity import Quantity
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -218,8 +224,8 @@ class SimulationConfig:
 
     @classmethod
     def defaults(cls) -> "SimulationConfig":
-        g4_dir = os.environ.get("G4DATA_DIR", "/root/G4Data")
-        topas_dir = os.environ.get("TOPAS_DIR", "/root/topas/bin/topas ")
+        g4_dir: str = os.environ.get("G4DATA_DIR", "/root/G4Data")
+        topas_dir: str = os.environ.get("TOPAS_DIR", "/root/topas/bin/topas ")
         return cls(
             general=GeneralConfig(
                 g4_data_directory=g4_dir,
@@ -232,11 +238,4 @@ class SimulationConfig:
 
 
 def quantity_unit_stripper(string_value: str) -> Tuple[float, str]:
-    quantity = 0.0
-    unit = ""
-    for t in string_value.split():
-        try:
-            quantity = float(t)
-        except ValueError:
-            unit = t
-    return quantity, unit
+    return Quantity.parse(string_value).to_tuple()

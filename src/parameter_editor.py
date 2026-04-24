@@ -1,11 +1,15 @@
+import logging
 from typing import List, Optional
+
 from src.config import SimulationConfig
 from src.fieldtobladeopening import fieldtobladeopening
+
+logger = logging.getLogger(__name__)
 
 
 class ParameterEditor:
     def __init__(self, config: SimulationConfig) -> None:
-        self.config = config
+        self.config: SimulationConfig = config
 
     @staticmethod
     def string_index_replacement(
@@ -24,9 +28,9 @@ class ParameterEditor:
                 break
 
     def edit_main_file(self, target_file: str) -> None:
-        cfg = self.config
+        cfg: SimulationConfig = self.config
         with open(target_file, "r") as f:
-            filecontent = f.readlines()
+            filecontent: List[str] = f.readlines()
 
         s = self.string_index_replacement
 
@@ -68,7 +72,10 @@ class ParameterEditor:
         if cfg.imaging.simulation_type == "DICOM":
             s("includeFile = CTDIphantom_16.txt", filecontent)
             s("includeFile = CTDIphantom_32.txt", filecontent)
-            s("sv:Ph/Default/LayeredMassGeometryWorlds", filecontent)
+            s(
+                "sv:Ph/Default/LayeredMassGeometryWorlds",
+                filecontent,
+            )
             if not cfg.dicom.graphics_enabled:
                 s("Ts/UseQt", filecontent)
                 s("s:Gr/ViewA/Type", filecontent)
@@ -82,7 +89,7 @@ class ParameterEditor:
                 s("b:Gr/Enable", filecontent)
 
             if cfg.ctdi.user_blade_enabled:
-                calculated_blade_positions = fieldtobladeopening(
+                calculated_blade_positions: List[str] = fieldtobladeopening(
                     [
                         cfg.ctdi.user_field_x1,
                         cfg.ctdi.user_field_x2,
@@ -119,10 +126,12 @@ class ParameterEditor:
         with open(target_file, "w") as f:
             f.writelines(filecontent)
 
+        logger.info("Edited main file: %s", target_file)
+
     def edit_sub_file(self, target_file: str) -> None:
-        cfg = self.config
+        cfg: SimulationConfig = self.config
         with open(target_file, "r") as f:
-            filecontent = f.readlines()
+            filecontent: List[str] = f.readlines()
 
         s = self.string_index_replacement
 
@@ -190,3 +199,5 @@ class ParameterEditor:
 
         with open(target_file, "w") as f:
             f.writelines(filecontent)
+
+        logger.info("Edited sub file: %s", target_file)

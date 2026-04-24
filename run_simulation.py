@@ -21,10 +21,7 @@ def run(config_file: str, dry_run: bool = False) -> None:
         rundir = orchestrator.prepare_only(config)
         print("Files prepared in " + rundir + ". TOPAS not executed.")
     else:
-        if config.imaging.simulation_type == "DICOM":
-            rundir = orchestrator.run_dicom_simulation(config)
-        else:
-            rundir = orchestrator.run_ctdi_simulation(config)
+        rundir = orchestrator.run(config)
         print("Simulation completed in " + rundir)
 
 

@@ -919,7 +919,7 @@ class MainView:
         )
 
     def read(self) -> Tuple[str, Dict[str, Any]]:
-        return self.window.read()
+        return self.window.read()  # type: ignore[no-any-return]
 
     def update_imaging_mode_fields(self, mode: ImagingMode) -> None:
         self.window[ROTATION_RATE].update(mode.rotation_rate)

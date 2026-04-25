@@ -100,9 +100,11 @@ class TestCalculateCTDI_W:
         ctdi_w = CTDICalculator.calculate_ctdi_w([], 1.0e-10)
         assert ctdi_w == 0.0
 
-    def test_calculate_ctdi_w_no_center(self) -> None:
-        ctdi_w = CTDICalculator.calculate_ctdi_w([1.0e-10, 1.2e-10], None)  # type: ignore[arg-type]
-        assert ctdi_w == 0.0
+    def test_calculate_ctdi_w_zero_center(self) -> None:
+        ctdi_w = CTDICalculator.calculate_ctdi_w([1.0e-10, 1.2e-10], 0.0)
+        expected_avg = (1.0e-10 + 1.2e-10) / 2
+        expected = (2 / 3) * expected_avg + (1 / 3) * 0.0
+        assert abs(ctdi_w - expected) < 1e-25
 
 
 class TestProcessFileType:

@@ -8,7 +8,7 @@ from src.gui.controller import GUIController
 from src.gui.view import MainView
 from src.orchestrator import Orchestrator
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 def main() -> None:

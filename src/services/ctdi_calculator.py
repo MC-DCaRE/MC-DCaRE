@@ -197,10 +197,6 @@ class CTDICalculator:
             logger.warning("No peripheral doses provided")
             return 0.0
 
-        if center_dose is None:
-            logger.warning("No center dose provided")
-            return 0.0
-
         peripheral_avg = sum(peripheral_doses) / len(peripheral_doses)
         ctdi_w = (2 / 3) * peripheral_avg + (1 / 3) * center_dose
 

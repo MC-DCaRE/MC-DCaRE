@@ -250,7 +250,7 @@ class SimulationConfig:
     @classmethod
     def defaults(cls) -> "SimulationConfig":
         g4_dir: str = os.environ.get("G4DATA_DIR", "/root/G4Data")
-        topas_dir: str = os.environ.get("TOPAS_DIR", "/root/topas/bin/topas ")
+        topas_dir: str = os.environ.get("TOPAS_DIR", "/root/topas/bin/topas")
         return cls(
             general=GeneralConfig(
                 g4_data_directory=g4_dir,

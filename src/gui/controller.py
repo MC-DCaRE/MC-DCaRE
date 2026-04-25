@@ -39,8 +39,8 @@ class GUIController:
             SIM_TYPE: self._on_sim_type_change,
             DICOM_DIR: self._on_dicom_dir,
             DICOM_RP: self._on_dicom_rp,
-            DICOM_RUN: self._on_dicom_run,
-            CTDI_RUN: self._on_ctdi_run,
+            DICOM_RUN: self._on_run,
+            CTDI_RUN: self._on_run,
             IMAGING_MODE: self._on_imaging_mode_change,
             SCAN_TYPE: self._on_imaging_mode_change,
             COUCH_ENABLED: self._on_couch_toggle,
@@ -74,6 +74,7 @@ class GUIController:
 
     def _on_dicom_dir(self, values: Dict[str, Any]) -> None:
         count_of_CT_images = 0
+        patient_ID = ""
         try:
             dicom_path = values[DICOM_DIR]
             list_of_files = os.listdir(dicom_path)
@@ -83,11 +84,14 @@ class GUIController:
                     if count_of_CT_images == 0:
                         count_of_CT_images += 1
                         patient_ID = ds.PatientID
-                    elif count_of_CT_images != 0:
+                    else:
                         if ds.PatientID == patient_ID:
                             count_of_CT_images += 1
                         else:
                             raise RuntimeError("Multiple different patient IDs found")
+            if count_of_CT_images == 0:
+                self.view.show_error("No CT images found in directory")
+                return
             self.view.update_patient_id(patient_ID)
             self.view.show_popup(
                 "Number of " + patient_ID + " CT images found", count_of_CT_images
@@ -114,21 +118,13 @@ class GUIController:
                 "Patient ID for the CT image set and treatment plan does not match"
             )
 
-    def _on_dicom_run(self, values: Dict[str, Any]) -> None:
+    def _on_run(self, values: Dict[str, Any]) -> None:
         try:
             config = SimulationConfig.from_gui_values(values)
             rundir = self.orchestrator.run(config)
             self.view.show_popup(rundir)
         except Exception as e:
-            self.view.show_error("Ensure valid DICOM folder and file: " + str(e))
-
-    def _on_ctdi_run(self, values: Dict[str, Any]) -> None:
-        try:
-            config = SimulationConfig.from_gui_values(values)
-            rundir = self.orchestrator.run(config)
-            self.view.show_popup(rundir)
-        except Exception as e:
-            self.view.show_error("CTDI simulation failed: " + str(e))
+            self.view.show_error("Simulation failed: " + str(e))
 
     def _on_imaging_mode_change(self, values: Dict[str, Any]) -> None:
         mode_key = values[SCAN_TYPE] + "_" + values[IMAGING_MODE]

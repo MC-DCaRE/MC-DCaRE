@@ -5,13 +5,6 @@ from unittest.mock import patch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from src.config import (
-    CtdiConfig,
-    DicomConfig,
-    GeneralConfig,
-    ImagingConfig,
-    SimulationConfig,
-)
 from src.modes.dicom_mode import DicomMode
 
 
@@ -51,32 +44,10 @@ DICOM_SUB_FILE_CONTENT = (
 )
 
 
-def _make_dicom_config(**overrides: Any) -> SimulationConfig:
-    general_kw = {}
-    imaging_kw = {}
-    dicom_kw = {}
-    ctdi_kw = {}
-    for k, v in overrides.items():
-        if k in GeneralConfig.__dataclass_fields__:
-            general_kw[k] = v
-        elif k in ImagingConfig.__dataclass_fields__:
-            imaging_kw[k] = v
-        elif k in DicomConfig.__dataclass_fields__:
-            dicom_kw[k] = v
-        elif k in CtdiConfig.__dataclass_fields__:
-            ctdi_kw[k] = v
-    return SimulationConfig(
-        general=GeneralConfig(**general_kw),
-        imaging=ImagingConfig(**imaging_kw),
-        dicom=DicomConfig(**dicom_kw),
-        ctdi=CtdiConfig(**ctdi_kw),
-    )
-
-
 class TestEditMainFile:
-    def test_blanks_ctdi_phantom_includes(self) -> None:
+    def test_blanks_ctdi_phantom_includes(self, make_config: Any) -> None:
         mode = DicomMode()
-        config = _make_dicom_config()
+        config = make_config()
         lines = MAIN_FILE_CONTENT.splitlines(True)
         mode.edit_main_file(config, lines)
         for line in lines:
@@ -87,9 +58,9 @@ class TestEditMainFile:
                 "CTDIphantom_32.txt include should be blanked"
             )
 
-    def test_blanks_layered_mass_geometry(self) -> None:
+    def test_blanks_layered_mass_geometry(self, make_config: Any) -> None:
         mode = DicomMode()
-        config = _make_dicom_config()
+        config = make_config()
         lines = MAIN_FILE_CONTENT.splitlines(True)
         mode.edit_main_file(config, lines)
         for line in lines:
@@ -97,9 +68,9 @@ class TestEditMainFile:
                 "LayeredMassGeometryWorlds should be blanked"
             )
 
-    def test_blanks_graphics_when_disabled(self) -> None:
+    def test_blanks_graphics_when_disabled(self, make_config: Any) -> None:
         mode = DicomMode()
-        config = _make_dicom_config(graphics_enabled=False)
+        config = make_config(graphics_enabled=False)
         lines = MAIN_FILE_CONTENT.splitlines(True)
         mode.edit_main_file(config, lines)
         for line in lines:
@@ -113,9 +84,9 @@ class TestEditMainFile:
                 "b:Gr/Enable should be blanked when graphics disabled"
             )
 
-    def test_keeps_graphics_when_enabled(self) -> None:
+    def test_keeps_graphics_when_enabled(self, make_config: Any) -> None:
         mode = DicomMode()
-        config = _make_dicom_config(graphics_enabled=True)
+        config = make_config(graphics_enabled=True)
         lines = MAIN_FILE_CONTENT.splitlines(True)
         mode.edit_main_file(config, lines)
         assert any(line.startswith("Ts/UseQt") for line in lines), (
@@ -130,23 +101,23 @@ class TestEditMainFile:
 
 
 class TestEditSubFile:
-    def test_replaces_patient_yaw(self) -> None:
+    def test_replaces_patient_yaw(self, make_config: Any) -> None:
         mode = DicomMode()
-        config = _make_dicom_config(patient_yaw="90. deg")
+        config = make_config(patient_yaw="90. deg")
         lines = DICOM_SUB_FILE_CONTENT.splitlines(True)
         mode.edit_sub_file(config, lines)
         assert "d:Ge/patrotation/yaw = 90. deg\n" in lines
 
-    def test_replaces_dicom_directory(self) -> None:
+    def test_replaces_dicom_directory(self, make_config: Any) -> None:
         mode = DicomMode()
-        config = _make_dicom_config(dicom_directory="/new/dicom/path")
+        config = make_config(dicom_directory="/new/dicom/path")
         lines = DICOM_SUB_FILE_CONTENT.splitlines(True)
         mode.edit_sub_file(config, lines)
         assert 's:Ge/Patient/DicomDirectory = "/new/dicom/path"\n' in lines
 
-    def test_replaces_isocenter(self) -> None:
+    def test_replaces_isocenter(self, make_config: Any) -> None:
         mode = DicomMode()
-        config = _make_dicom_config(
+        config = make_config(
             isocenter_x="10 mm",
             isocenter_y="20 mm",
             isocenter_z="30 mm",
@@ -157,9 +128,9 @@ class TestEditSubFile:
         assert "dc:Ge/IsocenterY = 20 mm\n" in lines
         assert "dc:Ge/IsocenterZ = 30 mm\n" in lines
 
-    def test_replaces_patient_shifts(self) -> None:
+    def test_replaces_patient_shifts(self, make_config: Any) -> None:
         mode = DicomMode()
-        config = _make_dicom_config(
+        config = make_config(
             patient_shift_x="1.5 mm",
             patient_shift_y="2.5 mm",
             patient_shift_z="3.5 mm",
@@ -170,9 +141,9 @@ class TestEditSubFile:
         assert "dc:Ge/Patient/UserTransY = 2.5 mm\n" in lines
         assert "dc:Ge/Patient/UserTransZ = 3.5 mm\n" in lines
 
-    def test_replaces_output_filename(self) -> None:
+    def test_replaces_output_filename(self, make_config: Any) -> None:
         mode = DicomMode()
-        config = _make_dicom_config(
+        config = make_config(
             patient_id="PAT001",
             rotation_direction="CW",
             imaging_mode="Head",
@@ -187,24 +158,24 @@ class TestEditSubFile:
 
 
 class TestGetSubFileName:
-    def test_returns_patient_dicom_txt(self) -> None:
+    def test_returns_patient_dicom_txt(self, make_config: Any) -> None:
         mode = DicomMode()
-        config = _make_dicom_config()
+        config = make_config()
         assert mode.get_sub_file_name(config) == "patientDICOM.txt"
 
 
 class TestComputeHistories:
-    def test_multiplies_sequential_times_by_histories(self) -> None:
+    def test_multiplies_sequential_times_by_histories(self, make_config: Any) -> None:
         mode = DicomMode()
-        config = _make_dicom_config(sequential_times="1000", histories="100000")
+        config = make_config(sequential_times="1000", histories="100000")
         result = mode.compute_histories(config)
         assert result == "100000000"
 
 
 class TestPrepareRun:
-    def test_copies_required_files(self) -> None:
+    def test_copies_required_files(self, make_config: Any) -> None:
         mode = DicomMode()
-        config = _make_dicom_config(fan_mode="Full Fan")
+        config = make_config(fan_mode="Full Fan")
         with patch("src.modes.dicom_mode.shutil.copy") as mock_copy:
             mode.prepare_run(config, "/rundir", "/project")
             assert mock_copy.call_count == 8
@@ -221,9 +192,9 @@ class TestPrepareRun:
 
 
 class TestExecute:
-    def test_calls_simulation_runner(self) -> None:
+    def test_calls_simulation_runner(self, make_config: Any) -> None:
         mode = DicomMode()
-        config = _make_dicom_config(topas_directory="/topas/bin/topas")
+        config = make_config(topas_directory="/topas/bin/topas")
         with patch("src.modes.dicom_mode.SimulationRunner.run_dicom") as mock_run:
             mode.execute(config, "/rundir", "/project")
             mock_run.assert_called_once_with("/topas/bin/topas", "/rundir")

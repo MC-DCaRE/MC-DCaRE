@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 from src.fieldtobladeopening import fieldtobladeopening
 
@@ -174,3 +176,20 @@ class TestFieldToBladeOpening:
         # Also call the function directly to ensure we cover all code paths
         fieldtobladeopening(["2 cm", "2 cm", "16 cm", "16 cm"])
         fieldtobladeopening(["10 cm", "10 cm", "10 cm", "10 cm"])
+
+
+class TestFieldToBladeOpeningEdgeCases:
+    def test_single_element(self) -> None:
+        result = fieldtobladeopening(["14 cm"])
+        assert len(result) == 1
+        assert "cm" in result[0]
+
+    def test_three_elements(self) -> None:
+        result = fieldtobladeopening(["14 cm", "14 cm", "14 cm"])
+        assert len(result) == 3
+
+    def test_five_elements_all_negative_y(self) -> None:
+        result = fieldtobladeopening(["14 cm", "14 cm", "14 cm", "14 cm", "14 cm"])
+        assert len(result) == 5
+        for r in result[4:]:
+            assert r.startswith("-")

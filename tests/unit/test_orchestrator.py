@@ -1,17 +1,13 @@
+from __future__ import annotations
+
 import os
 import sys
+from typing import Any
 from unittest.mock import MagicMock, mock_open, patch
 
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
-from src.config import (
-    CtdiConfig,
-    DicomConfig,
-    GeneralConfig,
-    ImagingConfig,
-    SimulationConfig,
-)
 from src.modes.dicom_mode import DicomMode
 from src.modes.ctdi_mode import CtdiMode
 from src.orchestrator import Orchestrator
@@ -60,70 +56,44 @@ SUB_FILE_CONTENT: str = (
 )
 
 
-def _make_dicom_config() -> SimulationConfig:
-    return SimulationConfig(
-        general=GeneralConfig(
-            topas_directory="/topas/bin",
-            histories="100000",
-        ),
-        imaging=ImagingConfig(
-            simulation_type="DICOM",
-            anode_voltage="100 kV",
-            exposure="200 mAs",
-            sequential_times="1000",
-        ),
-        dicom=DicomConfig(
-            graphics_enabled=False,
-        ),
-    )
-
-
-def _make_ctdi_config() -> SimulationConfig:
-    return SimulationConfig(
-        general=GeneralConfig(
-            topas_directory="/topas/bin",
-            histories="100000",
-        ),
-        imaging=ImagingConfig(
-            simulation_type="CTDI validation",
-            anode_voltage="80 kV",
-            exposure="50 mAs",
-        ),
-        ctdi=CtdiConfig(
-            phantom_size="16 cm",
-        ),
-    )
-
-
 class TestGetMode:
-    def test_returns_dicom_mode_for_dicom(self) -> None:
-        config = _make_dicom_config()
+    def test_returns_dicom_mode_for_dicom(self, make_config: Any) -> None:
+        config = make_config(simulation_type="DICOM")
         orch = Orchestrator("/project")
         mode = orch._get_mode(config)
         assert isinstance(mode, DicomMode)
 
-    def test_returns_ctdi_mode_for_ctdi(self) -> None:
-        config = _make_ctdi_config()
+    def test_returns_ctdi_mode_for_ctdi(self, make_config: Any) -> None:
+        config = make_config(simulation_type="CTDI validation", phantom_size="16 cm")
+        orch = Orchestrator("/project")
+        mode = orch._get_mode(config)
+        assert isinstance(mode, CtdiMode)
+
+    def test_unknown_type_returns_ctdi_mode(self, make_config: Any) -> None:
+        config = make_config(simulation_type="Unknown")
         orch = Orchestrator("/project")
         mode = orch._get_mode(config)
         assert isinstance(mode, CtdiMode)
 
 
 class TestApplyCommonEdits:
-    def test_replaces_g4_directory(self) -> None:
-        config = _make_dicom_config()
-        config.general.g4_data_directory = "/custom/g4data"
+    def test_replaces_g4_directory(self, make_config: Any) -> None:
+        config = make_config(
+            simulation_type="DICOM", g4_data_directory="/custom/g4data"
+        )
         orch = Orchestrator("/project")
         lines = MAIN_FILE_CONTENT.splitlines(keepends=True)
         orch._apply_common_edits(config, lines)
         content = "".join(lines)
         assert '/custom/g4data"' in content
 
-    def test_replaces_seed_threads_histories(self) -> None:
-        config = _make_dicom_config()
-        config.general.seed = "99"
-        config.general.threads = "8"
-        config.general.histories = "2000000"
+    def test_replaces_seed_threads_histories(self, make_config: Any) -> None:
+        config = make_config(
+            simulation_type="DICOM",
+            seed="99",
+            threads="8",
+            histories="2000000",
+        )
         orch = Orchestrator("/project")
         lines = MAIN_FILE_CONTENT.splitlines(keepends=True)
         orch._apply_common_edits(config, lines)
@@ -132,9 +102,8 @@ class TestApplyCommonEdits:
         assert "i:Ts/NumberOfThreads = 8\n" in content
         assert "i:So/beam/NumberOfHistoriesInRun = 2000000\n" in content
 
-    def test_removes_halffan_for_full_fan_mode(self) -> None:
-        config = _make_dicom_config()
-        config.imaging.fan_mode = "Full Fan"
+    def test_removes_halffan_for_full_fan_mode(self, make_config: Any) -> None:
+        config = make_config(simulation_type="DICOM", fan_mode="Full Fan")
         orch = Orchestrator("/project")
         lines = MAIN_FILE_CONTENT.splitlines(keepends=True)
         orch._apply_common_edits(config, lines)
@@ -149,8 +118,17 @@ class TestRunDicomSimulation:
         self,
         mock_bm_cls: MagicMock,
         mock_sg_cls: MagicMock,
+        make_config: Any,
     ) -> None:
-        config = _make_dicom_config()
+        config = make_config(
+            simulation_type="DICOM",
+            topas_directory="/topas/bin",
+            histories="100000",
+            anode_voltage="100 kV",
+            exposure="200 mAs",
+            sequential_times="1000",
+            graphics_enabled=False,
+        )
         orch = Orchestrator("/project")
         with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
             mock_bm_cls.return_value.get_headsource_path.return_value = "/tmp/head.txt"
@@ -166,8 +144,17 @@ class TestRunDicomSimulation:
         self,
         mock_bm_cls: MagicMock,
         mock_sg_cls: MagicMock,
+        make_config: Any,
     ) -> None:
-        config = _make_dicom_config()
+        config = make_config(
+            simulation_type="DICOM",
+            topas_directory="/topas/bin",
+            histories="100000",
+            anode_voltage="100 kV",
+            exposure="200 mAs",
+            sequential_times="1000",
+            graphics_enabled=False,
+        )
         orch = Orchestrator("/project")
         with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
             mock_bm_cls.return_value.get_headsource_path.return_value = "/tmp/head.txt"
@@ -185,8 +172,17 @@ class TestRunDicomSimulation:
         self,
         mock_bm_cls: MagicMock,
         mock_sg_cls: MagicMock,
+        make_config: Any,
     ) -> None:
-        config = _make_dicom_config()
+        config = make_config(
+            simulation_type="DICOM",
+            topas_directory="/topas/bin",
+            histories="100000",
+            anode_voltage="100 kV",
+            exposure="200 mAs",
+            sequential_times="1000",
+            graphics_enabled=False,
+        )
         orch = Orchestrator("/project")
         with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
             mock_bm_cls.return_value.get_headsource_path.return_value = "/tmp/head.txt"
@@ -206,8 +202,16 @@ class TestRunCtdiSimulation:
         self,
         mock_bm_cls: MagicMock,
         mock_sg_cls: MagicMock,
+        make_config: Any,
     ) -> None:
-        config = _make_ctdi_config()
+        config = make_config(
+            simulation_type="CTDI validation",
+            topas_directory="/topas/bin",
+            histories="100000",
+            anode_voltage="80 kV",
+            exposure="50 mAs",
+            phantom_size="16 cm",
+        )
         orch = Orchestrator("/project")
         with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
             mock_bm_cls.return_value.get_headsource_path.return_value = "/tmp/head.txt"
@@ -225,8 +229,16 @@ class TestRunCtdiSimulation:
         self,
         mock_bm_cls: MagicMock,
         mock_sg_cls: MagicMock,
+        make_config: Any,
     ) -> None:
-        config = _make_ctdi_config()
+        config = make_config(
+            simulation_type="CTDI validation",
+            topas_directory="/topas/bin",
+            histories="100000",
+            anode_voltage="80 kV",
+            exposure="50 mAs",
+            phantom_size="16 cm",
+        )
         orch = Orchestrator("/project")
         with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
             mock_bm_cls.return_value.get_headsource_path.return_value = "/tmp/head.txt"
@@ -244,8 +256,16 @@ class TestRunCtdiSimulation:
         self,
         mock_bm_cls: MagicMock,
         mock_sg_cls: MagicMock,
+        make_config: Any,
     ) -> None:
-        config = _make_ctdi_config()
+        config = make_config(
+            simulation_type="CTDI validation",
+            topas_directory="/topas/bin",
+            histories="100000",
+            anode_voltage="80 kV",
+            exposure="50 mAs",
+            phantom_size="16 cm",
+        )
         orch = Orchestrator("/project")
         with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
             mock_bm_cls.return_value.get_headsource_path.return_value = "/tmp/head.txt"
@@ -267,8 +287,17 @@ class TestPrepareOnly:
         self,
         mock_bm_cls: MagicMock,
         mock_sg_cls: MagicMock,
+        make_config: Any,
     ) -> None:
-        config = _make_dicom_config()
+        config = make_config(
+            simulation_type="DICOM",
+            topas_directory="/topas/bin",
+            histories="100000",
+            anode_voltage="100 kV",
+            exposure="200 mAs",
+            sequential_times="1000",
+            graphics_enabled=False,
+        )
         orch = Orchestrator("/project")
         with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
             mock_bm_cls.return_value.get_headsource_path.return_value = "/tmp/head.txt"
@@ -284,8 +313,16 @@ class TestPrepareOnly:
         self,
         mock_bm_cls: MagicMock,
         mock_sg_cls: MagicMock,
+        make_config: Any,
     ) -> None:
-        config = _make_ctdi_config()
+        config = make_config(
+            simulation_type="CTDI validation",
+            topas_directory="/topas/bin",
+            histories="100000",
+            anode_voltage="80 kV",
+            exposure="50 mAs",
+            phantom_size="16 cm",
+        )
         orch = Orchestrator("/project")
         with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
             mock_bm_cls.return_value.get_headsource_path.return_value = "/tmp/head.txt"

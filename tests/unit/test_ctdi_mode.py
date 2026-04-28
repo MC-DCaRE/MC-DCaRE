@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import sys
 from typing import Any
@@ -5,13 +7,6 @@ from unittest.mock import patch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from src.config import (
-    CtdiConfig,
-    DicomConfig,
-    GeneralConfig,
-    ImagingConfig,
-    SimulationConfig,
-)
 from src.modes.ctdi_mode import CtdiMode
 
 
@@ -49,32 +44,10 @@ CTDI_SUB_FILE_CONTENT = (
 )
 
 
-def _make_ctdi_config(**overrides: Any) -> SimulationConfig:
-    general_kw = {}
-    imaging_kw = {}
-    dicom_kw = {}
-    ctdi_kw = {}
-    for k, v in overrides.items():
-        if k in GeneralConfig.__dataclass_fields__:
-            general_kw[k] = v
-        elif k in ImagingConfig.__dataclass_fields__:
-            imaging_kw[k] = v
-        elif k in CtdiConfig.__dataclass_fields__:
-            ctdi_kw[k] = v
-        elif k in DicomConfig.__dataclass_fields__:
-            dicom_kw[k] = v
-    return SimulationConfig(
-        general=GeneralConfig(**general_kw),
-        imaging=ImagingConfig(**imaging_kw),
-        dicom=DicomConfig(**dicom_kw),
-        ctdi=CtdiConfig(**ctdi_kw),
-    )
-
-
 class TestEditMainFile:
-    def test_blanks_patient_dicom_include(self) -> None:
+    def test_blanks_patient_dicom_include(self, make_config: Any) -> None:
         mode = CtdiMode()
-        config = _make_ctdi_config()
+        config = make_config()
         lines = MAIN_FILE_CONTENT.splitlines(True)
         mode.edit_main_file(config, lines)
         for line in lines:
@@ -82,9 +55,9 @@ class TestEditMainFile:
                 "patientDICOM.txt include should be blanked"
             )
 
-    def test_blanks_graphics_when_disabled(self) -> None:
+    def test_blanks_graphics_when_disabled(self, make_config: Any) -> None:
         mode = CtdiMode()
-        config = _make_ctdi_config(graphics_enabled=False)
+        config = make_config(graphics_enabled=False)
         lines = MAIN_FILE_CONTENT.splitlines(True)
         mode.edit_main_file(config, lines)
         for line in lines:
@@ -98,9 +71,11 @@ class TestEditMainFile:
                 "b:Gr/Enable should be blanked when graphics disabled"
             )
 
-    def test_replaces_blade_positions_when_user_blade_enabled(self) -> None:
+    def test_replaces_blade_positions_when_user_blade_enabled(
+        self, make_config: Any
+    ) -> None:
         mode = CtdiMode()
-        config = _make_ctdi_config(
+        config = make_config(
             user_blade_enabled=True,
             user_field_x1="10 cm",
             user_field_x2="10 cm",
@@ -118,9 +93,9 @@ class TestEditMainFile:
         assert "dc:Ge/Coll3/TransX = 4.0 cm\n" in lines
         assert "dc:Ge/Coll4/TransX = -4.0 cm\n" in lines
 
-    def test_blanks_wrong_phantom_for_16cm(self) -> None:
+    def test_blanks_wrong_phantom_for_16cm(self, make_config: Any) -> None:
         mode = CtdiMode()
-        config = _make_ctdi_config(phantom_size="16 cm")
+        config = make_config(phantom_size="16 cm")
         lines = MAIN_FILE_CONTENT.splitlines(True)
         mode.edit_main_file(config, lines)
         for line in lines:
@@ -131,9 +106,9 @@ class TestEditMainFile:
             line.startswith("includeFile = CTDIphantom_16.txt") for line in lines
         ), "CTDIphantom_16.txt include should remain for 16 cm phantom"
 
-    def test_blanks_wrong_phantom_for_32cm(self) -> None:
+    def test_blanks_wrong_phantom_for_32cm(self, make_config: Any) -> None:
         mode = CtdiMode()
-        config = _make_ctdi_config(phantom_size="32 cm")
+        config = make_config(phantom_size="32 cm")
         lines = MAIN_FILE_CONTENT.splitlines(True)
         mode.edit_main_file(config, lines)
         for line in lines:
@@ -146,9 +121,9 @@ class TestEditMainFile:
 
 
 class TestEditSubFile:
-    def test_blanks_couch_parent_when_disabled(self) -> None:
+    def test_blanks_couch_parent_when_disabled(self, make_config: Any) -> None:
         mode = CtdiMode()
-        config = _make_ctdi_config(couch_enabled=False)
+        config = make_config(couch_enabled=False)
         lines = CTDI_SUB_FILE_CONTENT.splitlines(True)
         mode.edit_sub_file(config, lines)
         for line in lines:
@@ -156,18 +131,18 @@ class TestEditSubFile:
                 "couch Parent should be blanked when couch_enabled=False"
             )
 
-    def test_keeps_couch_parent_when_enabled(self) -> None:
+    def test_keeps_couch_parent_when_enabled(self, make_config: Any) -> None:
         mode = CtdiMode()
-        config = _make_ctdi_config(couch_enabled=True)
+        config = make_config(couch_enabled=True)
         lines = CTDI_SUB_FILE_CONTENT.splitlines(True)
         mode.edit_sub_file(config, lines)
         assert any('s:Ge/couch/Parent="couchgroup"' in line for line in lines), (
             "couch Parent should remain when couch_enabled=True"
         )
 
-    def test_replaces_couch_dimensions(self) -> None:
+    def test_replaces_couch_dimensions(self, make_config: Any) -> None:
         mode = CtdiMode()
-        config = _make_ctdi_config(
+        config = make_config(
             couch_width="300. mm",
             couch_thickness="0.5 mm",
             couch_length="1500 mm",
@@ -178,9 +153,9 @@ class TestEditSubFile:
         assert "d:Ge/couch/HLY = 0.5 mm\n" in lines
         assert "d:Ge/couch/HLZ = 1500 mm\n" in lines
 
-    def test_replaces_zbins(self) -> None:
+    def test_replaces_zbins(self, make_config: Any) -> None:
         mode = CtdiMode()
-        config = _make_ctdi_config(
+        config = make_config(
             dose_to_medium_zbins="200",
             tle_zbins="150",
             dose_to_water_zbins="250",
@@ -193,29 +168,29 @@ class TestEditSubFile:
 
 
 class TestGetSubFileName:
-    def test_returns_16_phantom_for_16cm(self) -> None:
+    def test_returns_16_phantom_for_16cm(self, make_config: Any) -> None:
         mode = CtdiMode()
-        config = _make_ctdi_config(phantom_size="16 cm")
+        config = make_config(phantom_size="16 cm")
         assert mode.get_sub_file_name(config) == "CTDIphantom_16.txt"
 
-    def test_returns_32_phantom_for_32cm(self) -> None:
+    def test_returns_32_phantom_for_32cm(self, make_config: Any) -> None:
         mode = CtdiMode()
-        config = _make_ctdi_config(phantom_size="32 cm")
+        config = make_config(phantom_size="32 cm")
         assert mode.get_sub_file_name(config) == "CTDIphantom_32.txt"
 
 
 class TestComputeHistories:
-    def test_returns_histories_directly(self) -> None:
+    def test_returns_histories_directly(self, make_config: Any) -> None:
         mode = CtdiMode()
-        config = _make_ctdi_config(histories="50000")
+        config = make_config(histories="50000")
         result = mode.compute_histories(config)
         assert result == "50000"
 
 
 class TestExecute:
-    def test_generates_plug_files_and_runs(self) -> None:
+    def test_generates_plug_files_and_runs(self, make_config: Any) -> None:
         mode = CtdiMode()
-        config = _make_ctdi_config(topas_directory="/topas/bin/topas")
+        config = make_config(topas_directory="/topas/bin/topas")
         fake_commands = [("/topas/bin/topas /rundir/ChamberPlugCentre.txt", "/rundir")]
         with patch.object(
             CtdiMode, "_generate_plug_files", return_value=fake_commands
@@ -229,3 +204,50 @@ class TestExecute:
             mock_run.assert_called_once_with(
                 "/topas/bin/topas", "/rundir", fake_commands
             )
+
+
+class TestGeneratePlugFiles:
+    def test_32cm_uses_32_phantom(self, tmp_path: object) -> None:
+        rundatadir = str(tmp_path / "rundata")
+        os.makedirs(rundatadir)
+        os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
+        with open(os.path.join(str(tmp_path), "tmp", "headsourcecode.txt"), "w") as f:
+            f.write('@@PLACEHOLDER@@ s:Ge/@@PLACEHOLDER@@/Material="PMMA"')
+        with open(os.path.join(str(tmp_path), "tmp", "CTDIphantom_32.txt"), "w") as f:
+            f.write("phantom32 content")
+        with open(os.path.join(str(tmp_path), "tmp", "CTDIphantom_16.txt"), "w") as f:
+            f.write("phantom16 content")
+        commands = CtdiMode._generate_plug_files(
+            "32 cm", rundatadir, "/topas", str(tmp_path)
+        )
+        assert len(commands) == 5
+        with open(os.path.join(rundatadir, "ChamberPlugCentre.txt"), "r") as f:
+            assert "phantom32 content" in f.read()
+
+    def test_unknown_size_falls_back_to_16(self, tmp_path: object) -> None:
+        rundatadir = str(tmp_path / "rundata")
+        os.makedirs(rundatadir)
+        os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
+        with open(os.path.join(str(tmp_path), "tmp", "headsourcecode.txt"), "w") as f:
+            f.write("head")
+        with open(os.path.join(str(tmp_path), "tmp", "CTDIphantom_16.txt"), "w") as f:
+            f.write("phantom16 content")
+        with open(os.path.join(str(tmp_path), "tmp", "CTDIphantom_32.txt"), "w") as f:
+            f.write("phantom32 content")
+        CtdiMode._generate_plug_files("40 cm", rundatadir, "/topas", str(tmp_path))
+        with open(os.path.join(rundatadir, "ChamberPlugCentre.txt"), "r") as f:
+            assert "phantom16 content" in f.read()
+
+    def test_replaces_material_with_air(self, tmp_path: object) -> None:
+        rundatadir = str(tmp_path / "rundata")
+        os.makedirs(rundatadir)
+        os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
+        with open(os.path.join(str(tmp_path), "tmp", "headsourcecode.txt"), "w") as f:
+            f.write('s:Ge/ChamberPlugCentre/Material="PMMA"')
+        with open(os.path.join(str(tmp_path), "tmp", "CTDIphantom_16.txt"), "w") as f:
+            f.write("")
+        CtdiMode._generate_plug_files("16 cm", rundatadir, "/topas", str(tmp_path))
+        with open(os.path.join(rundatadir, "ChamberPlugCentre.txt"), "r") as f:
+            content = f.read()
+        assert 'Material="Air"' in content
+        assert 'Material="PMMA"' not in content

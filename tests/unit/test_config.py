@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import sys
 import tempfile
@@ -208,3 +210,40 @@ class TestSimulationConfigToDict:
         assert d["-HISTORIES-"] == config.general.histories
         assert d["-FAN_MODE-"] == config.imaging.fan_mode
         assert d["-CTDI_PHANTOM-"] == config.ctdi.phantom_size
+
+
+class TestParseBool:
+    def test_true_bool_is_true(self) -> None:
+        from src.config import _parse_bool
+
+        assert _parse_bool(True) is True
+
+    def test_true_string_is_true(self) -> None:
+        from src.config import _parse_bool
+
+        assert _parse_bool("True") is True
+
+    def test_false_bool_is_false(self) -> None:
+        from src.config import _parse_bool
+
+        assert _parse_bool(False) is False
+
+    def test_false_string_is_false(self) -> None:
+        from src.config import _parse_bool
+
+        assert _parse_bool("False") is False
+
+    def test_integer_is_false(self) -> None:
+        from src.config import _parse_bool
+
+        assert _parse_bool(1) is False
+
+    def test_empty_string_is_false(self) -> None:
+        from src.config import _parse_bool
+
+        assert _parse_bool("") is False
+
+    def test_lowercase_true_is_false(self) -> None:
+        from src.config import _parse_bool
+
+        assert _parse_bool("true") is False

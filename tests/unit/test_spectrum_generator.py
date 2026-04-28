@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import math
 import os
 import sys
 import numpy as np
@@ -114,6 +117,20 @@ class TestSpectrumGenerator:
         with open(converted_path, "r") as f:
             content = f.read()
         assert "keV" in content
+
+    @patch("src.spectrum_generator.sp")
+    def test_calibration_factor_value(
+        self, mock_sp: MagicMock, tmp_path: object
+    ) -> None:
+        mock_sp.Spek.return_value = MockSpek()
+        os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
+        SpectrumGenerator.generate(100.0, 10.0, "100000", str(tmp_path))
+        calib_path = os.path.join(str(tmp_path), "tmp", "head_calibration_factor.txt")
+
+        expected = 4.0 * math.pi * 0.01 * 1000.0 / 100000
+        with open(calib_path, "r") as f:
+            actual = float(f.readline().strip())
+        assert abs(actual - expected) < 1e-10
 
 
 if __name__ == "__main__":

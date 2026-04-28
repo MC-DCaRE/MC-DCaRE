@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import sys
 from typing import List
@@ -52,3 +54,14 @@ class TestReplaceLine:
         result: bool = replace_line("includeFile = halffan.txt", lines)
         assert result is True
         assert lines[0] == ""
+
+    def test_empty_list_returns_false(self) -> None:
+        lines: List[str] = []
+        result: bool = replace_line("any_prefix", lines, '"val"')
+        assert result is False
+
+    def test_partial_prefix_does_match_startswith(self) -> None:
+        lines: List[str] = ['i:Ts/SeedExtra = "9"\n']
+        result: bool = replace_line("i:Ts/Seed", lines, '"42"')
+        assert result is True
+        assert lines[0] == 'i:Ts/Seed = "42"\n'

@@ -9,7 +9,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from src.modes.ctdi_mode import CtdiMode
 
-
 MAIN_FILE_CONTENT = (
     's:Ts/G4DataDirectory = "/root/G4Data"\n'
     'i:Tf/NumberOfSequentialTimes = "1000"\n'
@@ -51,9 +50,9 @@ class TestEditMainFile:
         lines = MAIN_FILE_CONTENT.splitlines(True)
         mode.edit_main_file(config, lines)
         for line in lines:
-            assert not line.startswith("includeFile = patientDICOM.txt"), (
-                "patientDICOM.txt include should be blanked"
-            )
+            assert not line.startswith(
+                "includeFile = patientDICOM.txt"
+            ), "patientDICOM.txt include should be blanked"
 
     def test_blanks_graphics_when_disabled(self, make_config: Any) -> None:
         mode = CtdiMode()
@@ -61,15 +60,15 @@ class TestEditMainFile:
         lines = MAIN_FILE_CONTENT.splitlines(True)
         mode.edit_main_file(config, lines)
         for line in lines:
-            assert not line.startswith("Ts/UseQt"), (
-                "Ts/UseQt should be blanked when graphics disabled"
-            )
-            assert not line.startswith("s:Gr/ViewA/Type"), (
-                "s:Gr/ViewA/Type should be blanked when graphics disabled"
-            )
-            assert not line.startswith("b:Gr/Enable"), (
-                "b:Gr/Enable should be blanked when graphics disabled"
-            )
+            assert not line.startswith(
+                "Ts/UseQt"
+            ), "Ts/UseQt should be blanked when graphics disabled"
+            assert not line.startswith(
+                "s:Gr/ViewA/Type"
+            ), "s:Gr/ViewA/Type should be blanked when graphics disabled"
+            assert not line.startswith(
+                "b:Gr/Enable"
+            ), "b:Gr/Enable should be blanked when graphics disabled"
 
     def test_replaces_blade_positions_when_user_blade_enabled(
         self, make_config: Any
@@ -99,9 +98,9 @@ class TestEditMainFile:
         lines = MAIN_FILE_CONTENT.splitlines(True)
         mode.edit_main_file(config, lines)
         for line in lines:
-            assert not line.startswith("includeFile = CTDIphantom_32.txt"), (
-                "CTDIphantom_32.txt include should be blanked for 16 cm phantom"
-            )
+            assert not line.startswith(
+                "includeFile = CTDIphantom_32.txt"
+            ), "CTDIphantom_32.txt include should be blanked for 16 cm phantom"
         assert any(
             line.startswith("includeFile = CTDIphantom_16.txt") for line in lines
         ), "CTDIphantom_16.txt include should remain for 16 cm phantom"
@@ -112,9 +111,9 @@ class TestEditMainFile:
         lines = MAIN_FILE_CONTENT.splitlines(True)
         mode.edit_main_file(config, lines)
         for line in lines:
-            assert not line.startswith("includeFile = CTDIphantom_16.txt"), (
-                "CTDIphantom_16.txt include should be blanked for 32 cm phantom"
-            )
+            assert not line.startswith(
+                "includeFile = CTDIphantom_16.txt"
+            ), "CTDIphantom_16.txt include should be blanked for 32 cm phantom"
         assert any(
             line.startswith("includeFile = CTDIphantom_32.txt") for line in lines
         ), "CTDIphantom_32.txt include should remain for 32 cm phantom"
@@ -127,18 +126,18 @@ class TestEditSubFile:
         lines = CTDI_SUB_FILE_CONTENT.splitlines(True)
         mode.edit_sub_file(config, lines)
         for line in lines:
-            assert 's:Ge/couch/Parent="couchgroup"' not in line, (
-                "couch Parent should be blanked when couch_enabled=False"
-            )
+            assert (
+                's:Ge/couch/Parent="couchgroup"' not in line
+            ), "couch Parent should be blanked when couch_enabled=False"
 
     def test_keeps_couch_parent_when_enabled(self, make_config: Any) -> None:
         mode = CtdiMode()
         config = make_config(couch_enabled=True)
         lines = CTDI_SUB_FILE_CONTENT.splitlines(True)
         mode.edit_sub_file(config, lines)
-        assert any('s:Ge/couch/Parent="couchgroup"' in line for line in lines), (
-            "couch Parent should remain when couch_enabled=True"
-        )
+        assert any(
+            's:Ge/couch/Parent="couchgroup"' in line for line in lines
+        ), "couch Parent should remain when couch_enabled=True"
 
     def test_replaces_couch_dimensions(self, make_config: Any) -> None:
         mode = CtdiMode()

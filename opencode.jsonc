@@ -1,0 +1,44 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "instructions": [
+    "AGENTS.md",
+    ".opencode/rules/00_Post_Session_Review.md",
+    ".opencode/rules/03_General_Development_Standards.md",
+    ".opencode/rules/10_Writing_Quality.md",
+    ".opencode/rules/19_Git_Workflow_and_Branch_Strategy.md",
+    ".opencode/rules/data_handling.md",
+    ".opencode/rules/visualization.md",
+    ".opencode/rules/architecture_guidelines.md",
+    ".opencode/rules/topas_beam_sources.md",
+    ".opencode/rules/topas_hierarchy.md",
+    ".opencode/rules/topas_parameter_forms.md",
+    ".opencode/rules/topas_relative_parameters.md",
+    ".opencode/rules/topas_syntax.md",
+    ".opencode/rules/topas_visualization.md",
+    "*/AGENTS.md"
+  ],
+
+  "permission": {
+    "bash": { "*": "allow" },
+    "edit": "ask",
+    "read": {
+      "*": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*.env.example": "allow"
+    },
+    "external_directory": "deny",
+    "doom_loop": "ask"
+  },
+
+  "snapshot": false,
+  "share": "manual",
+  "autoupdate": true,
+
+  "compaction": {
+    "auto": true,
+    "prune": true,
+    "reserved": 100000
+  }
+}

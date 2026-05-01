@@ -16,7 +16,6 @@ from src.config import (
     SimulationConfig,
 )
 
-
 MAIN_FILE_CONTENT: str = (
     's:Ts/G4DataDirectory = "/root/G4Data"\n'
     'i:Tf/NumberOfSequentialTimes = "1000"\n'

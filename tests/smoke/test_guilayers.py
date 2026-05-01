@@ -94,9 +94,9 @@ class TestGuiLayers:
 
         for layer_name in expected_layers:
             layer = globals().get(layer_name)
-            assert hasattr(layer, "__class__"), (
-                f"Layer {layer_name} should be an object"
-            )
+            assert hasattr(
+                layer, "__class__"
+            ), f"Layer {layer_name} should be an object"
             # Check if it's a Frame, Column, or similar GUI component
             # Some layers like Couch_layer and CTDI_blade_layer are wrapped in sg.pin()
             # which creates Column objects that don't have Title attribute
@@ -148,9 +148,9 @@ class TestGuiLayers:
             layer = globals().get(layer_name)
             assert layer is not None, f"DICOM layer {layer_name} should not be None"
             # Some DICOM layers might be wrapped in sg.pin() creating Column objects
-            assert hasattr(layer, "Title") or "Column" in str(type(layer)), (
-                f"DICOM layer {layer_name} should have a Title or be a Column"
-            )
+            assert hasattr(layer, "Title") or "Column" in str(
+                type(layer)
+            ), f"DICOM layer {layer_name} should have a Title or be a Column"
 
     def test_ctdi_layers_exist(self):
         """Test that all CTDI-related layers exist."""
@@ -166,9 +166,9 @@ class TestGuiLayers:
             layer = globals().get(layer_name)
             assert layer is not None, f"CTDI layer {layer_name} should not be None"
             # Some CTDI layers might be wrapped in sg.pin() creating Column objects
-            assert hasattr(layer, "Title") or "Column" in str(type(layer)), (
-                f"CTDI layer {layer_name} should have a Title or be a Column"
-            )
+            assert hasattr(layer, "Title") or "Column" in str(
+                type(layer)
+            ), f"CTDI layer {layer_name} should have a Title or be a Column"
 
     def test_layer_titles_are_descriptive(self):
         """Test that layer titles are descriptive."""
@@ -205,9 +205,9 @@ class TestGuiLayers:
                 # Some layers might be Column objects (wrapped in sg.pin) that don't have Title
                 if hasattr(layer, "Title"):
                     title_str = str(layer.Title)
-                    assert expected_title_part in title_str, (
-                        f"Layer title '{title_str}' should contain '{expected_title_part}'"
-                    )
+                    assert (
+                        expected_title_part in title_str
+                    ), f"Layer title '{title_str}' should contain '{expected_title_part}'"
                 else:
                     # For Column objects, skip title check but verify layer exists
                     assert layer is not None, f"Layer {layer_name} should exist"
@@ -254,9 +254,9 @@ class TestGuiLayers:
             layer = globals().get(layer_name)
             assert layer is not None, f"Layer {layer_name} should not be None"
             # Should have some common GUI attributes
-            assert hasattr(layer, "__class__"), (
-                f"Layer {layer_name} should be an object"
-            )
+            assert hasattr(
+                layer, "__class__"
+            ), f"Layer {layer_name} should be an object"
 
     def test_no_gui_imports_fallback(self):
         """Test behavior when GUI imports are not available."""

@@ -71,9 +71,9 @@ class TestImagingModesLookup:
             "BLADE_Y2",
         ]
 
-        assert len(selection) == len(expected_keys), (
-            f"Expected {len(expected_keys)} keys, got {len(selection)}"
-        )
+        assert len(selection) == len(
+            expected_keys
+        ), f"Expected {len(expected_keys)} keys, got {len(selection)}"
 
         for key in expected_keys:
             assert key in selection, f"Missing selection key: {key}"
@@ -87,9 +87,9 @@ class TestImagingModesLookup:
                 continue  # Skip selection key
 
             assert isinstance(mode_values, list), f"Mode {mode_name} should be a list"
-            assert len(mode_values) == expected_param_count, (
-                f"Mode {mode_name} should have {expected_param_count} parameters, got {len(mode_values)}"
-            )
+            assert (
+                len(mode_values) == expected_param_count
+            ), f"Mode {mode_name} should have {expected_param_count} parameters, got {len(mode_values)}"
 
     def test_rotation_rate_values(self):
         """Test rotation rate values are reasonable."""
@@ -202,9 +202,9 @@ class TestImagingModesLookup:
         # Should have expected time values
         expected_times = ["501 s", "900 s", "2 s"]
         for expected_time in expected_times:
-            assert expected_time in time_end_values, (
-                f"Missing time end: {expected_time}"
-            )
+            assert (
+                expected_time in time_end_values
+            ), f"Missing time end: {expected_time}"
 
         # All should be valid time format
         for time_end in time_end_values:
@@ -240,9 +240,9 @@ class TestImagingModesLookup:
             "501 s",
         ]  # Include time value
         for expected_field in expected_fields:
-            assert expected_field in field_values, (
-                f"Missing field size: {expected_field}"
-            )
+            assert (
+                expected_field in field_values
+            ), f"Missing field size: {expected_field}"
 
     def test_blade_values(self):
         """Test blade position values are reasonable."""
@@ -261,9 +261,9 @@ class TestImagingModesLookup:
             assert "cm" in blade, f"Invalid blade format: {blade}"
             numeric_part = blade.split()[0]
             # Blade values can be positive or negative
-            assert isinstance(float(numeric_part), float), (
-                f"Invalid blade value: {blade}"
-            )
+            assert isinstance(
+                float(numeric_part), float
+            ), f"Invalid blade value: {blade}"
 
         # Should have both positive and negative blade values
         positive_blades = [b for b in blade_values if not b.startswith("-")]
@@ -283,29 +283,29 @@ class TestImagingModesLookup:
             assert "_" in mode_name, f"Mode name should have underscores: {mode_name}"
 
             parts = mode_name.split("_")
-            assert len(parts) >= 2, (
-                f"Mode name should have at least 2 parts: {mode_name}"
-            )
+            assert (
+                len(parts) >= 2
+            ), f"Mode name should have at least 2 parts: {mode_name}"
 
             # Check if it's CBCT format (with space) or kV-kV format
             if mode_name.startswith("CBCT"):
                 # CBCT modes have format: "CBCT Direction_BodyPart" or "CBCT Direction_BodyPart_Size"
-                assert mode_name.startswith("CBCT "), (
-                    f"CBCT mode should start with 'CBCT ': {mode_name}"
-                )
+                assert mode_name.startswith(
+                    "CBCT "
+                ), f"CBCT mode should start with 'CBCT ': {mode_name}"
 
                 # Extract direction from part after "CBCT "
                 cbct_part = mode_name[5:]  # Remove "CBCT "
                 cbct_parts = cbct_part.split("_")
-                assert len(cbct_parts) >= 2, (
-                    f"CBCT mode should have direction and body part: {mode_name}"
-                )
+                assert (
+                    len(cbct_parts) >= 2
+                ), f"CBCT mode should have direction and body part: {mode_name}"
 
                 # Direction should be Clockwise or Anticlockwise
                 valid_directions = ["Clockwise", "Anticlockwise"]
-                assert cbct_parts[0] in valid_directions, (
-                    f"Invalid CBCT direction: {cbct_parts[0]}"
-                )
+                assert (
+                    cbct_parts[0] in valid_directions
+                ), f"Invalid CBCT direction: {cbct_parts[0]}"
 
                 # Body part should be valid
                 valid_body_parts = [
@@ -320,15 +320,15 @@ class TestImagingModesLookup:
                 body_part = "_".join(
                     cbct_parts[1:]
                 )  # Join remaining parts for body part with size
-                assert body_part in valid_body_parts, (
-                    f"Invalid CBCT body part: {body_part}"
-                )
+                assert (
+                    body_part in valid_body_parts
+                ), f"Invalid CBCT body part: {body_part}"
 
             elif mode_name.startswith("kV-kV"):
                 # kV-kV modes have format: "kV-kV_BodyPart" or "kV-kV_BodyPart_Size"
-                assert parts[0] == "kV-kV", (
-                    f"kV-kV mode should start with 'kV-kV': {mode_name}"
-                )
+                assert (
+                    parts[0] == "kV-kV"
+                ), f"kV-kV mode should start with 'kV-kV': {mode_name}"
 
                 # Body part should be valid
                 valid_body_parts = [
@@ -343,9 +343,9 @@ class TestImagingModesLookup:
                 body_part = "_".join(
                     parts[1:]
                 )  # Join remaining parts for body part with size
-                assert body_part in valid_body_parts, (
-                    f"Invalid kV-kV body part: {body_part}"
-                )
+                assert (
+                    body_part in valid_body_parts
+                ), f"Invalid kV-kV body part: {body_part}"
 
             else:
                 assert False, f"Mode should start with 'CBCT ' or 'kV-kV': {mode_name}"
@@ -357,9 +357,9 @@ class TestImagingModesLookup:
         ]
         expected_mode_count = 21  # 8 CBCT Clockwise + 8 CBCT Anticlockwise + 5 kV-kV (actual count in data)
 
-        assert len(non_selection_modes) == expected_mode_count, (
-            f"Expected {expected_mode_count} modes, got {len(non_selection_modes)}"
-        )
+        assert (
+            len(non_selection_modes) == expected_mode_count
+        ), f"Expected {expected_mode_count} modes, got {len(non_selection_modes)}"
 
 
 if __name__ == "__main__":

@@ -56,7 +56,7 @@ line-length = 88
 target-version = "py38"
 
 [tool.ruff.lint]
-per-file-ignores = { "topas_gui.py" = ["F403", "F405"] }
+per-file-ignores = { "topas_gui.py" = ["F403", "F405"], "tests/smoke/test_guilayers.py" = ["F401"] }
 
 [tool.mypy]
 python_version = "3.9"

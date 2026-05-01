@@ -5,13 +5,11 @@ import sys
 from typing import Any
 from unittest.mock import MagicMock, mock_open, patch
 
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
 from src.modes.dicom_mode import DicomMode
 from src.modes.ctdi_mode import CtdiMode
 from src.orchestrator import Orchestrator
-
 
 MAIN_FILE_CONTENT: str = (
     's:Ts/G4DataDirectory = "/root/G4Data"\n'

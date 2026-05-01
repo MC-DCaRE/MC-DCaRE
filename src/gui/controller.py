@@ -52,11 +52,9 @@ class GUIController:
             event, values = self.view.read()
             if self._first_read:
                 self._default_values = dict(values)
-                self._default_values["Browse"] = self._default_values[
-                    "Browse0"
-                ] = self._default_values["Browse1"] = self._default_values[
-                    "Browse2"
-                ] = "Browse"
+                self._default_values["Browse"] = self._default_values["Browse0"] = (
+                    self._default_values["Browse1"]
+                ) = self._default_values["Browse2"] = "Browse"
                 self._first_read = False
             if event == sg.WIN_CLOSED:
                 break

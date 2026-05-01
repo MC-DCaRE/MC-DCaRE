@@ -335,3 +335,5 @@ cython_debug/
 /dump.*
 /test/samplefile
 
+.kilo/
+.opencode/

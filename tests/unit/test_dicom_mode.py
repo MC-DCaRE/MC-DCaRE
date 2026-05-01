@@ -7,7 +7,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from src.modes.dicom_mode import DicomMode
 
-
 MAIN_FILE_CONTENT = (
     's:Ts/G4DataDirectory = "/root/G4Data"\n'
     'i:Tf/NumberOfSequentialTimes = "1000"\n'
@@ -51,12 +50,12 @@ class TestEditMainFile:
         lines = MAIN_FILE_CONTENT.splitlines(True)
         mode.edit_main_file(config, lines)
         for line in lines:
-            assert not line.startswith("includeFile = CTDIphantom_16.txt"), (
-                "CTDIphantom_16.txt include should be blanked"
-            )
-            assert not line.startswith("includeFile = CTDIphantom_32.txt"), (
-                "CTDIphantom_32.txt include should be blanked"
-            )
+            assert not line.startswith(
+                "includeFile = CTDIphantom_16.txt"
+            ), "CTDIphantom_16.txt include should be blanked"
+            assert not line.startswith(
+                "includeFile = CTDIphantom_32.txt"
+            ), "CTDIphantom_32.txt include should be blanked"
 
     def test_blanks_layered_mass_geometry(self, make_config: Any) -> None:
         mode = DicomMode()
@@ -64,9 +63,9 @@ class TestEditMainFile:
         lines = MAIN_FILE_CONTENT.splitlines(True)
         mode.edit_main_file(config, lines)
         for line in lines:
-            assert not line.startswith("sv:Ph/Default/LayeredMassGeometryWorlds"), (
-                "LayeredMassGeometryWorlds should be blanked"
-            )
+            assert not line.startswith(
+                "sv:Ph/Default/LayeredMassGeometryWorlds"
+            ), "LayeredMassGeometryWorlds should be blanked"
 
     def test_blanks_graphics_when_disabled(self, make_config: Any) -> None:
         mode = DicomMode()
@@ -74,30 +73,30 @@ class TestEditMainFile:
         lines = MAIN_FILE_CONTENT.splitlines(True)
         mode.edit_main_file(config, lines)
         for line in lines:
-            assert not line.startswith("Ts/UseQt"), (
-                "Ts/UseQt should be blanked when graphics disabled"
-            )
-            assert not line.startswith("s:Gr/ViewA/Type"), (
-                "s:Gr/ViewA/Type should be blanked when graphics disabled"
-            )
-            assert not line.startswith("b:Gr/Enable"), (
-                "b:Gr/Enable should be blanked when graphics disabled"
-            )
+            assert not line.startswith(
+                "Ts/UseQt"
+            ), "Ts/UseQt should be blanked when graphics disabled"
+            assert not line.startswith(
+                "s:Gr/ViewA/Type"
+            ), "s:Gr/ViewA/Type should be blanked when graphics disabled"
+            assert not line.startswith(
+                "b:Gr/Enable"
+            ), "b:Gr/Enable should be blanked when graphics disabled"
 
     def test_keeps_graphics_when_enabled(self, make_config: Any) -> None:
         mode = DicomMode()
         config = make_config(graphics_enabled=True)
         lines = MAIN_FILE_CONTENT.splitlines(True)
         mode.edit_main_file(config, lines)
-        assert any(line.startswith("Ts/UseQt") for line in lines), (
-            "Ts/UseQt should remain when graphics enabled"
-        )
-        assert any(line.startswith("s:Gr/ViewA/Type") for line in lines), (
-            "s:Gr/ViewA/Type should remain when graphics enabled"
-        )
-        assert any(line.startswith("b:Gr/Enable") for line in lines), (
-            "b:Gr/Enable should remain when graphics enabled"
-        )
+        assert any(
+            line.startswith("Ts/UseQt") for line in lines
+        ), "Ts/UseQt should remain when graphics enabled"
+        assert any(
+            line.startswith("s:Gr/ViewA/Type") for line in lines
+        ), "s:Gr/ViewA/Type should remain when graphics enabled"
+        assert any(
+            line.startswith("b:Gr/Enable") for line in lines
+        ), "b:Gr/Enable should remain when graphics enabled"
 
 
 class TestEditSubFile:

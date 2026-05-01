@@ -13,9 +13,7 @@ class SimulationRunner:
         logger.info("Running TOPAS: %s in %s", command, working_dir)
         result = subprocess.run(command, cwd=working_dir, shell=True)
         if result.returncode != 0:
-            logger.error(
-                "TOPAS exited with code %d: %s", result.returncode, command
-            )
+            logger.error("TOPAS exited with code %d: %s", result.returncode, command)
             raise RuntimeError(
                 "TOPAS process failed with return code {}".format(result.returncode)
             )

@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import sys
 import tempfile
-from typing import Dict
+from typing import Any, Dict
 
 import pytest
 
@@ -38,13 +38,15 @@ class TestQuantityUnitStripper:
 
 
 class TestSimulationConfigDefaults:
-    def test_defaults_returns_config_with_env_vars(self) -> None:
-        with pytest.MonkeyPatch.context() as mp:
-            mp.setenv("G4DATA_DIR", "/custom/g4data")
-            mp.setenv("TOPAS_DIR", "/custom/topas")
-            config: SimulationConfig = SimulationConfig.defaults()
-            assert config.general.g4_data_directory == "/custom/g4data"
-            assert config.general.topas_directory == "/custom/topas"
+    def test_defaults_returns_config_with_env_vars(
+        self, tmp_path: Any, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setenv("G4DATA_DIR", "/custom/g4data")
+        monkeypatch.setenv("TOPAS_DIR", "/custom/topas")
+        config: SimulationConfig = SimulationConfig.defaults()
+        assert config.general.g4_data_directory == "/custom/g4data"
+        assert config.general.topas_directory == "/custom/topas"
 
     def test_defaults_general_has_nonempty_fields(self) -> None:
         config: SimulationConfig = SimulationConfig.defaults()
@@ -70,6 +72,32 @@ class TestSimulationConfigDefaults:
     def test_defaults_ctdi_couch_enabled_is_true(self) -> None:
         config: SimulationConfig = SimulationConfig.defaults()
         assert config.ctdi.couch_enabled is True
+
+    def test_defaults_reads_config_yaml_over_env(
+        self, tmp_path: Any, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setenv("G4DATA_DIR", "/env/g4data")
+        monkeypatch.setenv("TOPAS_DIR", "/env/topas")
+        config_yaml = tmp_path / "config.yaml"
+        config_yaml.write_text(
+            "general:\n"
+            "  g4_data_directory: /from/file/g4data\n"
+            "  topas_directory: /from/file/topas\n"
+        )
+        config: SimulationConfig = SimulationConfig.defaults()
+        assert config.general.g4_data_directory == "/from/file/g4data"
+        assert config.general.topas_directory == "/from/file/topas"
+
+    def test_defaults_falls_back_to_env_when_no_config_yaml(
+        self, tmp_path: Any, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setenv("G4DATA_DIR", "/env/g4data")
+        monkeypatch.setenv("TOPAS_DIR", "/env/topas")
+        config: SimulationConfig = SimulationConfig.defaults()
+        assert config.general.g4_data_directory == "/env/g4data"
+        assert config.general.topas_directory == "/env/topas"
 
 
 class TestSimulationConfigYamlRoundTrip:

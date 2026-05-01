@@ -340,9 +340,25 @@ class SimulationConfig:
 
     @classmethod
     def defaults(cls) -> "SimulationConfig":
-        """Return a default config, reading G4/TOPAS paths from environment variables."""
-        g4_dir: str = os.environ.get("G4DATA_DIR", "/root/G4Data")
-        topas_dir: str = os.environ.get("TOPAS_DIR", "/root/topas/bin/topas")
+        """Return a default config.
+
+        Priority for G4/TOPAS paths: ``config.yaml`` in CWD, then environment
+        variables ``G4DATA_DIR``/``TOPAS_DIR``, then ``/root/`` fallbacks.
+        """
+        g4_dir: str = ""
+        topas_dir: str = ""
+        config_path = os.path.join(os.getcwd(), "config.yaml")
+        if os.path.isfile(config_path):
+            try:
+                file_config = cls.from_yaml(config_path)
+                g4_dir = file_config.general.g4_data_directory
+                topas_dir = file_config.general.topas_directory
+            except Exception:
+                logger.warning("Failed to load config.yaml, using env/fallback")
+        if not g4_dir:
+            g4_dir = os.environ.get("G4DATA_DIR", "/root/G4Data")
+        if not topas_dir:
+            topas_dir = os.environ.get("TOPAS_DIR", "/root/topas/bin/topas")
         return cls(
             general=GeneralConfig(
                 g4_data_directory=g4_dir,

@@ -1,5 +1,9 @@
+from __future__ import annotations
+
 import os
 import sys
+
+import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -12,10 +16,13 @@ class TestQuantityParse:
         assert q.value == 100.0
         assert q.unit == "kV"
 
-    def test_returns_zero_for_no_number(self) -> None:
-        q: Quantity = Quantity.parse("kV")
-        assert q.value == 0.0
-        assert q.unit == "kV"
+    def test_raises_for_no_number(self) -> None:
+        with pytest.raises(ValueError, match="No numeric value"):
+            Quantity.parse("kV")
+
+    def test_raises_for_empty_string(self) -> None:
+        with pytest.raises(ValueError, match="No numeric value"):
+            Quantity.parse("")
 
     def test_returns_empty_unit_for_no_unit(self) -> None:
         q: Quantity = Quantity.parse("100")
@@ -70,7 +77,6 @@ class TestQuantityBackwardCompat:
             "0.4 deg/s",
             "-5 mm",
             "9",
-            "kV",
             "100",
         ]:
             old_result = quantity_unit_stripper(input_str)

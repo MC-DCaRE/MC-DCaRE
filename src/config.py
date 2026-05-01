@@ -1,12 +1,21 @@
+"""Simulation configuration dataclasses and serialisation helpers.
+
+Defines the configuration hierarchy (:class:`GeneralConfig`, :class:`ImagingConfig`,
+:class:`DicomConfig`, :class:`CtdiConfig`) composed inside :class:`SimulationConfig`,
+with round-trip support for YAML files and FreeSimpleGUI value dicts.
+"""
+
 from __future__ import annotations
 
 import logging
 import os
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List, Tuple
+from enum import Enum
+from typing import Any, Dict, List, Tuple, Type
 
 import yaml
 
+from src.models.enums import FanMode, PhantomSize, RotationDirection, SimulationType
 from src.models.keys import (
     BLADE_X1,
     BLADE_X2,
@@ -121,11 +130,15 @@ for _section, _field, _key, _default in _PLACEHOLDER_MAP:
 
 
 def _parse_bool(value: object) -> bool:
-    return value is True or str(value) == "True"
+    if isinstance(value, bool):
+        return value
+    return str(value).lower() in ("true", "1", "yes")
 
 
-@dataclass
+@dataclass(frozen=True)
 class GeneralConfig:
+    """TOPAS runtime and environment settings."""
+
     g4_data_directory: str = ""
     topas_directory: str = ""
     seed: str = "9"
@@ -133,8 +146,10 @@ class GeneralConfig:
     histories: str = "100000"
 
 
-@dataclass
+@dataclass(frozen=True)
 class ImagingConfig:
+    """kV imaging beam and collimator parameters."""
+
     simulation_type: str = "DICOM"
     start_angle: str = "0 deg"
     rotation_direction: str = "CBCT Clockwise"
@@ -156,8 +171,10 @@ class ImagingConfig:
     blade_y2: str = "-5.814471115800571 cm"
 
 
-@dataclass
+@dataclass(frozen=True)
 class DicomConfig:
+    """DICOM patient and plan parameters for patient-specific simulations."""
+
     dicom_directory: str = "/sampledicom/setA"
     dicom_rp_file: str = "/sampledicom/RP.sample.dcm"
     patient_id: str = ""
@@ -171,8 +188,10 @@ class DicomConfig:
     graphics_enabled: bool = False
 
 
-@dataclass
+@dataclass(frozen=True)
 class CtdiConfig:
+    """CTDI phantom, couch, scoring, and user-blade parameters."""
+
     phantom_size: str = "16 cm"
     dose_to_medium_zbins: str = "100"
     tle_zbins: str = "100"
@@ -191,12 +210,60 @@ class CtdiConfig:
 
 @dataclass
 class SimulationConfig:
+    """Top-level configuration composing general, imaging, DICOM, and CTDI sections."""
+
     general: GeneralConfig = field(default_factory=GeneralConfig)
     imaging: ImagingConfig = field(default_factory=ImagingConfig)
     dicom: DicomConfig = field(default_factory=DicomConfig)
     ctdi: CtdiConfig = field(default_factory=CtdiConfig)
 
+    def validate(self) -> None:
+        """Check enum fields and integer-valued string fields.
+
+        Raises:
+            ValueError: If any field contains an invalid value.
+        """
+        self._validate_enum_field(
+            "simulation_type",
+            self.imaging.simulation_type,
+            SimulationType,
+        )
+        self._validate_enum_field("fan_mode", self.imaging.fan_mode, FanMode)
+        self._validate_enum_field(
+            "rotation_direction",
+            self.imaging.rotation_direction,
+            RotationDirection,
+        )
+        self._validate_enum_field("phantom_size", self.ctdi.phantom_size, PhantomSize)
+        for name, value in [
+            ("seed", self.general.seed),
+            ("threads", self.general.threads),
+            ("histories", self.general.histories),
+            ("sequential_times", self.imaging.sequential_times),
+            ("time_verbosity", self.imaging.time_verbosity),
+            ("dose_to_medium_zbins", self.ctdi.dose_to_medium_zbins),
+            ("tle_zbins", self.ctdi.tle_zbins),
+            ("dose_to_water_zbins", self.ctdi.dose_to_water_zbins),
+        ]:
+            try:
+                int(value)
+            except (ValueError, TypeError):
+                raise ValueError(
+                    "Config field '{}' must be an integer, got {!r}".format(name, value)
+                )
+
+    @staticmethod
+    def _validate_enum_field(field_name: str, value: str, enum_cls: Type[Enum]) -> None:
+        valid = [e.value for e in enum_cls]
+        if value not in valid:
+            raise ValueError(
+                "Config field '{}' must be one of {}, got {!r}".format(
+                    field_name, valid, value
+                )
+            )
+
     def to_dict(self) -> Dict[str, str]:
+        """Flatten all sections to a ``{GUI_KEY: value}`` dictionary."""
         result: Dict[str, str] = {}
         for section_name, field_name, key, _default in _PLACEHOLDER_MAP:
             section = getattr(self, section_name)
@@ -205,6 +272,8 @@ class SimulationConfig:
         return result
 
     def to_yaml(self, path: str) -> None:
+        """Serialise the full configuration to a YAML file."""
+
         data = {
             "general": asdict(self.general),
             "imaging": asdict(self.imaging),
@@ -216,17 +285,39 @@ class SimulationConfig:
 
     @classmethod
     def from_yaml(cls, path: str) -> "SimulationConfig":
+        """Load and validate a SimulationConfig from a YAML file.
+
+        Args:
+            path: Filesystem path to the YAML config.
+
+        Returns:
+            A validated SimulationConfig instance.
+
+        Raises:
+            ValueError: If the YAML content is not a mapping or fails validation.
+        """
         with open(path, "r") as f:
             data = yaml.safe_load(f)
-        return cls(
+        if not isinstance(data, dict):
+            raise ValueError(
+                "YAML config must be a mapping, got {}".format(type(data).__name__)
+            )
+        config = cls(
             general=GeneralConfig(**data.get("general", {})),
             imaging=ImagingConfig(**data.get("imaging", {})),
             dicom=DicomConfig(**data.get("dicom", {})),
             ctdi=CtdiConfig(**data.get("ctdi", {})),
         )
+        config.validate()
+        return config
 
     @classmethod
     def from_gui_values(cls, values: Dict[str, str]) -> "SimulationConfig":
+        """Construct a SimulationConfig from a FreeSimpleGUI values dict.
+
+        Args:
+            values: Mapping of GUI element keys to user-entered values.
+        """
         sections: Dict[str, Dict[str, Any]] = {
             "general": {},
             "imaging": {},
@@ -249,6 +340,7 @@ class SimulationConfig:
 
     @classmethod
     def defaults(cls) -> "SimulationConfig":
+        """Return a default config, reading G4/TOPAS paths from environment variables."""
         g4_dir: str = os.environ.get("G4DATA_DIR", "/root/G4Data")
         topas_dir: str = os.environ.get("TOPAS_DIR", "/root/topas/bin/topas")
         return cls(
@@ -263,4 +355,6 @@ class SimulationConfig:
 
 
 def quantity_unit_stripper(string_value: str) -> Tuple[float, str]:
+    """Parse a quantity string into a ``(float, unit)`` tuple."""
+
     return Quantity.parse(string_value).to_tuple()

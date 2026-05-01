@@ -28,7 +28,11 @@ def main(
     ),
 ) -> None:
     runfolder_path = Path(runfolder).resolve()
-    calculator = CTDICalculator(runfolder_path)
+    try:
+        calculator = CTDICalculator(runfolder_path)
+    except (FileNotFoundError, ValueError) as exc:
+        console.print("Error: {}".format(exc), style="red")
+        raise typer.Exit(1)
     calculator.validate()
 
     if output_file is None:

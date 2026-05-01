@@ -1,3 +1,5 @@
+"""CTDI-w dose metric calculator from TOPAS output CSVs."""
+
 from __future__ import annotations
 
 import logging
@@ -15,11 +17,14 @@ FILE_TYPES = ["dtm", "tle"]
 
 
 class CTDICalculator:
+    """Post-processes TOPAS chamber plug CSV outputs into CTDI-w metrics."""
+
     def __init__(self, runfolder: Path) -> None:
         self.runfolder = runfolder
         self.calibration_factor = self._extract_calibration_factor()
 
     def calculate(self) -> List[Dict]:
+        """Compute CTDI-w results for each available file type (dtm, tle)."""
         chamber_files = self._find_chamber_files()
         results: List[Dict] = []
         for file_type in FILE_TYPES:
@@ -32,6 +37,15 @@ class CTDICalculator:
         return results
 
     def save_results(self, results: List[Dict], output_path: Path) -> None:
+        """Save calculation results to a CSV file.
+
+        Args:
+            results: List of result dictionaries from calculate().
+            output_path: Destination CSV path.
+
+        Raises:
+            Exception: Re-raises any I/O or pandas error.
+        """
         try:
             df = pd.DataFrame(results)
             df.to_csv(output_path, index=False)
@@ -41,33 +55,28 @@ class CTDICalculator:
             raise
 
     def _extract_calibration_factor(self) -> float:
-        try:
-            calib_file = self.runfolder / "head_calibration_factor.txt"
-            if not calib_file.exists():
-                logger.warning("Calibration file not found: %s", calib_file)
-                return 1.0
+        """Read the head calibration factor from the run folder."""
+        calib_file = self.runfolder / "head_calibration_factor.txt"
+        if not calib_file.exists():
+            raise FileNotFoundError("Calibration file not found: {}".format(calib_file))
 
-            with open(calib_file, "r", encoding="utf-8") as f:
-                lines = f.readlines()
+        with open(calib_file, "r", encoding="utf-8") as f:
+            lines = f.readlines()
 
-            for line in lines:
-                line = line.strip()
-                if line and not line.startswith("#") and not line.startswith(" "):
-                    try:
-                        factor = float(line)
-                        logger.info("Calibration factor found: %s", factor)
-                        return factor
-                    except ValueError:
-                        continue
+        for line in lines:
+            line = line.strip()
+            if line and not line.startswith("#") and not line.startswith(" "):
+                try:
+                    factor = float(line)
+                    logger.info("Calibration factor found: %s", factor)
+                    return factor
+                except ValueError:
+                    continue
 
-            logger.warning("No calibration factor found in file")
-            return 1.0
-
-        except Exception as e:
-            logger.error("Error reading calibration file: %s", e)
-            return 1.0
+        raise ValueError("No calibration factor found in {}".format(calib_file))
 
     def _find_chamber_files(self) -> Dict[str, Dict[str, Path]]:
+        """Locate all ChamberPlug CSV files organised by file type and position."""
         chamber_files: Dict[str, Dict[str, Path]] = {}
 
         for file_type in FILE_TYPES:
@@ -86,6 +95,7 @@ class CTDICalculator:
         return chamber_files
 
     def _extract_dose_from_file(self, file_path: Path) -> Optional[float]:
+        """Parse a TOPAS CSV output file and return the summed dose value."""
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 lines = f.readlines()
@@ -140,6 +150,7 @@ class CTDICalculator:
     def _process_file_type(
         self, chamber_files: Dict[str, Path], file_type: str
     ) -> Optional[Dict]:
+        """Compute peripheral average, center dose, and CTDI-w for one file type."""
         logger.info("Processing %s files", file_type)
 
         peripheral_doses: List[float] = []
@@ -193,6 +204,15 @@ class CTDICalculator:
 
     @staticmethod
     def calculate_ctdi_w(peripheral_doses: List[float], center_dose: float) -> float:
+        """Compute the weighted CTDI-w from peripheral and center dose measurements.
+
+        Args:
+            peripheral_doses: Dose values at the four peripheral chamber positions.
+            center_dose: Dose value at the central chamber position.
+
+        Returns:
+            CTDI-w value computed as (2/3) * peripheral_avg + (1/3) * center_dose.
+        """
         if not peripheral_doses:
             logger.warning("No peripheral doses provided")
             return 0.0
@@ -210,6 +230,11 @@ class CTDICalculator:
         return ctdi_w
 
     def validate(self) -> None:
+        """Verify that the run folder exists and contains expected chamber plug CSV files.
+
+        Raises:
+            ValueError: If the folder is missing or no chamber plug files are found.
+        """
         if not self.runfolder.exists():
             raise ValueError("Runfolder does not exist: {}".format(self.runfolder))
 

@@ -1,3 +1,5 @@
+"""DICOM patient simulation mode."""
+
 from __future__ import annotations
 
 import logging
@@ -14,6 +16,8 @@ logger = logging.getLogger(__name__)
 
 
 class DicomMode(SimulationMode):
+    """Simulation mode for patient DICOM dose calculations."""
+
     def edit_main_file(self, config: SimulationConfig, lines: List[str]) -> None:
         s = ParameterEditor.string_index_replacement
         s("includeFile = CTDIphantom_16.txt", lines)
@@ -25,6 +29,7 @@ class DicomMode(SimulationMode):
             s("b:Gr/Enable", lines)
 
     def edit_sub_file(self, config: SimulationConfig, lines: List[str]) -> None:
+        """Edit the patient DICOM sub-file with geometry and scoring parameters."""
         s = ParameterEditor.string_index_replacement
         s("d:Ge/patrotation/yaw", lines, config.dicom.patient_yaw)
         s(
@@ -54,9 +59,11 @@ class DicomMode(SimulationMode):
         )
 
     def get_sub_file_name(self, config: SimulationConfig) -> str:
+        """Return the fixed patient DICOM include filename."""
         return "patientDICOM.txt"
 
     def compute_histories(self, config: SimulationConfig) -> str:
+        """Multiply per-projection histories by number of sequential acquisitions."""
         return str(int(config.imaging.sequential_times) * int(config.general.histories))
 
     def prepare_run(
@@ -65,6 +72,7 @@ class DicomMode(SimulationMode):
         rundir: str,
         project_root: str,
     ) -> None:
+        """Copy common files, DICOM-specific includes, and HU-to-material table into the run directory."""
         include_dir = os.path.join(
             project_root, "src", "boilerplates", "TOPAS_includeFiles"
         )
@@ -83,4 +91,5 @@ class DicomMode(SimulationMode):
         rundir: str,
         project_root: str,
     ) -> None:
+        """Run the DICOM simulation via TOPAS."""
         SimulationRunner.run_dicom(config.general.topas_directory, rundir)

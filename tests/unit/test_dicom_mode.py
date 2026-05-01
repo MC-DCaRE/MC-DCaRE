@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import sys
 from typing import Any
@@ -6,41 +8,7 @@ from unittest.mock import patch
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from src.modes.dicom_mode import DicomMode
-
-MAIN_FILE_CONTENT = (
-    's:Ts/G4DataDirectory = "/root/G4Data"\n'
-    'i:Tf/NumberOfSequentialTimes = "1000"\n'
-    'd:Tf/TimelineEnd = "501.0 s"\n'
-    'd:Tf/Rotate/Rate = "0.4 deg/s"\n'
-    'd:Tf/Rotate/StartValue = "0 deg"\n'
-    'i:Ts/Seed = "9"\n'
-    'i:Ts/NumberOfThreads = "1"\n'
-    'i:So/beam/NumberOfHistoriesInRun = "100000"\n'
-    'dc:Ge/Coll1/TransY = "6.175536078965273 cm"\n'
-    'dc:Ge/Coll2/TransY = "-6.175536078965273 cm"\n'
-    'dc:Ge/Coll3/TransX = "5.814471115800571 cm"\n'
-    'dc:Ge/Coll4/TransX = "-5.814471115800571 cm"\n'
-    "includeFile = halffan.txt\n"
-    "includeFile = CTDIphantom_16.txt\n"
-    "includeFile = CTDIphantom_32.txt\n"
-    'sv:Ph/Default/LayeredMassGeometryWorlds = "some value"\n'
-    'Ts/UseQt = "true"\n'
-    's:Gr/ViewA/Type = "some type"\n'
-    'b:Gr/Enable = "true"\n'
-    "includeFile = patientDICOM.txt\n"
-)
-
-DICOM_SUB_FILE_CONTENT = (
-    'd:Ge/patrotation/yaw = "0. deg"\n'
-    's:Ge/Patient/DicomDirectory = "/sampledicom/setA"\n'
-    'dc:Ge/IsocenterX = "0 mm"\n'
-    'dc:Ge/IsocenterY = "0 mm"\n'
-    'dc:Ge/IsocenterZ = "0 mm"\n'
-    'dc:Ge/Patient/UserTransX = "0. mm"\n'
-    'dc:Ge/Patient/UserTransY = "0. mm"\n'
-    'dc:Ge/Patient/UserTransZ = "0. mm"\n'
-    's:Sc/DoseOnRTGrid100kz17/OutputFile = "output"\n'
-)
+from tests.unit.shared import DICOM_SUB_FILE_CONTENT, MAIN_FILE_CONTENT
 
 
 class TestEditMainFile:

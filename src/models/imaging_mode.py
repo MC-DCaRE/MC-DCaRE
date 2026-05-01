@@ -1,3 +1,10 @@
+"""Varian TrueBeam kV imaging-mode parameter lookup tables.
+
+Exports :class:`ImagingMode`, the :data:`IMAGING_MODES` dictionary keyed by
+``"<direction>_<protocol>"`` strings, :data:`IMAGING_MODE_SELECTION_LABELS`,
+and :data:`BACKWARD_COMPAT_LOOKUP` for legacy GUI compatibility.
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -6,6 +13,8 @@ from typing import Dict
 
 @dataclass(frozen=True)
 class ImagingMode:
+    """Immutable set of beam and collimator parameters for a single imaging preset."""
+
     rotation_rate: str
     voltage: str
     exposure: str
@@ -21,6 +30,7 @@ class ImagingMode:
     blade_y2: str
 
     def as_tuple(self) -> tuple:
+        """Return all fields as a plain tuple for backward-compatible lookups."""
         return (
             self.rotation_rate,
             self.voltage,

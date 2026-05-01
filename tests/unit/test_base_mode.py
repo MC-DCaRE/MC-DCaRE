@@ -8,7 +8,7 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from src.config import SimulationConfig
+from src.config import ImagingConfig, SimulationConfig
 from src.modes.base import SimulationMode
 
 
@@ -68,20 +68,23 @@ class TestCopyCommonFiles:
         assert os.path.isfile(os.path.join(rundir, "head_calibration_factor.txt"))
 
     def test_copies_fullfan_for_full_fan(self, fake_project: Any) -> None:
-        config = SimulationConfig()
-        config.imaging.fan_mode = "Full Fan"
+        config = SimulationConfig(
+            imaging=ImagingConfig(fan_mode="Full Fan"),
+        )
         rundir = self._run(fake_project, config)
         assert os.path.isfile(os.path.join(rundir, "fullfan.txt"))
 
     def test_copies_halffan_for_half_fan(self, fake_project: Any) -> None:
-        config = SimulationConfig()
-        config.imaging.fan_mode = "Half Fan"
+        config = SimulationConfig(
+            imaging=ImagingConfig(fan_mode="Half Fan"),
+        )
         rundir = self._run(fake_project, config)
         assert os.path.isfile(os.path.join(rundir, "halffan.txt"))
 
     def test_no_fan_file_for_unknown_mode(self, fake_project: Any) -> None:
-        config = SimulationConfig()
-        config.imaging.fan_mode = "Unknown Mode"
+        config = SimulationConfig(
+            imaging=ImagingConfig(fan_mode="Unknown Mode"),
+        )
         rundir = self._run(fake_project, config)
         assert not os.path.isfile(os.path.join(rundir, "fullfan.txt"))
         assert not os.path.isfile(os.path.join(rundir, "halffan.txt"))

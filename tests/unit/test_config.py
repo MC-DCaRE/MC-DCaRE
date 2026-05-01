@@ -20,9 +20,9 @@ class TestQuantityUnitStripper:
         result: tuple = quantity_unit_stripper("100 kV")
         assert result == (100.0, "kV")
 
-    def test_returns_zero_for_no_number(self) -> None:
-        result: tuple = quantity_unit_stripper("kV")
-        assert result == (0.0, "kV")
+    def test_raises_for_no_number(self) -> None:
+        with pytest.raises(ValueError, match="No numeric value"):
+            quantity_unit_stripper("kV")
 
     def test_returns_empty_unit_for_no_unit(self) -> None:
         result: tuple = quantity_unit_stripper("100")
@@ -233,17 +233,22 @@ class TestParseBool:
 
         assert _parse_bool("False") is False
 
-    def test_integer_is_false(self) -> None:
+    def test_integer_one_is_true(self) -> None:
         from src.config import _parse_bool
 
-        assert _parse_bool(1) is False
+        assert _parse_bool(1) is True
+
+    def test_integer_zero_is_false(self) -> None:
+        from src.config import _parse_bool
+
+        assert _parse_bool(0) is False
 
     def test_empty_string_is_false(self) -> None:
         from src.config import _parse_bool
 
         assert _parse_bool("") is False
 
-    def test_lowercase_true_is_false(self) -> None:
+    def test_lowercase_true_is_true(self) -> None:
         from src.config import _parse_bool
 
-        assert _parse_bool("true") is False
+        assert _parse_bool("true") is True

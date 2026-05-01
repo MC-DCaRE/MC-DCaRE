@@ -1,3 +1,7 @@
+"""Generates X-ray spectrum definitions via SpekPy for TOPAS beam sources."""
+
+from __future__ import annotations
+
 import logging
 
 import numpy as np
@@ -7,6 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 class SpectrumGenerator:
+    """Creates SpekPy X-ray spectra and writes TOPAS-compatible spectrum files."""
+
     @staticmethod
     def generate(
         anode_voltage: float,
@@ -14,6 +20,14 @@ class SpectrumGenerator:
         histories: str,
         project_root: str,
     ) -> None:
+        """Generate a kV spectrum and write calibration factor and TOPAS spectrum files.
+
+        Args:
+            anode_voltage: Tube voltage in kV.
+            exposure: Tube current-time product in mAs.
+            histories: Number of primary histories as a string.
+            project_root: Root directory of the MC-DCaRE project (output goes to tmp/).
+        """
         logger.info(
             "Generating spectrum: %f kV, %f mAs, %s histories",
             anode_voltage,

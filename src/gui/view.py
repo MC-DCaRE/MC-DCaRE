@@ -1,3 +1,9 @@
+"""FreeSimpleGUI layout and view helpers for the MC-DCaRE desktop application.
+
+Exports :class:`MainView`, the primary window class that constructs and
+manages all GUI elements (tabs, frames, inputs) for simulation configuration.
+"""
+
 from __future__ import annotations
 
 from typing import Any, Dict, List, Tuple
@@ -67,7 +73,10 @@ from src.models.keys import (
 
 
 class MainView:
+    """Top-level application window with tabbed layout for MC-DCaRE simulations."""
+
     def __init__(self) -> None:
+        """Build the window from default configuration values and finalize it."""
         self._defaults = SimulationConfig.defaults()
         self.window: sg.Window = sg.Window(
             title="MC-DCaRE",
@@ -79,6 +88,7 @@ class MainView:
         self.window[G4_DATA_DIR].bind("<Return>", "_ENTER")
 
     def _build_layout(self) -> List[List[Any]]:
+        """Assemble all tabs and the title bar into the full window layout."""
         main_layout = [
             [self._build_main_menu_information()],
             [self._build_general_layer()],
@@ -149,6 +159,7 @@ class MainView:
         ]
 
     def _build_general_layer(self) -> sg.Frame:
+        """Geant4 and TOPAS directory inputs with a reset button."""
         d = self._defaults
         return sg.Frame(
             "General Settings",
@@ -178,6 +189,7 @@ class MainView:
         )
 
     def _build_main_menu_information(self) -> sg.Frame:
+        """Instructional text displayed on the main-menu tab."""
         return sg.Frame(
             "Instructions on the usage of the GUI",
             [
@@ -215,6 +227,7 @@ class MainView:
         )
 
     def _build_function_layer(self) -> sg.Frame:
+        """Simulation-type selector (DICOM or CTDI validation)."""
         return sg.Frame(
             "Choose your function",
             [
@@ -233,6 +246,7 @@ class MainView:
         )
 
     def _build_settings_information(self) -> sg.Frame:
+        """Instructional text displayed on the settings tab."""
         return sg.Frame(
             "General settings",
             [
@@ -265,6 +279,7 @@ class MainView:
         )
 
     def _build_hidden_layer(self) -> sg.Frame:
+        """Time-feature and collimator-blade fields (hidden by default)."""
         d = self._defaults
         return sg.Frame(
             "Time Feature and other hidden values",
@@ -342,6 +357,7 @@ class MainView:
         )
 
     def _build_history_layer(self) -> sg.Frame:
+        """Seed, threads, sequential times, and history-count inputs."""
         d = self._defaults
         return sg.Frame(
             "Simulation settings",
@@ -387,6 +403,7 @@ class MainView:
         )
 
     def _build_imaging_protocol_layer(self) -> sg.Frame:
+        """Imaging-protocol dropdown and read-only field-size / bowtie fields."""
         d = self._defaults
         return sg.Frame(
             "Imaging protocol",
@@ -468,6 +485,7 @@ class MainView:
         )
 
     def _build_imaging_scan_layer(self) -> sg.Frame:
+        """Start-angle, scan-type, tube-voltage, and exposure inputs."""
         d = self._defaults
         return sg.Frame(
             "Set up imaging parameters",
@@ -515,6 +533,7 @@ class MainView:
         )
 
     def _build_dicom_information(self) -> sg.Frame:
+        """Instructional text displayed on the DICOM tab."""
         return sg.Frame(
             "Instructions on the usage of the DICOM adjustments",
             [
@@ -543,6 +562,7 @@ class MainView:
         )
 
     def _build_dicom_file_layer(self) -> sg.Frame:
+        """DICOM directory, patient-ID, RT-plan file, and run button."""
         d = self._defaults
         return sg.Frame(
             "DICOM inputs",
@@ -595,6 +615,7 @@ class MainView:
         )
 
     def _build_dicom_patient_layer(self) -> sg.Frame:
+        """Patient-shift and yaw-rotation inputs relative to isocenter."""
         d = self._defaults
         return sg.Frame(
             "Patient set up adjustments",
@@ -639,6 +660,7 @@ class MainView:
         )
 
     def _build_dicom_planned_layer(self) -> sg.Frame:
+        """Read-only isocenter coordinates extracted from the RT plan."""
         d = self._defaults
         return sg.Frame(
             "Treatment plan parameters",
@@ -678,6 +700,7 @@ class MainView:
         )
 
     def _build_dicom_graphics_layer(self) -> sg.Frame:
+        """DICOM graphics toggle checkbox with usage warning."""
         return sg.Frame(
             "DICOM simulation graphics",
             [
@@ -696,6 +719,7 @@ class MainView:
         )
 
     def _build_ctdi_information(self) -> sg.Frame:
+        """Instructional text displayed on the CTDI tab."""
         return sg.Frame(
             "Instructions on the usage of the CTDI phantom parameters",
             [
@@ -733,6 +757,7 @@ class MainView:
         )
 
     def _build_ctdi_layer(self) -> sg.Frame:
+        """CTDI phantom diameter, scoring bins, couch toggle, and jaw toggle."""
         d = self._defaults
         return sg.Frame(
             "CTDI options",
@@ -798,6 +823,7 @@ class MainView:
         )
 
     def _build_couch_layer(self) -> sg.pin:
+        """Pinnable frame with couch dimension inputs."""
         d = self._defaults
         return sg.pin(
             sg.Frame(
@@ -840,6 +866,7 @@ class MainView:
         )
 
     def _build_ctdi_blade_layer(self) -> sg.pin:
+        """Pinnable frame for user-specified CTDI jaw positions."""
         d = self._defaults
         return sg.pin(
             sg.Frame(
@@ -895,6 +922,7 @@ class MainView:
         )
 
     def _build_ctdi_run_layer(self) -> sg.Frame:
+        """CTDI graphics toggle and simulation run button."""
         return sg.Frame(
             "Activate CTDI simulation",
             [
@@ -919,9 +947,11 @@ class MainView:
         )
 
     def read(self) -> Tuple[str, Dict[str, Any]]:
+        """Block until the next GUI event, returning ``(event, values)``."""
         return self.window.read()  # type: ignore[no-any-return]
 
     def update_imaging_mode_fields(self, mode: ImagingMode) -> None:
+        """Populate all imaging-protocol fields from the given *mode*."""
         self.window[ROTATION_RATE].update(mode.rotation_rate)
         self.window[TUBE_VOLTAGE].update(mode.voltage)
         self.window[EXPOSURE].update(mode.exposure)
@@ -937,6 +967,7 @@ class MainView:
         self.window[BLADE_Y2].update(mode.blade_y2)
 
     def set_tab_visibility(self, sim_type: str) -> None:
+        """Show the tab for *sim_type* (``"DICOM"`` or ``"CTDI validation"``) and hide the other."""
         if sim_type == "DICOM":
             self.window[DICOM_TAB].update(visible=True)
             self.window[CTDI_TAB].update(visible=False)
@@ -945,30 +976,38 @@ class MainView:
             self.window[DICOM_TAB].update(visible=False)
 
     def reset_all(self, defaults: Dict[str, Any]) -> None:
+        """Restore every element to *defaults* and hide simulation-specific tabs."""
         for key in defaults:
             self.window[key].update(defaults[key])
         self.window[CTDI_TAB].update(visible=False)
         self.window[DICOM_TAB].update(visible=False)
 
     def update_patient_id(self, patient_id: str) -> None:
+        """Display the loaded *patient_id* in the read-only patient-ID field."""
         self.window[PATIENT_ID].update(patient_id)
 
     def update_isocenter(self, x: str, y: str, z: str) -> None:
+        """Set the three read-only isocenter coordinate fields."""
         self.window[ISO_X].update(x)
         self.window[ISO_Y].update(y)
         self.window[ISO_Z].update(z)
 
     def set_couch_visible(self, visible: bool) -> None:
+        """Toggle visibility of the couch-dimension frame."""
         self.window[COUCH].update(visible=visible)
 
     def set_blade_visible(self, visible: bool) -> None:
+        """Toggle visibility of the user-specified jaw-position frame."""
         self.window[CTDI_BLADE].update(visible=visible)
 
     def show_error(self, message: str) -> None:
+        """Display a modal error popup with *message*."""
         sg.popup_error(message)
 
     def show_popup(self, message: str, value: object = None) -> None:
+        """Display a short-lived auto-closing popup with *message* and optional *value*."""
         sg.popup(message, value, auto_close=True, non_blocking=True)
 
     def close(self) -> None:
+        """Destroy the underlying FreeSimpleGUI window."""
         self.window.close()

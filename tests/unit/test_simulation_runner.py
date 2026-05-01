@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import sys
 from unittest.mock import patch, MagicMock
@@ -14,17 +16,15 @@ class TestRunTopas:
     @patch("src.simulation_runner.subprocess.run")
     def test_calls_subprocess_run_with_correct_args(self, mock_run: MagicMock) -> None:
         mock_run.return_value.returncode = 0
-        SimulationRunner.run_topas("/topas bin/topas file.txt", "/working/dir")
-        mock_run.assert_called_once_with(
-            "/topas bin/topas file.txt", cwd="/working/dir", shell=True
-        )
+        SimulationRunner.run_topas(["/topas", "file.txt"], "/working/dir")
+        mock_run.assert_called_once_with(["/topas", "file.txt"], cwd="/working/dir")
 
     @patch("src.simulation_runner.subprocess.run")
     def test_does_not_print_after_execution(
         self, mock_run: MagicMock, capsys: object
     ) -> None:
         mock_run.return_value.returncode = 0
-        SimulationRunner.run_topas("command", "dir")
+        SimulationRunner.run_topas(["command"], "dir")
         captured = capsys.readouterr()
         assert captured.out == ""
 
@@ -32,12 +32,12 @@ class TestRunTopas:
     def test_raises_on_nonzero_return_code(self, mock_run: MagicMock) -> None:
         mock_run.return_value.returncode = 1
         with pytest.raises(RuntimeError, match="return code 1"):
-            SimulationRunner.run_topas("bad_command", "/dir")
+            SimulationRunner.run_topas(["bad_command"], "/dir")
 
     @patch("src.simulation_runner.subprocess.run")
     def test_succeeds_on_zero_return_code(self, mock_run: MagicMock) -> None:
         mock_run.return_value.returncode = 0
-        SimulationRunner.run_topas("command", "/dir")
+        SimulationRunner.run_topas(["command"], "/dir")
 
 
 class TestRunDicom:
@@ -49,8 +49,8 @@ class TestRunDicom:
 
         SimulationRunner.run_dicom(topas_path, rundatadir)
 
-        expected_command = topas_path + " " + rundatadir + "/headsourcecode.txt"
-        mock_run.assert_called_once_with(expected_command, cwd=rundatadir, shell=True)
+        expected_command = [topas_path, rundatadir + "/headsourcecode.txt"]
+        mock_run.assert_called_once_with(expected_command, cwd=rundatadir)
 
 
 class TestRunCtdi:
@@ -62,17 +62,17 @@ class TestRunCtdi:
 
         topas_path = "/usr/local/topas/bin/topas"
         rundatadir = "/runfolder/2024-01-01_12-00-00"
-        commands: List[Tuple[str, str]] = [
+        commands: List[Tuple[List[str], str]] = [
             (
-                topas_path + " " + rundatadir + "/ChamberPlugCentre.txt",
+                [topas_path, rundatadir + "/ChamberPlugCentre.txt"],
                 rundatadir,
             ),
             (
-                topas_path + " " + rundatadir + "/ChamberPlugTop.txt",
+                [topas_path, rundatadir + "/ChamberPlugTop.txt"],
                 rundatadir,
             ),
             (
-                topas_path + " " + rundatadir + "/ChamberPlugBottom.txt",
+                [topas_path, rundatadir + "/ChamberPlugBottom.txt"],
                 rundatadir,
             ),
         ]

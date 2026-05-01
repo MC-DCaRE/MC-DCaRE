@@ -9,6 +9,11 @@ import pandas as pd
 from src.services.ctdi_calculator import CTDICalculator
 
 
+def _make_cal(tmp_path: Path) -> CTDICalculator:
+    (tmp_path / "head_calibration_factor.txt").write_text("1.0\n")
+    return CTDICalculator(tmp_path)
+
+
 class TestExtractDoseFromFile:
     def test_extract_dose_valid_file(self, tmp_path: Path) -> None:
         file_content = """# TOPAS Version: 4.0
@@ -21,12 +26,12 @@ class TestExtractDoseFromFile:
         file_path = tmp_path / "test_file.csv"
         file_path.write_text(file_content)
 
-        calc = CTDICalculator(tmp_path)
+        calc = _make_cal(tmp_path)
         dose = calc._extract_dose_from_file(file_path)
         assert dose == 5.109993539420543e-10
 
     def test_extract_dose_file_not_found(self, tmp_path: Path) -> None:
-        calc = CTDICalculator(tmp_path)
+        calc = _make_cal(tmp_path)
         dose = calc._extract_dose_from_file(Path("nonexistent.csv"))
         assert dose is None
 
@@ -38,7 +43,7 @@ invalid_dose_value
         file_path = tmp_path / "invalid_file.csv"
         file_path.write_text(file_content)
 
-        calc = CTDICalculator(tmp_path)
+        calc = _make_cal(tmp_path)
         dose = calc._extract_dose_from_file(file_path)
         assert dose is None
 
@@ -46,7 +51,7 @@ invalid_dose_value
         file_path = tmp_path / "empty_file.csv"
         file_path.write_text("")
 
-        calc = CTDICalculator(tmp_path)
+        calc = _make_cal(tmp_path)
         dose = calc._extract_dose_from_file(file_path)
         assert dose is None
 
@@ -63,7 +68,7 @@ class TestFindChamberFiles:
                 )
                 file_path.write_text("1.0e-10")
 
-        calc = CTDICalculator(tmp_path)
+        calc = _make_cal(tmp_path)
         chamber_files = calc._find_chamber_files()
 
         assert len(chamber_files) == 2
@@ -76,7 +81,7 @@ class TestFindChamberFiles:
         (tmp_path / "ChamberPlugTop_dtm.csv").write_text("1.0e-10")
         (tmp_path / "ChamberPlugCentre_dtm.csv").write_text("2.0e-10")
 
-        calc = CTDICalculator(tmp_path)
+        calc = _make_cal(tmp_path)
         chamber_files = calc._find_chamber_files()
 
         assert len(chamber_files["dtm"]) == 2
@@ -109,7 +114,7 @@ class TestCalculateCTDI_W:
 
 class TestProcessFileType:
     def test_process_file_type_success(self, tmp_path: Path) -> None:
-        calc = CTDICalculator(tmp_path)
+        calc = _make_cal(tmp_path)
 
         chamber_files = {
             "Bottom": tmp_path / "ChamberPlugBottom_dtw.csv",
@@ -137,7 +142,7 @@ class TestProcessFileType:
         assert "Timestamp" in result
 
     def test_process_file_type_insufficient_data(self, tmp_path: Path) -> None:
-        calc = CTDICalculator(tmp_path)
+        calc = _make_cal(tmp_path)
 
         chamber_files = {
             "Bottom": tmp_path / "ChamberPlugBottom_dtw.csv",
@@ -163,7 +168,7 @@ class TestSaveResults:
         ]
 
         output_path = tmp_path / "test_results.csv"
-        calc = CTDICalculator(tmp_path)
+        calc = _make_cal(tmp_path)
         calc.save_results(results, output_path)
 
         assert output_path.exists()
@@ -178,16 +183,15 @@ class TestValidate:
     def test_validate_valid_runfolder(self, tmp_path: Path) -> None:
         (tmp_path / "ChamberPlugTop_dtm.csv").write_text("1.0e-10")
 
-        calc = CTDICalculator(tmp_path)
+        calc = _make_cal(tmp_path)
         calc.validate()
 
     def test_validate_nonexistent_runfolder(self) -> None:
-        calc = CTDICalculator(Path("nonexistent"))
-        with pytest.raises(ValueError):
-            calc.validate()
+        with pytest.raises(FileNotFoundError, match="Calibration file not found"):
+            CTDICalculator(Path("nonexistent"))
 
     def test_validate_no_chamber_files(self, tmp_path: Path) -> None:
-        calc = CTDICalculator(tmp_path)
+        calc = _make_cal(tmp_path)
         with pytest.raises(ValueError):
             calc.validate()
 
@@ -200,7 +204,7 @@ class TestCalculate:
                     tmp_path / "ChamberPlug{}_{}.csv".format(position, file_type)
                 ).write_text("1.0e-10")
 
-        calc = CTDICalculator(tmp_path)
+        calc = _make_cal(tmp_path)
 
         with patch.object(
             calc,
@@ -222,14 +226,14 @@ class TestExtractCalibrationFactor:
         assert calc.calibration_factor == 2.5
 
     def test_calibration_file_missing(self, tmp_path: Path) -> None:
-        calc = CTDICalculator(tmp_path)
-        assert calc.calibration_factor == 1.0
+        with pytest.raises(FileNotFoundError, match="Calibration file not found"):
+            CTDICalculator(tmp_path)
 
     def test_calibration_file_comment_only(self, tmp_path: Path) -> None:
         (tmp_path / "head_calibration_factor.txt").write_text("# comment\n")
 
-        calc = CTDICalculator(tmp_path)
-        assert calc.calibration_factor == 1.0
+        with pytest.raises(ValueError, match="No calibration factor"):
+            CTDICalculator(tmp_path)
 
 
 if __name__ == "__main__":

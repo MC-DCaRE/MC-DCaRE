@@ -1,3 +1,11 @@
+"""FreeSimpleGUI element key constants.
+
+Every constant follows the ``-UPPERCASE-WITH-DASHES-`` pattern required by
+FreeSimpleGUI for unique element identification.  Keys are imported by
+:mod:`src.config` and :mod:`src.gui` to bind GUI elements to configuration
+fields.
+"""
+
 from __future__ import annotations
 
 G4_DATA_DIR = "-G4_DATA_DIR-"

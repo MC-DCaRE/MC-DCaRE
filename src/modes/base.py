@@ -1,3 +1,5 @@
+"""Abstract base class for simulation mode strategies."""
+
 from __future__ import annotations
 
 import logging
@@ -12,17 +14,27 @@ logger = logging.getLogger(__name__)
 
 
 class SimulationMode(ABC):
-    @abstractmethod
-    def edit_main_file(self, config: SimulationConfig, lines: List[str]) -> None: ...
+    """Strategy interface for CTDI and DICOM simulation modes."""
 
     @abstractmethod
-    def edit_sub_file(self, config: SimulationConfig, lines: List[str]) -> None: ...
+    def edit_main_file(self, config: SimulationConfig, lines: List[str]) -> None:
+        """Edit the main TOPAS boilerplate lines for this mode."""
+        ...
 
     @abstractmethod
-    def get_sub_file_name(self, config: SimulationConfig) -> str: ...
+    def edit_sub_file(self, config: SimulationConfig, lines: List[str]) -> None:
+        """Edit the sub-include TOPAS boilerplate lines for this mode."""
+        ...
 
     @abstractmethod
-    def compute_histories(self, config: SimulationConfig) -> str: ...
+    def get_sub_file_name(self, config: SimulationConfig) -> str:
+        """Return the filename of the sub-include file for this mode."""
+        ...
+
+    @abstractmethod
+    def compute_histories(self, config: SimulationConfig) -> str:
+        """Compute the number of histories to simulate."""
+        ...
 
     @abstractmethod
     def prepare_run(
@@ -30,7 +42,9 @@ class SimulationMode(ABC):
         config: SimulationConfig,
         rundir: str,
         project_root: str,
-    ) -> None: ...
+    ) -> None:
+        """Copy required files into the run directory before execution."""
+        ...
 
     @abstractmethod
     def execute(
@@ -38,12 +52,15 @@ class SimulationMode(ABC):
         config: SimulationConfig,
         rundir: str,
         project_root: str,
-    ) -> None: ...
+    ) -> None:
+        """Run the simulation for this mode."""
+        ...
 
     @staticmethod
     def copy_common_files(
         rundatadir: str, config: SimulationConfig, project_root: str
     ) -> None:
+        """Copy shared include files (spectrum, calibration, bowtie) into the run data directory."""
         include_dir = os.path.join(
             project_root, "src", "boilerplates", "TOPAS_includeFiles"
         )

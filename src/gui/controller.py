@@ -1,3 +1,9 @@
+"""Event-loop controller that wires GUI events to the Orchestrator.
+
+Exports :class:`GUIController`, which reads events from :class:`MainView`
+and delegates each event to the appropriate handler or simulation action.
+"""
+
 from __future__ import annotations
 
 import logging
@@ -29,7 +35,10 @@ logger = logging.getLogger(__name__)
 
 
 class GUIController:
+    """Connects FreeSimpleGUI events from *view* to the *orchestrator*."""
+
     def __init__(self, view: MainView, orchestrator: Orchestrator) -> None:
+        """Wire up *view* and *orchestrator* and register event handlers."""
         self.view = view
         self.orchestrator = orchestrator
         self._default_values: Dict[str, Any] = {}
@@ -48,6 +57,7 @@ class GUIController:
         }
 
     def run(self) -> None:
+        """Run the main event loop until the window is closed."""
         while True:
             event, values = self.view.read()
             if self._first_read:
@@ -65,12 +75,15 @@ class GUIController:
                 handler(values)
 
     def _on_reset(self, values: Dict[str, Any]) -> None:
+        """Restore all GUI elements to their initial defaults."""
         self.view.reset_all(self._default_values)
 
     def _on_sim_type_change(self, values: Dict[str, Any]) -> None:
+        """Switch visible tab based on the selected simulation type."""
         self.view.set_tab_visibility(values[SIM_TYPE])
 
     def _on_dicom_dir(self, values: Dict[str, Any]) -> None:
+        """Load and validate CT images from the selected DICOM directory."""
         count_of_CT_images = 0
         patient_ID = ""
         try:
@@ -95,11 +108,13 @@ class GUIController:
                 "Number of " + patient_ID + " CT images found", count_of_CT_images
             )
         except Exception as e:
+            logger.error("Error loading DICOM directory: %s", e, exc_info=True)
             self.view.show_error(
                 "No CT images found or more than 1 patient file found: " + str(e)
             )
 
     def _on_dicom_rp(self, values: Dict[str, Any]) -> None:
+        """Extract the isocenter from the selected DICOM RT Plan file."""
         ds = dcmread(values[DICOM_RP])
         if ds.PatientID == values[PATIENT_ID]:
             try:
@@ -110,6 +125,7 @@ class GUIController:
                     str(round(iso[2], 5)) + " mm",
                 )
             except Exception as e:
+                logger.error("Error extracting isocenter: %s", e, exc_info=True)
                 self.view.show_error("No isocentre found: " + str(e))
         else:
             self.view.show_error(
@@ -117,20 +133,25 @@ class GUIController:
             )
 
     def _on_run(self, values: Dict[str, Any]) -> None:
+        """Build a config from GUI values and launch the simulation."""
         try:
             config = SimulationConfig.from_gui_values(values)
             rundir = self.orchestrator.run(config)
             self.view.show_popup(rundir)
         except Exception as e:
+            logger.error("Simulation failed: %s", e, exc_info=True)
             self.view.show_error("Simulation failed: " + str(e))
 
     def _on_imaging_mode_change(self, values: Dict[str, Any]) -> None:
+        """Look up the imaging mode and refresh protocol fields."""
         mode_key = values[SCAN_TYPE] + "_" + values[IMAGING_MODE]
         mode = IMAGING_MODES[mode_key]
         self.view.update_imaging_mode_fields(mode)
 
     def _on_couch_toggle(self, values: Dict[str, Any]) -> None:
+        """Show or hide the couch dimension frame."""
         self.view.set_couch_visible(bool(values[COUCH_ENABLED]))
 
     def _on_user_blade_toggle(self, values: Dict[str, Any]) -> None:
+        """Show or hide the user-specified jaw-position frame."""
         self.view.set_blade_visible(bool(values[CTDI_USER_BLADE]))

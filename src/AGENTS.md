@@ -23,10 +23,8 @@ Subdirectories:
 | `parameter_editor.py` | String-level edits to TOPAS parameter files |
 | `simulation_runner.py` | Executes TOPAS Monte Carlo simulations |
 | `spectrum_generator.py` | Generates X-ray spectrum definitions via SpekPy |
-| `run_preparer.py` | Prepares run directories with necessary files |
 | `fieldtobladeopening.py` | Converts field size to collimator blade opening positions |
 | `imaging_modes_lookuptable.py` | Lookup table for TrueBeam imaging mode parameters |
-| `guilayers.py` | Additional GUI layer definitions |
 
 ## Conventions
 - `from __future__ import annotations` in every module

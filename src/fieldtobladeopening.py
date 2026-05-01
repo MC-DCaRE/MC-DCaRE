@@ -1,3 +1,7 @@
+"""Converts radiation field sizes to collimator blade opening positions."""
+
+from __future__ import annotations
+
 import logging
 from typing import List
 
@@ -7,6 +11,19 @@ logger = logging.getLogger(__name__)
 
 
 def fieldtobladeopening(field_size_list: List[str]) -> List[str]:
+    """Convert four field-size strings to collimator blade opening positions.
+
+    Args:
+        field_size_list: Four field-size strings in order
+            [x1, x2, y1, y2], each with a numeric value and unit (e.g. ``"14 cm"``).
+
+    Returns:
+        Four blade-opening strings with sign indicating direction.
+
+    Raises:
+        TypeError: If a field-size string does not contain a numeric value.
+    """
+
     def ybladeopening(field: float) -> float:
         return (field + 90.2972966781214) / 17.3699885452463
 

@@ -1,3 +1,5 @@
+"""CTDI phantom simulation mode."""
+
 from __future__ import annotations
 
 import logging
@@ -22,6 +24,8 @@ _PLUG_POSITIONS = [
 
 
 class CtdiMode(SimulationMode):
+    """Simulation mode for CTDI phantom dose measurements."""
+
     def edit_main_file(self, config: SimulationConfig, lines: List[str]) -> None:
         s = ParameterEditor.string_index_replacement
         s("includeFile = patientDICOM.txt", lines)
@@ -48,6 +52,7 @@ class CtdiMode(SimulationMode):
             s("includeFile = CTDIphantom_16.txt", lines)
 
     def edit_sub_file(self, config: SimulationConfig, lines: List[str]) -> None:
+        """Edit the CTDI phantom sub-file with couch and scoring parameters."""
         s = ParameterEditor.string_index_replacement
         if not config.ctdi.couch_enabled:
             s('s:Ge/couch/Parent="couchgroup"', lines)
@@ -59,10 +64,12 @@ class CtdiMode(SimulationMode):
         s("i:Sc/ChamberPlugDose_dtw/ZBins", lines, config.ctdi.dose_to_water_zbins)
 
     def get_sub_file_name(self, config: SimulationConfig) -> str:
+        """Return the CTDI phantom include filename matching the configured size."""
         size_number = config.ctdi.phantom_size.split()[0]
         return "CTDIphantom_" + size_number + ".txt"
 
     def compute_histories(self, config: SimulationConfig) -> str:
+        """Return the user-configured history count directly."""
         return config.general.histories
 
     def prepare_run(
@@ -71,6 +78,7 @@ class CtdiMode(SimulationMode):
         rundir: str,
         project_root: str,
     ) -> None:
+        """Copy common include files into the CTDI run directory."""
         self.copy_common_files(rundir, config, project_root)
         logger.info("Prepared CTDI run files in %s", rundir)
 
@@ -80,6 +88,7 @@ class CtdiMode(SimulationMode):
         rundir: str,
         project_root: str,
     ) -> None:
+        """Run TOPAS for each chamber plug position in parallel."""
         commands = self._generate_plug_files(
             config.ctdi.phantom_size,
             rundir,
@@ -94,7 +103,8 @@ class CtdiMode(SimulationMode):
         rundatadir: str,
         topas_path: str,
         project_root: str,
-    ) -> List[Tuple[str, str]]:
+    ) -> List[Tuple[List[str], str]]:
+        """Generate per-plug-position TOPAS input files by combining head source and phantom boilerplates."""
         if phantom_size == "16 cm":
             phantom_tag = "ctdi16"
         elif phantom_size == "32 cm":
@@ -114,7 +124,7 @@ class CtdiMode(SimulationMode):
         with open(headsource_path, "r") as f:
             headsource_content = f.read()
 
-        commands: List[Tuple[str, str]] = []
+        commands: List[Tuple[List[str], str]] = []
         for position in _PLUG_POSITIONS:
             combined = headsource_content + phantom_content
             combined = combined.replace("@@PLACEHOLDER@@", position)
@@ -127,5 +137,5 @@ class CtdiMode(SimulationMode):
             with open(position_file, "w") as f:
                 f.write(combined)
 
-            commands.append((topas_path + " " + position_file, rundatadir))
+            commands.append(([topas_path, position_file], rundatadir))
         return commands

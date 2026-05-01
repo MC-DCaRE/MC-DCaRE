@@ -34,7 +34,8 @@ d:Ge/World/HLZ=1.2 m
 s:Ph/ListName="Default"
 b:Ph/ListProcesses="False"#Settruetodumplistofactivephysicsprocessestoconsole
 s:Ph/Default/Type="Geant4_Modular"
-sv:Ph/Default/Modules=6 "g4em-standard_opt4" "g4h-phy_QGSP_BIC_HP" "g4decay" "g4ion-binarycascade" "g4h-elastic_HP" "g4stopping"
+#EM-only physics sufficient for kV photon imaging (gamma, ~100 keV); hadronic/decay modules not needed
+sv:Ph/Default/Modules=1 "g4em-standard_opt4"
 
 #EMrangefromBrianHZapienCampos'MonteCarloModellingofthekVandMVImagingSystemsontheVarianTruebeamSTxLinac'
 d:Ph/Default/EMRangeMin=100. eV

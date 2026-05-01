@@ -6,7 +6,7 @@ import logging
 import os
 import shutil
 from abc import ABC, abstractmethod
-from typing import List
+from typing import Dict
 
 from src.config import SimulationConfig
 
@@ -16,19 +16,38 @@ logger = logging.getLogger(__name__)
 class SimulationMode(ABC):
     """Strategy interface for CTDI and DICOM simulation modes."""
 
+    @property
     @abstractmethod
-    def edit_main_file(self, config: SimulationConfig, lines: List[str]) -> None:
-        """Edit the main TOPAS boilerplate lines for this mode."""
+    def main_template_name(self) -> str:
+        """Return the Jinja2 template filename for the main TOPAS file."""
+        ...
+
+    @property
+    @abstractmethod
+    def main_output_name(self) -> str:
+        """Return the output filename for the rendered main TOPAS file."""
         ...
 
     @abstractmethod
-    def edit_sub_file(self, config: SimulationConfig, lines: List[str]) -> None:
-        """Edit the sub-include TOPAS boilerplate lines for this mode."""
+    def build_main_context(self, config: SimulationConfig) -> Dict[str, object]:
+        """Build the template context dict for the main TOPAS file."""
+        ...
+
+    @abstractmethod
+    def build_sub_context(
+        self, config: SimulationConfig, plug_position: str = ""
+    ) -> Dict[str, object]:
+        """Build the template context dict for the sub-include file."""
         ...
 
     @abstractmethod
     def get_sub_file_name(self, config: SimulationConfig) -> str:
         """Return the filename of the sub-include file for this mode."""
+        ...
+
+    @abstractmethod
+    def get_sub_template_name(self, config: SimulationConfig) -> str:
+        """Return the Jinja2 template filename for the sub-include file."""
         ...
 
     @abstractmethod

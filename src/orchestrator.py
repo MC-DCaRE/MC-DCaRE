@@ -3,14 +3,12 @@ from __future__ import annotations
 import logging
 import os
 from datetime import datetime
-from typing import List
 
 from src.config import SimulationConfig, quantity_unit_stripper
 from src.boilerplate_manager import BoilerplateManager
 from src.modes.base import SimulationMode
 from src.modes.dicom_mode import DicomMode
 from src.modes.ctdi_mode import CtdiMode
-from src.parameter_editor import ParameterEditor
 from src.spectrum_generator import SpectrumGenerator
 
 logger = logging.getLogger(__name__)
@@ -26,41 +24,6 @@ class Orchestrator:
             return DicomMode()
         return CtdiMode()
 
-    def _apply_common_edits(self, config: SimulationConfig, lines: List[str]) -> None:
-        s = ParameterEditor.string_index_replacement
-        s(
-            "s:Ts/G4DataDirectory",
-            lines,
-            '"' + config.general.g4_data_directory + '"',
-        )
-        s(
-            "i:Tf/NumberOfSequentialTimes",
-            lines,
-            config.imaging.sequential_times,
-        )
-        s("d:Tf/TimelineEnd", lines, config.imaging.timeline_end)
-        s("d:Tf/Rotate/Rate", lines, config.imaging.rotation_rate)
-        s(
-            "d:Tf/Rotate/StartValue",
-            lines,
-            config.imaging.start_angle,
-        )
-        s("i:Ts/Seed", lines, config.general.seed)
-        s("i:Ts/NumberOfThreads", lines, config.general.threads)
-        s(
-            "i:So/beam/NumberOfHistoriesInRun",
-            lines,
-            config.general.histories,
-        )
-        s("dc:Ge/Coll1/TransY", lines, config.imaging.blade_x1)
-        s("dc:Ge/Coll2/TransY", lines, config.imaging.blade_x2)
-        s("dc:Ge/Coll3/TransX", lines, config.imaging.blade_y1)
-        s("dc:Ge/Coll4/TransX", lines, config.imaging.blade_y2)
-        if config.imaging.fan_mode == "Full Fan":
-            s("includeFile = halffan.txt", lines)
-        elif config.imaging.fan_mode == "Half Fan":
-            s("includeFile = fullfan.txt", lines)
-
     def _create_runfolder(self) -> str:
         rundatadir: str = os.path.join(
             self.project_root + "/runfolder",
@@ -73,22 +36,14 @@ class Orchestrator:
         mode: SimulationMode = self._get_mode(config)
         self.boilerplate_manager.reset_tmp()
 
-        main_path: str = self.boilerplate_manager.get_headsource_path()
-        with open(main_path, "r") as f:
-            lines: List[str] = f.readlines()
-        self._apply_common_edits(config, lines)
-        mode.edit_main_file(config, lines)
-        with open(main_path, "w") as f:
-            f.writelines(lines)
+        renderer = self.boilerplate_manager.create_renderer()
+        main_context = mode.build_main_context(config)
+        renderer.render(mode.main_template_name, main_context, mode.main_output_name)
 
-        sub_file: str = self.boilerplate_manager.get_tmp_path(
-            mode.get_sub_file_name(config)
-        )
-        with open(sub_file, "r") as f:
-            lines = f.readlines()
-        mode.edit_sub_file(config, lines)
-        with open(sub_file, "w") as f:
-            f.writelines(lines)
+        sub_template_name: str = mode.get_sub_template_name(config)
+        sub_output_name: str = mode.get_sub_file_name(config)
+        sub_context = mode.build_sub_context(config)
+        renderer.render(sub_template_name, sub_context, sub_output_name)
 
         voltage: float
         _: str

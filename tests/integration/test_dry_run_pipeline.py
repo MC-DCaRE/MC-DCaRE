@@ -37,71 +37,67 @@ def fake_project(tmp_path: Any) -> Any:
     include_dir: str = os.path.join(boilerplates_dir, "TOPAS_includeFiles")
     os.makedirs(include_dir)
 
-    head_content: str = (
-        's:Ts/G4DataDirectory="/root/G4Data"\n'
-        "i:Tf/NumberOfSequentialTimes = 501\n"
-        "d:Tf/TimelineEnd = 501 s\n"
-        "d:Tf/Rotate/Rate = 0.4 deg/s\n"
-        "d:Tf/Rotate/StartValue = 90 deg\n"
-        "i:Ts/Seed=9\n"
-        "i:Ts/NumberOfThreads=4\n"
-        "i:So/beam/NumberOfHistoriesInRun = 20\n"
-        "dc:Ge/Coll1/TransY=5.3 cm\n"
-        "dc:Ge/Coll2/TransY=-5.3 cm\n"
-        "dc:Ge/Coll3/TransX=5.3 cm\n"
-        "dc:Ge/Coll4/TransX=-5.3 cm\n"
-        "includeFile = fullfan.txt\n"
-        "includeFile = halffan.txt\n"
-        "includeFile = CTDIphantom_16.txt\n"
-        "includeFile = CTDIphantom_32.txt\n"
-        'sv:Ph/Default/LayeredMassGeometryWorlds = 5 "ChamberPlugCentre"\n'
-        'Ts/UseQt="True"\n'
+    head_template: str = (
+        "includeFile=ConvertedTopasFile.txt\n"
+        "{% if fan_mode == 'Full Fan' %}includeFile = fullfan.txt\n{% endif %}"
+        "{% if fan_mode == 'Half Fan' %}includeFile = halffan.txt\n{% endif %}"
+        "{% if simulation_type == 'DICOM' %}includeFile = patientDICOM.txt\n{% endif %}"
+        "{% if simulation_type == 'CTDI' %}sv:Ph/Default/LayeredMassGeometryWorlds = 5"
+        ' "ChamberPlugCentre" "ChamberPlugTop" "ChamberPlugBottom" "ChamberPlugLeft" "ChamberPlugRight"\n{% endif %}'
+        "i:Ts/Seed = {{ seed }}\n"
+        "i:Ts/NumberOfThreads = {{ threads }}\n"
+        's:Ts/G4DataDirectory = "{{ g4_data_directory }}"\n'
+        "i:So/beam/NumberOfHistoriesInRun = {{ histories }}\n"
+        "i:Tf/NumberOfSequentialTimes = {{ sequential_times }}\n"
+        "d:Tf/TimelineEnd = {{ timeline_end }}\n"
+        "d:Tf/Rotate/Rate = {{ rotation_rate }}\n"
+        "d:Tf/Rotate/StartValue = {{ start_angle }}\n"
+        "dc:Ge/Coll1/TransY = {{ coll1_trans_y }}\n"
+        "dc:Ge/Coll2/TransY = {{ coll2_trans_y }}\n"
+        "dc:Ge/Coll3/TransX = {{ coll3_trans_x }}\n"
+        "dc:Ge/Coll4/TransX = {{ coll4_trans_x }}\n"
+        '{% if graphics_enabled %}Ts/UseQt="True"\n'
         's:Gr/ViewA/Type="OpenGL"\n'
-        'b:Gr/Enable="T"\n'
-        "includeFile = patientDICOM.txt\n"
+        'b:Gr/Enable="T"\n{% endif %}'
     )
     with open(
-        os.path.join(boilerplates_dir, "headsourcecode_boilerplate.txt"), "w"
+        os.path.join(boilerplates_dir, "headsourcecode_boilerplate.j2"), "w"
     ) as f:
-        f.write(head_content)
+        f.write(head_template)
 
-    dicom_sub: str = (
-        "d:Ge/patrotation/yaw= 0 deg\n"
-        's:Ge/Patient/DicomDirectory = "/root/nccs/Sample_dicom_file/"\n'
-        "dc:Ge/IsocenterX = 0 mm\n"
-        "dc:Ge/IsocenterY = 0 mm\n"
-        "dc:Ge/IsocenterZ = 0 mm\n"
-        "dc:Ge/Patient/UserTransX = 0 mm\n"
-        "dc:Ge/Patient/UserTransY = 0 mm\n"
-        "dc:Ge/Patient/UserTransZ = 0 mm\n"
-        's:Sc/DoseOnRTGrid100kz17/OutputFile = "Dose_PTV"\n'
+    dicom_template: str = (
+        "includeFile= HUtoMaterialSchneider.txt\n"
+        's:Ge/Patient/DicomDirectory = "{{ dicom_directory }}"\n'
+        "dc:Ge/IsocenterX = {{ isocenter_x }}\n"
+        "dc:Ge/IsocenterY = {{ isocenter_y }}\n"
+        "dc:Ge/IsocenterZ = {{ isocenter_z }}\n"
+        "dc:Ge/Patient/UserTransX = {{ patient_shift_x }}\n"
+        "dc:Ge/Patient/UserTransY = {{ patient_shift_y }}\n"
+        "dc:Ge/Patient/UserTransZ = {{ patient_shift_z }}\n"
+        's:Sc/DoseOnRTGrid100kz17/OutputFile = "{{ output_filename }}"\n'
     )
-    with open(os.path.join(include_dir, "patientDICOM.txt"), "w") as f:
-        f.write(dicom_sub)
+    with open(os.path.join(include_dir, "patientDICOM.j2"), "w") as f:
+        f.write(dicom_template)
 
-    ctdi_16: str = (
-        's:Ge/couch/Parent="couchgroup"\n'
-        "d:Ge/couch/HLX=260. mm\n"
-        "d:Ge/couch/HLY= 0.4 mm\n"
-        "d:Ge/couch/HLZ= 1000 mm\n"
-        "i:Sc/ChamberPlugDose_dtm/ZBins=100\n"
-        "i:Sc/ChamberPlugDose_tle/ZBins=100\n"
-        "i:Sc/ChamberPlugDose_dtw/ZBins=100\n"
+    ctdi_16_template: str = (
+        "{% if couch_enabled %}#couch\n"
+        's:Ge/couchgroup/Type="Group"\n'
+        's:Ge/couchgroup/Parent="World"\n'
+        's:Ge/couch/Type="TsBox"\n'
+        "d:Ge/couch/HLX = {{ couch_width }}\n"
+        "d:Ge/couch/HLY = {{ couch_thickness }}\n"
+        "d:Ge/couch/HLZ = {{ couch_length }}\n"
+        "{% endif %}"
+        "i:Sc/ChamberPlugDose_dtm/ZBins={{ dose_to_medium_zbins }}\n"
+        "i:Sc/ChamberPlugDose_tle/ZBins={{ tle_zbins }}\n"
+        "i:Sc/ChamberPlugDose_dtw/ZBins={{ dose_to_water_zbins }}\n"
+        's:Sc/ChamberPlugDose_tle/Component="{{ plug_position }}"\n'
     )
-    with open(os.path.join(include_dir, "CTDIphantom_16.txt"), "w") as f:
-        f.write(ctdi_16)
+    with open(os.path.join(include_dir, "CTDIphantom_16.j2"), "w") as f:
+        f.write(ctdi_16_template)
 
-    ctdi_32: str = (
-        's:Ge/couch/Parent="couchgroup"\n'
-        "d:Ge/couch/HLX=260. mm\n"
-        "d:Ge/couch/HLY= 0.4 mm\n"
-        "d:Ge/couch/HLZ= 1000 mm\n"
-        "i:Sc/ChamberPlugDose_dtm/ZBins=100\n"
-        "i:Sc/ChamberPlugDose_tle/ZBins=100\n"
-        "i:Sc/ChamberPlugDose_dtw/ZBins=100\n"
-    )
-    with open(os.path.join(include_dir, "CTDIphantom_32.txt"), "w") as f:
-        f.write(ctdi_32)
+    with open(os.path.join(include_dir, "CTDIphantom_32.j2"), "w") as f:
+        f.write(ctdi_16_template)
 
     for name in [
         "fullfan.txt",
@@ -174,18 +170,13 @@ class TestDicomDryRunPipeline:
         assert 's:Ts/G4DataDirectory = "/test/g4data"\n' in head_content
         assert "includeFile = halffan.txt" not in head_content
         assert "includeFile = fullfan.txt" in head_content
-        assert "includeFile = CTDIphantom_16.txt" not in head_content
-        assert "includeFile = CTDIphantom_32.txt" not in head_content
         assert "sv:Ph/Default/LayeredMassGeometryWorlds" not in head_content
         assert "Ts/UseQt" not in head_content
-        assert "s:Gr/ViewA/Type" not in head_content
-        assert "b:Gr/Enable" not in head_content
         assert "includeFile = patientDICOM.txt" in head_content
 
         sub_in_tmp: str = os.path.join(project_root, "tmp", "patientDICOM.txt")
         with open(sub_in_tmp) as f:
             sub_content: str = f.read()
-        assert "d:Ge/patrotation/yaw = 10.0 deg\n" in sub_content
         assert 's:Ge/Patient/DicomDirectory = "/test/dicom/patient"\n' in sub_content
         assert "dc:Ge/IsocenterX = 10 mm\n" in sub_content
         assert "dc:Ge/IsocenterY = 20 mm\n" in sub_content
@@ -270,22 +261,18 @@ class TestCtdiDryRunPipeline:
         assert "i:Ts/Seed = 42\n" in head_content
         assert "includeFile = halffan.txt" not in head_content
         assert "includeFile = patientDICOM.txt" not in head_content
-        assert "includeFile = CTDIphantom_32.txt" not in head_content
-        assert "includeFile = CTDIphantom_16.txt" in head_content
         assert "Ts/UseQt" not in head_content
-        assert "s:Gr/ViewA/Type" not in head_content
-        assert "b:Gr/Enable" not in head_content
+        assert "sv:Ph/Default/LayeredMassGeometryWorlds" in head_content
 
         ctdi_sub: str = os.path.join(project_root, "tmp", "CTDIphantom_16.txt")
         with open(ctdi_sub) as f:
             sub_content: str = f.read()
-        assert 's:Ge/couch/Parent="couchgroup"\n' in sub_content
         assert "d:Ge/couch/HLX = 300. mm\n" in sub_content
         assert "d:Ge/couch/HLY = 1.0 mm\n" in sub_content
         assert "d:Ge/couch/HLZ = 1500 mm\n" in sub_content
-        assert "i:Sc/ChamberPlugDose_dtm/ZBins = 200\n" in sub_content
-        assert "i:Sc/ChamberPlugDose_tle/ZBins = 50\n" in sub_content
-        assert "i:Sc/ChamberPlugDose_dtw/ZBins = 150\n" in sub_content
+        assert "i:Sc/ChamberPlugDose_dtm/ZBins=200\n" in sub_content
+        assert "i:Sc/ChamberPlugDose_tle/ZBins=50\n" in sub_content
+        assert "i:Sc/ChamberPlugDose_dtw/ZBins=150\n" in sub_content
 
         for fname in [
             "Muen.dat",

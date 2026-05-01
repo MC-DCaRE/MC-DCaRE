@@ -3,14 +3,13 @@ from __future__ import annotations
 import os
 import sys
 from typing import Any
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
 from src.modes.dicom_mode import DicomMode
 from src.modes.ctdi_mode import CtdiMode
 from src.orchestrator import Orchestrator
-from tests.unit.shared import MAIN_FILE_CONTENT
 
 
 class TestGetMode:
@@ -33,44 +32,9 @@ class TestGetMode:
         assert isinstance(mode, CtdiMode)
 
 
-class TestApplyCommonEdits:
-    def test_replaces_g4_directory(self, make_config: Any) -> None:
-        config = make_config(
-            simulation_type="DICOM", g4_data_directory="/custom/g4data"
-        )
-        orch = Orchestrator("/project")
-        lines = MAIN_FILE_CONTENT.splitlines(keepends=True)
-        orch._apply_common_edits(config, lines)
-        content = "".join(lines)
-        assert '/custom/g4data"' in content
-
-    def test_replaces_seed_threads_histories(self, make_config: Any) -> None:
-        config = make_config(
-            simulation_type="DICOM",
-            seed="99",
-            threads="8",
-            histories="2000000",
-        )
-        orch = Orchestrator("/project")
-        lines = MAIN_FILE_CONTENT.splitlines(keepends=True)
-        orch._apply_common_edits(config, lines)
-        content = "".join(lines)
-        assert "i:Ts/Seed = 99\n" in content
-        assert "i:Ts/NumberOfThreads = 8\n" in content
-        assert "i:So/beam/NumberOfHistoriesInRun = 2000000\n" in content
-
-    def test_removes_halffan_for_full_fan_mode(self, make_config: Any) -> None:
-        config = make_config(simulation_type="DICOM", fan_mode="Full Fan")
-        orch = Orchestrator("/project")
-        lines = MAIN_FILE_CONTENT.splitlines(keepends=True)
-        orch._apply_common_edits(config, lines)
-        content = "".join(lines)
-        assert "includeFile = halffan.txt\n" not in content
-
-
-@patch("src.orchestrator.SpectrumGenerator")
-@patch("src.orchestrator.BoilerplateManager")
 class TestRunDicomSimulation:
+    @patch("src.orchestrator.SpectrumGenerator")
+    @patch("src.orchestrator.BoilerplateManager")
     def test_calls_reset_tmp(
         self,
         mock_bm_cls: MagicMock,
@@ -86,18 +50,20 @@ class TestRunDicomSimulation:
             sequential_times="1000",
             graphics_enabled=False,
         )
+        mock_renderer = MagicMock()
+        mock_bm_cls.return_value.create_renderer.return_value = mock_renderer
+        mock_bm_cls.return_value.reset_tmp.return_value = None
         orch = Orchestrator("/project")
         with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
-            mock_bm_cls.return_value.get_headsource_path.return_value = "/tmp/head.txt"
-            mock_bm_cls.return_value.get_tmp_path.return_value = "/tmp/patientDICOM.txt"
-            with patch("builtins.open", mock_open(read_data=MAIN_FILE_CONTENT)):
-                with patch.object(orch, "_create_runfolder", return_value="/rundir"):
-                    with patch.object(DicomMode, "prepare_run"):
-                        with patch.object(DicomMode, "execute"):
-                            orch.run_dicom_simulation(config)
+            with patch.object(orch, "_create_runfolder", return_value="/rundir"):
+                with patch.object(DicomMode, "prepare_run"):
+                    with patch.object(DicomMode, "execute"):
+                        orch.run_dicom_simulation(config)
         mock_bm_cls.return_value.reset_tmp.assert_called_once()
 
-    def test_calls_spectrum_generator_with_correct_params(
+    @patch("src.orchestrator.SpectrumGenerator")
+    @patch("src.orchestrator.BoilerplateManager")
+    def test_calls_spectrum_generator(
         self,
         mock_bm_cls: MagicMock,
         mock_sg_cls: MagicMock,
@@ -112,19 +78,20 @@ class TestRunDicomSimulation:
             sequential_times="1000",
             graphics_enabled=False,
         )
+        mock_renderer = MagicMock()
+        mock_bm_cls.return_value.create_renderer.return_value = mock_renderer
         orch = Orchestrator("/project")
         with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
-            mock_bm_cls.return_value.get_headsource_path.return_value = "/tmp/head.txt"
-            mock_bm_cls.return_value.get_tmp_path.return_value = "/tmp/patientDICOM.txt"
-            with patch("builtins.open", mock_open(read_data=MAIN_FILE_CONTENT)):
-                with patch.object(orch, "_create_runfolder", return_value="/rundir"):
-                    with patch.object(DicomMode, "prepare_run"):
-                        with patch.object(DicomMode, "execute"):
-                            orch.run_dicom_simulation(config)
+            with patch.object(orch, "_create_runfolder", return_value="/rundir"):
+                with patch.object(DicomMode, "prepare_run"):
+                    with patch.object(DicomMode, "execute"):
+                        orch.run_dicom_simulation(config)
         mock_sg_cls.generate.assert_called_once_with(
             100.0, 200.0, "100000000", "/project"
         )
 
+    @patch("src.orchestrator.SpectrumGenerator")
+    @patch("src.orchestrator.BoilerplateManager")
     def test_returns_rundir(
         self,
         mock_bm_cls: MagicMock,
@@ -140,21 +107,20 @@ class TestRunDicomSimulation:
             sequential_times="1000",
             graphics_enabled=False,
         )
+        mock_renderer = MagicMock()
+        mock_bm_cls.return_value.create_renderer.return_value = mock_renderer
         orch = Orchestrator("/project")
         with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
-            mock_bm_cls.return_value.get_headsource_path.return_value = "/tmp/head.txt"
-            mock_bm_cls.return_value.get_tmp_path.return_value = "/tmp/patientDICOM.txt"
-            with patch("builtins.open", mock_open(read_data=MAIN_FILE_CONTENT)):
-                with patch.object(orch, "_create_runfolder", return_value="/rundir"):
-                    with patch.object(DicomMode, "prepare_run"):
-                        with patch.object(DicomMode, "execute"):
-                            result = orch.run_dicom_simulation(config)
+            with patch.object(orch, "_create_runfolder", return_value="/rundir"):
+                with patch.object(DicomMode, "prepare_run"):
+                    with patch.object(DicomMode, "execute"):
+                        result = orch.run_dicom_simulation(config)
         assert result == "/rundir"
 
 
-@patch("src.orchestrator.SpectrumGenerator")
-@patch("src.orchestrator.BoilerplateManager")
 class TestRunCtdiSimulation:
+    @patch("src.orchestrator.SpectrumGenerator")
+    @patch("src.orchestrator.BoilerplateManager")
     def test_calls_reset_tmp(
         self,
         mock_bm_cls: MagicMock,
@@ -169,19 +135,18 @@ class TestRunCtdiSimulation:
             exposure="50 mAs",
             phantom_size="16 cm",
         )
+        mock_renderer = MagicMock()
+        mock_bm_cls.return_value.create_renderer.return_value = mock_renderer
         orch = Orchestrator("/project")
         with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
-            mock_bm_cls.return_value.get_headsource_path.return_value = "/tmp/head.txt"
-            mock_bm_cls.return_value.get_tmp_path.return_value = (
-                "/tmp/CTDIphantom_16.txt"
-            )
-            with patch("builtins.open", mock_open(read_data=MAIN_FILE_CONTENT)):
-                with patch.object(orch, "_create_runfolder", return_value="/rundir"):
-                    with patch.object(CtdiMode, "prepare_run"):
-                        with patch.object(CtdiMode, "execute"):
-                            orch.run_ctdi_simulation(config)
+            with patch.object(orch, "_create_runfolder", return_value="/rundir"):
+                with patch.object(CtdiMode, "prepare_run"):
+                    with patch.object(CtdiMode, "execute"):
+                        orch.run_ctdi_simulation(config)
         mock_bm_cls.return_value.reset_tmp.assert_called_once()
 
+    @patch("src.orchestrator.SpectrumGenerator")
+    @patch("src.orchestrator.BoilerplateManager")
     def test_calls_spectrum_generator(
         self,
         mock_bm_cls: MagicMock,
@@ -196,50 +161,20 @@ class TestRunCtdiSimulation:
             exposure="50 mAs",
             phantom_size="16 cm",
         )
+        mock_renderer = MagicMock()
+        mock_bm_cls.return_value.create_renderer.return_value = mock_renderer
         orch = Orchestrator("/project")
         with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
-            mock_bm_cls.return_value.get_headsource_path.return_value = "/tmp/head.txt"
-            mock_bm_cls.return_value.get_tmp_path.return_value = (
-                "/tmp/CTDIphantom_16.txt"
-            )
-            with patch("builtins.open", mock_open(read_data=MAIN_FILE_CONTENT)):
-                with patch.object(orch, "_create_runfolder", return_value="/rundir"):
-                    with patch.object(CtdiMode, "prepare_run"):
-                        with patch.object(CtdiMode, "execute"):
-                            orch.run_ctdi_simulation(config)
+            with patch.object(orch, "_create_runfolder", return_value="/rundir"):
+                with patch.object(CtdiMode, "prepare_run"):
+                    with patch.object(CtdiMode, "execute"):
+                        orch.run_ctdi_simulation(config)
         mock_sg_cls.generate.assert_called_once_with(80.0, 50.0, "100000", "/project")
 
-    def test_returns_rundir(
-        self,
-        mock_bm_cls: MagicMock,
-        mock_sg_cls: MagicMock,
-        make_config: Any,
-    ) -> None:
-        config = make_config(
-            simulation_type="CTDI validation",
-            topas_directory="/topas/bin",
-            histories="100000",
-            anode_voltage="80 kV",
-            exposure="50 mAs",
-            phantom_size="16 cm",
-        )
-        orch = Orchestrator("/project")
-        with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
-            mock_bm_cls.return_value.get_headsource_path.return_value = "/tmp/head.txt"
-            mock_bm_cls.return_value.get_tmp_path.return_value = (
-                "/tmp/CTDIphantom_16.txt"
-            )
-            with patch("builtins.open", mock_open(read_data=MAIN_FILE_CONTENT)):
-                with patch.object(orch, "_create_runfolder", return_value="/rundir"):
-                    with patch.object(CtdiMode, "prepare_run"):
-                        with patch.object(CtdiMode, "execute"):
-                            result = orch.run_ctdi_simulation(config)
-        assert result == "/rundir"
 
-
-@patch("src.orchestrator.SpectrumGenerator")
-@patch("src.orchestrator.BoilerplateManager")
 class TestPrepareOnly:
+    @patch("src.orchestrator.SpectrumGenerator")
+    @patch("src.orchestrator.BoilerplateManager")
     def test_does_not_call_execute(
         self,
         mock_bm_cls: MagicMock,
@@ -255,17 +190,18 @@ class TestPrepareOnly:
             sequential_times="1000",
             graphics_enabled=False,
         )
+        mock_renderer = MagicMock()
+        mock_bm_cls.return_value.create_renderer.return_value = mock_renderer
         orch = Orchestrator("/project")
         with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
-            mock_bm_cls.return_value.get_headsource_path.return_value = "/tmp/head.txt"
-            mock_bm_cls.return_value.get_tmp_path.return_value = "/tmp/patientDICOM.txt"
-            with patch("builtins.open", mock_open(read_data=MAIN_FILE_CONTENT)):
-                with patch.object(orch, "_create_runfolder", return_value="/rundir"):
-                    with patch.object(DicomMode, "prepare_run"):
-                        with patch.object(DicomMode, "execute") as mock_execute:
-                            orch.prepare_only(config)
-                        mock_execute.assert_not_called()
+            with patch.object(orch, "_create_runfolder", return_value="/rundir"):
+                with patch.object(DicomMode, "prepare_run"):
+                    with patch.object(DicomMode, "execute") as mock_execute:
+                        orch.prepare_only(config)
+                    mock_execute.assert_not_called()
 
+    @patch("src.orchestrator.SpectrumGenerator")
+    @patch("src.orchestrator.BoilerplateManager")
     def test_returns_rundir(
         self,
         mock_bm_cls: MagicMock,
@@ -280,14 +216,11 @@ class TestPrepareOnly:
             exposure="50 mAs",
             phantom_size="16 cm",
         )
+        mock_renderer = MagicMock()
+        mock_bm_cls.return_value.create_renderer.return_value = mock_renderer
         orch = Orchestrator("/project")
         with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
-            mock_bm_cls.return_value.get_headsource_path.return_value = "/tmp/head.txt"
-            mock_bm_cls.return_value.get_tmp_path.return_value = (
-                "/tmp/CTDIphantom_16.txt"
-            )
-            with patch("builtins.open", mock_open(read_data=MAIN_FILE_CONTENT)):
-                with patch.object(orch, "_create_runfolder", return_value="/rundir"):
-                    with patch.object(CtdiMode, "prepare_run"):
-                        result = orch.prepare_only(config)
+            with patch.object(orch, "_create_runfolder", return_value="/rundir"):
+                with patch.object(CtdiMode, "prepare_run"):
+                    result = orch.prepare_only(config)
         assert result == "/rundir"

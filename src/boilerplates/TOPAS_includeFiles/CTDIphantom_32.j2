@@ -1,37 +1,36 @@
-#16cm phantom
+#32cm phantom
 ####################################
 # Chamber plug made of G4_WATER  will overlay CTDI phantom when measurement takes place in that particular port-otherwise will be PMMA
-#sv:Ph/Default/LayeredMassGeometryWorlds = 5 "ChamberPlugCentre" "ChamberPlugTop" "ChamberPlugBottom" "ChamberPlugLeft" "ChamberPlugRight"
 
 # PMMA
 sv:Ma/PMMA/Components = 3 "Carbon" "Hydrogen" "Oxygen"
 uv:Ma/PMMA/Fractions = 3  0.599848  0.080538  0.319614
 d:Ma/PMMA/Density = 1.190 g/cm3
-d:Ma/PMMA/MeanExcitationEnergy = 85.7 eV #nist say 74 eV? #85.7 eV on topas example
+d:Ma/PMMA/MeanExcitationEnergy = 85.7 eV
 s:Ma/PMMA/DefaultColor = "Silver"
 
 
 #couch
 s:Ge/couchgroup/Type="Group"
 s:Ge/couchgroup/Parent="World"
-
+{% if couch_enabled %}
 s:Ge/couch/Type="TsBox"
 s:Ge/couch/Material="Aluminum"
 s:Ge/couch/Parent="couchgroup"
-d:Ge/couch/HLX=260. mm
-d:Ge/couch/HLY= 0.4 mm
-d:Ge/couch/HLZ= 1000 mm
+d:Ge/couch/HLX = {{ couch_width }}
+d:Ge/couch/HLY = {{ couch_thickness }}
+d:Ge/couch/HLZ = {{ couch_length }}
 d:Ge/couch/TransX=0.0 mm
 d:Ge/couch/TransY=  Ge/CTDI/RMax + Ge/couch/HLY mm
 d:Ge/couch/TransZ= 0 mm 
 s:Ge/couch/Color="red"
-
+{% endif %}
 #Scorers#######################################################
 s:Ge/CTDI/Type="TsCylinder"
 s:Ge/CTDI/Parent="couchgroup"
 s:Ge/CTDI/Material="PMMA"
 d:Ge/CTDI/RMin=0.0 mm
-d:Ge/CTDI/RMax=80.0 mm
+d:Ge/CTDI/RMax=160.0 mm
 d:Ge/CTDI/HL=72.5 mm
 d:Ge/CTDI/SPhi=0. deg
 d:Ge/CTDI/DPhi=360. deg
@@ -42,7 +41,7 @@ d:Ge/CTDI/TransZ=0.0 mm
 #ChamberPlugs
 s:Ge/ChamberPlugCentre/Type="TsCylinder"
 s:Ge/ChamberPlugCentre/Parent="couchgroup"
-s:Ge/ChamberPlugCentre/Material="PMMA"
+s:Ge/ChamberPlugCentre/Material="{{ plug_material_centre }}"
 d:Ge/ChamberPlugCentre/RMin=0.0 mm
 d:Ge/ChamberPlugCentre/RMax=6.55 mm
 d:Ge/ChamberPlugCentre/HL=50.0 mm
@@ -56,41 +55,41 @@ s:Ge/ChamberPlugCentre/color="Skyblue"
 
 s:Ge/ChamberPlugTop/Type="TsCylinder"
 s:Ge/ChamberPlugTop/Parent="couchgroup"
-s:Ge/ChamberPlugTop/Material="PMMA"
+s:Ge/ChamberPlugTop/Material="{{ plug_material_top }}"
 d:Ge/ChamberPlugTop/RMin=0.0 mm
 d:Ge/ChamberPlugTop/RMax=6.55 mm
 d:Ge/ChamberPlugTop/HL=50.0 mm
 d:Ge/ChamberPlugTop/SPhi=0. deg
 d:Ge/ChamberPlugTop/DPhi=360. deg
 d:Ge/ChamberPlugTop/TransX=0.0 mm
-d:Ge/ChamberPlugTop/TransY=-70.0 mm
+d:Ge/ChamberPlugTop/TransY=-150.0 mm
 d:Ge/ChamberPlugTop/TransZ=0.0 mm
 b:Ge/ChamberPlugTop/isParallel="True"
 s:Ge/ChamberPlugTop/color="Magenta"
 
 s:Ge/ChamberPlugBottom/Type="TsCylinder"
 s:Ge/ChamberPlugBottom/Parent="couchgroup"
-s:Ge/ChamberPlugBottom/Material="PMMA"
+s:Ge/ChamberPlugBottom/Material="{{ plug_material_bottom }}"
 d:Ge/ChamberPlugBottom/RMin=0.0 mm
 d:Ge/ChamberPlugBottom/RMax=6.55 mm
 d:Ge/ChamberPlugBottom/HL=50.0 mm
 d:Ge/ChamberPlugBottom/SPhi=0. deg
 d:Ge/ChamberPlugBottom/DPhi=360. deg
 d:Ge/ChamberPlugBottom/TransX=0.0 mm
-d:Ge/ChamberPlugBottom/TransY=70.0 mm
+d:Ge/ChamberPlugBottom/TransY=150.0 mm
 d:Ge/ChamberPlugBottom/TransZ=0.0 mm
 b:Ge/ChamberPlugBottom/isParallel="True"
 s:Ge/ChamberPlugBottom/color="Lime"
 
 s:Ge/ChamberPlugLeft/Type="TsCylinder"
 s:Ge/ChamberPlugLeft/Parent="couchgroup"
-s:Ge/ChamberPlugLeft/Material="PMMA"
+s:Ge/ChamberPlugLeft/Material="{{ plug_material_left }}"
 d:Ge/ChamberPlugLeft/RMin=0.0 mm
 d:Ge/ChamberPlugLeft/RMax=6.55 mm
 d:Ge/ChamberPlugLeft/HL=50.0 mm
 d:Ge/ChamberPlugLeft/SPhi=0. deg
 d:Ge/ChamberPlugLeft/DPhi=360. deg
-d:Ge/ChamberPlugLeft/TransX=-70.0 mm
+d:Ge/ChamberPlugLeft/TransX=-150.0 mm
 d:Ge/ChamberPlugLeft/TransY=0.0 mm
 d:Ge/ChamberPlugLeft/TransZ=0.0 mm
 b:Ge/ChamberPlugLeft/isParallel="True"
@@ -98,13 +97,13 @@ s:Ge/ChamberPlugLeft/color="Orange"
 
 s:Ge/ChamberPlugRight/Type="TsCylinder"
 s:Ge/ChamberPlugRight/Parent="couchgroup"
-s:Ge/ChamberPlugRight/Material="PMMA"
+s:Ge/ChamberPlugRight/Material="{{ plug_material_right }}"
 d:Ge/ChamberPlugRight/RMin=0.0 mm
 d:Ge/ChamberPlugRight/RMax=6.55 mm
 d:Ge/ChamberPlugRight/HL=50.0 mm
 d:Ge/ChamberPlugRight/SPhi=0. deg
 d:Ge/ChamberPlugRight/DPhi=360. deg
-d:Ge/ChamberPlugRight/TransX=70.0 mm
+d:Ge/ChamberPlugRight/TransX=150.0 mm
 d:Ge/ChamberPlugRight/TransY=0.0 mm
 d:Ge/ChamberPlugRight/TransZ=0.0 mm
 b:Ge/ChamberPlugRight/isParallel="True"
@@ -114,25 +113,25 @@ s:Ge/ChamberPlugRight/color="Brown"
 ##Scoring###########################################
 
 #Scoringalongcylindricalaxis
-s:Sc/ChamberPlugDose_tle/Quantity="TrackLengthEstimator"#Zbinningcausescreationofaparallelworldforscoring
+s:Sc/ChamberPlugDose_tle/Quantity="TrackLengthEstimator"
 s:Sc/ChamberPlugDose_tle/InputFile="Muen.dat"
-s:Sc/ChamberPlugDose_tle/Component="@@PLACEHOLDER@@"
+s:Sc/ChamberPlugDose_tle/Component="{{ plug_position }}"
 s:Sc/ChamberPlugDose_tle/IfOutputFileAlreadyExists="Overwrite"
-i:Sc/ChamberPlugDose_tle/ZBins=100 #0.1 cm/bin1.0mm/bin
+i:Sc/ChamberPlugDose_tle/ZBins={{ tle_zbins }}
 
-s:Sc/ChamberPlugDose_dtm/Quantity="DoseToMaterial"#Zbinningcausescreationofaparallelworldforscoring
-s:Sc/ChamberPlugDose_dtm/Component="@@PLACEHOLDER@@"
+s:Sc/ChamberPlugDose_dtm/Quantity="DoseToMaterial"
+s:Sc/ChamberPlugDose_dtm/Component="{{ plug_position }}"
 s:Sc/ChamberPlugDose_dtm/IfOutputFileAlreadyExists="Overwrite"
-i:Sc/ChamberPlugDose_dtm/ZBins=100 #0.1 cm/bin1.0mm/bin
+i:Sc/ChamberPlugDose_dtm/ZBins={{ dose_to_medium_zbins }}
 s:Sc/ChamberPlugDose_dtm/Material="Air"
 b:Sc/ChamberPlugDose_dtm/PreCalculateStoppingPowerRatios ="True"
 
-s:Sc/ChamberPlugDose_dtw/Quantity="DoseToWater"#Zbinningcausescreationofaparallelworldforscoring
-s:Sc/ChamberPlugDose_dtw/Component="@@PLACEHOLDER@@"
+s:Sc/ChamberPlugDose_dtw/Quantity="DoseToWater"
+s:Sc/ChamberPlugDose_dtw/Component="{{ plug_position }}"
 s:Sc/ChamberPlugDose_dtw/IfOutputFileAlreadyExists="Overwrite"
 b:Sc/ChamberPlugDose_dtw/PreCalculateStoppingPowerRatios ="True"
-i:Sc/ChamberPlugDose_dtw/ZBins=100 #0.1 cm/bin1.0mm/bin
+i:Sc/ChamberPlugDose_dtw/ZBins={{ dose_to_water_zbins }}
 
-s:Sc/ChamberPlugDose_tle/OutputFile="@@PLACEHOLDER@@_tle"
-s:Sc/ChamberPlugDose_dtm/OutputFile="@@PLACEHOLDER@@_dtm"
-s:Sc/ChamberPlugDose_dtw/OutputFile="@@PLACEHOLDER@@_dtw"
+s:Sc/ChamberPlugDose_tle/OutputFile="{{ plug_position }}_tle"
+s:Sc/ChamberPlugDose_dtm/OutputFile="{{ plug_position }}_dtm"
+s:Sc/ChamberPlugDose_dtw/OutputFile="{{ plug_position }}_dtw"

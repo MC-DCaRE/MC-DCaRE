@@ -3,20 +3,19 @@
 
 ## Include File ###############################
 includeFile=ConvertedTopasFile.txt
-includeFile = fullfan.txt
-includeFile = halffan.txt
-includeFile = CTDIphantom_16.txt
-includeFile = CTDIphantom_32.txt
-includeFile = patientDICOM.txt
-sv:Ph/Default/LayeredMassGeometryWorlds = 5 "ChamberPlugCentre" "ChamberPlugTop" "ChamberPlugBottom" "ChamberPlugLeft" "ChamberPlugRight"
-
+{% if fan_mode == 'Full Fan' %}includeFile = fullfan.txt
+{% endif %}
+{% if fan_mode == 'Half Fan' %}includeFile = halffan.txt
+{% endif %}
+{% if simulation_type == 'DICOM' %}includeFile = patientDICOM.txt
+{% endif %}
+{% if simulation_type == 'CTDI' %}sv:Ph/Default/LayeredMassGeometryWorlds = 5 "ChamberPlugCentre" "ChamberPlugTop" "ChamberPlugBottom" "ChamberPlugLeft" "ChamberPlugRight"
+{% endif %}
 
 ## Some Control Parameters ####################
-i:Ts/Seed=9 #startingrandomseed
-i:Ts/NumberOfThreads=4 #60#NumberofCPUthreadstowhichworkwillbedistributed
-#negativenumbermeansuseallbutthesenumberofthreads
-#zeromeansuseall
-s:Ts/G4DataDirectory="/root/G4Data"
+i:Ts/Seed = {{ seed }}
+i:Ts/NumberOfThreads = {{ threads }}
+s:Ts/G4DataDirectory = "{{ g4_data_directory }}"
 
 ##DefineWorldGeometry############################
 d:Ge/World/HLX=1.2 m #HalfLength
@@ -80,8 +79,7 @@ s:Ge/Coll1/Type="G4RTrap"
 s:Ge/Coll1/Parent="CollimatorsVertical"
 s:Ge/Coll1/Material="Lead"
 dc:Ge/Coll1/TransX=0 cm
-#dc:Ge/Coll1/TransY=5.205 cm#5.125+0.08 cm
-dc:Ge/Coll1/TransY=5.3 cm#5.197+0.07 cm#5.19sinceminimumb4overlap
+dc:Ge/Coll1/TransY = {{ coll1_trans_y }}
 dc:Ge/Coll1/TransZ=0. cm
 dc:Ge/Coll1/RotX=-90. deg
 dc:Ge/Coll1/RotY=90. deg
@@ -97,7 +95,7 @@ s:Ge/Coll2/Type="G4RTrap"
 s:Ge/Coll2/Parent="CollimatorsVertical"
 s:Ge/Coll2/Material="Lead"
 dc:Ge/Coll2/TransX=0 cm
-dc:Ge/Coll2/TransY=-5.3 cm#5.267 cm
+dc:Ge/Coll2/TransY = {{ coll2_trans_y }}
 dc:Ge/Coll2/TransZ=0. cm
 dc:Ge/Coll2/RotX=-90. deg
 dc:Ge/Coll2/RotY=270. deg
@@ -112,7 +110,7 @@ s:Ge/Coll2/Color="red"
 s:Ge/Coll3/Type="G4RTrap"
 s:Ge/Coll3/Parent="CollimatorsHorizontal"
 s:Ge/Coll3/Material="Lead"
-dc:Ge/Coll3/TransX=5.3 cm#5.267 cm
+dc:Ge/Coll3/TransX = {{ coll3_trans_x }}
 dc:Ge/Coll3/TransY=0. cm
 dc:Ge/Coll3/TransZ=0. cm
 dc:Ge/Coll3/RotX=-90. deg
@@ -128,7 +126,7 @@ s:Ge/Coll3/Color="red"
 s:Ge/Coll4/Type="G4RTrap"
 s:Ge/Coll4/Parent="CollimatorsHorizontal"
 s:Ge/Coll4/Material="Lead"
-dc:Ge/Coll4/TransX=-5.3 cm#-5.267 cm
+dc:Ge/Coll4/TransX = {{ coll4_trans_x }}
 dc:Ge/Coll4/TransY=0. cm
 dc:Ge/Coll4/TransZ=0. cm
 dc:Ge/Coll4/RotX=-90. deg
@@ -146,9 +144,8 @@ s:Ge/Coll1steel/Type="G4RTrap"
 s:Ge/Coll1steel/Parent="CollimatorsVertical"
 s:Ge/Coll1steel/Material="Steel"
 dc:Ge/Coll1steel/TransX=0 cm
-#dc:Ge/Coll1/TransY=5.205 cm#5.125+0.08 cm
-dc:Ge/Coll1steel/TransY=Ge/Coll1/TransY - 0.2 cm #5.27 cm#5.197+0.07 cm#5.19sinceminimumb4overlap
-dc:Ge/Coll1steel/TransZ=-0.25 cm #varian manual
+dc:Ge/Coll1steel/TransY=Ge/Coll1/TransY - 0.2 cm
+dc:Ge/Coll1steel/TransZ=-0.25 cm
 dc:Ge/Coll1steel/RotX=-90. deg
 dc:Ge/Coll1steel/RotY=90. deg
 dc:Ge/Coll1steel/RotZ=0 deg
@@ -163,8 +160,8 @@ s:Ge/Coll2steel/Type="G4RTrap"
 s:Ge/Coll2steel/Parent="CollimatorsVertical"
 s:Ge/Coll2steel/Material="Steel"
 dc:Ge/Coll2steel/TransX=0 cm
-dc:Ge/Coll2steel/TransY=Ge/Coll2/TransY + 0.2 cm#5.267 cm
-dc:Ge/Coll2steel/TransZ=-0.25 cm #varian manual
+dc:Ge/Coll2steel/TransY=Ge/Coll2/TransY + 0.2 cm
+dc:Ge/Coll2steel/TransZ=-0.25 cm
 dc:Ge/Coll2steel/RotX=-90. deg
 dc:Ge/Coll2steel/RotY=270. deg
 dc:Ge/Coll2steel/RotZ=0 deg
@@ -178,9 +175,9 @@ s:Ge/Coll2steel/Color="pink"
 s:Ge/Coll3steel/Type="G4RTrap"
 s:Ge/Coll3steel/Parent="CollimatorsHorizontal"
 s:Ge/Coll3steel/Material="Steel"
-dc:Ge/Coll3steel/TransX=Ge/Coll3/TransX - 0.2 cm#5.267 cm
+dc:Ge/Coll3steel/TransX=Ge/Coll3/TransX - 0.2 cm
 dc:Ge/Coll3steel/TransY=0. cm
-dc:Ge/Coll3steel/TransZ=-0.25 cm #varian manual
+dc:Ge/Coll3steel/TransZ=-0.25 cm
 dc:Ge/Coll3steel/RotX=-90. deg
 dc:Ge/Coll3steel/RotY=180. deg
 dc:Ge/Coll3steel/RotZ=0 deg
@@ -194,9 +191,9 @@ s:Ge/Coll3steel/Color="pink"
 s:Ge/Coll4steel/Type="G4RTrap"
 s:Ge/Coll4steel/Parent="CollimatorsHorizontal"
 s:Ge/Coll4steel/Material="Steel"
-dc:Ge/Coll4steel/TransX=Ge/Coll4/TransX + 0.2 cm#-5.267 cm
+dc:Ge/Coll4steel/TransX=Ge/Coll4/TransX + 0.2 cm
 dc:Ge/Coll4steel/TransY=0. cm
-dc:Ge/Coll4steel/TransZ=-0.25 cm #varian manual
+dc:Ge/Coll4steel/TransZ=-0.25 cm
 dc:Ge/Coll4steel/RotX=-90. deg
 dc:Ge/Coll4steel/RotY=0. deg
 dc:Ge/Coll4steel/RotZ=0 deg
@@ -271,35 +268,25 @@ d:So/beam/BeamAngularCutoffX = 90. deg
 d:So/beam/BeamAngularCutoffY = 90. deg
 d:So/beam/BeamAngularSpreadX = 26.1 deg
 d:So/beam/BeamAngularSpreadY = 27.5 deg
-#i:So/beam/NumberOfHistoriesInRun=25257086363570 #ActualtotalnumberofparticlesfromSpekPy(fluence*area)
 
-i:So/beam/NumberOfHistoriesInRun = 20
-#i:So/beam/NumberOfHistoriesInRun=500000 #justforprototyping
+i:So/beam/NumberOfHistoriesInRun = {{ histories }}
 
 #TimeFeature####################################
 
-#eventuallyrunthis
-#doesnotmakesensetorunthisforscoringPDDandbeamprofile
-
-#fromtruebeamtechnicalreferenceguidevol.2imaging:pg.72fullfanscanarc200degree
-#Declarethatthesimulationshouldcontain8runs.
-
 #fullfanrotationrate
-i:Tf/NumberOfSequentialTimes = 501
+i:Tf/NumberOfSequentialTimes = {{ sequential_times }}
 i:Tf/Verbosity = 0
-d:Tf/TimelineEnd = 501 s
-#ThefollowingfourparametersdefineaTimeFeaturewearecallingMyRotation.
+d:Tf/TimelineEnd = {{ timeline_end }}
 s:Tf/Rotate/Function = "Linear deg"
-d:Tf/Rotate/Rate = 0.4 deg/s
-d:Tf/Rotate/StartValue = 90 deg
+d:Tf/Rotate/Rate = {{ rotation_rate }}
+d:Tf/Rotate/StartValue = {{ start_angle }}
 i:Ts/ShowHistoryCountAtInterval = 100000
 
 
-
-Ts/UseQt="True"#ShowGUI#hashthislinetosuppressgui
-s:Gr/ViewA/Type="OpenGL"#Showsimulation#hashthislinetosuppressgui
+{% if graphics_enabled %}Ts/UseQt="True"
+s:Gr/ViewA/Type="OpenGL"
 b:Gr/Enable="T"
-# b:Ph/ListProcesses = "True" # Set true to dump list of active physics processes to console
+{% endif %}
 i:Gr/ViewA/WindowSizeX=1024
 i:Gr/ViewA/WindowSizeY=768
 d:Gr/ViewA/Theta=70.0 deg
@@ -308,4 +295,3 @@ b:Gr/ViewA/IncludeAxes="True"
 d:Gr/ViewA/AxesSize=0.5 m
 b:Ts/ShowCPUTime="True"
 sv:Gr/ViewA/VisibleWorlds = 1 "All"
-

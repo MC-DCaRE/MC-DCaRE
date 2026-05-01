@@ -6,23 +6,22 @@ includeFile= HUtoMaterialSchneider.txt
 s:Ge/Patient/Parent                                = "World"
 s:Ge/Patient/Material                              = "G4_WATER"
 s:Ge/Patient/Type                                  = "TsDicomPatient"
-#s:Ge/Patient/HUtoMaterialConversionMethod          = "Schneider"
 s:Ge/Patient/ImagingtoMaterialConverter            = "Schneider"
 d:Ge/Patient/RotX = 0. deg
 d:Ge/Patient/RotY = 0. deg
 d:Ge/Patient/RotZ = 0. deg
-s:Ge/Patient/DicomDirectory = "/root/nccs/Sample_dicom_file/"
+s:Ge/Patient/DicomDirectory = "{{ dicom_directory }}"
 sv:Ge/Patient/DicomModalityTags                    = 1 "CT"
 b:Ge/Patient/IgnoreInconsistentFrameOfReferenceUID = "True"
 
 #isocenter
-dc:Ge/IsocenterX = 0 mm
-dc:Ge/IsocenterY = 0 mm
-dc:Ge/IsocenterZ = 0 mm
+dc:Ge/IsocenterX = {{ isocenter_x }}
+dc:Ge/IsocenterY = {{ isocenter_y }}
+dc:Ge/IsocenterZ = {{ isocenter_z }}
 
-dc:Ge/Patient/UserTransX = 0 mm
-dc:Ge/Patient/UserTransY = 0 mm
-dc:Ge/Patient/UserTransZ = 0 mm
+dc:Ge/Patient/UserTransX = {{ patient_shift_x }}
+dc:Ge/Patient/UserTransY = {{ patient_shift_y }}
+dc:Ge/Patient/UserTransZ = {{ patient_shift_z }}
 
 d:Ge/Patient/InterX = Ge/IsocenterX + Ge/Patient/UserTransX mm
 d:Ge/Patient/InterY = Ge/IsocenterY + Ge/Patient/UserTransY mm
@@ -43,6 +42,5 @@ s:Sc/DoseOnRTGrid100kz17/Quantity                    = "DoseToMedium"
 s:Sc/DoseOnRTGrid100kz17/Component                   = "Patient"
 s:Sc/DoseOnRTGrid100kz17/IfOutputFileAlreadyExists   = "Overwrite"
 s:Sc/DoseOnRTGrid100kz17/OutputType                  = "DICOM" 
-s:Sc/DoseOnRTGrid100kz17/OutputFile                  = "Dose_PTV"
+s:Sc/DoseOnRTGrid100kz17/OutputFile                  = "{{ output_filename }}"
 b:Sc/DoseOnRTGrid100kz17/DICOMOutput32BitsPerPixel   = "True"
-

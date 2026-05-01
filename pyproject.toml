@@ -24,6 +24,7 @@ dependencies = [
     "pytest-mock>=3.14.1",
     "pytest-cov>=5.0.0",
     "pyyaml",
+    "jinja2>=3.1.0",
 ]
 
 [project.scripts]

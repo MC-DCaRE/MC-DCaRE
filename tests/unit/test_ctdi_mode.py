@@ -60,7 +60,7 @@ class TestEditMainFile:
         assert "dc:Ge/Coll3/TransX = 4.0 cm\n" in lines
         assert "dc:Ge/Coll4/TransX = -4.0 cm\n" in lines
 
-    def test_blanks_wrong_phantom_for_16cm(self, make_config: Any) -> None:
+    def test_blanks_both_phantom_includes_for_16cm(self, make_config: Any) -> None:
         mode = CtdiMode()
         config = make_config(phantom_size="16 cm")
         lines = MAIN_FILE_CONTENT.splitlines(True)
@@ -69,11 +69,11 @@ class TestEditMainFile:
             assert not line.startswith(
                 "includeFile = CTDIphantom_32.txt"
             ), "CTDIphantom_32.txt include should be blanked for 16 cm phantom"
-        assert any(
-            line.startswith("includeFile = CTDIphantom_16.txt") for line in lines
-        ), "CTDIphantom_16.txt include should remain for 16 cm phantom"
+            assert not line.startswith(
+                "includeFile = CTDIphantom_16.txt"
+            ), "CTDIphantom_16.txt include should be blanked (content is inlined)"
 
-    def test_blanks_wrong_phantom_for_32cm(self, make_config: Any) -> None:
+    def test_blanks_both_phantom_includes_for_32cm(self, make_config: Any) -> None:
         mode = CtdiMode()
         config = make_config(phantom_size="32 cm")
         lines = MAIN_FILE_CONTENT.splitlines(True)
@@ -82,9 +82,9 @@ class TestEditMainFile:
             assert not line.startswith(
                 "includeFile = CTDIphantom_16.txt"
             ), "CTDIphantom_16.txt include should be blanked for 32 cm phantom"
-        assert any(
-            line.startswith("includeFile = CTDIphantom_32.txt") for line in lines
-        ), "CTDIphantom_32.txt include should remain for 32 cm phantom"
+            assert not line.startswith(
+                "includeFile = CTDIphantom_32.txt"
+            ), "CTDIphantom_32.txt include should be blanked (content is inlined)"
 
 
 class TestEditSubFile:

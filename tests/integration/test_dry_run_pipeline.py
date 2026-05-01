@@ -271,7 +271,7 @@ class TestCtdiDryRunPipeline:
         assert "includeFile = halffan.txt" not in head_content
         assert "includeFile = patientDICOM.txt" not in head_content
         assert "includeFile = CTDIphantom_32.txt" not in head_content
-        assert "includeFile = CTDIphantom_16.txt" in head_content
+        assert "includeFile = CTDIphantom_16.txt" not in head_content
         assert "Ts/UseQt" not in head_content
         assert "s:Gr/ViewA/Type" not in head_content
         assert "b:Gr/Enable" not in head_content

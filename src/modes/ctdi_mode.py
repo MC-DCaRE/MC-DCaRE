@@ -46,10 +46,8 @@ class CtdiMode(SimulationMode):
             s("dc:Ge/Coll2/TransY", lines, blades[1])
             s("dc:Ge/Coll3/TransX", lines, blades[2])
             s("dc:Ge/Coll4/TransX", lines, blades[3])
-        if config.ctdi.phantom_size == "16 cm":
-            s("includeFile = CTDIphantom_32.txt", lines)
-        elif config.ctdi.phantom_size == "32 cm":
-            s("includeFile = CTDIphantom_16.txt", lines)
+        s("includeFile = CTDIphantom_32.txt", lines)
+        s("includeFile = CTDIphantom_16.txt", lines)
 
     def edit_sub_file(self, config: SimulationConfig, lines: List[str]) -> None:
         """Edit the CTDI phantom sub-file with couch and scoring parameters."""

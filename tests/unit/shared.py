@@ -1,46 +1,48 @@
 from __future__ import annotations
 
-MAIN_FILE_CONTENT: str = (
-    's:Ts/G4DataDirectory = "/root/G4Data"\n'
-    'i:Tf/NumberOfSequentialTimes = "1000"\n'
-    'd:Tf/TimelineEnd = "501.0 s"\n'
-    'd:Tf/Rotate/Rate = "0.4 deg/s"\n'
-    'd:Tf/Rotate/StartValue = "0 deg"\n'
-    'i:Ts/Seed = "9"\n'
-    'i:Ts/NumberOfThreads = "1"\n'
-    'i:So/beam/NumberOfHistoriesInRun = "100000"\n'
-    'dc:Ge/Coll1/TransY = "6.175536078965273 cm"\n'
-    'dc:Ge/Coll2/TransY = "-6.175536078965273 cm"\n'
-    'dc:Ge/Coll3/TransX = "5.814471115800571 cm"\n'
-    'dc:Ge/Coll4/TransX = "-5.814471115800571 cm"\n'
-    "includeFile = halffan.txt\n"
-    "includeFile = CTDIphantom_16.txt\n"
-    "includeFile = CTDIphantom_32.txt\n"
-    'sv:Ph/Default/LayeredMassGeometryWorlds = "some value"\n'
-    'Ts/UseQt = "true"\n'
-    's:Gr/ViewA/Type = "some type"\n'
-    'b:Gr/Enable = "true"\n'
-    "includeFile = patientDICOM.txt\n"
-)
+DEFAULT_MAIN_CONTEXT: dict = {
+    "g4_data_directory": "/root/G4Data",
+    "seed": "9",
+    "threads": "1",
+    "histories": "100000",
+    "sequential_times": "1000",
+    "timeline_end": "501.0 s",
+    "rotation_rate": "0.4 deg/s",
+    "start_angle": "0 deg",
+    "coll1_trans_y": "6.175536078965273 cm",
+    "coll2_trans_y": "-6.175536078965273 cm",
+    "coll3_trans_x": "5.814471115800571 cm",
+    "coll4_trans_x": "-5.814471115800571 cm",
+    "fan_mode": "Full Fan",
+    "graphics_enabled": False,
+    "simulation_type": "CTDI",
+    "phantom_size": "16",
+}
 
-DICOM_SUB_FILE_CONTENT: str = (
-    'd:Ge/patrotation/yaw = "0. deg"\n'
-    's:Ge/Patient/DicomDirectory = "/sampledicom/setA"\n'
-    'dc:Ge/IsocenterX = "0 mm"\n'
-    'dc:Ge/IsocenterY = "0 mm"\n'
-    'dc:Ge/IsocenterZ = "0 mm"\n'
-    'dc:Ge/Patient/UserTransX = "0. mm"\n'
-    'dc:Ge/Patient/UserTransY = "0. mm"\n'
-    'dc:Ge/Patient/UserTransZ = "0. mm"\n'
-    's:Sc/DoseOnRTGrid100kz17/OutputFile = "output"\n'
-)
+DEFAULT_CTDI_SUB_CONTEXT: dict = {
+    "couch_enabled": True,
+    "couch_width": "260. mm",
+    "couch_thickness": "0.4 mm",
+    "couch_length": "1000 mm",
+    "plug_position": "ChamberPlugCentre",
+    "dose_to_medium_zbins": "100",
+    "tle_zbins": "100",
+    "dose_to_water_zbins": "100",
+    "plug_material_centre": "Air",
+    "plug_material_top": "PMMA",
+    "plug_material_bottom": "PMMA",
+    "plug_material_left": "PMMA",
+    "plug_material_right": "PMMA",
+}
 
-CTDI_SUB_FILE_CONTENT: str = (
-    's:Ge/couch/Parent="couchgroup"\n'
-    "d:Ge/couch/HLX=260. mm\n"
-    "d:Ge/couch/HLY= 0.4 mm\n"
-    "d:Ge/couch/HLZ= 1000 mm\n"
-    "i:Sc/ChamberPlugDose_dtm/ZBins=100\n"
-    "i:Sc/ChamberPlugDose_tle/ZBins=100\n"
-    "i:Sc/ChamberPlugDose_dtw/ZBins=100\n"
-)
+DEFAULT_DICOM_SUB_CONTEXT: dict = {
+    "patient_yaw": "0. deg",
+    "dicom_directory": "/sampledicom/setA",
+    "isocenter_x": "0 mm",
+    "isocenter_y": "0 mm",
+    "isocenter_z": "0 mm",
+    "patient_shift_x": "0. mm",
+    "patient_shift_y": "0. mm",
+    "patient_shift_z": "0. mm",
+    "output_filename": "__CBCT Image Gently_0 deg_DOSE_PTV",
+}

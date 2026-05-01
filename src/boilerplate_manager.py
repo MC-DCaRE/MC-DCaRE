@@ -1,16 +1,17 @@
-"""Manages TOPAS boilerplate template files and the tmp working directory."""
+"""Manages TOPAS boilerplate templates and the tmp working directory."""
 
 from __future__ import annotations
 
 import logging
 import os
-import shutil
+
+from src.template_renderer import TemplateRenderer
 
 logger = logging.getLogger(__name__)
 
 
 class BoilerplateManager:
-    """Loads and resets TOPAS boilerplate templates into the tmp working directory."""
+    """Loads and manages TOPAS Jinja2 templates and the tmp working directory."""
 
     def __init__(self, project_root: str) -> None:
         self.project_root: str = project_root
@@ -21,29 +22,16 @@ class BoilerplateManager:
         self.tmp_dir: str = os.path.join(project_root, "tmp")
 
     def reset_tmp(self) -> None:
-        """Recreate the tmp directory with fresh copies of all boilerplate templates."""
+        """Recreate the tmp directory for a fresh simulation run."""
         os.makedirs(self.tmp_dir, exist_ok=True)
+        logger.info("Reset tmp directory")
 
-        src = os.path.join(self.boilerplates_dir, "headsourcecode_boilerplate.txt")
-        dst = os.path.join(self.tmp_dir, "headsourcecode.txt")
-        shutil.copy(src, dst)
-
-        src = os.path.join(self.include_files_dir, "patientDICOM.txt")
-        dst = os.path.join(self.tmp_dir, "patientDICOM.txt")
-        shutil.copy(src, dst)
-
-        src = os.path.join(self.include_files_dir, "CTDIphantom_16.txt")
-        dst = os.path.join(self.tmp_dir, "CTDIphantom_16.txt")
-        shutil.copy(src, dst)
-
-        src = os.path.join(self.include_files_dir, "CTDIphantom_32.txt")
-        dst = os.path.join(self.tmp_dir, "CTDIphantom_32.txt")
-        shutil.copy(src, dst)
-
-        logger.info("Reset tmp directory from boilerplates")
+    def create_renderer(self) -> TemplateRenderer:
+        """Create a TemplateRenderer configured for this project's boilerplates."""
+        return TemplateRenderer(self.boilerplates_dir, self.tmp_dir)
 
     def get_headsource_path(self) -> str:
-        """Return the path to the head source boilerplate in tmp."""
+        """Return the path to the head source file in tmp."""
         return os.path.join(self.tmp_dir, "headsourcecode.txt")
 
     def get_include_file_path(self, name: str) -> str:

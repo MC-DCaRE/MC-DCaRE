@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import sys
 from typing import Any
@@ -15,16 +17,16 @@ def fake_project(tmp_path: Any) -> Any:
     include_dir: str = os.path.join(boilerplates_dir, "TOPAS_includeFiles")
     os.makedirs(include_dir)
     with open(
-        os.path.join(boilerplates_dir, "headsourcecode_boilerplate.txt"), "w"
+        os.path.join(boilerplates_dir, "headsourcecode_boilerplate.j2"), "w"
     ) as f:
-        f.write("head source boilerplate content\n")
+        f.write('s:Ts/G4DataDirectory = "{{ g4_data_directory }}"\n')
     for name in [
-        "patientDICOM.txt",
-        "CTDIphantom_16.txt",
-        "CTDIphantom_32.txt",
+        "patientDICOM.j2",
+        "CTDIphantom_16.j2",
+        "CTDIphantom_32.j2",
     ]:
         with open(os.path.join(include_dir, name), "w") as f:
-            f.write(name + " content\n")
+            f.write("{{ content }}\n")
     return tmp_path
 
 
@@ -52,41 +54,27 @@ class TestResetTmp:
         mgr.reset_tmp()
         assert os.path.isdir(tmp_dir)
 
-    def test_copies_headsourcecode_boilerplate(self, fake_project: Any) -> None:
+    def test_overwrites_existing_tmp(self, fake_project: Any) -> None:
         mgr: BoilerplateManager = BoilerplateManager(str(fake_project))
+        tmp_dir: str = os.path.join(str(fake_project), "tmp")
         mgr.reset_tmp()
-        expected_path: str = os.path.join(
-            str(fake_project), "tmp", "headsourcecode.txt"
-        )
-        assert os.path.isfile(expected_path)
-        with open(expected_path) as f:
-            assert "head source boilerplate content" in f.read()
+        assert os.path.isdir(tmp_dir)
+        mgr.reset_tmp()
+        assert os.path.isdir(tmp_dir)
 
-    def test_copies_patient_dicom(self, fake_project: Any) -> None:
-        mgr: BoilerplateManager = BoilerplateManager(str(fake_project))
-        mgr.reset_tmp()
-        expected_path: str = os.path.join(str(fake_project), "tmp", "patientDICOM.txt")
-        assert os.path.isfile(expected_path)
 
-    def test_copies_ctdi_phantom_files(self, fake_project: Any) -> None:
+class TestCreateRenderer:
+    def test_returns_renderer(self, fake_project: Any) -> None:
         mgr: BoilerplateManager = BoilerplateManager(str(fake_project))
-        mgr.reset_tmp()
-        assert os.path.isfile(
-            os.path.join(str(fake_project), "tmp", "CTDIphantom_16.txt")
+        renderer = mgr.create_renderer()
+        output = renderer.render(
+            "headsourcecode_boilerplate.j2",
+            {"g4_data_directory": "/test/path"},
+            "headsourcecode.txt",
         )
-        assert os.path.isfile(
-            os.path.join(str(fake_project), "tmp", "CTDIphantom_32.txt")
-        )
-
-    def test_overwrites_existing_files(self, fake_project: Any) -> None:
-        mgr: BoilerplateManager = BoilerplateManager(str(fake_project))
-        tmp_file: str = os.path.join(str(fake_project), "tmp", "headsourcecode.txt")
-        mgr.reset_tmp()
-        with open(tmp_file, "w") as f:
-            f.write("stale content\n")
-        mgr.reset_tmp()
-        with open(tmp_file) as f:
-            assert "head source boilerplate content" in f.read()
+        assert os.path.isfile(output)
+        with open(output) as f:
+            assert "/test/path" in f.read()
 
 
 class TestPathMethods:

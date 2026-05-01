@@ -8,79 +8,40 @@ from unittest.mock import patch
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from src.modes.dicom_mode import DicomMode
-from tests.unit.shared import DICOM_SUB_FILE_CONTENT, MAIN_FILE_CONTENT
 
 
-class TestEditMainFile:
-    def test_blanks_ctdi_phantom_includes(self, make_config: Any) -> None:
+class TestBuildMainContext:
+    def test_sets_simulation_type_to_dicom(self, make_config: Any) -> None:
         mode = DicomMode()
         config = make_config()
-        lines = MAIN_FILE_CONTENT.splitlines(True)
-        mode.edit_main_file(config, lines)
-        for line in lines:
-            assert not line.startswith(
-                "includeFile = CTDIphantom_16.txt"
-            ), "CTDIphantom_16.txt include should be blanked"
-            assert not line.startswith(
-                "includeFile = CTDIphantom_32.txt"
-            ), "CTDIphantom_32.txt include should be blanked"
+        ctx = mode.build_main_context(config)
+        assert ctx["simulation_type"] == "DICOM"
 
-    def test_blanks_layered_mass_geometry(self, make_config: Any) -> None:
-        mode = DicomMode()
-        config = make_config()
-        lines = MAIN_FILE_CONTENT.splitlines(True)
-        mode.edit_main_file(config, lines)
-        for line in lines:
-            assert not line.startswith(
-                "sv:Ph/Default/LayeredMassGeometryWorlds"
-            ), "LayeredMassGeometryWorlds should be blanked"
-
-    def test_blanks_graphics_when_disabled(self, make_config: Any) -> None:
+    def test_graphics_disabled(self, make_config: Any) -> None:
         mode = DicomMode()
         config = make_config(graphics_enabled=False)
-        lines = MAIN_FILE_CONTENT.splitlines(True)
-        mode.edit_main_file(config, lines)
-        for line in lines:
-            assert not line.startswith(
-                "Ts/UseQt"
-            ), "Ts/UseQt should be blanked when graphics disabled"
-            assert not line.startswith(
-                "s:Gr/ViewA/Type"
-            ), "s:Gr/ViewA/Type should be blanked when graphics disabled"
-            assert not line.startswith(
-                "b:Gr/Enable"
-            ), "b:Gr/Enable should be blanked when graphics disabled"
+        ctx = mode.build_main_context(config)
+        assert ctx["graphics_enabled"] is False
 
-    def test_keeps_graphics_when_enabled(self, make_config: Any) -> None:
+    def test_graphics_enabled(self, make_config: Any) -> None:
         mode = DicomMode()
         config = make_config(graphics_enabled=True)
-        lines = MAIN_FILE_CONTENT.splitlines(True)
-        mode.edit_main_file(config, lines)
-        assert any(
-            line.startswith("Ts/UseQt") for line in lines
-        ), "Ts/UseQt should remain when graphics enabled"
-        assert any(
-            line.startswith("s:Gr/ViewA/Type") for line in lines
-        ), "s:Gr/ViewA/Type should remain when graphics enabled"
-        assert any(
-            line.startswith("b:Gr/Enable") for line in lines
-        ), "b:Gr/Enable should remain when graphics enabled"
+        ctx = mode.build_main_context(config)
+        assert ctx["graphics_enabled"] is True
 
 
-class TestEditSubFile:
+class TestBuildSubContext:
     def test_replaces_patient_yaw(self, make_config: Any) -> None:
         mode = DicomMode()
         config = make_config(patient_yaw="90. deg")
-        lines = DICOM_SUB_FILE_CONTENT.splitlines(True)
-        mode.edit_sub_file(config, lines)
-        assert "d:Ge/patrotation/yaw = 90. deg\n" in lines
+        ctx = mode.build_sub_context(config)
+        assert ctx["patient_yaw"] == "90. deg"
 
     def test_replaces_dicom_directory(self, make_config: Any) -> None:
         mode = DicomMode()
         config = make_config(dicom_directory="/new/dicom/path")
-        lines = DICOM_SUB_FILE_CONTENT.splitlines(True)
-        mode.edit_sub_file(config, lines)
-        assert 's:Ge/Patient/DicomDirectory = "/new/dicom/path"\n' in lines
+        ctx = mode.build_sub_context(config)
+        assert ctx["dicom_directory"] == "/new/dicom/path"
 
     def test_replaces_isocenter(self, make_config: Any) -> None:
         mode = DicomMode()
@@ -89,11 +50,10 @@ class TestEditSubFile:
             isocenter_y="20 mm",
             isocenter_z="30 mm",
         )
-        lines = DICOM_SUB_FILE_CONTENT.splitlines(True)
-        mode.edit_sub_file(config, lines)
-        assert "dc:Ge/IsocenterX = 10 mm\n" in lines
-        assert "dc:Ge/IsocenterY = 20 mm\n" in lines
-        assert "dc:Ge/IsocenterZ = 30 mm\n" in lines
+        ctx = mode.build_sub_context(config)
+        assert ctx["isocenter_x"] == "10 mm"
+        assert ctx["isocenter_y"] == "20 mm"
+        assert ctx["isocenter_z"] == "30 mm"
 
     def test_replaces_patient_shifts(self, make_config: Any) -> None:
         mode = DicomMode()
@@ -102,13 +62,12 @@ class TestEditSubFile:
             patient_shift_y="2.5 mm",
             patient_shift_z="3.5 mm",
         )
-        lines = DICOM_SUB_FILE_CONTENT.splitlines(True)
-        mode.edit_sub_file(config, lines)
-        assert "dc:Ge/Patient/UserTransX = 1.5 mm\n" in lines
-        assert "dc:Ge/Patient/UserTransY = 2.5 mm\n" in lines
-        assert "dc:Ge/Patient/UserTransZ = 3.5 mm\n" in lines
+        ctx = mode.build_sub_context(config)
+        assert ctx["patient_shift_x"] == "1.5 mm"
+        assert ctx["patient_shift_y"] == "2.5 mm"
+        assert ctx["patient_shift_z"] == "3.5 mm"
 
-    def test_replaces_output_filename(self, make_config: Any) -> None:
+    def test_builds_output_filename(self, make_config: Any) -> None:
         mode = DicomMode()
         config = make_config(
             patient_id="PAT001",
@@ -116,12 +75,8 @@ class TestEditSubFile:
             imaging_mode="Head",
             start_angle="90 deg",
         )
-        lines = DICOM_SUB_FILE_CONTENT.splitlines(True)
-        mode.edit_sub_file(config, lines)
-        expected = (
-            's:Sc/DoseOnRTGrid100kz17/OutputFile = "PAT001_CW_Head_90 deg_DOSE_PTV"\n'
-        )
-        assert expected in lines
+        ctx = mode.build_sub_context(config)
+        assert ctx["output_filename"] == "PAT001_CW_Head_90 deg_DOSE_PTV"
 
 
 class TestGetSubFileName:
@@ -132,7 +87,7 @@ class TestGetSubFileName:
 
 
 class TestComputeHistories:
-    def test_multiplies_sequential_times_by_histories(self, make_config: Any) -> None:
+    def test_multiplies_sequential_time_by_histories(self, make_config: Any) -> None:
         mode = DicomMode()
         config = make_config(sequential_times="1000", histories="100000")
         result = mode.compute_histories(config)

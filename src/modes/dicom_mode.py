@@ -5,11 +5,10 @@ from __future__ import annotations
 import logging
 import os
 import shutil
-from typing import List
+from typing import Dict
 
 from src.config import SimulationConfig
 from src.modes.base import SimulationMode
-from src.parameter_editor import ParameterEditor
 from src.simulation_runner import SimulationRunner
 
 logger = logging.getLogger(__name__)
@@ -18,52 +17,62 @@ logger = logging.getLogger(__name__)
 class DicomMode(SimulationMode):
     """Simulation mode for patient DICOM dose calculations."""
 
-    def edit_main_file(self, config: SimulationConfig, lines: List[str]) -> None:
-        s = ParameterEditor.string_index_replacement
-        s("includeFile = CTDIphantom_16.txt", lines)
-        s("includeFile = CTDIphantom_32.txt", lines)
-        s("sv:Ph/Default/LayeredMassGeometryWorlds", lines)
-        if not config.dicom.graphics_enabled:
-            s("Ts/UseQt", lines)
-            s("s:Gr/ViewA/Type", lines)
-            s("b:Gr/Enable", lines)
+    @property
+    def main_template_name(self) -> str:
+        return "headsourcecode_boilerplate.j2"
 
-    def edit_sub_file(self, config: SimulationConfig, lines: List[str]) -> None:
-        """Edit the patient DICOM sub-file with geometry and scoring parameters."""
-        s = ParameterEditor.string_index_replacement
-        s("d:Ge/patrotation/yaw", lines, config.dicom.patient_yaw)
-        s(
-            "s:Ge/Patient/DicomDirectory",
-            lines,
-            '"' + config.dicom.dicom_directory + '"',
+    @property
+    def main_output_name(self) -> str:
+        return "headsourcecode.txt"
+
+    def build_main_context(self, config: SimulationConfig) -> Dict[str, object]:
+        return {
+            "g4_data_directory": config.general.g4_data_directory,
+            "seed": config.general.seed,
+            "threads": config.general.threads,
+            "histories": config.general.histories,
+            "sequential_times": config.imaging.sequential_times,
+            "timeline_end": config.imaging.timeline_end,
+            "rotation_rate": config.imaging.rotation_rate,
+            "start_angle": config.imaging.start_angle,
+            "coll1_trans_y": config.imaging.blade_x1,
+            "coll2_trans_y": config.imaging.blade_x2,
+            "coll3_trans_x": config.imaging.blade_y1,
+            "coll4_trans_x": config.imaging.blade_y2,
+            "fan_mode": config.imaging.fan_mode,
+            "graphics_enabled": config.dicom.graphics_enabled,
+            "simulation_type": "DICOM",
+            "phantom_size": "",
+        }
+
+    def build_sub_context(
+        self, config: SimulationConfig, plug_position: str = ""
+    ) -> Dict[str, object]:
+        output_filename = "{}_{}_{}_{}_DOSE_PTV".format(
+            config.dicom.patient_id,
+            config.imaging.rotation_direction,
+            config.imaging.imaging_mode,
+            config.imaging.start_angle,
         )
-        s("dc:Ge/IsocenterX", lines, config.dicom.isocenter_x)
-        s("dc:Ge/IsocenterY", lines, config.dicom.isocenter_y)
-        s("dc:Ge/IsocenterZ", lines, config.dicom.isocenter_z)
-        s("dc:Ge/Patient/UserTransX", lines, config.dicom.patient_shift_x)
-        s("dc:Ge/Patient/UserTransY", lines, config.dicom.patient_shift_y)
-        s("dc:Ge/Patient/UserTransZ", lines, config.dicom.patient_shift_z)
-        s(
-            "s:Sc/DoseOnRTGrid100kz17/OutputFile",
-            lines,
-            '"'
-            + config.dicom.patient_id
-            + "_"
-            + config.imaging.rotation_direction
-            + "_"
-            + config.imaging.imaging_mode
-            + "_"
-            + config.imaging.start_angle
-            + "_DOSE_PTV"
-            + '"',
-        )
+        return {
+            "patient_yaw": config.dicom.patient_yaw,
+            "dicom_directory": config.dicom.dicom_directory,
+            "isocenter_x": config.dicom.isocenter_x,
+            "isocenter_y": config.dicom.isocenter_y,
+            "isocenter_z": config.dicom.isocenter_z,
+            "patient_shift_x": config.dicom.patient_shift_x,
+            "patient_shift_y": config.dicom.patient_shift_y,
+            "patient_shift_z": config.dicom.patient_shift_z,
+            "output_filename": output_filename,
+        }
 
     def get_sub_file_name(self, config: SimulationConfig) -> str:
-        """Return the fixed patient DICOM include filename."""
         return "patientDICOM.txt"
 
+    def get_sub_template_name(self, config: SimulationConfig) -> str:
+        return "patientDICOM.j2"
+
     def compute_histories(self, config: SimulationConfig) -> str:
-        """Multiply per-projection histories by number of sequential acquisitions."""
         return str(int(config.imaging.sequential_times) * int(config.general.histories))
 
     def prepare_run(
@@ -72,7 +81,6 @@ class DicomMode(SimulationMode):
         rundir: str,
         project_root: str,
     ) -> None:
-        """Copy common files, DICOM-specific includes, and HU-to-material table into the run directory."""
         include_dir = os.path.join(
             project_root, "src", "boilerplates", "TOPAS_includeFiles"
         )
@@ -91,5 +99,4 @@ class DicomMode(SimulationMode):
         rundir: str,
         project_root: str,
     ) -> None:
-        """Run the DICOM simulation via TOPAS."""
         SimulationRunner.run_dicom(config.general.topas_directory, rundir)

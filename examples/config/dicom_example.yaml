@@ -41,18 +41,4 @@ dicom:
   patient_yaw: 0. deg
   graphics_enabled: false
 # CTDI section is ignored for DICOM simulations
-ctdi:
-  phantom_size: 16 cm
-  dose_to_medium_zbins: '100'
-  tle_zbins: '100'
-  dose_to_water_zbins: '100'
-  couch_enabled: true
-  couch_width: 260. mm
-  couch_thickness: 0.4 mm
-  couch_length: 1000 mm
-  user_blade_enabled: false
-  user_field_x1: 14 cm
-  user_field_x2: 14 cm
-  user_field_y1: 10.7 cm
-  user_field_y2: 10.7 cm
-  graphics_enabled: false
+

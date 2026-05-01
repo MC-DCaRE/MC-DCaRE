@@ -1,0 +1,66 @@
+# MC-DCaRE CTDI Calibration Configuration
+#
+# Fixed-gantry (stationary beam) CTDI measurement for simulation-to-measurement
+# normalization. The beam stays at a single angle (0 deg = top-down) with no
+# rotation, allowing direct comparison against physical measurements taken at
+# the same geometry.
+#
+# Usage:
+#   uv run python run_simulation.py run ctdi_calibration_example.yaml
+#   uv run python run_simulation.py validate ctdi_calibration_example.yaml
+#
+# After the simulation completes, post-process the runfolder output:
+#   uv run python calculate_ctdiw.py <runfolder_path>
+#
+# The CTDICalculator multiplies raw TOPAS dose by the SpekPy-derived calibration
+# factor (written to head_calibration_factor.txt) to produce absolute dose in Gy.
+# Compare these values against your ion chamber measurements at the same kV, mAs,
+# and field size to derive a simulation-to-measurement normalization ratio.
+#
+# Key parameters to adjust for your calibration setup:
+#   anode_voltage  — match your measurement kV (e.g. 80, 100, 125, 140 kV)
+#   exposure       — tube current x time in mAs (e.g. 100 mAs = 100 mA x 1 s)
+#   histories      — higher = better statistics (1e6 recommended for calibration)
+#   phantom_size   — 16 cm (head) or 32 cm (body)
+
+general:
+  g4_data_directory: /path/to/G4Data
+  topas_directory: /path/to/topas/bin/topas
+  seed: '9'
+  threads: '4'
+  histories: '1000000'
+imaging:
+  simulation_type: CTDI validation
+  start_angle: 0 deg
+  rotation_direction: CBCT Clockwise
+  anode_voltage: 100 kV
+  exposure: 100 mAs
+  fan_mode: Full Fan
+  imaging_mode: Head
+  rotation_rate: 0 deg/s
+  timeline_end: 1.0 s
+  sequential_times: '1'
+  time_verbosity: '0'
+  field_x1: 14 cm
+  field_x2: 14 cm
+  field_y1: 10.7 cm
+  field_y2: 10.7 cm
+  blade_x1: 6.175536078965273 cm
+  blade_x2: -6.175536078965273 cm
+  blade_y1: 5.814471115800571 cm
+  blade_y2: -5.814471115800571 cm
+ctdi:
+  phantom_size: 16 cm
+  dose_to_medium_zbins: '100'
+  tle_zbins: '100'
+  dose_to_water_zbins: '100'
+  couch_enabled: true
+  couch_width: 260. mm
+  couch_thickness: 0.4 mm
+  couch_length: 1000 mm
+  user_blade_enabled: false
+  user_field_x1: 14 cm
+  user_field_x2: 14 cm
+  user_field_y1: 10.7 cm
+  user_field_y2: 10.7 cm
+  graphics_enabled: false

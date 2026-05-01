@@ -28,19 +28,6 @@ imaging:
   blade_x2: -6.175536078965273 cm
   blade_y1: 5.814471115800571 cm
   blade_y2: -5.814471115800571 cm
-dicom:
-  dicom_directory: /sampledicom/setA
-  dicom_rp_file: /sampledicom/RP.sample.dcm
-  patient_id: ''
-  isocenter_x: 0 mm
-  isocenter_y: 0 mm
-  isocenter_z: 0 mm
-  patient_shift_x: 0. mm
-  patient_shift_y: 0. mm
-  patient_shift_z: 0. mm
-  patient_yaw: 0. deg
-  graphics_enabled: false
-# DICOM section is ignored for CTDI validation simulations
 ctdi:
   phantom_size: 16 cm
   dose_to_medium_zbins: '100'

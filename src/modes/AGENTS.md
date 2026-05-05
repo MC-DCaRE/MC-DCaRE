@@ -14,7 +14,7 @@ Strategy pattern for simulation modes. Each mode builds a Jinja2 template contex
 - `execute(config, rundir, project_root)` -- runs the simulation
 
 Two concrete implementations:
-- `ctdi_mode.py` -- CTDI phantom validation. Builds contexts with blade openings, phantom size, rotation parameters. Generates 5 plug files (Centre/Top/Bottom/Left/Right) by rendering the phantom template per plug position and concatenating with the main file.
+- `ctdi_mode.py` -- CTDI phantom validation. Builds contexts with blade openings, phantom size, rotation parameters. Generates a single parameter file (`CTDI_all_positions.txt`) using TOPAS Parallel Worlds (Layered Mass Geometry) that scores all 5 plug positions (Centre/Top/Bottom/Left/Right) simultaneously in one TOPAS process. Each plug position is defined in its own parallel world with Air material, and 15 scorers (3 per position) are defined in the combined file.
 - `dicom_mode.py` -- DICOM patient dose. Builds contexts with patient geometry, isocenter shifts, and output filename. Single execution run with headsource + patientDICOM combined.
 
 ## Key Files
@@ -22,7 +22,7 @@ Two concrete implementations:
 | File | Role |
 |---|---|
 | `base.py` | `SimulationMode` ABC with context-building, template selection, and file-copying abstract methods |
-| `ctdi_mode.py` | CTDI mode: blade positions, phantom size, plug-file generation, 5 sequential TOPAS runs |
+| `ctdi_mode.py` | CTDI mode: blade positions, phantom size, single parameter file with parallel worlds, single TOPAS run |
 | `dicom_mode.py` | DICOM mode: patient geometry context, DICOM file staging, single TOPAS run |
 
 ## Conventions
@@ -31,5 +31,5 @@ Two concrete implementations:
 - `build_sub_context` accepts `plug_position: str = ""` (DicomMode ignores it)
 - Include file selection driven by `FanMode` value from config
 - `fieldtobladeopening` imported from `src.fieldtobladeopening` for user-blade field-to-opening conversion
-- `SimulationRunner` invoked in `execute()` with mode-specific run methods (`run_ctdi` vs `run_dicom`)
+- `SimulationRunner.run_topas()` invoked in `execute()` for both CTDI and DICOM modes (single process per simulation)
 - `copy_common_files()` static method on base class handles shared files (Muen.dat, NbParticlesInTime, spectrum, bowtie)

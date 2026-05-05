@@ -10,7 +10,7 @@ Three entry points feed into the `src/` package:
 2. **`run_simulation.py`** — Typer CLI with commands: `run`, `generate-config`, `validate`, `convert`. Reads YAML configs via `SimulationConfig`.
 3. **`calculate_ctdiw.py`** — Post-processing CLI. Takes a runfolder of TOPAS CSV output and computes CTDI-w weighted dose metrics.
 
-Core data flow: `SimulationConfig` (YAML) -> `Orchestrator` creates runfolder and selects `SimulationMode` (CTDI or DICOM) -> mode builds Jinja2 context dict -> `TemplateRenderer` renders `.j2` boilerplate templates -> `SimulationRunner` executes TOPAS (capturing output to per-process log files) -> `CTDICalculator` post-processes results. All Python logging is tee'd to `<runfolder>/simulation.log`.
+Core data flow: `SimulationConfig` (YAML) -> `Orchestrator` creates runfolder and selects `SimulationMode` (CTDI or DICOM) -> mode builds Jinja2 context dict -> `TemplateRenderer` renders `.j2` boilerplate templates -> `SimulationRunner` executes TOPAS as a single process per simulation (capturing output to log files) -> `CTDICalculator` post-processes results. For CTDI mode, all 5 chamber plug positions are scored simultaneously using TOPAS Parallel Worlds (Layered Mass Geometry) in a single process. All Python logging is tee'd to `<runfolder>/simulation.log`.
 
 ## Repository Structure
 ```
@@ -59,6 +59,7 @@ Test runner: pytest with `--cov=src --cov-report=html --cov-report=term-missing`
 ## Operational Gotchas
 - **TOPAS + Geant4 required** for actual Monte Carlo execution. Tests mock TOPAS calls.
 - **FreeSimpleGUI** is the GUI framework; requires a display server for GUI mode
+- **CTDI Parallel Worlds**: CTDI simulations use TOPAS Layered Mass Geometry with 5 parallel worlds (one per chamber plug position). All plugs are scored simultaneously in a single TOPAS process — no Python multiprocessing is involved.
 - `runfolder/` and `tmp/` are runtime output directories, gitignored
 - `src/boilerplates/TOPAS_includeFiles/Muen.dat` is a binary data file (mass energy-absorption coefficients)
 - `ruff.lint.per-file-ignores` allows `F403`/`F405` in `topas_gui.py` for star imports

@@ -1,8 +1,12 @@
 # Implementation Plan: TOPAS Parallel Worlds for CTDI Scoring
 
+> **✅ Implementation Complete — Merged to `develop` on 2026-05-06.**
+>
+> All changes described in this plan have been implemented and merged. CTDI simulations now use a single TOPAS process with Layered Mass Geometry (5 parallel worlds) instead of Python multiprocessing. The `multiprocessing` import has been removed from `simulation_runner.py`, and `CtdiMode` generates a single `CTDI_all_positions.txt` parameter file with 15 scorers. Output file naming is preserved for backward compatibility with `ctdi_calculator.py`.
+
 **Branch:** `develop-simulation-parallel-worlds`
 **Date:** 2026-05-05
-**Status:** Planning
+**Status:** ~~Planning~~ **Complete**
 
 ---
 

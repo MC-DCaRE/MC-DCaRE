@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Replaced Python multiprocessing with TOPAS Parallel Worlds (Layered Mass Geometry) for CTDI simulations. A single TOPAS process now scores all 5 chamber plug positions (Centre, Top, Bottom, Left, Right) simultaneously using parallel worlds, eliminating the need for Python-level multiprocessing. The full `threads` count from the config is allocated to the single TOPAS process instead of being split across 5 separate processes, giving TOPAS/Geant4 maximum multithreading efficiency.
+- CTDI simulations now generate a single `CTDI_all_positions.txt` parameter file with 15 scorers (3 per position) instead of 5 separate parameter files.
+- `SimulationRunner` no longer uses `multiprocessing`; `run_ctdi()` removed in favour of direct `run_topas()` call from `CtdiMode.execute()`.
+
 ### Added
 
 - `dose_calibration_factor` field in `GeneralConfig` for measurement-corrected dose output

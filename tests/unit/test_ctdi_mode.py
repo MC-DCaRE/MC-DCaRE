@@ -125,9 +125,15 @@ class TestGetSubTemplateName:
 class TestComputeHistories:
     def test_returns_histories_directly(self, make_config: Any) -> None:
         mode = CtdiMode()
-        config = make_config(histories="50000")
+        config = make_config(histories="50000", sequential_times="1000")
         result = mode.compute_histories(config)
-        assert result == "50000"
+        assert result == "50000000"
+
+    def test_multiplies_sequential_times_by_histories(self, make_config: Any) -> None:
+        mode = CtdiMode()
+        config = make_config(histories="2000", sequential_times="500")
+        result = mode.compute_histories(config)
+        assert result == "1000000"
 
 
 class TestExecute:

@@ -92,7 +92,7 @@ class CtdiMode(SimulationMode):
         return "CTDIphantom_{}.txt".format(size_number)
 
     def compute_histories(self, config: SimulationConfig) -> str:
-        return config.general.histories
+        return str(int(config.imaging.sequential_times) * int(config.general.histories))
 
     def prepare_run(
         self,

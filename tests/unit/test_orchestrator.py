@@ -159,6 +159,7 @@ class TestRunCtdiSimulation:
             histories="100000",
             anode_voltage="80 kV",
             exposure="50 mAs",
+            sequential_times="1000",
             phantom_size="16 cm",
         )
         mock_renderer = MagicMock()
@@ -170,7 +171,7 @@ class TestRunCtdiSimulation:
                     with patch.object(CtdiMode, "execute"):
                         orch.run_ctdi_simulation(config)
         mock_sg_cls.generate.assert_called_once_with(
-            80.0, 50.0, "100000", "/project", 1.0
+            80.0, 50.0, "100000000", "/project", 1.0
         )
 
 

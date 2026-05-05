@@ -100,14 +100,17 @@ class BenchmarkCalculator:
 
         Returns:
             The ratio reference/simulated to use as ``dose_calibration_factor``.
+            Returns ``float('nan')`` if simulated_Gy is zero or negative.
 
         Raises:
-            ValueError: If simulated_Gy is zero or negative.
+            ValueError: If reference_Gy is zero or negative.
         """
-        if simulated_Gy <= 0:
+        if reference_Gy <= 0:
             raise ValueError(
-                "Simulated CTDI-w must be positive, got {}".format(simulated_Gy)
+                "Reference CTDI-w must be positive, got {}".format(reference_Gy)
             )
+        if simulated_Gy <= 0:
+            return float("nan")
         return reference_Gy / simulated_Gy
 
     @staticmethod

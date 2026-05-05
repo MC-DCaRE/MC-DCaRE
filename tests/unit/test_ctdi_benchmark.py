@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from pathlib import Path
 from unittest.mock import patch
 
@@ -176,13 +177,21 @@ class TestComputeCalibrationFactor:
         factor = BenchmarkCalculator.compute_calibration_factor(8.5e-3, 8.5e-3)
         assert factor == pytest.approx(1.0)
 
-    def test_zero_simulated_raises(self) -> None:
-        with pytest.raises(ValueError, match="must be positive"):
-            BenchmarkCalculator.compute_calibration_factor(0.0, 8.5e-3)
+    def test_zero_simulated_returns_nan(self) -> None:
+        result = BenchmarkCalculator.compute_calibration_factor(0.0, 8.5e-3)
+        assert math.isnan(result)
 
-    def test_negative_simulated_raises(self) -> None:
+    def test_negative_simulated_returns_nan(self) -> None:
+        result = BenchmarkCalculator.compute_calibration_factor(-1e-3, 8.5e-3)
+        assert math.isnan(result)
+
+    def test_zero_reference_raises(self) -> None:
         with pytest.raises(ValueError, match="must be positive"):
-            BenchmarkCalculator.compute_calibration_factor(-1e-3, 8.5e-3)
+            BenchmarkCalculator.compute_calibration_factor(8.0e-3, 0.0)
+
+    def test_negative_reference_raises(self) -> None:
+        with pytest.raises(ValueError, match="must be positive"):
+            BenchmarkCalculator.compute_calibration_factor(8.0e-3, -1e-3)
 
     def test_simulated_above_reference(self) -> None:
         factor = BenchmarkCalculator.compute_calibration_factor(9.0e-3, 8.5e-3)

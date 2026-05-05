@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import math
 from pathlib import Path
 from typing import Optional
 
@@ -124,25 +125,29 @@ def benchmark(
         console.print("\nSome comparisons FAIL.", style="bold red")
 
     console.print("\nRecommended dose_calibration_factor by scorer:", style="yellow")
+    primary_factor = None
     for r in results:
         cal_factor = BenchmarkCalculator.compute_calibration_factor(
             r.simulated_ctdi_w_Gy, r.reference_ctdi_w_Gy
         )
+        if math.isnan(cal_factor):
+            console.print("  {}: N/A (simulated dose is zero)".format(r.file_type))
+        else:
+            console.print("  {}: {:.4f}".format(r.file_type, cal_factor))
+            if primary_factor is None:
+                primary_factor = cal_factor
+    if primary_factor is not None:
         console.print(
-            "  {}: {:.4f}".format(r.file_type, cal_factor),
+            "\nUse the primary scorer value in your config YAML:\n"
+            "  general:\n"
+            '    dose_calibration_factor: "{:.4f}"'.format(primary_factor),
+            style="yellow",
         )
-    primary = results[0]
-    primary_factor = BenchmarkCalculator.compute_calibration_factor(
-        primary.simulated_ctdi_w_Gy, primary.reference_ctdi_w_Gy
-    )
-    console.print(
-        "\nUse the primary scorer ({}) value in your config YAML:\n".format(
-            primary.file_type
+    else:
+        console.print(
+            "\nCould not compute a calibration factor: all scorers reported zero dose.",
+            style="red",
         )
-        + "  general:\n"
-        + '    dose_calibration_factor: "{:.4f}"'.format(primary_factor),
-        style="yellow",
-    )
 
     if not all_pass:
         raise typer.Exit(1)

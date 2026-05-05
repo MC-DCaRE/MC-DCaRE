@@ -12,10 +12,12 @@
 # After the simulation completes, post-process the runfolder output:
 #   uv run python calculate_ctdiw.py <runfolder_path>
 #
-# The CTDICalculator multiplies raw TOPAS dose by the SpekPy-derived calibration
-# factor (written to head_calibration_factor.txt) to produce absolute dose in Gy.
-# Compare these values against your ion chamber measurements at the same kV, mAs,
-# and field size to derive a simulation-to-measurement normalization ratio.
+# Then benchmark against your measured value:
+#   uv run python calculate_ctdiw.py benchmark <runfolder_path> --reference <mSv>
+#
+# The benchmark command will print a recommended dose_calibration_factor.
+# Add it to the general section below and re-run to calibrate all future
+# simulations against measurement. Default is 1.0 (no correction).
 #
 # Key parameters to adjust for your calibration setup:
 #   anode_voltage  — match your measurement kV (e.g. 80, 100, 125, 140 kV)
@@ -29,6 +31,7 @@ general:
   seed: '9'
   threads: '4'
   histories: '1000000'
+  dose_calibration_factor: '1.0'
 imaging:
   simulation_type: CTDI validation
   start_angle: 0 deg

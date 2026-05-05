@@ -20,7 +20,11 @@ from src.orchestrator import Orchestrator
 
 
 def _mock_generate(
-    voltage: float, exposure: float, histories: str, project_root: str
+    voltage: float,
+    exposure: float,
+    histories: str,
+    project_root: str,
+    dose_calibration_factor: float = 1.0,
 ) -> None:
     tmp_dir = os.path.join(project_root, "tmp")
     with open(os.path.join(tmp_dir, "ConvertedTopasFile.txt"), "w") as f:

@@ -144,6 +144,7 @@ class GeneralConfig:
     seed: str = "9"
     threads: str = "1"
     histories: str = "100000"
+    dose_calibration_factor: str = "1.0"
 
 
 @dataclass(frozen=True)
@@ -251,6 +252,20 @@ class SimulationConfig:
                 raise ValueError(
                     "Config field '{}' must be an integer, got {!r}".format(name, value)
                 )
+        try:
+            calib_val = float(self.general.dose_calibration_factor)
+        except (ValueError, TypeError):
+            raise ValueError(
+                "Config field 'dose_calibration_factor' must be a float, got {!r}".format(
+                    self.general.dose_calibration_factor
+                )
+            )
+        if calib_val <= 0:
+            raise ValueError(
+                "Config field 'dose_calibration_factor' must be positive, got {}".format(
+                    calib_val
+                )
+            )
 
     @staticmethod
     def _validate_enum_field(field_name: str, value: str, enum_cls: Type[Enum]) -> None:

@@ -19,6 +19,7 @@ class SpectrumGenerator:
         exposure: float,
         histories: str,
         project_root: str,
+        dose_calibration_factor: float = 1.0,
     ) -> None:
         """Generate a kV spectrum and write calibration factor and TOPAS spectrum files.
 
@@ -27,6 +28,8 @@ class SpectrumGenerator:
             exposure: Tube current-time product in mAs.
             histories: Number of primary histories as a string.
             project_root: Root directory of the MC-DCaRE project (output goes to tmp/).
+            dose_calibration_factor: Multiplicative correction factor derived from
+                measurement-to-simulation CTDI-w ratio. Default 1.0 (no correction).
         """
         logger.info(
             "Generating spectrum: %f kV, %f mAs, %s histories",
@@ -42,7 +45,7 @@ class SpectrumGenerator:
         karr, spkarr = s.get_spectrum(edges=False, diff=False)
         no_particles: float = 4 * np.pi * 0.1**2 * s.get_flu()
 
-        calib_factor: float = no_particles / int(histories)
+        calib_factor: float = (no_particles / int(histories)) * dose_calibration_factor
         with open(project_root + "/tmp/head_calibration_factor.txt", "w") as f:
             f.write("%.10e" % calib_factor)
             f.write("\nMultiply dose by the factor above to get absolute dose \n")

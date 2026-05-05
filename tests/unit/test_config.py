@@ -10,6 +10,7 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from src.config import (
+    GeneralConfig,
     SimulationConfig,
     quantity_unit_stripper,
 )
@@ -55,6 +56,7 @@ class TestSimulationConfigDefaults:
         assert config.general.seed != ""
         assert config.general.threads != ""
         assert config.general.histories != ""
+        assert config.general.dose_calibration_factor != ""
 
     def test_defaults_imaging_fan_mode_is_valid(self) -> None:
         config: SimulationConfig = SimulationConfig.defaults()
@@ -280,3 +282,47 @@ class TestParseBool:
         from src.config import _parse_bool
 
         assert _parse_bool("true") is True
+
+
+class TestDoseCalibrationFactor:
+    def test_default_value(self) -> None:
+        config = SimulationConfig()
+        assert config.general.dose_calibration_factor == "1.0"
+
+    def test_yaml_roundtrip(self) -> None:
+        config = SimulationConfig(
+            general=GeneralConfig(dose_calibration_factor="1.0523")
+        )
+        with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False, mode="w") as f:
+            path: str = f.name
+        try:
+            config.to_yaml(path)
+            loaded = SimulationConfig.from_yaml(path)
+            assert loaded.general.dose_calibration_factor == "1.0523"
+        finally:
+            os.unlink(path)
+
+    def test_invalid_string_raises(self) -> None:
+        config = SimulationConfig(
+            general=GeneralConfig(dose_calibration_factor="not_a_number")
+        )
+        with pytest.raises(ValueError, match="must be a float"):
+            config.validate()
+
+    def test_negative_raises(self) -> None:
+        config = SimulationConfig(general=GeneralConfig(dose_calibration_factor="-0.5"))
+        with pytest.raises(ValueError, match="must be positive"):
+            config.validate()
+
+    def test_zero_raises(self) -> None:
+        config = SimulationConfig(general=GeneralConfig(dose_calibration_factor="0"))
+        with pytest.raises(ValueError, match="must be positive"):
+            config.validate()
+
+    def test_valid_positive_passes(self) -> None:
+        config = SimulationConfig(general=GeneralConfig(dose_calibration_factor="1.05"))
+        config.validate()
+
+    def test_default_passes_validation(self) -> None:
+        config = SimulationConfig()
+        config.validate()

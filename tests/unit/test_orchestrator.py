@@ -87,7 +87,7 @@ class TestRunDicomSimulation:
                     with patch.object(DicomMode, "execute"):
                         orch.run_dicom_simulation(config)
         mock_sg_cls.generate.assert_called_once_with(
-            100.0, 200.0, "100000000", "/project"
+            100.0, 200.0, "100000000", "/project", 1.0
         )
 
     @patch("src.orchestrator.SpectrumGenerator")
@@ -169,7 +169,9 @@ class TestRunCtdiSimulation:
                 with patch.object(CtdiMode, "prepare_run"):
                     with patch.object(CtdiMode, "execute"):
                         orch.run_ctdi_simulation(config)
-        mock_sg_cls.generate.assert_called_once_with(80.0, 50.0, "100000", "/project")
+        mock_sg_cls.generate.assert_called_once_with(
+            80.0, 50.0, "100000", "/project", 1.0
+        )
 
 
 class TestPrepareOnly:
@@ -224,3 +226,35 @@ class TestPrepareOnly:
                 with patch.object(CtdiMode, "prepare_run"):
                     result = orch.prepare_only(config)
         assert result == "/rundir"
+
+
+class TestOrchestratorCalibrationFactor:
+    @patch("src.orchestrator.SpectrumGenerator")
+    @patch("src.orchestrator.BoilerplateManager")
+    def test_passes_calibration_factor(
+        self,
+        mock_bm_cls: MagicMock,
+        mock_sg_cls: MagicMock,
+        make_config: Any,
+    ) -> None:
+        config = make_config(
+            simulation_type="DICOM",
+            topas_directory="/topas/bin",
+            histories="100000",
+            anode_voltage="100 kV",
+            exposure="200 mAs",
+            sequential_times="1000",
+            graphics_enabled=False,
+            dose_calibration_factor="1.0523",
+        )
+        mock_renderer = MagicMock()
+        mock_bm_cls.return_value.create_renderer.return_value = mock_renderer
+        orch = Orchestrator("/project")
+        with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
+            with patch.object(orch, "_create_runfolder", return_value="/rundir"):
+                with patch.object(DicomMode, "prepare_run"):
+                    with patch.object(DicomMode, "execute"):
+                        orch.run(config)
+        mock_sg_cls.generate.assert_called_once_with(
+            100.0, 200.0, "100000000", "/project", 1.0523
+        )

@@ -50,7 +50,10 @@ class Orchestrator:
         voltage, _ = quantity_unit_stripper(config.imaging.anode_voltage)
         exposure, _ = quantity_unit_stripper(config.imaging.exposure)
         histories: str = mode.compute_histories(config)
-        SpectrumGenerator.generate(voltage, exposure, histories, self.project_root)
+        dose_calibration_factor: float = float(config.general.dose_calibration_factor)
+        SpectrumGenerator.generate(
+            voltage, exposure, histories, self.project_root, dose_calibration_factor
+        )
 
         rundir: str = self._create_runfolder()
         mode.prepare_run(config, rundir, self.project_root)

@@ -10,7 +10,7 @@ Three entry points feed into the `src/` package:
 2. **`run_simulation.py`** — Typer CLI with commands: `run`, `generate-config`, `validate`, `convert`. Reads YAML configs via `SimulationConfig`.
 3. **`calculate_ctdiw.py`** — Post-processing CLI. Takes a runfolder of TOPAS CSV output and computes CTDI-w weighted dose metrics.
 
-Core data flow: `SimulationConfig` (YAML) -> `Orchestrator` selects `SimulationMode` (CTDI or DICOM) -> mode builds Jinja2 context dict -> `TemplateRenderer` renders `.j2` boilerplate templates -> `SimulationRunner` executes TOPAS -> `CTDICalculator` post-processes results.
+Core data flow: `SimulationConfig` (YAML) -> `Orchestrator` creates runfolder and selects `SimulationMode` (CTDI or DICOM) -> mode builds Jinja2 context dict -> `TemplateRenderer` renders `.j2` boilerplate templates -> `SimulationRunner` executes TOPAS (capturing output to per-process log files) -> `CTDICalculator` post-processes results. All Python logging is tee'd to `<runfolder>/simulation.log`.
 
 ## Repository Structure
 ```

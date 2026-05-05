@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import logging
 import os
 import sys
 from dataclasses import asdict
@@ -10,7 +11,25 @@ import typer
 from src.config import SimulationConfig
 from src.orchestrator import Orchestrator
 
+_LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
 app = typer.Typer()
+
+logging.basicConfig(level=logging.INFO, format=_LOG_FORMAT)
+logger = logging.getLogger(__name__)
+
+
+def _add_file_handler(runfolder: str, log_filename: str) -> logging.FileHandler:
+    handler = logging.FileHandler(os.path.join(runfolder, log_filename), mode="w")
+    handler.setLevel(logging.INFO)
+    handler.setFormatter(logging.Formatter(_LOG_FORMAT))
+    logging.getLogger().addHandler(handler)
+    return handler
+
+
+def _remove_file_handler(handler: logging.FileHandler) -> None:
+    logging.getLogger().removeHandler(handler)
+    handler.close()
 
 
 @app.command()
@@ -19,9 +38,18 @@ def run(config_file: str, dry_run: bool = False) -> None:
     orchestrator = Orchestrator(os.getcwd())
     if dry_run:
         rundir = orchestrator.prepare_only(config)
+        file_handler = _add_file_handler(rundir, config.general.log_filename)
+        logger.info("Dry run prepared in %s", rundir)
+        _remove_file_handler(file_handler)
         print("Files prepared in " + rundir + ". TOPAS not executed.")
     else:
-        rundir = orchestrator.run(config)
+        rundir = orchestrator.create_runfolder()
+        file_handler = _add_file_handler(rundir, config.general.log_filename)
+        try:
+            orchestrator.run_with_runfolder(rundir, config)
+            logger.info("Simulation completed in %s", rundir)
+        finally:
+            _remove_file_handler(file_handler)
         print("Simulation completed in " + rundir)
 
 

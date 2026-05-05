@@ -32,6 +32,7 @@ general:
   threads: '4'
   histories: '1000000'
   dose_calibration_factor: '1.0'
+  log_filename: simulation.log
 imaging:
   simulation_type: CTDI validation
   start_angle: 0 deg

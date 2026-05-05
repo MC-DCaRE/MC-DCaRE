@@ -32,9 +32,23 @@ class Orchestrator:
         os.makedirs(rundatadir)
         return rundatadir
 
+    def create_runfolder(self) -> str:
+        """Create and return a timestamped runfolder directory."""
+        return self._create_runfolder()
+
     def run(self, config: SimulationConfig, dry_run: bool = False) -> str:
+        rundir: str = self._create_runfolder()
+        self.run_with_runfolder(rundir, config, dry_run=dry_run)
+        return rundir
+
+    def run_with_runfolder(
+        self, rundir: str, config: SimulationConfig, dry_run: bool = False
+    ) -> None:
+        """Execute the full simulation pipeline using an existing runfolder."""
         mode: SimulationMode = self._get_mode(config)
         self.boilerplate_manager.reset_tmp()
+
+        logger.info("Runfolder: %s", rundir)
 
         renderer = self.boilerplate_manager.create_renderer()
         main_context = mode.build_main_context(config)
@@ -55,14 +69,12 @@ class Orchestrator:
             voltage, exposure, histories, self.project_root, dose_calibration_factor
         )
 
-        rundir: str = self._create_runfolder()
         mode.prepare_run(config, rundir, self.project_root)
 
         if not dry_run:
             mode.execute(config, rundir, self.project_root)
 
         logger.info("Run completed in %s", rundir)
-        return rundir
 
     def run_dicom_simulation(self, config: SimulationConfig) -> str:
         return self.run(config, dry_run=False)

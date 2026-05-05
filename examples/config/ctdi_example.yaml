@@ -7,7 +7,9 @@ general:
   topas_directory: /path/to/topas/bin/topas
   seed: '9'
   threads: '4'
-  histories: '100'
+  histories: '10000'
+  dose_calibration_factor: '1.0'
+  log_filename: simulation.log
 imaging:
   simulation_type: CTDI validation
   start_angle: 0 deg
@@ -18,7 +20,7 @@ imaging:
   imaging_mode: Head
   rotation_rate: 0.4 deg/s
   timeline_end: 501.0 s
-  sequential_times: '100'
+  sequential_times: '1000'
   time_verbosity: '0'
   field_x1: 14 cm
   field_x2: 14 cm

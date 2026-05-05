@@ -133,14 +133,14 @@ def benchmark(
         if math.isnan(cal_factor):
             console.print("  {}: N/A (simulated dose is zero)".format(r.file_type))
         else:
-            console.print("  {}: {:.4f}".format(r.file_type, cal_factor))
+            console.print("  {}: {:.6e}".format(r.file_type, cal_factor))
             if primary_factor is None:
                 primary_factor = cal_factor
     if primary_factor is not None:
         console.print(
             "\nUse the primary scorer value in your config YAML:\n"
             "  general:\n"
-            '    dose_calibration_factor: "{:.4f}"'.format(primary_factor),
+            '    dose_calibration_factor: "{:.6e}"'.format(primary_factor),
             style="yellow",
         )
     else:

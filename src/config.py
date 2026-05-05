@@ -145,6 +145,7 @@ class GeneralConfig:
     threads: str = "1"
     histories: str = "100000"
     dose_calibration_factor: str = "1.0"
+    log_filename: str = "simulation.log"
 
 
 @dataclass(frozen=True)

@@ -338,3 +338,5 @@ cython_debug/
 .kilo/
 .opencode/
 kilo.jsonc
+.local_paths.yaml
+config.local.yaml

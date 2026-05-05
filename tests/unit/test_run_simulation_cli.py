@@ -120,28 +120,39 @@ class TestValidate:
 
 
 class TestRun:
+    @patch("run_simulation._add_file_handler")
     @patch("run_simulation.Orchestrator")
     def test_run_calls_orchestrator(
-        self, mock_orch_cls: MagicMock, tmp_path: object
+        self,
+        mock_orch_cls: MagicMock,
+        mock_add_fh: MagicMock,
+        tmp_path: object,
     ) -> None:
         mock_instance = mock_orch_cls.return_value
-        mock_instance.run.return_value = "/rundir"
+        mock_instance.create_runfolder.return_value = "/rundir"
+        mock_add_fh.return_value = MagicMock()
         path = _write_config(tmp_path)
         result = runner.invoke(app, ["run", path])
         assert result.exit_code == 0
-        mock_instance.run.assert_called_once()
+        mock_instance.create_runfolder.assert_called_once()
+        mock_instance.run_with_runfolder.assert_called_once()
 
+    @patch("run_simulation._add_file_handler")
     @patch("run_simulation.Orchestrator")
     def test_run_dry_run_calls_prepare_only(
-        self, mock_orch_cls: MagicMock, tmp_path: object
+        self,
+        mock_orch_cls: MagicMock,
+        mock_add_fh: MagicMock,
+        tmp_path: object,
     ) -> None:
         mock_instance = mock_orch_cls.return_value
         mock_instance.prepare_only.return_value = "/rundir"
+        mock_add_fh.return_value = MagicMock()
         path = _write_config(tmp_path)
         result = runner.invoke(app, ["run", path, "--dry-run"])
         assert result.exit_code == 0
         mock_instance.prepare_only.assert_called_once()
-        mock_instance.run.assert_not_called()
+        mock_instance.run_with_runfolder.assert_not_called()
 
     def test_run_missing_config(self, tmp_path: object) -> None:
         path = os.path.join(str(tmp_path), "nonexistent.yaml")

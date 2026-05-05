@@ -5,7 +5,7 @@ Test suite for MC-DCaRE covering unit tests for all source modules, smoke tests 
 
 ## Architecture
 Three tiers by scope:
-- **unit/** (17 files) — Isolated tests per source module: config, modes, models, orchestrator, GUI, services, template rendering. Contains `conftest.py` with shared fixtures and `shared.py` with context dict constants.
+- **unit/** (17 files) — Isolated tests per source module: config, modes, models, orchestrator, GUI, services (CTDI calculator, benchmark), template rendering. Contains `conftest.py` with shared fixtures and `shared.py` with context dict constants.
 - **smoke/** (3 files) — Lightweight import and initialization checks: config loading, lookup table validation
 - **integration/** — Cross-module pipeline tests: `test_dry_run_pipeline.py` validates full orchestration without running TOPAS
 

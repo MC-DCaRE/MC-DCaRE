@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `dose_calibration_factor` field in `GeneralConfig` for measurement-corrected dose output
+- `BenchmarkCalculator` service with `benchmark` subcommand in `calculate_ctdiw.py`
+- `compute_calibration_factor()` to derive simulation-to-measurement normalization ratio
+- Simulation logs recorded to runfolder: `simulation.log` (Python application log), `topas_*.log` (per-process TOPAS output)
+- `log_filename` field in `GeneralConfig` to configure the application log file name (default: `simulation.log`)
+- `run_with_runfolder()` and `create_runfolder()` on `Orchestrator` for early runfolder creation and file logging
+- Real-time TOPAS stdout/stderr capture via `subprocess.Popen` with per-process log files
+- `.local_paths.yaml` and `config.local.yaml` in `.gitignore` for machine-specific configs
+
 ---
 
 ## [0.2.0] - 2026-05-01

@@ -15,6 +15,43 @@ class SimulationRunner:
     """Launches TOPAS processes for DICOM and CTDI simulation modes."""
 
     @staticmethod
+    def validate_topas_binary(topas_path: str) -> None:
+        """Pre-flight validation of the TOPAS binary path.
+
+        Checks that the binary exists, is a regular file, and is executable.
+        This should be called before spawning multiprocessing pools so that
+        configuration errors are caught early with a clear message.
+
+        Args:
+            topas_path: Path to the TOPAS executable.
+
+        Raises:
+            FileNotFoundError: If the binary does not exist or is not a file.
+            PermissionError: If the binary is not executable.
+        """
+        if not os.path.exists(topas_path):
+            raise FileNotFoundError(
+                "TOPAS binary not found at: {}\n"
+                "Please verify the topas_path in your configuration points to "
+                "a valid TOPAS installation.".format(topas_path)
+            )
+        if not os.path.isfile(topas_path):
+            raise FileNotFoundError(
+                "TOPAS path is not a regular file: {}\n"
+                "Please verify the topas_path points to the TOPAS executable "
+                "binary, not a directory.".format(topas_path)
+            )
+        if not os.access(topas_path, os.X_OK):
+            raise PermissionError(
+                "TOPAS binary is not executable: {}\n"
+                "Fix with: chmod +x {}\n"
+                "If the binary is executable but still fails, check for missing "
+                "shared libraries with: ldd {}".format(
+                    topas_path, topas_path, topas_path
+                )
+            )
+
+    @staticmethod
     def run_topas(
         command: List[str],
         working_dir: str,
@@ -53,6 +90,16 @@ class SimulationRunner:
 
         if returncode != 0:
             logger.error("TOPAS exited with code %d: %s", returncode, command)
+            if returncode == 127:
+                raise RuntimeError(
+                    "TOPAS process failed with return code 127 (command not found).\n"
+                    "This typically means one of the following:\n"
+                    "  - The TOPAS binary does not exist at the specified path\n"
+                    "  - The binary lacks execute permission (run: chmod +x <path>)\n"
+                    "  - Required shared libraries are missing (run: ldd <path>)\n"
+                    "  - The dynamic linker / interpreter is missing\n"
+                    "Command attempted: {}".format(" ".join(command))
+                )
             raise RuntimeError(
                 "TOPAS process failed with return code {}".format(returncode)
             )
@@ -60,6 +107,7 @@ class SimulationRunner:
     @staticmethod
     def run_dicom(topas_path: str, rundatadir: str) -> None:
         """Run a single DICOM patient simulation."""
+        SimulationRunner.validate_topas_binary(topas_path)
         command: List[str] = [topas_path, rundatadir + "/headsourcecode.txt"]
         log_path = os.path.join(rundatadir, "topas_dicom.log")
         logger.info("Starting DICOM simulation")
@@ -78,6 +126,7 @@ class SimulationRunner:
             rundatadir: Run data directory for outputs.
             commands: List of (command, working_dir) tuples, one per plug position.
         """
+        SimulationRunner.validate_topas_binary(topas_path)
         logger.info("Starting CTDI simulation with %d commands", len(commands))
         logged_commands: List[Tuple[List[str], str, str]] = []
         for command, work_dir in commands:

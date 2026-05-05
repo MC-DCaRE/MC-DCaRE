@@ -5,8 +5,7 @@ from __future__ import annotations
 import logging
 import os
 import subprocess
-import multiprocessing as mp
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -114,25 +113,16 @@ class SimulationRunner:
         SimulationRunner.run_topas(command, rundatadir, log_path)
 
     @staticmethod
-    def run_ctdi(
-        topas_path: str,
-        rundatadir: str,
-        commands: List[Tuple[List[str], str]],
-    ) -> None:
-        """Run CTDI simulations for each chamber plug position in parallel.
+    def run_ctdi(topas_path: str, rundatadir: str, param_file: str) -> None:
+        """Run a single CTDI simulation scoring all plug positions via parallel worlds.
 
         Args:
             topas_path: Path to the TOPAS executable.
             rundatadir: Run data directory for outputs.
-            commands: List of (command, working_dir) tuples, one per plug position.
+            param_file: Path to the single TOPAS parameter file.
         """
         SimulationRunner.validate_topas_binary(topas_path)
-        logger.info("Starting CTDI simulation with %d commands", len(commands))
-        logged_commands: List[Tuple[List[str], str, str]] = []
-        for command, work_dir in commands:
-            param_file = command[-1]
-            basename = os.path.splitext(os.path.basename(param_file))[0]
-            log_path = os.path.join(rundatadir, "topas_{}.log".format(basename))
-            logged_commands.append((command, work_dir, log_path))
-        with mp.Pool(processes=min(5, os.cpu_count() or 1)) as pool:
-            pool.starmap(SimulationRunner.run_topas, logged_commands)
+        command: List[str] = [topas_path, param_file]
+        log_path = os.path.join(rundatadir, "topas_ctdi.log")
+        logger.info("Starting CTDI simulation (parallel worlds)")
+        SimulationRunner.run_topas(command, rundatadir, log_path)

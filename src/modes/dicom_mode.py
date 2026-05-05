@@ -46,7 +46,7 @@ class DicomMode(SimulationMode):
         }
 
     def build_sub_context(
-        self, config: SimulationConfig, plug_position: str = ""
+        self, config: SimulationConfig
     ) -> Dict[str, object]:
         output_filename = "{}_{}_{}_{}_DOSE_PTV".format(
             config.dicom.patient_id,

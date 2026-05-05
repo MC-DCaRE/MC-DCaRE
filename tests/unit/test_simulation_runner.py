@@ -3,7 +3,6 @@ from __future__ import annotations
 import os
 import sys
 from unittest.mock import MagicMock, mock_open, patch
-from typing import List, Tuple
 
 import pytest
 
@@ -102,45 +101,30 @@ class TestRunDicom:
 
 
 class TestRunCtdi:
-    @patch("src.simulation_runner.mp.Pool")
+    @patch("src.simulation_runner.subprocess.Popen")
     @patch("src.simulation_runner.SimulationRunner.validate_topas_binary")
-    def test_calls_run_topas_with_log_paths(
-        self, mock_validate: MagicMock, mock_pool_class: MagicMock
+    def test_calls_run_topas_with_single_command(
+        self, mock_validate: MagicMock, mock_popen: MagicMock
     ) -> None:
-        mock_pool = MagicMock()
-        mock_pool_class.return_value.__enter__ = MagicMock(return_value=mock_pool)
-        mock_pool_class.return_value.__exit__ = MagicMock(return_value=False)
-
+        mock_proc = MagicMock()
+        mock_proc.stdout = iter([])
+        mock_proc.wait.return_value = None
+        mock_proc.returncode = 0
+        mock_popen.return_value = mock_proc
         topas_path = "/usr/local/topas/bin/topas"
         rundatadir = "/runfolder/2024-01-01_12-00-00"
-        commands: List[Tuple[List[str], str]] = [
-            (
-                [topas_path, rundatadir + "/ChamberPlugCentre.txt"],
-                rundatadir,
-            ),
-            (
-                [topas_path, rundatadir + "/ChamberPlugTop.txt"],
-                rundatadir,
-            ),
-        ]
-
-        SimulationRunner.run_ctdi(topas_path, rundatadir, commands)
-
+        param_file = rundatadir + "/CTDI_all_positions.txt"
+        m = mock_open()
+        with patch("builtins.open", m):
+            SimulationRunner.run_ctdi(topas_path, rundatadir, param_file)
         mock_validate.assert_called_once_with(topas_path)
-        expected_logged = [
-            (
-                [topas_path, rundatadir + "/ChamberPlugCentre.txt"],
-                rundatadir,
-                os.path.join(rundatadir, "topas_ChamberPlugCentre.log"),
-            ),
-            (
-                [topas_path, rundatadir + "/ChamberPlugTop.txt"],
-                rundatadir,
-                os.path.join(rundatadir, "topas_ChamberPlugTop.log"),
-            ),
-        ]
-        mock_pool.starmap.assert_called_once_with(
-            SimulationRunner.run_topas, expected_logged
+        expected_command = [topas_path, param_file]
+        mock_popen.assert_called_once_with(
+            expected_command,
+            cwd=rundatadir,
+            stdout=-1,
+            stderr=-2,
+            text=True,
         )
 
 

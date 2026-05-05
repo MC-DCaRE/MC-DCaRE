@@ -58,7 +58,7 @@ class TestBuildSubContext:
     def test_couch_enabled_in_context(self, make_config: Any) -> None:
         mode = CtdiMode()
         config = make_config(couch_enabled=False)
-        ctx = mode.build_sub_context(config, plug_position="ChamberPlugCentre")
+        ctx = mode.build_sub_context(config)
         assert ctx["couch_enabled"] is False
 
     def test_couch_dimensions_in_context(self, make_config: Any) -> None:
@@ -68,7 +68,7 @@ class TestBuildSubContext:
             couch_thickness="0.5 mm",
             couch_length="1500 mm",
         )
-        ctx = mode.build_sub_context(config, plug_position="ChamberPlugCentre")
+        ctx = mode.build_sub_context(config)
         assert ctx["couch_width"] == "300. mm"
         assert ctx["couch_thickness"] == "0.5 mm"
         assert ctx["couch_length"] == "1500 mm"
@@ -80,25 +80,22 @@ class TestBuildSubContext:
             tle_zbins="150",
             dose_to_water_zbins="250",
         )
-        ctx = mode.build_sub_context(config, plug_position="ChamberPlugCentre")
+        ctx = mode.build_sub_context(config)
         assert ctx["dose_to_medium_zbins"] == "200"
         assert ctx["tle_zbins"] == "150"
         assert ctx["dose_to_water_zbins"] == "250"
 
-    def test_active_plug_has_air_material(self, make_config: Any) -> None:
+    def test_plug_positions_list_in_context(self, make_config: Any) -> None:
         mode = CtdiMode()
         config = make_config()
-        ctx = mode.build_sub_context(config, plug_position="ChamberPlugCentre")
-        assert ctx["plug_material_centre"] == "Air"
-        assert ctx["plug_material_top"] == "PMMA"
-
-    def test_plug_position_in_context(self, make_config: Any) -> None:
-        mode = CtdiMode()
-        config = make_config()
-        ctx = mode.build_sub_context(config, plug_position="ChamberPlugTop")
-        assert ctx["plug_position"] == "ChamberPlugTop"
-        assert ctx["plug_material_top"] == "Air"
-        assert ctx["plug_material_centre"] == "PMMA"
+        ctx = mode.build_sub_context(config)
+        assert ctx["plug_positions"] == [
+            "ChamberPlugCentre",
+            "ChamberPlugTop",
+            "ChamberPlugBottom",
+            "ChamberPlugLeft",
+            "ChamberPlugRight",
+        ]
 
 
 class TestGetSubFileName:
@@ -134,24 +131,25 @@ class TestComputeHistories:
 
 
 class TestExecute:
-    def test_generates_plug_files_and_runs(self, make_config: Any) -> None:
+    def test_generates_single_file_and_runs(self, make_config: Any) -> None:
         mode = CtdiMode()
         config = make_config(topas_directory="/topas/bin/topas")
-        fake_commands = [("/topas/bin/topas /rundir/ChamberPlugCentre.txt", "/rundir")]
         with patch.object(
-            CtdiMode, "_generate_plug_files", return_value=fake_commands
+            CtdiMode,
+            "_generate_single_parameter_file",
+            return_value="/rundir/CTDI_all_positions.txt",
         ) as mock_gen, patch(
             "src.modes.ctdi_mode.SimulationRunner.run_ctdi"
         ) as mock_run:
             mode.execute(config, "/rundir", "/project")
             mock_gen.assert_called_once_with(config, "/rundir", "/project")
             mock_run.assert_called_once_with(
-                "/topas/bin/topas", "/rundir", fake_commands
+                "/topas/bin/topas", "/rundir", "/rundir/CTDI_all_positions.txt"
             )
 
 
-class TestGeneratePlugFiles:
-    def test_generates_five_plug_files(
+class TestGenerateSingleParameterFile:
+    def test_generates_single_file_with_all_positions(
         self, tmp_path: object, make_config: Any
     ) -> None:
         project_root = str(tmp_path)
@@ -160,7 +158,7 @@ class TestGeneratePlugFiles:
         os.makedirs(include_dir)
         os.makedirs(os.path.join(project_root, "tmp"), exist_ok=True)
         with open(os.path.join(boilerplates_dir, "CTDIphantom_16.j2"), "w") as f:
-            f.write('Component="{{ plug_position }}"\n')
+            f.write("{% for position in plug_positions %}{{ position }}\n{% endfor %}")
         with open(
             os.path.join(
                 project_root, "src", "boilerplates", "headsourcecode_boilerplate.j2"
@@ -174,9 +172,15 @@ class TestGeneratePlugFiles:
         os.makedirs(rundatadir)
         config = make_config(phantom_size="16 cm")
         mode = CtdiMode()
-        commands = mode._generate_plug_files(config, rundatadir, project_root)
-        assert len(commands) == 5
-        with open(os.path.join(rundatadir, "ChamberPlugCentre.txt")) as f:
+        result = mode._generate_single_parameter_file(
+            config, rundatadir, project_root
+        )
+        assert result == os.path.join(rundatadir, "CTDI_all_positions.txt")
+        with open(result) as f:
             content = f.read()
         assert "head" in content
         assert "ChamberPlugCentre" in content
+        assert "ChamberPlugTop" in content
+        assert "ChamberPlugBottom" in content
+        assert "ChamberPlugLeft" in content
+        assert "ChamberPlugRight" in content

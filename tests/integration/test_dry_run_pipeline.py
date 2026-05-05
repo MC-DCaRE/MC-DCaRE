@@ -92,10 +92,12 @@ def fake_project(tmp_path: Any) -> Any:
         "d:Ge/couch/HLY = {{ couch_thickness }}\n"
         "d:Ge/couch/HLZ = {{ couch_length }}\n"
         "{% endif %}"
-        "i:Sc/ChamberPlugDose_dtm/ZBins={{ dose_to_medium_zbins }}\n"
-        "i:Sc/ChamberPlugDose_tle/ZBins={{ tle_zbins }}\n"
-        "i:Sc/ChamberPlugDose_dtw/ZBins={{ dose_to_water_zbins }}\n"
-        's:Sc/ChamberPlugDose_tle/Component="{{ plug_position }}"\n'
+        "{% for position in plug_positions %}"
+        "i:Sc/{{ position }}_dtm/ZBins={{ dose_to_medium_zbins }}\n"
+        "i:Sc/{{ position }}_tle/ZBins={{ tle_zbins }}\n"
+        "i:Sc/{{ position }}_dtw/ZBins={{ dose_to_water_zbins }}\n"
+        's:Sc/{{ position }}_tle/Component="{{ position }}"\n'
+        "{% endfor %}"
     )
     with open(os.path.join(include_dir, "CTDIphantom_16.j2"), "w") as f:
         f.write(ctdi_16_template)
@@ -164,7 +166,9 @@ class TestDicomDryRunPipeline:
             rundir: str = Orchestrator(project_root).run(config, dry_run=True)
 
         assert os.path.isdir(rundir)
-        assert rundir.startswith(os.path.join(project_root, "runfolder"))
+        assert os.path.normpath(rundir).startswith(
+            os.path.normpath(os.path.join(project_root, "runfolder"))
+        )
 
         head_in_tmp: str = os.path.join(project_root, "tmp", "headsourcecode.txt")
         with open(head_in_tmp) as f:
@@ -257,7 +261,9 @@ class TestCtdiDryRunPipeline:
             rundir: str = Orchestrator(project_root).run(config, dry_run=True)
 
         assert os.path.isdir(rundir)
-        assert rundir.startswith(os.path.join(project_root, "runfolder"))
+        assert os.path.normpath(rundir).startswith(
+            os.path.normpath(os.path.join(project_root, "runfolder"))
+        )
 
         head_in_tmp: str = os.path.join(project_root, "tmp", "headsourcecode.txt")
         with open(head_in_tmp) as f:
@@ -274,9 +280,11 @@ class TestCtdiDryRunPipeline:
         assert "d:Ge/couch/HLX = 300. mm\n" in sub_content
         assert "d:Ge/couch/HLY = 1.0 mm\n" in sub_content
         assert "d:Ge/couch/HLZ = 1500 mm\n" in sub_content
-        assert "i:Sc/ChamberPlugDose_dtm/ZBins=200\n" in sub_content
-        assert "i:Sc/ChamberPlugDose_tle/ZBins=50\n" in sub_content
-        assert "i:Sc/ChamberPlugDose_dtw/ZBins=150\n" in sub_content
+        assert "i:Sc/ChamberPlugCentre_dtm/ZBins=200\n" in sub_content
+        assert "i:Sc/ChamberPlugCentre_tle/ZBins=50\n" in sub_content
+        assert "i:Sc/ChamberPlugCentre_dtw/ZBins=150\n" in sub_content
+        assert "i:Sc/ChamberPlugTop_dtm/ZBins=200\n" in sub_content
+        assert "i:Sc/ChamberPlugTop_tle/ZBins=50\n" in sub_content
 
         for fname in [
             "Muen.dat",

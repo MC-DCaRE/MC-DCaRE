@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Dict, List, Tuple
+from typing import Dict
 
 from src.config import SimulationConfig
 from src.fieldtobladeopening import fieldtobladeopening
@@ -70,24 +70,17 @@ class CtdiMode(SimulationMode):
         }
 
     def build_sub_context(
-        self, config: SimulationConfig, plug_position: str = ""
+        self, config: SimulationConfig
     ) -> Dict[str, object]:
-        plug_materials: Dict[str, str] = {
-            pos: ("Air" if pos == plug_position else "PMMA") for pos in _PLUG_POSITIONS
-        }
         return {
             "couch_enabled": config.ctdi.couch_enabled,
             "couch_width": config.ctdi.couch_width,
             "couch_thickness": config.ctdi.couch_thickness,
             "couch_length": config.ctdi.couch_length,
-            "plug_position": plug_position,
+            "plug_positions": list(_PLUG_POSITIONS),
             "dose_to_medium_zbins": config.ctdi.dose_to_medium_zbins,
             "tle_zbins": config.ctdi.tle_zbins,
             "dose_to_water_zbins": config.ctdi.dose_to_water_zbins,
-            **{
-                f"plug_material_{pos.lower().replace('chamberplug', '')}": mat
-                for pos, mat in plug_materials.items()
-            },
         }
 
     def get_sub_template_name(self, config: SimulationConfig) -> str:
@@ -116,15 +109,20 @@ class CtdiMode(SimulationMode):
         rundir: str,
         project_root: str,
     ) -> None:
-        commands = self._generate_plug_files(config, rundir, project_root)
-        SimulationRunner.run_ctdi(config.general.topas_directory, rundir, commands)
+        param_file = self._generate_single_parameter_file(
+            config, rundir, project_root
+        )
+        SimulationRunner.run_ctdi(
+            config.general.topas_directory, rundir, param_file
+        )
 
-    def _generate_plug_files(
+    def _generate_single_parameter_file(
         self,
         config: SimulationConfig,
         rundatadir: str,
         project_root: str,
-    ) -> List[Tuple[List[str], str]]:
+    ) -> str:
+        """Generate a single TOPAS parameter file scoring all 5 plug positions."""
         renderer = TemplateRenderer(
             os.path.join(project_root, "src", "boilerplates"),
             os.path.join(project_root, "tmp"),
@@ -133,18 +131,13 @@ class CtdiMode(SimulationMode):
         headsource_path = os.path.join(project_root, "tmp", "headsourcecode.txt")
         with open(headsource_path, "r") as f:
             headsource_content = f.read()
-        commands: List[Tuple[List[str], str]] = []
-        for position in _PLUG_POSITIONS:
-            sub_context = self.build_sub_context(config, plug_position=position)
-            phantom_rendered = renderer.render_string(
-                "{% include '" + sub_template + "' %}",
-                sub_context,
-            )
-            combined = headsource_content + phantom_rendered
-            position_file = os.path.join(rundatadir, position + ".txt")
-            with open(position_file, "w") as f:
-                f.write(combined)
-            commands.append(
-                ([config.general.topas_directory, position_file], rundatadir)
-            )
-        return commands
+        sub_context = self.build_sub_context(config)
+        phantom_rendered = renderer.render_string(
+            "{% include '" + sub_template + "' %}",
+            sub_context,
+        )
+        combined = headsource_content + phantom_rendered
+        output_file = os.path.join(rundatadir, "CTDI_all_positions.txt")
+        with open(output_file, "w") as f:
+            f.write(combined)
+        return output_file

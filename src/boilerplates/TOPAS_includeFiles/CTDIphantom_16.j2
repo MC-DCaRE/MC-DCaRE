@@ -125,6 +125,7 @@ s:Sc/{{ position }}_tle/InputFile="Muen.dat"
 s:Sc/{{ position }}_tle/Component="{{ position }}"
 s:Sc/{{ position }}_tle/IfOutputFileAlreadyExists="Overwrite"
 i:Sc/{{ position }}_tle/ZBins={{ tle_zbins }}
+sv:Sc/{{ position }}_tle/Report = 4 "Sum" "Histories" "Count_In_Bin" "Standard_Deviation"
 s:Sc/{{ position }}_tle/OutputFile="{{ position }}_tle"
 
 s:Sc/{{ position }}_dtm/Quantity="DoseToMaterial"
@@ -133,6 +134,7 @@ s:Sc/{{ position }}_dtm/IfOutputFileAlreadyExists="Overwrite"
 i:Sc/{{ position }}_dtm/ZBins={{ dose_to_medium_zbins }}
 s:Sc/{{ position }}_dtm/Material="Air"
 b:Sc/{{ position }}_dtm/PreCalculateStoppingPowerRatios="True"
+sv:Sc/{{ position }}_dtm/Report = 4 "Sum" "Histories" "Count_In_Bin" "Standard_Deviation"
 s:Sc/{{ position }}_dtm/OutputFile="{{ position }}_dtm"
 
 s:Sc/{{ position }}_dtw/Quantity="DoseToWater"
@@ -140,5 +142,6 @@ s:Sc/{{ position }}_dtw/Component="{{ position }}"
 s:Sc/{{ position }}_dtw/IfOutputFileAlreadyExists="Overwrite"
 b:Sc/{{ position }}_dtw/PreCalculateStoppingPowerRatios="True"
 i:Sc/{{ position }}_dtw/ZBins={{ dose_to_water_zbins }}
+sv:Sc/{{ position }}_dtw/Report = 4 "Sum" "Histories" "Count_In_Bin" "Standard_Deviation"
 s:Sc/{{ position }}_dtw/OutputFile="{{ position }}_dtw"
 {% endfor %}

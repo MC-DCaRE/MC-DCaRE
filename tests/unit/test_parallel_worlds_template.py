@@ -127,6 +127,21 @@ class TestCTDIPhantom16ParallelWorlds:
                 f'OutputFile="{position}_dtw"' in rendered
             ), f"Missing OutputFile for {position}_dtw"
 
+    def test_scorers_have_report_with_four_metrics(
+        self, boilerplates_dir: str
+    ) -> None:
+        rendered = _render_template(
+            boilerplates_dir, "CTDIphantom_16.j2", _DEFAULT_CONTEXT
+        )
+        scorer_types = ["_tle", "_dtm", "_dtw"]
+        expected_report = 'Report = 4 "Sum" "Histories" "Count_In_Bin" "Standard_Deviation"'
+        for position in _PLUG_POSITIONS:
+            for scorer_type in scorer_types:
+                scorer_name = f"{position}{scorer_type}"
+                assert (
+                    f"Sc/{scorer_name}/{expected_report}" in rendered
+                ), f"Scorer {scorer_name} should have Report with Sum, Histories, Count_In_Bin, Standard_Deviation"
+
     def test_phantom_radius_is_80mm(self, boilerplates_dir: str) -> None:
         rendered = _render_template(
             boilerplates_dir, "CTDIphantom_16.j2", _DEFAULT_CONTEXT
@@ -201,6 +216,21 @@ class TestCTDIPhantom32ParallelWorlds:
             assert (
                 f'OutputFile="{position}_dtw"' in rendered
             ), f"Missing OutputFile for {position}_dtw"
+
+    def test_scorers_have_report_with_four_metrics(
+        self, boilerplates_dir: str
+    ) -> None:
+        rendered = _render_template(
+            boilerplates_dir, "CTDIphantom_32.j2", _DEFAULT_CONTEXT
+        )
+        scorer_types = ["_tle", "_dtm", "_dtw"]
+        expected_report = 'Report = 4 "Sum" "Histories" "Count_In_Bin" "Standard_Deviation"'
+        for position in _PLUG_POSITIONS:
+            for scorer_type in scorer_types:
+                scorer_name = f"{position}{scorer_type}"
+                assert (
+                    f"Sc/{scorer_name}/{expected_report}" in rendered
+                ), f"Scorer {scorer_name} should have Report with Sum, Histories, Count_In_Bin, Standard_Deviation"
 
     def test_phantom_radius_is_160mm(self, boilerplates_dir: str) -> None:
         rendered = _render_template(

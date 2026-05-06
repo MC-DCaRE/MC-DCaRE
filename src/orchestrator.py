@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
+import shutil
 from datetime import datetime
 
 from src.config import SimulationConfig, quantity_unit_stripper
@@ -36,6 +37,31 @@ class Orchestrator:
         """Create and return a timestamped runfolder directory."""
         return self._create_runfolder()
 
+    @staticmethod
+    def _copy_config_yaml(rundir: str, config: SimulationConfig) -> None:
+        """Copy the source config YAML into the runfolder for provenance.
+
+        If *config* was not loaded from a YAML file (e.g. built from GUI
+        values or programmatically), the copy is silently skipped.
+
+        Args:
+            rundir: Path to the runfolder destination.
+            config: The simulation configuration whose source path to copy.
+        """
+        src: str | None = config.config_yaml_path
+        if src is None:
+            logger.debug("No config YAML path recorded; skipping copy")
+            return
+        if not os.path.isfile(src):
+            logger.warning("Config YAML source not found: %s", src)
+            return
+        dest: str = os.path.join(rundir, os.path.basename(src))
+        try:
+            shutil.copy2(src, dest)
+            logger.info("Copied config YAML to %s", dest)
+        except OSError as exc:
+            logger.warning("Failed to copy config YAML to runfolder: %s", exc)
+
     def run(self, config: SimulationConfig, dry_run: bool = False) -> str:
         rundir: str = self._create_runfolder()
         self.run_with_runfolder(rundir, config, dry_run=dry_run)
@@ -49,6 +75,7 @@ class Orchestrator:
         self.boilerplate_manager.reset_tmp()
 
         logger.info("Runfolder: %s", rundir)
+        self._copy_config_yaml(rundir, config)
 
         renderer = self.boilerplate_manager.create_renderer()
         main_context = mode.build_main_context(config)

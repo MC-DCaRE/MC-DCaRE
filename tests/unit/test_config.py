@@ -326,3 +326,28 @@ class TestDoseCalibrationFactor:
     def test_default_passes_validation(self) -> None:
         config = SimulationConfig()
         config.validate()
+
+
+class TestConfigYamlPath:
+    def test_from_yaml_stores_absolute_path(self, tmp_path: Any) -> None:
+        config_file = tmp_path / "my_config.yaml"
+        config_file.write_text(
+            "general:\n"
+            "  g4_data_directory: /g4\n"
+            "  topas_directory: /topas\n"
+        )
+        config: SimulationConfig = SimulationConfig.from_yaml(str(config_file))
+        assert config.config_yaml_path == os.path.abspath(str(config_file))
+
+    def test_from_gui_values_is_none(self) -> None:
+        config: SimulationConfig = SimulationConfig.from_gui_values({})
+        assert config.config_yaml_path is None
+
+    def test_defaults_is_none(self, tmp_path: Any, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.chdir(tmp_path)
+        config: SimulationConfig = SimulationConfig.defaults()
+        assert config.config_yaml_path is None
+
+    def test_direct_construction_is_none(self) -> None:
+        config = SimulationConfig()
+        assert config.config_yaml_path is None

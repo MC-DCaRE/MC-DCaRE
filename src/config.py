@@ -218,6 +218,7 @@ class SimulationConfig:
     imaging: ImagingConfig = field(default_factory=ImagingConfig)
     dicom: DicomConfig = field(default_factory=DicomConfig)
     ctdi: CtdiConfig = field(default_factory=CtdiConfig)
+    config_yaml_path: str | None = field(default=None, repr=False)
 
     def validate(self) -> None:
         """Check enum fields and integer-valued string fields.
@@ -323,6 +324,7 @@ class SimulationConfig:
             imaging=ImagingConfig(**data.get("imaging", {})),
             dicom=DicomConfig(**data.get("dicom", {})),
             ctdi=CtdiConfig(**data.get("ctdi", {})),
+            config_yaml_path=os.path.abspath(path),
         )
         config.validate()
         return config

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import sys
 from typing import Any
 from unittest.mock import MagicMock, patch
@@ -259,3 +260,69 @@ class TestOrchestratorCalibrationFactor:
         mock_sg_cls.generate.assert_called_once_with(
             100.0, 200.0, "100000000", "/project", 1.0523
         )
+
+
+class TestCopyConfigYaml:
+    def test_copies_when_path_set(self, tmp_path: Any, make_config: Any) -> None:
+        src_file = tmp_path / "source_config.yaml"
+        src_file.write_text("general:\n  seed: '42'\n")
+        rundir = str(tmp_path / "runfolder")
+        os.makedirs(rundir)
+        config = make_config(config_yaml_path=str(src_file))
+        Orchestrator._copy_config_yaml(rundir, config)
+        dest = os.path.join(rundir, "source_config.yaml")
+        assert os.path.isfile(dest)
+        assert open(dest).read() == src_file.read_text()
+
+    def test_skips_when_path_is_none(self, tmp_path: Any, make_config: Any) -> None:
+        rundir = str(tmp_path / "runfolder")
+        os.makedirs(rundir)
+        config = make_config()
+        assert config.config_yaml_path is None
+        Orchestrator._copy_config_yaml(rundir, config)
+        assert os.listdir(rundir) == []
+
+    def test_skips_when_source_missing(self, tmp_path: Any, make_config: Any) -> None:
+        rundir = str(tmp_path / "runfolder")
+        os.makedirs(rundir)
+        config = make_config(config_yaml_path="/nonexistent/path.yaml")
+        Orchestrator._copy_config_yaml(rundir, config)
+        assert os.listdir(rundir) == []
+
+    def test_preserves_timestamps(self, tmp_path: Any, make_config: Any) -> None:
+        src_file = tmp_path / "cfg.yaml"
+        src_file.write_text("general:\n")
+        rundir = str(tmp_path / "runfolder")
+        os.makedirs(rundir)
+        config = make_config(config_yaml_path=str(src_file))
+        Orchestrator._copy_config_yaml(rundir, config)
+        dest = os.path.join(rundir, "cfg.yaml")
+        src_stat = os.stat(str(src_file))
+        dest_stat = os.stat(dest)
+        assert abs(src_stat.st_mtime - dest_stat.st_mtime) < 1
+
+    @patch("src.orchestrator.SpectrumGenerator")
+    @patch("src.orchestrator.BoilerplateManager")
+    def test_run_with_runfolder_copies_config(
+        self,
+        mock_bm_cls: MagicMock,
+        mock_sg_cls: MagicMock,
+        tmp_path: Any,
+        make_config: Any,
+    ) -> None:
+        src_file = tmp_path / "sim.yaml"
+        src_file.write_text("general:\n  seed: '7'\n")
+        rundir = str(tmp_path / "runfolder")
+        os.makedirs(rundir)
+        config = make_config(
+            simulation_type="DICOM",
+            config_yaml_path=str(src_file),
+        )
+        mock_renderer = MagicMock()
+        mock_bm_cls.return_value.create_renderer.return_value = mock_renderer
+        orch = Orchestrator("/project")
+        with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
+            with patch.object(DicomMode, "prepare_run"):
+                with patch.object(DicomMode, "execute"):
+                    orch.run_with_runfolder(rundir, config)
+        assert os.path.isfile(os.path.join(rundir, "sim.yaml"))

@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CTDI simulations now generate a single `CTDI_all_positions.txt` parameter file with 15 scorers (3 per position) instead of 5 separate parameter files.
 - `SimulationRunner` no longer uses `multiprocessing`; `run_ctdi()` removed in favour of direct `run_topas()` call from `CtdiMode.execute()`.
 
+### Fixed
+
+- `CtdiMode.compute_histories()` now correctly multiplies `histories` by `sequential_times` to produce total histories, matching `DicomMode`. This ensures the calibration factor in `head_calibration_factor.txt` is computed with the correct denominator for both CTDI and DICOM simulation modes.
+
 ### Added
 
 - `dose_calibration_factor` field in `GeneralConfig` for measurement-corrected dose output
@@ -23,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `run_with_runfolder()` and `create_runfolder()` on `Orchestrator` for early runfolder creation and file logging
 - Real-time TOPAS stdout/stderr capture via `subprocess.Popen` with per-process log files
 - `.local_paths.yaml` and `config.local.yaml` in `.gitignore` for machine-specific configs
+- `Orchestrator._copy_config_yaml()` copies the source config YAML into the runfolder for reproducibility and provenance tracking
 
 ---
 

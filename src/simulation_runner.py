@@ -55,6 +55,7 @@ class SimulationRunner:
         command: List[str],
         working_dir: str,
         log_path: Optional[str] = None,
+        timeout: int = 3600,
     ) -> None:
         """Execute a single TOPAS command and check its return code.
 
@@ -62,9 +63,10 @@ class SimulationRunner:
             command: TOPAS executable path and argument list.
             working_dir: Working directory for the subprocess.
             log_path: If provided, capture stdout+stderr to this file in real time.
+            timeout: Maximum execution time in seconds (default 1 hour).
 
         Raises:
-            RuntimeError: If TOPAS exits with a non-zero return code.
+            RuntimeError: If TOPAS exits with a non-zero return code or times out.
         """
         logger.info("Running TOPAS: %s in %s", " ".join(command), working_dir)
 
@@ -81,7 +83,14 @@ class SimulationRunner:
                     for line in proc.stdout:
                         log_file.write(line)
                         log_file.flush()
-                proc.wait()
+                try:
+                    proc.wait(timeout=timeout)
+                except subprocess.TimeoutExpired:
+                    proc.terminate()
+                    proc.wait(timeout=10)
+                    raise RuntimeError(
+                        "TOPAS process timed out after {}s".format(timeout)
+                    )
             returncode = proc.returncode
         else:
             result = subprocess.run(command, cwd=working_dir)
@@ -107,7 +116,10 @@ class SimulationRunner:
     def run_dicom(topas_path: str, rundatadir: str) -> None:
         """Run a single DICOM patient simulation."""
         SimulationRunner.validate_topas_binary(topas_path)
-        command: List[str] = [topas_path, rundatadir + "/headsourcecode.txt"]
+        command: List[str] = [
+            topas_path,
+            os.path.join(rundatadir, "headsourcecode.txt"),
+        ]
         log_path = os.path.join(rundatadir, "topas_dicom.log")
         logger.info("Starting DICOM simulation")
         SimulationRunner.run_topas(command, rundatadir, log_path)

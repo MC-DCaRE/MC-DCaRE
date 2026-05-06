@@ -150,12 +150,18 @@ class TestFieldToBladeOpening:
         )  # Allow for floating point precision and implementation quirks
 
     def test_fieldtobladeopening_units_preserved(self):
-        """Test that units are preserved in the output."""
-        input_field = ["14 mm", "14 mm", "14 mm", "14 mm"]
+        """Test that cm units are preserved in the output."""
+        input_field = ["14 cm", "14 cm", "14 cm", "14 cm"]
         result = fieldtobladeopening(input_field)
 
-        # Check that all results contain the unit "mm"
-        assert all("mm" in item for item in result)
+        assert all("cm" in item for item in result)
+
+    def test_fieldtobladeopening_mm_converted_to_cm(self):
+        """Test that mm inputs are converted to cm output."""
+        input_field = ["140 mm", "140 mm", "140 mm", "140 mm"]
+        result = fieldtobladeopening(input_field)
+
+        assert all("cm" in item for item in result)
 
     def test_fieldtobladeopening_script_execution(self):
         """Test that script can be executed directly."""

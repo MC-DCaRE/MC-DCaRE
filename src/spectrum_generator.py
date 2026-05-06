@@ -37,7 +37,16 @@ class SpectrumGenerator:
             exposure,
             histories,
         )
-        s = sp.Spek(kvp=anode_voltage, th=14, mas=exposure, dk=0.2, z=0.1)
+        # SpekPy inherent filtration: dk=0.2 mm Al equivalent.
+        # TrueBeam GS-1542 tube spec lists 2.7 mm Al inherent filtration.
+        # The 0.7 mm Ti filter is modeled separately in TOPAS geometry.
+        s = sp.Spek(
+            kvp=anode_voltage,
+            th=14,
+            mas=exposure,
+            dk=0.2,
+            z=0.1,
+        )
 
         summary_of_inputs: str = s.state.get_current_state_str(
             "full", s.get_std_results()
@@ -46,7 +55,10 @@ class SpectrumGenerator:
         no_particles: float = 4 * np.pi * 0.1**2 * s.get_flu()
 
         calib_factor: float = (no_particles / int(histories)) * dose_calibration_factor
-        with open(project_root + "/tmp/head_calibration_factor.txt", "w") as f:
+        import os
+
+        calib_path = os.path.join(project_root, "tmp", "head_calibration_factor.txt")
+        with open(calib_path, "w") as f:
             f.write("%.10e" % calib_factor)
             f.write("\nMultiply dose by the factor above to get absolute dose \n")
             f.write("The number of histories in this run was: " + histories + "\n")
@@ -63,22 +75,28 @@ class SpectrumGenerator:
             else:
                 normalised_spec_trimmed.append(0)
 
-        np.set_printoptions(suppress=True)
         weighted_fluence = np.asarray(normalised_spec_trimmed)
         energy_spectrum = karr
+        energy_str = np.array2string(
+            energy_spectrum, separator=" ", suppress_small=True
+        )[1:-1]
+        weight_str = np.array2string(
+            weighted_fluence, separator=" ", suppress_small=True
+        )[1:-1]
         converted_file: str = (
             "dv:So/beam/BeamEnergySpectrumValues = "
             + str(energy_spectrum.size)
             + "\n "
-            + str(energy_spectrum)[1:-1]
+            + energy_str
             + " keV \n"
             + "\n uv:So/beam/BeamEnergySpectrumWeights = "
             + str(weighted_fluence.size)
             + "\n "
-            + str(weighted_fluence)[1:-1]
+            + weight_str
         )
 
-        with open(project_root + "/tmp/ConvertedTopasFile.txt", "w") as f:
+        spectrum_path = os.path.join(project_root, "tmp", "ConvertedTopasFile.txt")
+        with open(spectrum_path, "w") as f:
             f.write(converted_file)
 
         logger.info("Spectrum files written to %s/tmp/", project_root)

@@ -34,9 +34,7 @@ class SimulationMode(ABC):
         ...
 
     @abstractmethod
-    def build_sub_context(
-        self, config: SimulationConfig
-    ) -> Dict[str, object]:
+    def build_sub_context(self, config: SimulationConfig) -> Dict[str, object]:
         """Build the template context dict for the sub-include file."""
         ...
 

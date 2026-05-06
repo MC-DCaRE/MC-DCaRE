@@ -53,6 +53,28 @@ class TestBuildMainContext:
         ctx = mode.build_main_context(config)
         assert ctx["graphics_enabled"] is False
 
+    def test_rotation_direction_in_context(self, make_config: Any) -> None:
+        mode = CtdiMode()
+        config = make_config(rotation_direction="CBCT Clockwise")
+        ctx = mode.build_main_context(config)
+        assert ctx["rotation_direction"] == "CBCT Clockwise"
+        assert ctx["start_angle_value"] == 0.0
+
+    def test_kvk_angle_values_in_context(self, make_config: Any) -> None:
+        mode = CtdiMode()
+        config = make_config(rotation_direction="kV-kV", start_angle="0 deg")
+        ctx = mode.build_main_context(config)
+        assert ctx["rotation_direction"] == "kV-kV"
+        assert ctx["start_angle_value"] == 0.0
+        assert ctx["second_angle_value"] == 90.0
+
+    def test_kvk_angle_values_with_offset(self, make_config: Any) -> None:
+        mode = CtdiMode()
+        config = make_config(rotation_direction="kV-kV", start_angle="45 deg")
+        ctx = mode.build_main_context(config)
+        assert ctx["start_angle_value"] == 45.0
+        assert ctx["second_angle_value"] == 135.0
+
 
 class TestBuildSubContext:
     def test_couch_enabled_in_context(self, make_config: Any) -> None:
@@ -178,9 +200,7 @@ class TestGenerateSingleParameterFile:
         os.makedirs(rundatadir)
         config = make_config(phantom_size="16 cm")
         mode = CtdiMode()
-        result = mode._generate_single_parameter_file(
-            config, rundatadir, project_root
-        )
+        result = mode._generate_single_parameter_file(config, rundatadir, project_root)
         assert result == os.path.join(rundatadir, "CTDI_all_positions.txt")
         with open(result) as f:
             content = f.read()

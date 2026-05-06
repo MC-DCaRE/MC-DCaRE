@@ -1,4 +1,8 @@
-"""Converts radiation field sizes to collimator blade opening positions."""
+"""Converts radiation field sizes to collimator blade opening positions.
+
+Linear calibration coefficients derived from TrueBeam kV collimator measurements.
+TODO: Cite measurement source (Varian service data / calibration session).
+"""
 
 from __future__ import annotations
 
@@ -25,28 +29,36 @@ def fieldtobladeopening(field_size_list: List[str]) -> List[str]:
     """
 
     def ybladeopening(field: float) -> float:
+        """Convert field size (cm) to Y-blade opening position (cm).
+
+        Linear calibration: blade = (field + 90.297) / 17.370
+        """
         return (field + 90.2972966781214) / 17.3699885452463
 
     def xbladeopening(field: float) -> float:
+        """Convert field size (cm) to X-blade opening position (cm).
+
+        Linear calibration: blade = (field + 72.399) / 13.990
+        """
         return (field + 72.3986904761904) / 13.9904761904762
 
     blade_position_list: List[str] = []
     for count, field_str in enumerate(field_size_list):
-        tokens = field_str.split()
-        found_number = False
-        for token in tokens:
-            try:
-                float(token)
-                found_number = True
-                break
-            except ValueError:
-                pass
-        if not found_number:
+        try:
+            parsed = Quantity.parse(field_str)
+        except ValueError:
             raise TypeError(
                 "Field size must contain a numeric value, e.g. '14 cm'. Got: "
                 + repr(field_str)
             )
-        parsed = Quantity.parse(field_str)
+        if parsed.unit not in ("cm", "mm", "m", "CM", "MM", "M"):
+            raise ValueError(
+                "Unsupported unit '{}'. Expected cm, mm, or m.".format(parsed.unit)
+            )
+        if parsed.unit.lower() == "mm":
+            parsed = Quantity(parsed.value / 10, "cm")
+        elif parsed.unit.lower() == "m":
+            parsed = Quantity(parsed.value * 100, "cm")
         if count == 0:
             blade_position_float = xbladeopening(parsed.value)
         elif count == 1:

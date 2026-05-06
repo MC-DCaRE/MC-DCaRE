@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 PERIPHERAL_POSITIONS = ["Bottom", "Top", "Left", "Right"]
 CENTER_POSITION = "Centre"
-FILE_TYPES = ["dtm", "tle"]
+FILE_TYPES = ["dtm", "tle", "dtw"]
 
 
 class CTDICalculator:

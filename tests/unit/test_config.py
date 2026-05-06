@@ -332,9 +332,7 @@ class TestConfigYamlPath:
     def test_from_yaml_stores_absolute_path(self, tmp_path: Any) -> None:
         config_file = tmp_path / "my_config.yaml"
         config_file.write_text(
-            "general:\n"
-            "  g4_data_directory: /g4\n"
-            "  topas_directory: /topas\n"
+            "general:\n" "  g4_data_directory: /g4\n" "  topas_directory: /topas\n"
         )
         config: SimulationConfig = SimulationConfig.from_yaml(str(config_file))
         assert config.config_yaml_path == os.path.abspath(str(config_file))
@@ -343,7 +341,9 @@ class TestConfigYamlPath:
         config: SimulationConfig = SimulationConfig.from_gui_values({})
         assert config.config_yaml_path is None
 
-    def test_defaults_is_none(self, tmp_path: Any, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_defaults_is_none(
+        self, tmp_path: Any, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         monkeypatch.chdir(tmp_path)
         config: SimulationConfig = SimulationConfig.defaults()
         assert config.config_yaml_path is None
@@ -351,3 +351,53 @@ class TestConfigYamlPath:
     def test_direct_construction_is_none(self) -> None:
         config = SimulationConfig()
         assert config.config_yaml_path is None
+
+
+class TestVoltageRangeValidation:
+    def test_voltage_below_range_raises(self) -> None:
+        from src.config import ImagingConfig
+
+        config = SimulationConfig(imaging=ImagingConfig(anode_voltage="30 kV"))
+        with pytest.raises(ValueError, match="40-150 kV"):
+            config.validate()
+
+    def test_voltage_above_range_raises(self) -> None:
+        from src.config import ImagingConfig
+
+        config = SimulationConfig(imaging=ImagingConfig(anode_voltage="200 kV"))
+        with pytest.raises(ValueError, match="40-150 kV"):
+            config.validate()
+
+    def test_voltage_at_lower_bound_passes(self) -> None:
+        from src.config import ImagingConfig
+
+        config = SimulationConfig(imaging=ImagingConfig(anode_voltage="40 kV"))
+        config.validate()
+
+    def test_voltage_at_upper_bound_passes(self) -> None:
+        from src.config import ImagingConfig
+
+        config = SimulationConfig(imaging=ImagingConfig(anode_voltage="150 kV"))
+        config.validate()
+
+
+class TestExposureValidation:
+    def test_negative_exposure_raises(self) -> None:
+        from src.config import ImagingConfig
+
+        config = SimulationConfig(imaging=ImagingConfig(exposure="-10 mAs"))
+        with pytest.raises(ValueError, match="positive"):
+            config.validate()
+
+    def test_zero_exposure_raises(self) -> None:
+        from src.config import ImagingConfig
+
+        config = SimulationConfig(imaging=ImagingConfig(exposure="0 mAs"))
+        with pytest.raises(ValueError, match="positive"):
+            config.validate()
+
+    def test_positive_exposure_passes(self) -> None:
+        from src.config import ImagingConfig
+
+        config = SimulationConfig(imaging=ImagingConfig(exposure="100 mAs"))
+        config.validate()

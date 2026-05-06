@@ -12,7 +12,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from src.template_renderer import TemplateRenderer
 
-
 _PLUG_POSITIONS = [
     "ChamberPlugCentre",
     "ChamberPlugTop",
@@ -55,9 +54,7 @@ def boilerplates_dir(tmp_path: Any) -> str:
     return str(tmp_path)
 
 
-def _render_template(
-    boilerplates_dir: str, template_name: str, context: dict
-) -> str:
+def _render_template(boilerplates_dir: str, template_name: str, context: dict) -> str:
     """Render a template and return the output string."""
     tmp_dir = os.path.join(os.path.dirname(boilerplates_dir), "tmp_out")
     os.makedirs(tmp_dir, exist_ok=True)
@@ -87,9 +84,7 @@ class TestCTDIPhantom16ParallelWorlds:
                 f'Ge/{position}/Material="PMMA"' not in rendered
             ), f"{position} should NOT have PMMA material"
 
-    def test_all_plugs_have_parallel_world_name(
-        self, boilerplates_dir: str
-    ) -> None:
+    def test_all_plugs_have_parallel_world_name(self, boilerplates_dir: str) -> None:
         rendered = _render_template(
             boilerplates_dir, "CTDIphantom_16.j2", _DEFAULT_CONTEXT
         )
@@ -110,9 +105,7 @@ class TestCTDIPhantom16ParallelWorlds:
                     f"Sc/{scorer_name}/Quantity" in rendered
                 ), f"Scorer {scorer_name} should be defined"
 
-    def test_output_file_names_match_convention(
-        self, boilerplates_dir: str
-    ) -> None:
+    def test_output_file_names_match_convention(self, boilerplates_dir: str) -> None:
         rendered = _render_template(
             boilerplates_dir, "CTDIphantom_16.j2", _DEFAULT_CONTEXT
         )
@@ -127,14 +120,14 @@ class TestCTDIPhantom16ParallelWorlds:
                 f'OutputFile="{position}_dtw"' in rendered
             ), f"Missing OutputFile for {position}_dtw"
 
-    def test_scorers_have_report_with_four_metrics(
-        self, boilerplates_dir: str
-    ) -> None:
+    def test_scorers_have_report_with_four_metrics(self, boilerplates_dir: str) -> None:
         rendered = _render_template(
             boilerplates_dir, "CTDIphantom_16.j2", _DEFAULT_CONTEXT
         )
         scorer_types = ["_tle", "_dtm", "_dtw"]
-        expected_report = 'Report = 4 "Sum" "Histories" "Count_In_Bin" "Standard_Deviation"'
+        expected_report = (
+            'Report = 4 "Sum" "Histories" "Count_In_Bin" "Standard_Deviation"'
+        )
         for position in _PLUG_POSITIONS:
             for scorer_type in scorer_types:
                 scorer_name = f"{position}{scorer_type}"
@@ -177,9 +170,7 @@ class TestCTDIPhantom32ParallelWorlds:
                 f'Ge/{position}/Material="PMMA"' not in rendered
             ), f"{position} should NOT have PMMA material"
 
-    def test_all_plugs_have_parallel_world_name(
-        self, boilerplates_dir: str
-    ) -> None:
+    def test_all_plugs_have_parallel_world_name(self, boilerplates_dir: str) -> None:
         rendered = _render_template(
             boilerplates_dir, "CTDIphantom_32.j2", _DEFAULT_CONTEXT
         )
@@ -200,9 +191,7 @@ class TestCTDIPhantom32ParallelWorlds:
                     f"Sc/{scorer_name}/Quantity" in rendered
                 ), f"Scorer {scorer_name} should be defined"
 
-    def test_output_file_names_match_convention(
-        self, boilerplates_dir: str
-    ) -> None:
+    def test_output_file_names_match_convention(self, boilerplates_dir: str) -> None:
         rendered = _render_template(
             boilerplates_dir, "CTDIphantom_32.j2", _DEFAULT_CONTEXT
         )
@@ -217,14 +206,14 @@ class TestCTDIPhantom32ParallelWorlds:
                 f'OutputFile="{position}_dtw"' in rendered
             ), f"Missing OutputFile for {position}_dtw"
 
-    def test_scorers_have_report_with_four_metrics(
-        self, boilerplates_dir: str
-    ) -> None:
+    def test_scorers_have_report_with_four_metrics(self, boilerplates_dir: str) -> None:
         rendered = _render_template(
             boilerplates_dir, "CTDIphantom_32.j2", _DEFAULT_CONTEXT
         )
         scorer_types = ["_tle", "_dtm", "_dtw"]
-        expected_report = 'Report = 4 "Sum" "Histories" "Count_In_Bin" "Standard_Deviation"'
+        expected_report = (
+            'Report = 4 "Sum" "Histories" "Count_In_Bin" "Standard_Deviation"'
+        )
         for position in _PLUG_POSITIONS:
             for scorer_type in scorer_types:
                 scorer_name = f"{position}{scorer_type}"

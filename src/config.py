@@ -268,6 +268,14 @@ class SimulationConfig:
                     calib_val
                 )
             )
+        voltage_val = Quantity.parse(self.imaging.anode_voltage).value
+        if not 40 <= voltage_val <= 150:
+            raise ValueError(
+                "Anode voltage must be 40-150 kV, got {}".format(voltage_val)
+            )
+        exposure_val = Quantity.parse(self.imaging.exposure).value
+        if exposure_val <= 0:
+            raise ValueError("Exposure must be positive, got {}".format(exposure_val))
 
     @staticmethod
     def _validate_enum_field(field_name: str, value: str, enum_cls: Type[Enum]) -> None:

@@ -17,6 +17,9 @@ DEFAULT_MAIN_CONTEXT: dict = {
     "graphics_enabled": False,
     "simulation_type": "CTDI",
     "phantom_size": "16",
+    "rotation_direction": "CBCT Clockwise",
+    "start_angle_value": 0.0,
+    "second_angle_value": 0.0,
 }
 
 DEFAULT_CTDI_SUB_CONTEXT: dict = {

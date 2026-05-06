@@ -9,6 +9,7 @@ from typing import Dict
 
 from src.config import SimulationConfig
 from src.modes.base import SimulationMode
+from src.models.quantity import Quantity
 from src.simulation_runner import SimulationRunner
 
 logger = logging.getLogger(__name__)
@@ -26,6 +27,10 @@ class DicomMode(SimulationMode):
         return "headsourcecode.txt"
 
     def build_main_context(self, config: SimulationConfig) -> Dict[str, object]:
+        start_val, _ = Quantity.parse(config.imaging.start_angle).to_tuple()
+        second_angle = (
+            start_val + 90.0 if config.imaging.rotation_direction == "kV-kV" else 0.0
+        )
         return {
             "g4_data_directory": config.general.g4_data_directory,
             "seed": config.general.seed,
@@ -43,11 +48,12 @@ class DicomMode(SimulationMode):
             "graphics_enabled": config.dicom.graphics_enabled,
             "simulation_type": "DICOM",
             "phantom_size": "",
+            "rotation_direction": config.imaging.rotation_direction,
+            "start_angle_value": start_val,
+            "second_angle_value": second_angle,
         }
 
-    def build_sub_context(
-        self, config: SimulationConfig
-    ) -> Dict[str, object]:
+    def build_sub_context(self, config: SimulationConfig) -> Dict[str, object]:
         output_filename = "{}_{}_{}_{}_DOSE_PTV".format(
             config.dicom.patient_id,
             config.imaging.rotation_direction,

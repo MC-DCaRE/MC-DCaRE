@@ -29,6 +29,20 @@ class TestBuildMainContext:
         ctx = mode.build_main_context(config)
         assert ctx["graphics_enabled"] is True
 
+    def test_rotation_direction_in_context(self, make_config: Any) -> None:
+        mode = DicomMode()
+        config = make_config(rotation_direction="CBCT Clockwise")
+        ctx = mode.build_main_context(config)
+        assert ctx["rotation_direction"] == "CBCT Clockwise"
+
+    def test_kvk_angle_values_in_context(self, make_config: Any) -> None:
+        mode = DicomMode()
+        config = make_config(rotation_direction="kV-kV", start_angle="0 deg")
+        ctx = mode.build_main_context(config)
+        assert ctx["rotation_direction"] == "kV-kV"
+        assert ctx["start_angle_value"] == 0.0
+        assert ctx["second_angle_value"] == 90.0
+
 
 class TestBuildSubContext:
     def test_replaces_patient_yaw(self, make_config: Any) -> None:

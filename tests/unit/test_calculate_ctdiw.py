@@ -59,7 +59,7 @@ invalid_dose_value
 class TestFindChamberFiles:
     def test_find_all_files_exist(self, tmp_path: Path) -> None:
         positions = ["Bottom", "Top", "Left", "Right", "Centre"]
-        file_types = ["dtm", "tle"]
+        file_types = ["dtm", "tle", "dtw"]
 
         for position in positions:
             for file_type in file_types:
@@ -71,7 +71,7 @@ class TestFindChamberFiles:
         calc = _make_cal(tmp_path)
         chamber_files = calc._find_chamber_files()
 
-        assert len(chamber_files) == 2
+        assert len(chamber_files) == 3
         for file_type in file_types:
             assert len(chamber_files[file_type]) == 5
             for position in positions:
@@ -199,7 +199,7 @@ class TestValidate:
 class TestCalculate:
     def test_calculate_with_mocked_files(self, tmp_path: Path) -> None:
         for position in ["Bottom", "Top", "Left", "Right", "Centre"]:
-            for file_type in ["dtm", "tle"]:
+            for file_type in ["dtm", "tle", "dtw"]:
                 (
                     tmp_path / "ChamberPlug{}_{}.csv".format(position, file_type)
                 ).write_text("1.0e-10")
@@ -213,9 +213,10 @@ class TestCalculate:
         ):
             results = calc.calculate()
 
-        assert len(results) == 2
+        assert len(results) == 3
         assert results[0]["FileType"] == "dtm"
         assert results[1]["FileType"] == "tle"
+        assert results[2]["FileType"] == "dtw"
 
 
 class TestExtractCalibrationFactor:

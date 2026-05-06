@@ -141,9 +141,7 @@ class TestValidateTopasBinary:
         SimulationRunner.validate_topas_binary("/usr/local/topas/bin/topas")
         mock_exists.assert_called_once_with("/usr/local/topas/bin/topas")
         mock_isfile.assert_called_once_with("/usr/local/topas/bin/topas")
-        mock_access.assert_called_once_with(
-            "/usr/local/topas/bin/topas", os.X_OK
-        )
+        mock_access.assert_called_once_with("/usr/local/topas/bin/topas", os.X_OK)
 
     @patch("src.simulation_runner.os.path.exists", return_value=False)
     def test_raises_file_not_found_when_path_missing(
@@ -214,6 +212,31 @@ class TestExitCode127:
             SimulationRunner.run_topas(["/topas", "file.txt"], "/dir")
         # Should NOT contain the exit code 127 specific guidance
         assert "command not found" not in str(exc_info.value)
+
+
+class TestTimeout:
+    @patch("src.simulation_runner.subprocess.Popen")
+    def test_timeout_raises_runtime_error(self, mock_popen: MagicMock) -> None:
+        import subprocess as sp
+
+        mock_proc = MagicMock()
+        mock_proc.stdout = iter([])
+        mock_proc.wait.side_effect = [
+            sp.TimeoutExpired(cmd="topas", timeout=1),
+            None,
+        ]
+        mock_proc.returncode = 0
+        mock_popen.return_value = mock_proc
+        m = mock_open()
+        with patch("builtins.open", m):
+            with pytest.raises(RuntimeError, match="timed out"):
+                SimulationRunner.run_topas(
+                    ["/topas", "file.txt"],
+                    "/dir",
+                    log_path="/dir/test.log",
+                    timeout=1,
+                )
+        mock_proc.terminate.assert_called_once()
 
 
 if __name__ == "__main__":

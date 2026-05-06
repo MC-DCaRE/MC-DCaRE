@@ -80,3 +80,12 @@ class TestImagingModesLookup:
         for name in ["Thorax", "Pelvis", "Pelvis Large"]:
             mode: ImagingMode = IMAGING_MODES["CBCT Clockwise_" + name]
             assert mode.fan_mode == "Half Fan", "Expected Half Fan for " + name
+
+    def test_spotlight_blade_signs_match_full_fan(self) -> None:
+        reference = IMAGING_MODES["CBCT Clockwise_Image Gently"]
+        for key in ["CBCT Clockwise_Spotlight", "CBCT Anticlockwise_Spotlight"]:
+            mode = IMAGING_MODES[key]
+            assert mode.blade_x1 == reference.blade_x1, key + " blade_x1 mismatch"
+            assert mode.blade_x2 == reference.blade_x2, key + " blade_x2 mismatch"
+            assert mode.blade_y1 == reference.blade_y1, key + " blade_y1 mismatch"
+            assert mode.blade_y2 == reference.blade_y2, key + " blade_y2 mismatch"

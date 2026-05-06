@@ -3,6 +3,11 @@
 Exports :class:`ImagingMode`, the :data:`IMAGING_MODES` dictionary keyed by
 ``"<direction>_<protocol>"`` strings, :data:`IMAGING_MODE_SELECTION_LABELS`,
 and :data:`BACKWARD_COMPAT_LOOKUP` for legacy GUI compatibility.
+
+Note: CBCT ``rotation_rate`` values (0.4 deg/s) are simulation-specific sampling
+parameters, not clinical rotation speeds. Clinical TrueBeam CBCT uses 1.5-6.0 deg/s
+(Mao et al. 2018). kV-kV ``rotation_rate`` (90 deg/s) represents the angle difference
+between two discrete static exposures, not an actual rotation speed.
 """
 
 from __future__ import annotations
@@ -105,9 +110,9 @@ _IMAGING_MODES_DATA: Dict[str, tuple] = {
         "10.7 cm",
         "10.7 cm",
         "6.175536078965273 cm",
-        "6.175536078965273 cm",
+        "-6.175536078965273 cm",
         "5.814471115800571 cm",
-        "5.814471115800571 cm",
+        "-5.814471115800571 cm",
     ),
     "CBCT Clockwise_Thorax": (
         "0.4 deg/s",
@@ -210,9 +215,9 @@ _IMAGING_MODES_DATA: Dict[str, tuple] = {
         "10.7 cm",
         "10.7 cm",
         "6.175536078965273 cm",
-        "6.175536078965273 cm",
+        "-6.175536078965273 cm",
         "5.814471115800571 cm",
-        "5.814471115800571 cm",
+        "-5.814471115800571 cm",
     ),
     "CBCT Anticlockwise_Thorax": (
         "-0.4 deg/s",
@@ -259,6 +264,8 @@ _IMAGING_MODES_DATA: Dict[str, tuple] = {
         "5.814471115800571 cm",
         "-5.814471115800571 cm",
     ),
+    # kV-kV protocols: all use 13.2 x 9.9 cm field sizes and Full Fan bowtie.
+    # Voltage and exposure differ per protocol. Field sizes may differ from clinical configurations.
     "kV-kV_Image Gently": (
         "90 deg/s",
         "80 kV",

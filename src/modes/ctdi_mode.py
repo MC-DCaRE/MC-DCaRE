@@ -9,6 +9,7 @@ from typing import Dict
 from src.config import SimulationConfig
 from src.fieldtobladeopening import fieldtobladeopening
 from src.modes.base import SimulationMode
+from src.models.quantity import Quantity
 from src.simulation_runner import SimulationRunner
 from src.template_renderer import TemplateRenderer
 
@@ -21,6 +22,22 @@ _PLUG_POSITIONS = [
     "ChamberPlugLeft",
     "ChamberPlugRight",
 ]
+
+
+def _compute_angle_values(
+    rotation_direction: str, start_angle: str
+) -> Dict[str, object]:
+    start_val, _ = Quantity.parse(start_angle).to_tuple()
+    result: Dict[str, object] = {
+        "rotation_direction": rotation_direction,
+        "start_angle": start_angle,
+        "start_angle_value": start_val,
+    }
+    if rotation_direction == "kV-kV":
+        result["second_angle_value"] = start_val + 90.0
+    else:
+        result["second_angle_value"] = 0.0
+    return result
 
 
 class CtdiMode(SimulationMode):
@@ -67,11 +84,12 @@ class CtdiMode(SimulationMode):
             "graphics_enabled": config.ctdi.graphics_enabled,
             "simulation_type": "CTDI",
             "phantom_size": size_number,
+            **_compute_angle_values(
+                config.imaging.rotation_direction, config.imaging.start_angle
+            ),
         }
 
-    def build_sub_context(
-        self, config: SimulationConfig
-    ) -> Dict[str, object]:
+    def build_sub_context(self, config: SimulationConfig) -> Dict[str, object]:
         return {
             "couch_enabled": config.ctdi.couch_enabled,
             "couch_width": config.ctdi.couch_width,
@@ -109,12 +127,8 @@ class CtdiMode(SimulationMode):
         rundir: str,
         project_root: str,
     ) -> None:
-        param_file = self._generate_single_parameter_file(
-            config, rundir, project_root
-        )
-        SimulationRunner.run_ctdi(
-            config.general.topas_directory, rundir, param_file
-        )
+        param_file = self._generate_single_parameter_file(config, rundir, project_root)
+        SimulationRunner.run_ctdi(config.general.topas_directory, rundir, param_file)
 
     def _generate_single_parameter_file(
         self,

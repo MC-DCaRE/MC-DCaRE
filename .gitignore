@@ -340,3 +340,8 @@ cython_debug/
 kilo.jsonc
 .local_paths.yaml
 config.local.yaml
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key

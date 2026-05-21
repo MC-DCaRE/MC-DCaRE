@@ -79,8 +79,7 @@ class BenchmarkCalculator:
             )
             benchmark_results.append(result)
             logger.info(
-                "%s: simulated=%.6e Gy, reference=%.6e Gy, "
-                "deviation=%.2f%%, status=%s",
+                "%s: simulated=%.6e Gy, reference=%.6e Gy, deviation=%.2f%%, status=%s",
                 result.file_type,
                 result.simulated_ctdi_w_Gy,
                 result.reference_ctdi_w_Gy,

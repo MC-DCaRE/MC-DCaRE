@@ -332,7 +332,7 @@ class TestConfigYamlPath:
     def test_from_yaml_stores_absolute_path(self, tmp_path: Any) -> None:
         config_file = tmp_path / "my_config.yaml"
         config_file.write_text(
-            "general:\n" "  g4_data_directory: /g4\n" "  topas_directory: /topas\n"
+            "general:\n  g4_data_directory: /g4\n  topas_directory: /topas\n"
         )
         config: SimulationConfig = SimulationConfig.from_yaml(str(config_file))
         assert config.config_yaml_path == os.path.abspath(str(config_file))

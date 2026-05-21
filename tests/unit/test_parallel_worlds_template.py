@@ -71,27 +71,27 @@ class TestCTDIPhantom16ParallelWorlds:
             boilerplates_dir, "CTDIphantom_16.j2", _DEFAULT_CONTEXT
         )
         for position in _PLUG_POSITIONS:
-            assert (
-                f'Ge/{position}/Material="Air"' in rendered
-            ), f"{position} should have Air material"
+            assert f'Ge/{position}/Material="Air"' in rendered, (
+                f"{position} should have Air material"
+            )
 
     def test_no_plug_has_pmma_material(self, boilerplates_dir: str) -> None:
         rendered = _render_template(
             boilerplates_dir, "CTDIphantom_16.j2", _DEFAULT_CONTEXT
         )
         for position in _PLUG_POSITIONS:
-            assert (
-                f'Ge/{position}/Material="PMMA"' not in rendered
-            ), f"{position} should NOT have PMMA material"
+            assert f'Ge/{position}/Material="PMMA"' not in rendered, (
+                f"{position} should NOT have PMMA material"
+            )
 
     def test_all_plugs_have_parallel_world_name(self, boilerplates_dir: str) -> None:
         rendered = _render_template(
             boilerplates_dir, "CTDIphantom_16.j2", _DEFAULT_CONTEXT
         )
         for position in _PLUG_POSITIONS:
-            assert (
-                f'Ge/{position}/ParallelWorldName="{position}"' in rendered
-            ), f"{position} should have ParallelWorldName set"
+            assert f'Ge/{position}/ParallelWorldName="{position}"' in rendered, (
+                f"{position} should have ParallelWorldName set"
+            )
 
     def test_fifteen_scorers_defined(self, boilerplates_dir: str) -> None:
         rendered = _render_template(
@@ -101,24 +101,24 @@ class TestCTDIPhantom16ParallelWorlds:
         for position in _PLUG_POSITIONS:
             for scorer_type in scorer_types:
                 scorer_name = f"{position}{scorer_type}"
-                assert (
-                    f"Sc/{scorer_name}/Quantity" in rendered
-                ), f"Scorer {scorer_name} should be defined"
+                assert f"Sc/{scorer_name}/Quantity" in rendered, (
+                    f"Scorer {scorer_name} should be defined"
+                )
 
     def test_output_file_names_match_convention(self, boilerplates_dir: str) -> None:
         rendered = _render_template(
             boilerplates_dir, "CTDIphantom_16.j2", _DEFAULT_CONTEXT
         )
         for position in _PLUG_POSITIONS:
-            assert (
-                f'OutputFile="{position}_tle"' in rendered
-            ), f"Missing OutputFile for {position}_tle"
-            assert (
-                f'OutputFile="{position}_dtm"' in rendered
-            ), f"Missing OutputFile for {position}_dtm"
-            assert (
-                f'OutputFile="{position}_dtw"' in rendered
-            ), f"Missing OutputFile for {position}_dtw"
+            assert f'OutputFile="{position}_tle"' in rendered, (
+                f"Missing OutputFile for {position}_tle"
+            )
+            assert f'OutputFile="{position}_dtm"' in rendered, (
+                f"Missing OutputFile for {position}_dtm"
+            )
+            assert f'OutputFile="{position}_dtw"' in rendered, (
+                f"Missing OutputFile for {position}_dtw"
+            )
 
     def test_scorers_have_report_with_four_metrics(self, boilerplates_dir: str) -> None:
         rendered = _render_template(
@@ -131,9 +131,9 @@ class TestCTDIPhantom16ParallelWorlds:
         for position in _PLUG_POSITIONS:
             for scorer_type in scorer_types:
                 scorer_name = f"{position}{scorer_type}"
-                assert (
-                    f"Sc/{scorer_name}/{expected_report}" in rendered
-                ), f"Scorer {scorer_name} should have Report with Sum, Histories, Count_In_Bin, Standard_Deviation"
+                assert f"Sc/{scorer_name}/{expected_report}" in rendered, (
+                    f"Scorer {scorer_name} should have Report with Sum, Histories, Count_In_Bin, Standard_Deviation"
+                )
 
     def test_phantom_radius_is_80mm(self, boilerplates_dir: str) -> None:
         rendered = _render_template(
@@ -157,27 +157,27 @@ class TestCTDIPhantom32ParallelWorlds:
             boilerplates_dir, "CTDIphantom_32.j2", _DEFAULT_CONTEXT
         )
         for position in _PLUG_POSITIONS:
-            assert (
-                f'Ge/{position}/Material="Air"' in rendered
-            ), f"{position} should have Air material"
+            assert f'Ge/{position}/Material="Air"' in rendered, (
+                f"{position} should have Air material"
+            )
 
     def test_no_plug_has_pmma_material(self, boilerplates_dir: str) -> None:
         rendered = _render_template(
             boilerplates_dir, "CTDIphantom_32.j2", _DEFAULT_CONTEXT
         )
         for position in _PLUG_POSITIONS:
-            assert (
-                f'Ge/{position}/Material="PMMA"' not in rendered
-            ), f"{position} should NOT have PMMA material"
+            assert f'Ge/{position}/Material="PMMA"' not in rendered, (
+                f"{position} should NOT have PMMA material"
+            )
 
     def test_all_plugs_have_parallel_world_name(self, boilerplates_dir: str) -> None:
         rendered = _render_template(
             boilerplates_dir, "CTDIphantom_32.j2", _DEFAULT_CONTEXT
         )
         for position in _PLUG_POSITIONS:
-            assert (
-                f'Ge/{position}/ParallelWorldName="{position}"' in rendered
-            ), f"{position} should have ParallelWorldName set"
+            assert f'Ge/{position}/ParallelWorldName="{position}"' in rendered, (
+                f"{position} should have ParallelWorldName set"
+            )
 
     def test_fifteen_scorers_defined(self, boilerplates_dir: str) -> None:
         rendered = _render_template(
@@ -187,24 +187,24 @@ class TestCTDIPhantom32ParallelWorlds:
         for position in _PLUG_POSITIONS:
             for scorer_type in scorer_types:
                 scorer_name = f"{position}{scorer_type}"
-                assert (
-                    f"Sc/{scorer_name}/Quantity" in rendered
-                ), f"Scorer {scorer_name} should be defined"
+                assert f"Sc/{scorer_name}/Quantity" in rendered, (
+                    f"Scorer {scorer_name} should be defined"
+                )
 
     def test_output_file_names_match_convention(self, boilerplates_dir: str) -> None:
         rendered = _render_template(
             boilerplates_dir, "CTDIphantom_32.j2", _DEFAULT_CONTEXT
         )
         for position in _PLUG_POSITIONS:
-            assert (
-                f'OutputFile="{position}_tle"' in rendered
-            ), f"Missing OutputFile for {position}_tle"
-            assert (
-                f'OutputFile="{position}_dtm"' in rendered
-            ), f"Missing OutputFile for {position}_dtm"
-            assert (
-                f'OutputFile="{position}_dtw"' in rendered
-            ), f"Missing OutputFile for {position}_dtw"
+            assert f'OutputFile="{position}_tle"' in rendered, (
+                f"Missing OutputFile for {position}_tle"
+            )
+            assert f'OutputFile="{position}_dtm"' in rendered, (
+                f"Missing OutputFile for {position}_dtm"
+            )
+            assert f'OutputFile="{position}_dtw"' in rendered, (
+                f"Missing OutputFile for {position}_dtw"
+            )
 
     def test_scorers_have_report_with_four_metrics(self, boilerplates_dir: str) -> None:
         rendered = _render_template(
@@ -217,9 +217,9 @@ class TestCTDIPhantom32ParallelWorlds:
         for position in _PLUG_POSITIONS:
             for scorer_type in scorer_types:
                 scorer_name = f"{position}{scorer_type}"
-                assert (
-                    f"Sc/{scorer_name}/{expected_report}" in rendered
-                ), f"Scorer {scorer_name} should have Report with Sum, Histories, Count_In_Bin, Standard_Deviation"
+                assert f"Sc/{scorer_name}/{expected_report}" in rendered, (
+                    f"Scorer {scorer_name} should have Report with Sum, Histories, Count_In_Bin, Standard_Deviation"
+                )
 
     def test_phantom_radius_is_160mm(self, boilerplates_dir: str) -> None:
         rendered = _render_template(

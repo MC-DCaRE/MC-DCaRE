@@ -43,13 +43,10 @@ def run(config_file: str, dry_run: bool = False) -> None:
         _remove_file_handler(file_handler)
         print("Files prepared in " + rundir + ". TOPAS not executed.")
     else:
-        rundir = orchestrator.create_runfolder()
+        rundir = orchestrator.run(config)
         file_handler = _add_file_handler(rundir, config.general.log_filename)
-        try:
-            orchestrator.run_with_runfolder(rundir, config)
-            logger.info("Simulation completed in %s", rundir)
-        finally:
-            _remove_file_handler(file_handler)
+        logger.info("Simulation completed in %s", rundir)
+        _remove_file_handler(file_handler)
         print("Simulation completed in " + rundir)
 
 

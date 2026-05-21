@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 
 import numpy as np
 import spekpy as sp
@@ -55,7 +56,6 @@ class SpectrumGenerator:
         no_particles: float = 4 * np.pi * 0.1**2 * s.get_flu()
 
         calib_factor: float = (no_particles / int(histories)) * dose_calibration_factor
-        import os
 
         calib_path = os.path.join(project_root, "tmp", "head_calibration_factor.txt")
         with open(calib_path, "w") as f:

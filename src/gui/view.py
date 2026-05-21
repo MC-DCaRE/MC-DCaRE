@@ -227,14 +227,14 @@ class MainView:
         )
 
     def _build_function_layer(self) -> sg.Frame:
-        """Simulation-type selector (DICOM or CTDI validation)."""
+        """Simulation-type selector (DICOM or CTDI)."""
         return sg.Frame(
             "Choose your function",
             [
                 [
                     sg.Text("Simulation Type", size=(20, 1), text_color="black"),
                     sg.Combo(
-                        ["DICOM", "CTDI validation"],
+                        ["DICOM", "CTDI"],
                         default_value=None,
                         key=SIM_TYPE,
                         readonly=True,
@@ -730,7 +730,7 @@ class MainView:
                 ],
                 [
                     sg.Text(
-                        "Simulation will automatically generate and run 5 CTDI simulations for all 5 possible detector position."
+                        "Simulation will automatically generate and run a single CTDI simulation for all 5 detector positions using parallel worlds."
                     )
                 ],
                 [
@@ -967,13 +967,10 @@ class MainView:
         self.window[BLADE_Y2].update(mode.blade_y2)
 
     def set_tab_visibility(self, sim_type: str) -> None:
-        """Show the tab for *sim_type* (``"DICOM"`` or ``"CTDI validation"``) and hide the other."""
-        if sim_type == "DICOM":
-            self.window[DICOM_TAB].update(visible=True)
-            self.window[CTDI_TAB].update(visible=False)
-        elif sim_type == "CTDI validation":
-            self.window[CTDI_TAB].update(visible=True)
-            self.window[DICOM_TAB].update(visible=False)
+        """Show the tab for *sim_type* (``"DICOM"`` or ``"CTDI"``) and hide the other."""
+        show_dicom = sim_type == "DICOM"
+        self.window[DICOM_TAB].update(visible=show_dicom)
+        self.window[CTDI_TAB].update(visible=not show_dicom)
 
     def reset_all(self, defaults: Dict[str, Any]) -> None:
         """Restore every element to *defaults* and hide simulation-specific tabs."""

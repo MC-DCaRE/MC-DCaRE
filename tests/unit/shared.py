@@ -27,15 +27,16 @@ DEFAULT_CTDI_SUB_CONTEXT: dict = {
     "couch_width": "260. mm",
     "couch_thickness": "0.4 mm",
     "couch_length": "1000 mm",
-    "plug_position": "ChamberPlugCentre",
+    "plug_positions": [
+        "ChamberPlugCentre",
+        "ChamberPlugTop",
+        "ChamberPlugBottom",
+        "ChamberPlugLeft",
+        "ChamberPlugRight",
+    ],
     "dose_to_medium_zbins": "100",
     "tle_zbins": "100",
     "dose_to_water_zbins": "100",
-    "plug_material_centre": "Air",
-    "plug_material_top": "PMMA",
-    "plug_material_bottom": "PMMA",
-    "plug_material_left": "PMMA",
-    "plug_material_right": "PMMA",
 }
 
 DEFAULT_DICOM_SUB_CONTEXT: dict = {

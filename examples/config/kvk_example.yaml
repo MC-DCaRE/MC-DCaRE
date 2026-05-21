@@ -17,7 +17,7 @@ general:
   dose_calibration_factor: '1.0'
   log_filename: simulation.log
 imaging:
-  simulation_type: CTDI validation
+  simulation_type: CTDI
   start_angle: 0 deg
   rotation_direction: kV-kV
   anode_voltage: 100 kV

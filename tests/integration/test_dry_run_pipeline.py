@@ -225,7 +225,7 @@ class TestCtdiDryRunPipeline:
                 histories="100000",
             ),
             imaging=ImagingConfig(
-                simulation_type="CTDI validation",
+                simulation_type="CTDI",
                 start_angle="0 deg",
                 rotation_direction="CBCT Clockwise",
                 anode_voltage="80 kV",

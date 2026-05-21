@@ -20,7 +20,7 @@ class TestGetMode:
         assert isinstance(mode, DicomMode)
 
     def test_returns_ctdi_mode_for_ctdi(self, make_config: Any) -> None:
-        config = make_config(simulation_type="CTDI validation", phantom_size="16 cm")
+        config = make_config(simulation_type="CTDI", phantom_size="16 cm")
         orch = Orchestrator("/project")
         mode = orch._get_mode(config)
         assert isinstance(mode, CtdiMode)
@@ -128,7 +128,7 @@ class TestRunCtdiSimulation:
         make_config: Any,
     ) -> None:
         config = make_config(
-            simulation_type="CTDI validation",
+            simulation_type="CTDI",
             topas_directory="/topas/bin",
             histories="100000",
             anode_voltage="80 kV",
@@ -154,7 +154,7 @@ class TestRunCtdiSimulation:
         make_config: Any,
     ) -> None:
         config = make_config(
-            simulation_type="CTDI validation",
+            simulation_type="CTDI",
             topas_directory="/topas/bin",
             histories="100000",
             anode_voltage="80 kV",
@@ -212,7 +212,7 @@ class TestPrepareOnly:
         make_config: Any,
     ) -> None:
         config = make_config(
-            simulation_type="CTDI validation",
+            simulation_type="CTDI",
             topas_directory="/topas/bin",
             histories="100000",
             anode_voltage="80 kV",

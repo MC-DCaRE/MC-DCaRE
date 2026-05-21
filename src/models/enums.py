@@ -14,7 +14,7 @@ class SimulationType(str, Enum):
     """Available simulation modes."""
 
     DICOM = "DICOM"
-    CTDI = "CTDI validation"
+    CTDI = "CTDI"
 
 
 class FanMode(str, Enum):

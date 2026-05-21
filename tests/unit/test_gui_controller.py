@@ -75,8 +75,8 @@ class TestOnSimTypeChange:
     def test_shows_ctdi_tab_hides_dicom(self) -> None:
         mock_view = MagicMock()
         ctrl = GUIController(mock_view, MagicMock())
-        ctrl._on_sim_type_change({SIM_TYPE: "CTDI validation"})
-        mock_view.set_tab_visibility.assert_called_once_with("CTDI validation")
+        ctrl._on_sim_type_change({SIM_TYPE: "CTDI"})
+        mock_view.set_tab_visibility.assert_called_once_with("CTDI")
 
 
 class TestOnDicomDir:

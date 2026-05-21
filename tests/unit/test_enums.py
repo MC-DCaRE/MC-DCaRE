@@ -11,11 +11,11 @@ class TestSimulationType:
         assert SimulationType.DICOM == "DICOM"
 
     def test_ctdi_value(self) -> None:
-        assert SimulationType.CTDI == "CTDI validation"
+        assert SimulationType.CTDI == "CTDI"
 
     def test_string_comparison(self) -> None:
         assert SimulationType.DICOM == "DICOM"
-        assert "CTDI validation" == SimulationType.CTDI
+        assert "CTDI" == SimulationType.CTDI
 
     def test_is_str(self) -> None:
         assert isinstance(SimulationType.DICOM, str)

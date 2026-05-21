@@ -146,7 +146,7 @@ class TestSetTabVisibility:
         elements = _make_element_dict(keys)
         mock_window.__getitem__ = MagicMock(side_effect=lambda k: elements[k])
 
-        view.set_tab_visibility("CTDI validation")
+        view.set_tab_visibility("CTDI")
 
         elements[CTDI_TAB].update.assert_called_with(visible=True)
         elements[DICOM_TAB].update.assert_called_with(visible=False)

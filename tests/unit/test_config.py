@@ -140,7 +140,7 @@ class TestSimulationConfigFromGuiValues:
             "-SEED-": "42",
             "-THREADS-": "4",
             "-HISTORIES-": "500000",
-            "-SIM_TYPE-": "CTDI validation",
+            "-SIM_TYPE-": "CTDI",
             "-START_ANGLE-": "90 deg",
             "-SCAN_TYPE-": "CBCT Counter-Clockwise",
             "-TUBE_VOLTAGE-": "80 kV",
@@ -188,7 +188,7 @@ class TestSimulationConfigFromGuiValues:
         config: SimulationConfig = SimulationConfig.from_gui_values(values)
         assert config.general.g4_data_directory == "/g4"
         assert config.general.seed == "42"
-        assert config.imaging.simulation_type == "CTDI validation"
+        assert config.imaging.simulation_type == "CTDI"
         assert config.imaging.fan_mode == "Half Fan"
         assert config.dicom.patient_id == "PAT001"
         assert config.ctdi.phantom_size == "32 cm"

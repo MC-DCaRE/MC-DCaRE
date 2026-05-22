@@ -296,7 +296,7 @@ class MainView:
                 [
                     sg.Text("Timeline End", size=(14, 1), text_color="black"),
                     sg.In(
-                        default_text=d.imaging.timeline_end,
+                        default_text=str(d.imaging.timeline_end),
                         key=TIMELINE_END,
                         size=(10, 1),
                         enable_events=True,
@@ -305,7 +305,7 @@ class MainView:
                 [
                     sg.Text("Gantry Rotation Rate", size=(14, 1), text_color="black"),
                     sg.In(
-                        default_text=d.imaging.rotation_rate,
+                        default_text=str(d.imaging.rotation_rate),
                         key=ROTATION_RATE,
                         size=(15, 1),
                         enable_events=True,
@@ -314,7 +314,7 @@ class MainView:
                 ],
                 [
                     sg.In(
-                        default_text=d.imaging.blade_x1,
+                        default_text=str(d.imaging.blade_x1),
                         key=BLADE_X1,
                         size=(10, 1),
                         text_color="black",
@@ -324,7 +324,7 @@ class MainView:
                 ],
                 [
                     sg.In(
-                        default_text=d.imaging.blade_x2,
+                        default_text=str(d.imaging.blade_x2),
                         key=BLADE_X2,
                         size=(10, 1),
                         text_color="black",
@@ -334,7 +334,7 @@ class MainView:
                 ],
                 [
                     sg.In(
-                        default_text=d.imaging.blade_y1,
+                        default_text=str(d.imaging.blade_y1),
                         key=BLADE_Y1,
                         size=(10, 1),
                         text_color="black",
@@ -344,7 +344,7 @@ class MainView:
                 ],
                 [
                     sg.In(
-                        default_text=d.imaging.blade_y2,
+                        default_text=str(d.imaging.blade_y2),
                         key=BLADE_Y2,
                         size=(10, 1),
                         text_color="black",
@@ -440,7 +440,7 @@ class MainView:
                 [
                     sg.Text("Field Size X1", size=(10, 1), text_color="black"),
                     sg.In(
-                        default_text=d.imaging.field_x1,
+                        default_text=str(d.imaging.field_x1),
                         key=FIELD_X1,
                         size=(15, 1),
                         text_color="black",
@@ -451,7 +451,7 @@ class MainView:
                 [
                     sg.Text("Field Size X2", size=(10, 1), text_color="black"),
                     sg.In(
-                        default_text=d.imaging.field_x2,
+                        default_text=str(d.imaging.field_x2),
                         key=FIELD_X2,
                         size=(15, 1),
                         text_color="black",
@@ -462,7 +462,7 @@ class MainView:
                 [
                     sg.Text("Field Size Y1", size=(10, 1), text_color="black"),
                     sg.In(
-                        default_text=d.imaging.field_y1,
+                        default_text=str(d.imaging.field_y1),
                         key=FIELD_Y1,
                         size=(15, 1),
                         text_color="black",
@@ -473,7 +473,7 @@ class MainView:
                 [
                     sg.Text("Field Size Y2", size=(10, 1), text_color="black"),
                     sg.In(
-                        default_text=d.imaging.field_y2,
+                        default_text=str(d.imaging.field_y2),
                         key=FIELD_Y2,
                         size=(15, 1),
                         text_color="black",
@@ -493,7 +493,7 @@ class MainView:
                 [
                     sg.Text("Start Angle", size=(12, 1), text_color="black"),
                     sg.In(
-                        default_text=d.imaging.start_angle,
+                        default_text=str(d.imaging.start_angle),
                         key=START_ANGLE,
                         size=(15, 1),
                         enable_events=True,
@@ -513,7 +513,7 @@ class MainView:
                 [
                     sg.Text("Tube Voltage (kVp)", size=(12, 1), text_color="black"),
                     sg.In(
-                        default_text=d.imaging.anode_voltage,
+                        default_text=str(d.imaging.anode_voltage),
                         key=TUBE_VOLTAGE,
                         size=(15, 1),
                         enable_events=True,
@@ -522,7 +522,7 @@ class MainView:
                 [
                     sg.Text("Tube Current (mAs)", size=(12, 1), text_color="black"),
                     sg.In(
-                        default_text=d.imaging.exposure,
+                        default_text=str(d.imaging.exposure),
                         key=EXPOSURE,
                         size=(15, 1),
                         enable_events=True,
@@ -623,7 +623,7 @@ class MainView:
                 [
                     sg.Text("X Shift from Isocenter", size=(14, 1), text_color="black"),
                     sg.In(
-                        default_text=d.dicom.patient_shift_x,
+                        default_text=str(d.dicom.patient_shift_x),
                         key=SHIFT_X,
                         size=(10, 1),
                         enable_events=True,
@@ -632,7 +632,7 @@ class MainView:
                 [
                     sg.Text("Y Shift from Isocenter", size=(14, 1), text_color="black"),
                     sg.In(
-                        default_text=d.dicom.patient_shift_y,
+                        default_text=str(d.dicom.patient_shift_y),
                         key=SHIFT_Y,
                         size=(10, 1),
                         enable_events=True,
@@ -641,7 +641,7 @@ class MainView:
                 [
                     sg.Text("Z Shift from Isocenter", size=(14, 1), text_color="black"),
                     sg.In(
-                        default_text=d.dicom.patient_shift_z,
+                        default_text=str(d.dicom.patient_shift_z),
                         key=SHIFT_Z,
                         size=(10, 1),
                         enable_events=True,
@@ -650,7 +650,7 @@ class MainView:
                 [
                     sg.Text("Patient Yaw Rotation", size=(14, 1), text_color="black"),
                     sg.In(
-                        default_text=d.dicom.patient_yaw,
+                        default_text=str(d.dicom.patient_yaw),
                         key=PATIENT_YAW,
                         size=(10, 1),
                         enable_events=True,
@@ -668,7 +668,7 @@ class MainView:
                 [
                     sg.Text("Isocenter X", size=(10, 1), text_color="black"),
                     sg.In(
-                        default_text=d.dicom.isocenter_x,
+                        default_text=str(d.dicom.isocenter_x),
                         key=ISO_X,
                         size=(10, 1),
                         enable_events=True,
@@ -678,7 +678,7 @@ class MainView:
                 [
                     sg.Text("Isocenter Y", size=(10, 1), text_color="black"),
                     sg.In(
-                        default_text=d.dicom.isocenter_y,
+                        default_text=str(d.dicom.isocenter_y),
                         key=ISO_Y,
                         size=(10, 1),
                         enable_events=True,
@@ -688,7 +688,7 @@ class MainView:
                 [
                     sg.Text("Isocenter Z", size=(10, 1), text_color="black"),
                     sg.In(
-                        default_text=d.dicom.isocenter_z,
+                        default_text=str(d.dicom.isocenter_z),
                         key=ISO_Z,
                         size=(10, 1),
                         enable_events=True,
@@ -832,7 +832,7 @@ class MainView:
                     [
                         sg.Text("Couch Length", size=(8, 1), text_color="black"),
                         sg.In(
-                            default_text=d.ctdi.couch_length,
+                            default_text=str(d.ctdi.couch_length),
                             key=COUCH_LENGTH,
                             size=(10, 1),
                             enable_events=True,
@@ -841,7 +841,7 @@ class MainView:
                     [
                         sg.Text("Couch Width", size=(8, 1), text_color="black"),
                         sg.In(
-                            default_text=d.ctdi.couch_width,
+                            default_text=str(d.ctdi.couch_width),
                             key=COUCH_WIDTH,
                             size=(10, 1),
                             enable_events=True,
@@ -850,7 +850,7 @@ class MainView:
                     [
                         sg.Text("Couch Thickness", size=(8, 1), text_color="black"),
                         sg.In(
-                            default_text=d.ctdi.couch_thickness,
+                            default_text=str(d.ctdi.couch_thickness),
                             key=COUCH_THICKNESS,
                             size=(10, 1),
                             enable_events=True,
@@ -875,7 +875,7 @@ class MainView:
                     [
                         sg.Text("Field Size X1", size=(10, 1), text_color="black"),
                         sg.In(
-                            default_text=d.ctdi.user_field_x1,
+                            default_text=str(d.ctdi.user_field_x1),
                             key=CTDI_FIELD_X1,
                             size=(15, 1),
                             text_color="black",
@@ -885,7 +885,7 @@ class MainView:
                     [
                         sg.Text("Field Size X2", size=(10, 1), text_color="black"),
                         sg.In(
-                            default_text=d.ctdi.user_field_x2,
+                            default_text=str(d.ctdi.user_field_x2),
                             key=CTDI_FIELD_X2,
                             size=(15, 1),
                             text_color="black",
@@ -895,7 +895,7 @@ class MainView:
                     [
                         sg.Text("Field Size Y1", size=(10, 1), text_color="black"),
                         sg.In(
-                            default_text=d.ctdi.user_field_y1,
+                            default_text=str(d.ctdi.user_field_y1),
                             key=CTDI_FIELD_Y1,
                             size=(15, 1),
                             text_color="black",
@@ -905,7 +905,7 @@ class MainView:
                     [
                         sg.Text("Field Size Y2", size=(10, 1), text_color="black"),
                         sg.In(
-                            default_text=d.ctdi.user_field_y2,
+                            default_text=str(d.ctdi.user_field_y2),
                             key=CTDI_FIELD_Y2,
                             size=(15, 1),
                             text_color="black",

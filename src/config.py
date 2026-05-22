@@ -59,14 +59,14 @@ _CTDI_Q_FIELDS = (
 )
 
 
-def _parse_bool(value: object) -> bool:
-    if isinstance(value, bool):
-        return value
-    return str(value).lower() in ("true", "1", "yes")
-
-
 def _q(val: float, unit: str) -> Any:
-    """Create a Quantity-typed dataclass field with a default value."""
+    """Create a Quantity-typed dataclass field with a default value.
+
+    Returns ``Any`` because :func:`dataclasses.field` returns ``Field[Any]``
+    which mypy cannot reconcile with the ``Quantity`` type annotation at the
+    class-body level.  The field annotation (``Quantity``) governs static
+    type-checking; the default_factory provides the runtime value.
+    """
     return field(default_factory=lambda: Quantity(val, unit))
 
 

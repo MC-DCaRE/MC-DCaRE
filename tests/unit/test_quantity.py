@@ -63,6 +63,17 @@ class TestQuantityStr:
         assert str(Quantity(0.4, "deg/s")) == "0.4 deg/s"
         assert str(Quantity(5.0, "mm")) == "5 mm"
 
+    def test_zero_value(self) -> None:
+        assert str(Quantity(0.0, "mm")) == "0 mm"
+
+    def test_negative_non_integer(self) -> None:
+        assert str(Quantity(-0.5, "mm")) == "-0.5 mm"
+
+    def test_parse_str_roundtrip(self) -> None:
+        for val, unit in [(100.0, "kV"), (6.175536078965273, "cm"), (-5.0, "mm")]:
+            q = Quantity(val, unit)
+            assert Quantity.parse(str(q)) == q
+
     def test_frozen(self) -> None:
         q: Quantity = Quantity(5.0, "mm")
         try:

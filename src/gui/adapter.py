@@ -15,7 +15,6 @@ from src.config import (
     GeneralConfig,
     ImagingConfig,
     SimulationConfig,
-    _parse_bool,
 )
 from src.models.keys import (
     BLADE_X1,
@@ -68,6 +67,17 @@ from src.models.keys import (
     TLE_ZBINS,
     TUBE_VOLTAGE,
 )
+
+
+def _parse_bool(value: object) -> bool:
+    """Coerce a GUI value to bool.
+
+    Handles actual bools, string representations, and integers.
+    """
+    if isinstance(value, bool):
+        return value
+    return str(value).lower() in ("true", "1", "yes")
+
 
 # (section_name, field_name, gui_key, default_value)
 _PLACEHOLDER_MAP: List[Tuple[str, str, str, Any]] = [

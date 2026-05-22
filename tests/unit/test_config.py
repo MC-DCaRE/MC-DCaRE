@@ -133,6 +133,24 @@ class TestSimulationConfigYamlRoundTrip:
         finally:
             os.unlink(path)
 
+    def test_yaml_roundtrip_preserves_nondefault_quantities(
+        self, tmp_path: Any
+    ) -> None:
+        from src.config import CtdiConfig, DicomConfig, ImagingConfig
+
+        config = SimulationConfig(
+            imaging=ImagingConfig(anode_voltage="80 kV", start_angle="45 deg"),
+            dicom=DicomConfig(isocenter_x="10.5 mm"),
+            ctdi=CtdiConfig(couch_width="300 mm"),
+        )
+        path = str(tmp_path / "test_roundtrip.yaml")
+        config.to_yaml(path)
+        loaded = SimulationConfig.from_yaml(path)
+        assert loaded.imaging.anode_voltage == Quantity(80.0, "kV")
+        assert loaded.imaging.start_angle == Quantity(45.0, "deg")
+        assert loaded.dicom.isocenter_x == Quantity(10.5, "mm")
+        assert loaded.ctdi.couch_width == Quantity(300.0, "mm")
+
 
 class TestSimulationConfigFromGuiValues:
     def test_creates_config_from_gui_dict(self) -> None:
@@ -242,46 +260,50 @@ class TestConfigToGui:
         assert d["-HISTORIES-"] == config.general.histories
         assert d["-FAN_MODE-"] == config.imaging.fan_mode
         assert d["-CTDI_PHANTOM-"] == config.ctdi.phantom_size
+        assert d["-TUBE_VOLTAGE-"] == str(config.imaging.anode_voltage)
+        assert d["-EXPOSURE-"] == str(config.imaging.exposure)
+        assert d["-ISO_X-"] == str(config.dicom.isocenter_x)
+        assert d["-COUCH_WIDTH-"] == str(config.ctdi.couch_width)
 
 
 class TestParseBool:
     def test_true_bool_is_true(self) -> None:
-        from src.config import _parse_bool
+        from src.gui.adapter import _parse_bool
 
         assert _parse_bool(True) is True
 
     def test_true_string_is_true(self) -> None:
-        from src.config import _parse_bool
+        from src.gui.adapter import _parse_bool
 
         assert _parse_bool("True") is True
 
     def test_false_bool_is_false(self) -> None:
-        from src.config import _parse_bool
+        from src.gui.adapter import _parse_bool
 
         assert _parse_bool(False) is False
 
     def test_false_string_is_false(self) -> None:
-        from src.config import _parse_bool
+        from src.gui.adapter import _parse_bool
 
         assert _parse_bool("False") is False
 
     def test_integer_one_is_true(self) -> None:
-        from src.config import _parse_bool
+        from src.gui.adapter import _parse_bool
 
         assert _parse_bool(1) is True
 
     def test_integer_zero_is_false(self) -> None:
-        from src.config import _parse_bool
+        from src.gui.adapter import _parse_bool
 
         assert _parse_bool(0) is False
 
     def test_empty_string_is_false(self) -> None:
-        from src.config import _parse_bool
+        from src.gui.adapter import _parse_bool
 
         assert _parse_bool("") is False
 
     def test_lowercase_true_is_true(self) -> None:
-        from src.config import _parse_bool
+        from src.gui.adapter import _parse_bool
 
         assert _parse_bool("true") is True
 
@@ -353,6 +375,39 @@ class TestConfigYamlPath:
     def test_direct_construction_is_none(self) -> None:
         config = SimulationConfig()
         assert config.config_yaml_path is None
+
+
+class TestQuantityCoercion:
+    def test_imaging_coerces_strings(self) -> None:
+        from src.config import ImagingConfig
+
+        cfg = ImagingConfig(
+            anode_voltage="80 kV", exposure="200 mAs", rotation_rate="0.6 deg/s"
+        )
+        assert cfg.anode_voltage == Quantity(80.0, "kV")
+        assert cfg.exposure == Quantity(200.0, "mAs")
+        assert cfg.rotation_rate == Quantity(0.6, "deg/s")
+
+    def test_dicom_coerces_strings(self) -> None:
+        from src.config import DicomConfig
+
+        cfg = DicomConfig(isocenter_x="10 mm", patient_yaw="90 deg")
+        assert cfg.isocenter_x == Quantity(10.0, "mm")
+        assert cfg.patient_yaw == Quantity(90.0, "deg")
+
+    def test_ctdi_coerces_strings(self) -> None:
+        from src.config import CtdiConfig
+
+        cfg = CtdiConfig(couch_width="300 mm", user_field_x1="12 cm")
+        assert cfg.couch_width == Quantity(300.0, "mm")
+        assert cfg.user_field_x1 == Quantity(12.0, "cm")
+
+    def test_quantity_inputs_pass_through(self) -> None:
+        from src.config import ImagingConfig
+
+        q = Quantity(80.0, "kV")
+        cfg = ImagingConfig(anode_voltage=q)
+        assert cfg.anode_voltage is q
 
 
 class TestVoltageRangeValidation:

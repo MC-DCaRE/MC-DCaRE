@@ -54,6 +54,10 @@ class TestQuantityStr:
         q: Quantity = Quantity(100.0, "kV")
         assert str(q) == "100 kV"
 
+    def test_str_preserves_precision(self) -> None:
+        q: Quantity = Quantity(6.175536078965273, "cm")
+        assert str(q) == "6.175536078965273 cm"
+
     def test_str_strips_trailing_zeros(self) -> None:
         assert str(Quantity(100.0, "kV")) == "100 kV"
         assert str(Quantity(0.4, "deg/s")) == "0.4 deg/s"

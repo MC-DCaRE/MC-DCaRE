@@ -48,8 +48,11 @@ class Quantity:
         return cls(parsed_value, parsed_unit)
 
     def __str__(self) -> str:
-        """Format as ``"<value> <unit>"`` using compact ``g`` notation."""
-        return "{} {}".format(format(self.value, "g"), self.unit)
+        """Format as ``"<value> <unit>"`` using shortest round-trip representation."""
+        val_str = repr(self.value)
+        if val_str.endswith(".0"):
+            val_str = val_str[:-2]
+        return "{} {}".format(val_str, self.unit)
 
     def to_tuple(self) -> Tuple[float, str]:
         """Return the ``(value, unit)`` pair as a plain tuple."""

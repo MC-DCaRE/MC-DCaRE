@@ -27,8 +27,8 @@ class TestBuildMainContext:
         mode = CtdiMode()
         config = make_config()
         ctx = mode.build_main_context(config)
-        assert ctx["coll1_trans_y"] == config.imaging.blade_x1
-        assert ctx["coll2_trans_y"] == config.imaging.blade_x2
+        assert ctx["coll1_trans_y"] == str(config.imaging.blade_x1)
+        assert ctx["coll2_trans_y"] == str(config.imaging.blade_x2)
 
     def test_blade_positions_overridden_when_user_blade(self, make_config: Any) -> None:
         mode = CtdiMode()
@@ -91,7 +91,7 @@ class TestBuildSubContext:
             couch_length="1500 mm",
         )
         ctx = mode.build_sub_context(config)
-        assert ctx["couch_width"] == "300. mm"
+        assert ctx["couch_width"] == "300 mm"
         assert ctx["couch_thickness"] == "0.5 mm"
         assert ctx["couch_length"] == "1500 mm"
 

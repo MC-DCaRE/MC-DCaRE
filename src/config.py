@@ -3,13 +3,16 @@
 Defines the configuration hierarchy (:class:`GeneralConfig`, :class:`ImagingConfig`,
 :class:`DicomConfig`, :class:`CtdiConfig`) composed inside :class:`SimulationConfig`,
 with round-trip support for YAML files and FreeSimpleGUI value dicts.
+
+Dimensional fields (lengths, angles, voltages) are stored as :class:`Quantity` objects.
+String values passed to constructors are automatically parsed into ``Quantity``.
 """
 
 from __future__ import annotations
 
 import logging
 import os
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Tuple, Type
 
@@ -128,11 +131,59 @@ for _section, _field, _key, _default in _PLACEHOLDER_MAP:
     if isinstance(_default, bool):
         _BOOL_FIELDS[(_section + "." + _field)] = _key
 
+# Dimensional field names per section (used for string→Quantity auto-parsing).
+_IMAGING_Q_FIELDS = (
+    "start_angle",
+    "rotation_rate",
+    "timeline_end",
+    "anode_voltage",
+    "exposure",
+    "field_x1",
+    "field_x2",
+    "field_y1",
+    "field_y2",
+    "blade_x1",
+    "blade_x2",
+    "blade_y1",
+    "blade_y2",
+)
+_DICOM_Q_FIELDS = (
+    "isocenter_x",
+    "isocenter_y",
+    "isocenter_z",
+    "patient_shift_x",
+    "patient_shift_y",
+    "patient_shift_z",
+    "patient_yaw",
+)
+_CTDI_Q_FIELDS = (
+    "couch_width",
+    "couch_thickness",
+    "couch_length",
+    "user_field_x1",
+    "user_field_x2",
+    "user_field_y1",
+    "user_field_y2",
+)
+
 
 def _parse_bool(value: object) -> bool:
     if isinstance(value, bool):
         return value
     return str(value).lower() in ("true", "1", "yes")
+
+
+def _q(val: float, unit: str) -> Any:
+    """Create a Quantity-typed dataclass field with a default value."""
+    return field(default_factory=lambda: Quantity(val, unit))
+
+
+def _coerce_quantities(obj: Any, field_names: Tuple[str, ...]) -> None:
+    """Parse string values to Quantity in-place on a frozen dataclass."""
+    for name in field_names:
+        val = getattr(obj, name)
+        if isinstance(val, str):
+            object.__setattr__(obj, name, Quantity.parse(val))
 
 
 @dataclass(frozen=True)
@@ -153,24 +204,27 @@ class ImagingConfig:
     """kV imaging beam and collimator parameters."""
 
     simulation_type: str = "DICOM"
-    start_angle: str = "0 deg"
+    start_angle: Quantity = _q(0.0, "deg")
     rotation_direction: str = "CBCT Clockwise"
-    anode_voltage: str = "100 kV"
-    exposure: str = "100 mAs"
+    anode_voltage: Quantity = _q(100.0, "kV")
+    exposure: Quantity = _q(100.0, "mAs")
     fan_mode: str = "Full Fan"
     imaging_mode: str = "Image Gently"
-    rotation_rate: str = "0.4 deg/s"
-    timeline_end: str = "501.0 s"
+    rotation_rate: Quantity = _q(0.4, "deg/s")
+    timeline_end: Quantity = _q(501.0, "s")
     sequential_times: str = "1000"
     time_verbosity: str = "0"
-    field_x1: str = "14 cm"
-    field_x2: str = "14 cm"
-    field_y1: str = "10.7 cm"
-    field_y2: str = "10.7 cm"
-    blade_x1: str = "6.175536078965273 cm"
-    blade_x2: str = "-6.175536078965273 cm"
-    blade_y1: str = "5.814471115800571 cm"
-    blade_y2: str = "-5.814471115800571 cm"
+    field_x1: Quantity = _q(14.0, "cm")
+    field_x2: Quantity = _q(14.0, "cm")
+    field_y1: Quantity = _q(10.7, "cm")
+    field_y2: Quantity = _q(10.7, "cm")
+    blade_x1: Quantity = _q(6.175536078965273, "cm")
+    blade_x2: Quantity = _q(-6.175536078965273, "cm")
+    blade_y1: Quantity = _q(5.814471115800571, "cm")
+    blade_y2: Quantity = _q(-5.814471115800571, "cm")
+
+    def __post_init__(self) -> None:
+        _coerce_quantities(self, _IMAGING_Q_FIELDS)
 
 
 @dataclass(frozen=True)
@@ -180,14 +234,17 @@ class DicomConfig:
     dicom_directory: str = "/sampledicom/setA"
     dicom_rp_file: str = "/sampledicom/RP.sample.dcm"
     patient_id: str = ""
-    isocenter_x: str = "0 mm"
-    isocenter_y: str = "0 mm"
-    isocenter_z: str = "0 mm"
-    patient_shift_x: str = "0. mm"
-    patient_shift_y: str = "0. mm"
-    patient_shift_z: str = "0. mm"
-    patient_yaw: str = "0. deg"
+    isocenter_x: Quantity = _q(0.0, "mm")
+    isocenter_y: Quantity = _q(0.0, "mm")
+    isocenter_z: Quantity = _q(0.0, "mm")
+    patient_shift_x: Quantity = _q(0.0, "mm")
+    patient_shift_y: Quantity = _q(0.0, "mm")
+    patient_shift_z: Quantity = _q(0.0, "mm")
+    patient_yaw: Quantity = _q(0.0, "deg")
     graphics_enabled: bool = False
+
+    def __post_init__(self) -> None:
+        _coerce_quantities(self, _DICOM_Q_FIELDS)
 
 
 @dataclass(frozen=True)
@@ -199,18 +256,21 @@ class CtdiConfig:
     tle_zbins: str = "100"
     dose_to_water_zbins: str = "100"
     couch_enabled: bool = True
-    couch_width: str = "260. mm"
-    couch_thickness: str = "0.4 mm"
-    couch_length: str = "1000 mm"
+    couch_width: Quantity = _q(260.0, "mm")
+    couch_thickness: Quantity = _q(0.4, "mm")
+    couch_length: Quantity = _q(1000.0, "mm")
     user_blade_enabled: bool = False
-    user_field_x1: str = "14 cm"
-    user_field_x2: str = "14 cm"
-    user_field_y1: str = "10.7 cm"
-    user_field_y2: str = "10.7 cm"
+    user_field_x1: Quantity = _q(14.0, "cm")
+    user_field_x2: Quantity = _q(14.0, "cm")
+    user_field_y1: Quantity = _q(10.7, "cm")
+    user_field_y2: Quantity = _q(10.7, "cm")
     graphics_enabled: bool = False
 
+    def __post_init__(self) -> None:
+        _coerce_quantities(self, _CTDI_Q_FIELDS)
 
-@dataclass
+
+@dataclass(frozen=True)
 class SimulationConfig:
     """Top-level configuration composing general, imaging, DICOM, and CTDI sections."""
 
@@ -221,7 +281,7 @@ class SimulationConfig:
     config_yaml_path: str | None = field(default=None, repr=False)
 
     def validate(self) -> None:
-        """Check enum fields and integer-valued string fields.
+        """Check enum fields, integer-valued string fields, and dimensional fields.
 
         Raises:
             ValueError: If any field contains an invalid value.
@@ -268,14 +328,16 @@ class SimulationConfig:
                     calib_val
                 )
             )
-        voltage_val = Quantity.parse(self.imaging.anode_voltage).value
-        if not 40 <= voltage_val <= 150:
+        if not 40 <= self.imaging.anode_voltage.value <= 150:
             raise ValueError(
-                "Anode voltage must be 40-150 kV, got {}".format(voltage_val)
+                "Anode voltage must be 40-150 kV, got {}".format(
+                    self.imaging.anode_voltage.value
+                )
             )
-        exposure_val = Quantity.parse(self.imaging.exposure).value
-        if exposure_val <= 0:
-            raise ValueError("Exposure must be positive, got {}".format(exposure_val))
+        if self.imaging.exposure.value <= 0:
+            raise ValueError(
+                "Exposure must be positive, got {}".format(self.imaging.exposure.value)
+            )
 
     @staticmethod
     def _validate_enum_field(field_name: str, value: str, enum_cls: Type[Enum]) -> None:
@@ -298,13 +360,14 @@ class SimulationConfig:
 
     def to_yaml(self, path: str) -> None:
         """Serialise the full configuration to a YAML file."""
-
-        data = {
-            "general": asdict(self.general),
-            "imaging": asdict(self.imaging),
-            "dicom": asdict(self.dicom),
-            "ctdi": asdict(self.ctdi),
-        }
+        data: Dict[str, Any] = {}
+        for section_name in ("general", "imaging", "dicom", "ctdi"):
+            section = getattr(self, section_name)
+            section_data: Dict[str, Any] = {}
+            for f_name in section.__dataclass_fields__:
+                val = getattr(section, f_name)
+                section_data[f_name] = str(val) if isinstance(val, Quantity) else val
+            data[section_name] = section_data
         with open(path, "w") as f:
             yaml.dump(data, f, default_flow_style=False, sort_keys=False)
 

@@ -49,7 +49,7 @@ class TestBuildSubContext:
         mode = DicomMode()
         config = make_config(patient_yaw="90. deg")
         ctx = mode.build_sub_context(config)
-        assert ctx["patient_yaw"] == "90. deg"
+        assert ctx["patient_yaw"] == "90 deg"
 
     def test_replaces_dicom_directory(self, make_config: Any) -> None:
         mode = DicomMode()

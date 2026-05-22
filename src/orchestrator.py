@@ -5,7 +5,7 @@ import os
 import shutil
 from datetime import datetime
 
-from src.config import SimulationConfig, quantity_unit_stripper
+from src.config import SimulationConfig
 from src.boilerplate_manager import BoilerplateManager
 from src.modes.base import SimulationMode
 from src.modes.dicom_mode import DicomMode
@@ -86,10 +86,8 @@ class Orchestrator:
         sub_context = mode.build_sub_context(config)
         renderer.render(sub_template_name, sub_context, sub_output_name)
 
-        voltage: float
-        _: str
-        voltage, _ = quantity_unit_stripper(config.imaging.anode_voltage)
-        exposure, _ = quantity_unit_stripper(config.imaging.exposure)
+        voltage: float = config.imaging.anode_voltage.value
+        exposure: float = config.imaging.exposure.value
         histories: str = mode.compute_histories(config)
         dose_calibration_factor: float = float(config.general.dose_calibration_factor)
         SpectrumGenerator.generate(

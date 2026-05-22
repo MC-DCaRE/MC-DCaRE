@@ -25,12 +25,12 @@ _PLUG_POSITIONS = [
 
 
 def _compute_angle_values(
-    rotation_direction: str, start_angle: str
+    rotation_direction: str, start_angle: Quantity
 ) -> Dict[str, object]:
-    start_val, _ = Quantity.parse(start_angle).to_tuple()
+    start_val = start_angle.value
     result: Dict[str, object] = {
         "rotation_direction": rotation_direction,
-        "start_angle": start_angle,
+        "start_angle": str(start_angle),
         "start_angle_value": start_val,
     }
     if rotation_direction == "kV-kV":
@@ -53,17 +53,17 @@ class CtdiMode(SimulationMode):
 
     def build_main_context(self, config: SimulationConfig) -> Dict[str, object]:
         size_number: str = config.ctdi.phantom_size.split()[0]
-        coll1: str = config.imaging.blade_x1
-        coll2: str = config.imaging.blade_x2
-        coll3: str = config.imaging.blade_y1
-        coll4: str = config.imaging.blade_y2
+        coll1: str = str(config.imaging.blade_x1)
+        coll2: str = str(config.imaging.blade_x2)
+        coll3: str = str(config.imaging.blade_y1)
+        coll4: str = str(config.imaging.blade_y2)
         if config.ctdi.user_blade_enabled:
             blades = fieldtobladeopening(
                 [
-                    config.ctdi.user_field_x1,
-                    config.ctdi.user_field_x2,
-                    config.ctdi.user_field_y1,
-                    config.ctdi.user_field_y2,
+                    str(config.ctdi.user_field_x1),
+                    str(config.ctdi.user_field_x2),
+                    str(config.ctdi.user_field_y1),
+                    str(config.ctdi.user_field_y2),
                 ]
             )
             coll1, coll2, coll3, coll4 = blades
@@ -73,9 +73,9 @@ class CtdiMode(SimulationMode):
             "threads": config.general.threads,
             "histories": config.general.histories,
             "sequential_times": config.imaging.sequential_times,
-            "timeline_end": config.imaging.timeline_end,
-            "rotation_rate": config.imaging.rotation_rate,
-            "start_angle": config.imaging.start_angle,
+            "timeline_end": str(config.imaging.timeline_end),
+            "rotation_rate": str(config.imaging.rotation_rate),
+            "start_angle": str(config.imaging.start_angle),
             "coll1_trans_y": coll1,
             "coll2_trans_y": coll2,
             "coll3_trans_x": coll3,
@@ -92,9 +92,9 @@ class CtdiMode(SimulationMode):
     def build_sub_context(self, config: SimulationConfig) -> Dict[str, object]:
         return {
             "couch_enabled": config.ctdi.couch_enabled,
-            "couch_width": config.ctdi.couch_width,
-            "couch_thickness": config.ctdi.couch_thickness,
-            "couch_length": config.ctdi.couch_length,
+            "couch_width": str(config.ctdi.couch_width),
+            "couch_thickness": str(config.ctdi.couch_thickness),
+            "couch_length": str(config.ctdi.couch_length),
             "plug_positions": list(_PLUG_POSITIONS),
             "dose_to_medium_zbins": config.ctdi.dose_to_medium_zbins,
             "tle_zbins": config.ctdi.tle_zbins,

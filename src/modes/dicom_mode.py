@@ -9,7 +9,6 @@ from typing import Dict
 
 from src.config import SimulationConfig
 from src.modes.base import SimulationMode
-from src.models.quantity import Quantity
 from src.simulation_runner import SimulationRunner
 
 logger = logging.getLogger(__name__)
@@ -27,7 +26,7 @@ class DicomMode(SimulationMode):
         return "headsourcecode.txt"
 
     def build_main_context(self, config: SimulationConfig) -> Dict[str, object]:
-        start_val, _ = Quantity.parse(config.imaging.start_angle).to_tuple()
+        start_val = config.imaging.start_angle.value
         second_angle = (
             start_val + 90.0 if config.imaging.rotation_direction == "kV-kV" else 0.0
         )
@@ -37,13 +36,13 @@ class DicomMode(SimulationMode):
             "threads": config.general.threads,
             "histories": config.general.histories,
             "sequential_times": config.imaging.sequential_times,
-            "timeline_end": config.imaging.timeline_end,
-            "rotation_rate": config.imaging.rotation_rate,
-            "start_angle": config.imaging.start_angle,
-            "coll1_trans_y": config.imaging.blade_x1,
-            "coll2_trans_y": config.imaging.blade_x2,
-            "coll3_trans_x": config.imaging.blade_y1,
-            "coll4_trans_x": config.imaging.blade_y2,
+            "timeline_end": str(config.imaging.timeline_end),
+            "rotation_rate": str(config.imaging.rotation_rate),
+            "start_angle": str(config.imaging.start_angle),
+            "coll1_trans_y": str(config.imaging.blade_x1),
+            "coll2_trans_y": str(config.imaging.blade_x2),
+            "coll3_trans_x": str(config.imaging.blade_y1),
+            "coll4_trans_x": str(config.imaging.blade_y2),
             "fan_mode": config.imaging.fan_mode,
             "graphics_enabled": config.dicom.graphics_enabled,
             "simulation_type": "DICOM",
@@ -58,17 +57,17 @@ class DicomMode(SimulationMode):
             config.dicom.patient_id,
             config.imaging.rotation_direction,
             config.imaging.imaging_mode,
-            config.imaging.start_angle,
+            str(config.imaging.start_angle),
         )
         return {
-            "patient_yaw": config.dicom.patient_yaw,
+            "patient_yaw": str(config.dicom.patient_yaw),
             "dicom_directory": config.dicom.dicom_directory,
-            "isocenter_x": config.dicom.isocenter_x,
-            "isocenter_y": config.dicom.isocenter_y,
-            "isocenter_z": config.dicom.isocenter_z,
-            "patient_shift_x": config.dicom.patient_shift_x,
-            "patient_shift_y": config.dicom.patient_shift_y,
-            "patient_shift_z": config.dicom.patient_shift_z,
+            "isocenter_x": str(config.dicom.isocenter_x),
+            "isocenter_y": str(config.dicom.isocenter_y),
+            "isocenter_z": str(config.dicom.isocenter_z),
+            "patient_shift_x": str(config.dicom.patient_shift_x),
+            "patient_shift_y": str(config.dicom.patient_shift_y),
+            "patient_shift_z": str(config.dicom.patient_shift_z),
             "output_filename": output_filename,
         }
 

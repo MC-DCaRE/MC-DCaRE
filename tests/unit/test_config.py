@@ -14,6 +14,7 @@ from src.config import (
     SimulationConfig,
     quantity_unit_stripper,
 )
+from src.models.quantity import Quantity
 
 
 class TestQuantityUnitStripper:
@@ -64,12 +65,12 @@ class TestSimulationConfigDefaults:
 
     def test_defaults_dicom_coordinates_are_zero(self) -> None:
         config: SimulationConfig = SimulationConfig.defaults()
-        assert config.dicom.isocenter_x == "0 mm"
-        assert config.dicom.isocenter_y == "0 mm"
-        assert config.dicom.isocenter_z == "0 mm"
-        assert config.dicom.patient_shift_x == "0. mm"
-        assert config.dicom.patient_shift_y == "0. mm"
-        assert config.dicom.patient_shift_z == "0. mm"
+        assert config.dicom.isocenter_x == Quantity(0.0, "mm")
+        assert config.dicom.isocenter_y == Quantity(0.0, "mm")
+        assert config.dicom.isocenter_z == Quantity(0.0, "mm")
+        assert config.dicom.patient_shift_x == Quantity(0.0, "mm")
+        assert config.dicom.patient_shift_y == Quantity(0.0, "mm")
+        assert config.dicom.patient_shift_z == Quantity(0.0, "mm")
 
     def test_defaults_ctdi_couch_enabled_is_true(self) -> None:
         config: SimulationConfig = SimulationConfig.defaults()

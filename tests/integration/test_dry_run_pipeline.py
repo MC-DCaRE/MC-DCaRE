@@ -189,9 +189,9 @@ class TestDicomDryRunPipeline:
         assert "dc:Ge/IsocenterX = 10 mm\n" in sub_content
         assert "dc:Ge/IsocenterY = 20 mm\n" in sub_content
         assert "dc:Ge/IsocenterZ = 30 mm\n" in sub_content
-        assert "dc:Ge/Patient/UserTransX = 1.0 mm\n" in sub_content
-        assert "dc:Ge/Patient/UserTransY = 2.0 mm\n" in sub_content
-        assert "dc:Ge/Patient/UserTransZ = 3.0 mm\n" in sub_content
+        assert "dc:Ge/Patient/UserTransX = 1 mm\n" in sub_content
+        assert "dc:Ge/Patient/UserTransY = 2 mm\n" in sub_content
+        assert "dc:Ge/Patient/UserTransZ = 3 mm\n" in sub_content
         assert "TEST001_CBCT Clockwise_Image Gently_0 deg_DOSE_PTV" in sub_content
 
         with open(os.path.join(rundir, "headsourcecode.txt")) as f:
@@ -277,8 +277,8 @@ class TestCtdiDryRunPipeline:
         ctdi_sub: str = os.path.join(project_root, "tmp", "CTDIphantom_16.txt")
         with open(ctdi_sub) as f:
             sub_content: str = f.read()
-        assert "d:Ge/couch/HLX = 300. mm\n" in sub_content
-        assert "d:Ge/couch/HLY = 1.0 mm\n" in sub_content
+        assert "d:Ge/couch/HLX = 300 mm\n" in sub_content
+        assert "d:Ge/couch/HLY = 1 mm\n" in sub_content
         assert "d:Ge/couch/HLZ = 1500 mm\n" in sub_content
         assert "i:Sc/ChamberPlugCentre_dtm/ZBins=200\n" in sub_content
         assert "i:Sc/ChamberPlugCentre_tle/ZBins=50\n" in sub_content

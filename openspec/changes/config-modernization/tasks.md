@@ -17,11 +17,11 @@
 
 ## 3. Create GUI adapter
 
-- [ ] 3.1 Create `src/gui/adapter.py` with `config_to_gui()` and `gui_to_config()` methods
-- [ ] 3.2 Move `_PLACEHOLDER_MAP` and `_BOOL_FIELDS` from `config.py` to `adapter.py`
-- [ ] 3.3 Update `src/gui/controller.py` to use adapter instead of `SimulationConfig.from_gui_values()`
-- [ ] 3.4 Remove `from_gui_values()` and `to_dict()` from `SimulationConfig`
-- [ ] 3.5 Remove `keys.py` imports from `config.py`
+- [x] 3.1 Create `src/gui/adapter.py` with `config_to_gui()` and `gui_to_config()` methods
+- [x] 3.2 Move `_PLACEHOLDER_MAP` and `_BOOL_FIELDS` from `config.py` to `adapter.py`
+- [x] 3.3 Update `src/gui/controller.py` to use adapter instead of `SimulationConfig.from_gui_values()`
+- [x] 3.4 Remove `from_gui_values()` and `to_dict()` from `SimulationConfig`
+- [x] 3.5 Remove `keys.py` imports from `config.py`
 
 ## 4. Update consumers
 
@@ -34,7 +34,7 @@
 ## 5. Update tests
 
 - [x] 5.1 Update `tests/unit/test_config.py` for `Quantity`-typed fields and frozen config
-- [x] 5.2 Update `tests/unit/shared.py` context constants (file unused by tests, updated in place)
+- [x] 5.2 Update `tests/unit/shared.py` context constants (updated to match Quantity.__str__ output)
 - [x] 5.3 Update `tests/unit/test_ctdi_mode.py` and `test_dicom_mode.py`
-- [ ] 5.4 Update `tests/unit/test_gui_controller.py` for adapter usage (blocked on Group 3)
+- [x] 5.4 Update `tests/unit/test_gui_controller.py` for adapter usage
 - [x] 5.5 Run full test suite, `ruff format`, `ruff check`, `mypy` — 320 pass, all clean

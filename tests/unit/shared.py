@@ -6,7 +6,7 @@ DEFAULT_MAIN_CONTEXT: dict = {
     "threads": "1",
     "histories": "100000",
     "sequential_times": "1000",
-    "timeline_end": "501.0 s",
+    "timeline_end": "501 s",
     "rotation_rate": "0.4 deg/s",
     "start_angle": "0 deg",
     "coll1_trans_y": "6.175536078965273 cm",
@@ -24,7 +24,7 @@ DEFAULT_MAIN_CONTEXT: dict = {
 
 DEFAULT_CTDI_SUB_CONTEXT: dict = {
     "couch_enabled": True,
-    "couch_width": "260. mm",
+    "couch_width": "260 mm",
     "couch_thickness": "0.4 mm",
     "couch_length": "1000 mm",
     "plug_positions": [
@@ -40,13 +40,13 @@ DEFAULT_CTDI_SUB_CONTEXT: dict = {
 }
 
 DEFAULT_DICOM_SUB_CONTEXT: dict = {
-    "patient_yaw": "0. deg",
+    "patient_yaw": "0 deg",
     "dicom_directory": "/sampledicom/setA",
     "isocenter_x": "0 mm",
     "isocenter_y": "0 mm",
     "isocenter_z": "0 mm",
-    "patient_shift_x": "0. mm",
-    "patient_shift_y": "0. mm",
-    "patient_shift_z": "0. mm",
+    "patient_shift_x": "0 mm",
+    "patient_shift_y": "0 mm",
+    "patient_shift_z": "0 mm",
     "output_filename": "__CBCT Image Gently_0 deg_DOSE_PTV",
 }

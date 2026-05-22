@@ -172,12 +172,12 @@ class TestOnDicomRp:
 
 
 class TestOnRun:
-    @patch("src.gui.controller.SimulationConfig")
+    @patch("src.gui.controller.gui_to_config")
     def test_builds_config_and_calls_orchestrator(
-        self, mock_config_cls: MagicMock
+        self, mock_gui_to_config: MagicMock
     ) -> None:
         mock_config = MagicMock()
-        mock_config_cls.from_gui_values.return_value = mock_config
+        mock_gui_to_config.return_value = mock_config
         mock_orch = MagicMock()
         mock_orch.run.return_value = "/rundir"
 
@@ -188,9 +188,9 @@ class TestOnRun:
         mock_orch.run.assert_called_once_with(mock_config)
         mock_view.show_popup.assert_called_once_with("/rundir")
 
-    @patch("src.gui.controller.SimulationConfig")
-    def test_shows_error_on_exception(self, mock_config_cls: MagicMock) -> None:
-        mock_config_cls.from_gui_values.side_effect = ValueError("bad config")
+    @patch("src.gui.controller.gui_to_config")
+    def test_shows_error_on_exception(self, mock_gui_to_config: MagicMock) -> None:
+        mock_gui_to_config.side_effect = ValueError("bad config")
 
         mock_view = MagicMock()
         ctrl = GUIController(mock_view, MagicMock())

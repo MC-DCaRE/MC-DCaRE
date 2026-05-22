@@ -14,6 +14,7 @@ from src.config import (
     SimulationConfig,
     quantity_unit_stripper,
 )
+from src.gui.adapter import config_to_gui, gui_to_config
 from src.models.quantity import Quantity
 
 
@@ -186,7 +187,7 @@ class TestSimulationConfigFromGuiValues:
             "-CTDI_FIELD_Y2-": "8 cm",
             "-CTDI_GRAPHICS-": "True",
         }
-        config: SimulationConfig = SimulationConfig.from_gui_values(values)
+        config: SimulationConfig = gui_to_config(values)
         assert config.general.g4_data_directory == "/g4"
         assert config.general.seed == "42"
         assert config.imaging.simulation_type == "CTDI"
@@ -204,14 +205,14 @@ class TestSimulationConfigFromGuiValues:
             "-CTDI_USER_BLADE-": "True",
             "-CTDI_GRAPHICS-": "True",
         }
-        config: SimulationConfig = SimulationConfig.from_gui_values(values)
+        config: SimulationConfig = gui_to_config(values)
         assert config.dicom.graphics_enabled is True
         assert config.ctdi.couch_enabled is True
         assert config.ctdi.user_blade_enabled is True
         assert config.ctdi.graphics_enabled is True
 
     def test_missing_keys_use_defaults(self) -> None:
-        config: SimulationConfig = SimulationConfig.from_gui_values({})
+        config: SimulationConfig = gui_to_config({})
         assert config.general.seed == "9"
         assert config.general.threads == "1"
         assert config.imaging.fan_mode == "Full Fan"
@@ -219,10 +220,10 @@ class TestSimulationConfigFromGuiValues:
         assert config.dicom.dicom_directory == "/sampledicom/setA"
 
 
-class TestSimulationConfigToDict:
-    def test_to_dict_has_all_expected_keys(self) -> None:
+class TestConfigToGui:
+    def test_config_to_gui_has_all_expected_keys(self) -> None:
         config: SimulationConfig = SimulationConfig.defaults()
-        d: Dict[str, str] = config.to_dict()
+        d: Dict[str, str] = config_to_gui(config)
         assert "-G4_DATA_DIR-" in d
         assert "-TOPAS_DIR-" in d
         assert "-SEED-" in d
@@ -233,9 +234,9 @@ class TestSimulationConfigToDict:
         assert "-CTDI_PHANTOM-" in d
         assert "-COUCH_ENABLED-" in d
 
-    def test_to_dict_values_match_config_fields(self) -> None:
+    def test_config_to_gui_values_match_config_fields(self) -> None:
         config: SimulationConfig = SimulationConfig.defaults()
-        d: Dict[str, str] = config.to_dict()
+        d: Dict[str, str] = config_to_gui(config)
         assert d["-SEED-"] == config.general.seed
         assert d["-THREADS-"] == config.general.threads
         assert d["-HISTORIES-"] == config.general.histories
@@ -338,8 +339,8 @@ class TestConfigYamlPath:
         config: SimulationConfig = SimulationConfig.from_yaml(str(config_file))
         assert config.config_yaml_path == os.path.abspath(str(config_file))
 
-    def test_from_gui_values_is_none(self) -> None:
-        config: SimulationConfig = SimulationConfig.from_gui_values({})
+    def test_gui_to_config_has_no_yaml_path(self) -> None:
+        config: SimulationConfig = gui_to_config({})
         assert config.config_yaml_path is None
 
     def test_defaults_is_none(

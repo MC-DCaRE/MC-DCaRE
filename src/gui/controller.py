@@ -12,7 +12,7 @@ from typing import Any, Callable, Dict
 
 import FreeSimpleGUI as sg
 from pydicom import dcmread
-from src.config import SimulationConfig
+from src.gui.adapter import gui_to_config
 from src.gui.view import MainView
 from src.models.imaging_mode import IMAGING_MODES
 from src.models.keys import (
@@ -137,7 +137,7 @@ class GUIController:
     def _on_run(self, values: Dict[str, Any]) -> None:
         """Build a config from GUI values and launch the simulation."""
         try:
-            config = SimulationConfig.from_gui_values(values)
+            config = gui_to_config(values)
             rundir = self.orchestrator.run(config)
             self.view.show_popup(rundir)
         except Exception as e:

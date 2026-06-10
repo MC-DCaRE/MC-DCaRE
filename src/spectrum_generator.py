@@ -76,7 +76,7 @@ class SpectrumGenerator:
 
         # Write structured simulation metadata.
         metadata: dict = {
-            "norm_factor": norm_factor,
+            "norm_factor": float(norm_factor),
             "mAs": exposure,
             "total_histories": int(histories),
             "dcf_used": dose_calibration_factor,

@@ -62,13 +62,19 @@ class Orchestrator:
         except OSError as exc:
             logger.warning("Failed to copy config YAML to runfolder: %s", exc)
 
-    def run(self, config: SimulationConfig, dry_run: bool = False) -> str:
+    def run(
+        self, config: SimulationConfig, dry_run: bool = False, detach: bool = False
+    ) -> str:
         rundir: str = self._create_runfolder()
-        self.run_with_runfolder(rundir, config, dry_run=dry_run)
+        self.run_with_runfolder(rundir, config, dry_run=dry_run, detach=detach)
         return rundir
 
     def run_with_runfolder(
-        self, rundir: str, config: SimulationConfig, dry_run: bool = False
+        self,
+        rundir: str,
+        config: SimulationConfig,
+        dry_run: bool = False,
+        detach: bool = False,
     ) -> None:
         """Execute the full simulation pipeline using an existing runfolder."""
         mode: SimulationMode = self._get_mode(config)
@@ -104,7 +110,7 @@ class Orchestrator:
         mode.prepare_run(config, rundir, self.project_root)
 
         if not dry_run:
-            mode.execute(config, rundir, self.project_root)
+            mode.execute(config, rundir, self.project_root, detach=detach)
 
         logger.info("Run completed in %s", rundir)
 

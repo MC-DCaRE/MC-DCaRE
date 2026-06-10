@@ -69,6 +69,7 @@ class SimulationMode(ABC):
         config: SimulationConfig,
         rundir: str,
         project_root: str,
+        detach: bool = False,
     ) -> None:
         """Run the simulation for this mode."""
         ...

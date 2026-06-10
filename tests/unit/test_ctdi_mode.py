@@ -172,7 +172,10 @@ class TestExecute:
             mode.execute(config, "/rundir", "/project")
             mock_gen.assert_called_once_with(config, "/rundir", "/project")
             mock_run.assert_called_once_with(
-                "/topas/bin/topas", "/rundir", "/rundir/CTDI_all_positions.txt"
+                "/topas/bin/topas",
+                "/rundir",
+                "/rundir/CTDI_all_positions.txt",
+                detach=False,
             )
 
 

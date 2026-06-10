@@ -163,4 +163,6 @@ class TestExecute:
         config = make_config(topas_directory="/topas/bin/topas")
         with patch("src.modes.dicom_mode.SimulationRunner.run_dicom") as mock_run:
             mode.execute(config, "/rundir", "/project")
-            mock_run.assert_called_once_with("/topas/bin/topas", "/rundir")
+            mock_run.assert_called_once_with(
+                "/topas/bin/topas", "/rundir", detach=False
+            )

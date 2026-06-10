@@ -33,7 +33,7 @@ def _remove_file_handler(handler: logging.FileHandler) -> None:
 
 
 @app.command()
-def run(config_file: str, dry_run: bool = False) -> None:
+def run(config_file: str, dry_run: bool = False, detach: bool = False) -> None:
     config = SimulationConfig.from_yaml(config_file)
     orchestrator = Orchestrator(os.getcwd())
     if dry_run:
@@ -43,11 +43,18 @@ def run(config_file: str, dry_run: bool = False) -> None:
         _remove_file_handler(file_handler)
         print("Files prepared in " + rundir + ". TOPAS not executed.")
     else:
-        rundir = orchestrator.run(config)
+        rundir = orchestrator.run(config, detach=detach)
         file_handler = _add_file_handler(rundir, config.general.log_filename)
-        logger.info("Simulation completed in %s", rundir)
-        _remove_file_handler(file_handler)
-        print("Simulation completed in " + rundir)
+        if detach:
+            logger.info("Simulation detached in %s", rundir)
+            _remove_file_handler(file_handler)
+            print("Simulation detached in " + rundir)
+            print("Monitor: cat " + rundir + "/topas_ctdi.log")
+            print("Status:  cat " + rundir + "/topas.pid")
+        else:
+            logger.info("Simulation completed in %s", rundir)
+            _remove_file_handler(file_handler)
+            print("Simulation completed in " + rundir)
 
 
 @app.command()

@@ -129,9 +129,12 @@ class CtdiMode(SimulationMode):
         config: SimulationConfig,
         rundir: str,
         project_root: str,
+        detach: bool = False,
     ) -> None:
         param_file = self._generate_single_parameter_file(config, rundir, project_root)
-        SimulationRunner.run_ctdi(config.general.topas_directory, rundir, param_file)
+        SimulationRunner.run_ctdi(
+            config.general.topas_directory, rundir, param_file, detach=detach
+        )
 
     def _generate_single_parameter_file(
         self,

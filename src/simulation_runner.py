@@ -9,6 +9,8 @@ from typing import List, Optional
 
 logger = logging.getLogger(__name__)
 
+_PID_FILENAME = "topas.pid"
+
 
 class SimulationRunner:
     """Launches TOPAS processes for DICOM and CTDI simulation modes."""
@@ -56,6 +58,7 @@ class SimulationRunner:
         working_dir: str,
         log_path: Optional[str] = None,
         timeout: int = 3600,
+        detach: bool = False,
     ) -> None:
         """Execute a single TOPAS command and check its return code.
 
@@ -64,11 +67,18 @@ class SimulationRunner:
             working_dir: Working directory for the subprocess.
             log_path: If provided, capture stdout+stderr to this file in real time.
             timeout: Maximum execution time in seconds (default 1 hour).
+            detach: If True, spawn in a new session and return immediately.
+                Writes ``topas.pid`` to *working_dir* so the process can be
+                monitored externally.
 
         Raises:
             RuntimeError: If TOPAS exits with a non-zero return code or times out.
         """
         logger.info("Running TOPAS: %s in %s", " ".join(command), working_dir)
+
+        if detach:
+            SimulationRunner._spawn_detached(command, working_dir, log_path)
+            return
 
         if log_path is not None:
             proc = subprocess.Popen(
@@ -113,7 +123,51 @@ class SimulationRunner:
             )
 
     @staticmethod
-    def run_dicom(topas_path: str, rundatadir: str) -> None:
+    def _spawn_detached(
+        command: List[str],
+        working_dir: str,
+        log_path: Optional[str] = None,
+    ) -> None:
+        """Spawn TOPAS in a new session, write PID file, and return."""
+        log_dest = log_path or os.path.join(working_dir, "topas_detached.log")
+        log_fh = open(log_dest, "w")  # noqa: SIM115
+        proc = subprocess.Popen(
+            command,
+            cwd=working_dir,
+            stdout=log_fh,
+            stderr=log_fh,
+            start_new_session=True,
+        )
+        pid_path = os.path.join(working_dir, _PID_FILENAME)
+        with open(pid_path, "w") as f:
+            f.write(str(proc.pid))
+        logger.info("TOPAS detached (pid=%d). PID file: %s", proc.pid, pid_path)
+
+    @staticmethod
+    def is_running(working_dir: str) -> bool:
+        """Check whether a detached TOPAS process is still running.
+
+        Reads ``topas.pid`` from *working_dir* and checks if the process
+        is alive.  Returns False if the PID file is missing or the process
+        has exited.
+        """
+        pid_path = os.path.join(working_dir, _PID_FILENAME)
+        if not os.path.isfile(pid_path):
+            return False
+        try:
+            pid = int(open(pid_path).read().strip())
+        except (ValueError, OSError):
+            return False
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            return False
+        except PermissionError:
+            return True
+        return True
+
+    @staticmethod
+    def run_dicom(topas_path: str, rundatadir: str, detach: bool = False) -> None:
         """Run a single DICOM patient simulation."""
         SimulationRunner.validate_topas_binary(topas_path)
         command: List[str] = [
@@ -122,19 +176,25 @@ class SimulationRunner:
         ]
         log_path = os.path.join(rundatadir, "topas_dicom.log")
         logger.info("Starting DICOM simulation")
-        SimulationRunner.run_topas(command, rundatadir, log_path)
+        SimulationRunner.run_topas(command, rundatadir, log_path, detach=detach)
 
     @staticmethod
-    def run_ctdi(topas_path: str, rundatadir: str, param_file: str) -> None:
+    def run_ctdi(
+        topas_path: str,
+        rundatadir: str,
+        param_file: str,
+        detach: bool = False,
+    ) -> None:
         """Run a single CTDI simulation scoring all plug positions via parallel worlds.
 
         Args:
             topas_path: Path to the TOPAS executable.
             rundatadir: Run data directory for outputs.
             param_file: Path to the single TOPAS parameter file.
+            detach: If True, spawn in background and return immediately.
         """
         SimulationRunner.validate_topas_binary(topas_path)
         command: List[str] = [topas_path, param_file]
         log_path = os.path.join(rundatadir, "topas_ctdi.log")
         logger.info("Starting CTDI simulation (parallel worlds)")
-        SimulationRunner.run_topas(command, rundatadir, log_path)
+        SimulationRunner.run_topas(command, rundatadir, log_path, detach=detach)

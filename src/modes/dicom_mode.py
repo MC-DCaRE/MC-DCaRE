@@ -107,5 +107,8 @@ class DicomMode(SimulationMode):
         config: SimulationConfig,
         rundir: str,
         project_root: str,
+        detach: bool = False,
     ) -> None:
-        SimulationRunner.run_dicom(config.general.topas_directory, rundir)
+        SimulationRunner.run_dicom(
+            config.general.topas_directory, rundir, detach=detach
+        )

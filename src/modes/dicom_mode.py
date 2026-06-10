@@ -47,6 +47,9 @@ class DicomMode(SimulationMode):
             "graphics_enabled": config.dicom.graphics_enabled,
             "simulation_type": "DICOM",
             "phantom_size": "",
+            "patient_yaw": str(config.dicom.patient_yaw),
+            "patient_pitch": str(config.dicom.patient_pitch),
+            "patient_roll_value": config.dicom.patient_roll.value,
             "rotation_direction": config.imaging.rotation_direction,
             "start_angle_value": start_val,
             "second_angle_value": second_angle,
@@ -61,6 +64,7 @@ class DicomMode(SimulationMode):
         )
         return {
             "patient_yaw": str(config.dicom.patient_yaw),
+            "patient_pitch": str(config.dicom.patient_pitch),
             "dicom_directory": config.dicom.dicom_directory,
             "isocenter_x": str(config.dicom.isocenter_x),
             "isocenter_y": str(config.dicom.isocenter_y),

@@ -72,6 +72,9 @@ class TestSimulationConfigDefaults:
         assert config.dicom.patient_shift_x == Quantity(0.0, "mm")
         assert config.dicom.patient_shift_y == Quantity(0.0, "mm")
         assert config.dicom.patient_shift_z == Quantity(0.0, "mm")
+        assert config.dicom.patient_yaw == Quantity(0.0, "deg")
+        assert config.dicom.patient_pitch == Quantity(0.0, "deg")
+        assert config.dicom.patient_roll == Quantity(0.0, "deg")
 
     def test_defaults_ctdi_couch_enabled_is_true(self) -> None:
         config: SimulationConfig = SimulationConfig.defaults()
@@ -140,7 +143,11 @@ class TestSimulationConfigYamlRoundTrip:
 
         config = SimulationConfig(
             imaging=ImagingConfig(anode_voltage="80 kV", start_angle="45 deg"),
-            dicom=DicomConfig(isocenter_x="10.5 mm"),
+            dicom=DicomConfig(
+                isocenter_x="10.5 mm",
+                patient_pitch="2 deg",
+                patient_roll="-5 deg",
+            ),
             ctdi=CtdiConfig(couch_width="300 mm"),
         )
         path = str(tmp_path / "test_roundtrip.yaml")
@@ -149,6 +156,8 @@ class TestSimulationConfigYamlRoundTrip:
         assert loaded.imaging.anode_voltage == Quantity(80.0, "kV")
         assert loaded.imaging.start_angle == Quantity(45.0, "deg")
         assert loaded.dicom.isocenter_x == Quantity(10.5, "mm")
+        assert loaded.dicom.patient_pitch == Quantity(2.0, "deg")
+        assert loaded.dicom.patient_roll == Quantity(-5.0, "deg")
         assert loaded.ctdi.couch_width == Quantity(300.0, "mm")
 
 
@@ -189,6 +198,8 @@ class TestSimulationConfigFromGuiValues:
             "-SHIFT_Y-": "0.5 mm",
             "-SHIFT_Z-": "0.5 mm",
             "-PATIENT_YAW-": "90. deg",
+            "-PATIENT_PITCH-": "2 deg",
+            "-PATIENT_ROLL-": "-5 deg",
             "-DICOM_GRAPHICS-": "False",
             "-CTDI_PHANTOM-": "32 cm",
             "-DTM_ZBINS-": "200",
@@ -211,6 +222,9 @@ class TestSimulationConfigFromGuiValues:
         assert config.imaging.simulation_type == "CTDI"
         assert config.imaging.fan_mode == "Half Fan"
         assert config.dicom.patient_id == "PAT001"
+        assert config.dicom.patient_yaw == Quantity(90.0, "deg")
+        assert config.dicom.patient_pitch == Quantity(2.0, "deg")
+        assert config.dicom.patient_roll == Quantity(-5.0, "deg")
         assert config.ctdi.phantom_size == "32 cm"
         assert config.ctdi.user_blade_enabled is True
         assert config.ctdi.graphics_enabled is True
@@ -251,6 +265,9 @@ class TestConfigToGui:
         assert "-FAN_MODE-" in d
         assert "-CTDI_PHANTOM-" in d
         assert "-COUCH_ENABLED-" in d
+        assert "-PATIENT_YAW-" in d
+        assert "-PATIENT_PITCH-" in d
+        assert "-PATIENT_ROLL-" in d
 
     def test_config_to_gui_values_match_config_fields(self) -> None:
         config: SimulationConfig = SimulationConfig.defaults()
@@ -391,9 +408,16 @@ class TestQuantityCoercion:
     def test_dicom_coerces_strings(self) -> None:
         from src.config import DicomConfig
 
-        cfg = DicomConfig(isocenter_x="10 mm", patient_yaw="90 deg")
+        cfg = DicomConfig(
+            isocenter_x="10 mm",
+            patient_yaw="90 deg",
+            patient_pitch="2 deg",
+            patient_roll="-5 deg",
+        )
         assert cfg.isocenter_x == Quantity(10.0, "mm")
         assert cfg.patient_yaw == Quantity(90.0, "deg")
+        assert cfg.patient_pitch == Quantity(2.0, "deg")
+        assert cfg.patient_roll == Quantity(-5.0, "deg")
 
     def test_ctdi_coerces_strings(self) -> None:
         from src.config import CtdiConfig

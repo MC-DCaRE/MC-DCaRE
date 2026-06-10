@@ -60,6 +60,10 @@ def fake_project(tmp_path: Any) -> Any:
         "dc:Ge/Coll2/TransY = {{ coll2_trans_y }}\n"
         "dc:Ge/Coll3/TransX = {{ coll3_trans_x }}\n"
         "dc:Ge/Coll4/TransX = {{ coll4_trans_x }}\n"
+        "dc:Ge/Rotation/RotX= {{ patient_pitch }}\n"
+        "d:Ge/patrotation/yaw= {{ patient_yaw }}\n"
+        "dc:Ge/Rotation/RotY= 180. deg + Ge/patrotation/yaw\n"
+        "dc:Ge/Rotation/RotZ= Tf/Rotate/Value + {{ patient_roll_value }} deg\n"
         '{% if graphics_enabled %}Ts/UseQt="True"\n'
         's:Gr/ViewA/Type="OpenGL"\n'
         'b:Gr/Enable="T"\n{% endif %}'
@@ -72,6 +76,8 @@ def fake_project(tmp_path: Any) -> Any:
     dicom_template: str = (
         "includeFile= HUtoMaterialSchneider.txt\n"
         's:Ge/Patient/DicomDirectory = "{{ dicom_directory }}"\n'
+        "d:Ge/Patient/RotX = {{ patient_pitch }}\n"
+        "d:Ge/Patient/RotZ = {{ patient_yaw }}\n"
         "dc:Ge/IsocenterX = {{ isocenter_x }}\n"
         "dc:Ge/IsocenterY = {{ isocenter_y }}\n"
         "dc:Ge/IsocenterZ = {{ isocenter_z }}\n"
@@ -155,6 +161,8 @@ class TestDicomDryRunPipeline:
                 patient_shift_y="2.0 mm",
                 patient_shift_z="3.0 mm",
                 patient_yaw="10.0 deg",
+                patient_pitch="2.0 deg",
+                patient_roll="-5.0 deg",
                 graphics_enabled=False,
             ),
             ctdi=CtdiConfig(),
@@ -181,11 +189,16 @@ class TestDicomDryRunPipeline:
         assert "sv:Ph/Default/LayeredMassGeometryWorlds" not in head_content
         assert "Ts/UseQt" not in head_content
         assert "includeFile = patientDICOM.txt" in head_content
+        assert "dc:Ge/Rotation/RotX= 2 deg\n" in head_content
+        assert "d:Ge/patrotation/yaw= 10 deg\n" in head_content
+        assert "dc:Ge/Rotation/RotZ= Tf/Rotate/Value + -5.0 deg\n" in head_content
 
         sub_in_tmp: str = os.path.join(project_root, "tmp", "patientDICOM.txt")
         with open(sub_in_tmp) as f:
             sub_content: str = f.read()
         assert 's:Ge/Patient/DicomDirectory = "/test/dicom/patient"\n' in sub_content
+        assert "d:Ge/Patient/RotX = 2 deg\n" in sub_content
+        assert "d:Ge/Patient/RotZ = 10 deg\n" in sub_content
         assert "dc:Ge/IsocenterX = 10 mm\n" in sub_content
         assert "dc:Ge/IsocenterY = 20 mm\n" in sub_content
         assert "dc:Ge/IsocenterZ = 30 mm\n" in sub_content
@@ -273,6 +286,9 @@ class TestCtdiDryRunPipeline:
         assert "includeFile = patientDICOM.txt" not in head_content
         assert "Ts/UseQt" not in head_content
         assert "sv:Ph/Default/LayeredMassGeometryWorlds" in head_content
+        assert "dc:Ge/Rotation/RotX= 0 deg\n" in head_content
+        assert "d:Ge/patrotation/yaw= 0 deg\n" in head_content
+        assert "dc:Ge/Rotation/RotZ= Tf/Rotate/Value + 0.0 deg\n" in head_content
 
         ctdi_sub: str = os.path.join(project_root, "tmp", "CTDIphantom_16.txt")
         with open(ctdi_sub) as f:

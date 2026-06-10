@@ -47,6 +47,8 @@ _DICOM_Q_FIELDS = (
     "patient_shift_y",
     "patient_shift_z",
     "patient_yaw",
+    "patient_pitch",
+    "patient_roll",
 )
 _CTDI_Q_FIELDS = (
     "couch_width",
@@ -133,6 +135,8 @@ class DicomConfig:
     patient_shift_y: Quantity = _q(0.0, "mm")
     patient_shift_z: Quantity = _q(0.0, "mm")
     patient_yaw: Quantity = _q(0.0, "deg")
+    patient_pitch: Quantity = _q(0.0, "deg")
+    patient_roll: Quantity = _q(0.0, "deg")
     graphics_enabled: bool = False
 
     def __post_init__(self) -> None:

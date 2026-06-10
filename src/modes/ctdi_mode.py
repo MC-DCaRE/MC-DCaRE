@@ -84,6 +84,9 @@ class CtdiMode(SimulationMode):
             "graphics_enabled": config.ctdi.graphics_enabled,
             "simulation_type": "CTDI",
             "phantom_size": size_number,
+            "patient_yaw": "0 deg",
+            "patient_pitch": "0 deg",
+            "patient_roll_value": 0.0,
             **_compute_angle_values(
                 config.imaging.rotation_direction, config.imaging.start_angle
             ),

@@ -43,6 +43,30 @@ class TestBuildMainContext:
         assert ctx["start_angle_value"] == 0.0
         assert ctx["second_angle_value"] == 90.0
 
+    def test_main_context_passes_patient_yaw(self, make_config: Any) -> None:
+        mode = DicomMode()
+        config = make_config(patient_yaw="5 deg")
+        ctx = mode.build_main_context(config)
+        assert ctx["patient_yaw"] == "5 deg"
+
+    def test_main_context_passes_patient_pitch(self, make_config: Any) -> None:
+        mode = DicomMode()
+        config = make_config(patient_pitch="2 deg")
+        ctx = mode.build_main_context(config)
+        assert ctx["patient_pitch"] == "2 deg"
+
+    def test_main_context_passes_patient_roll(self, make_config: Any) -> None:
+        mode = DicomMode()
+        config = make_config(patient_roll="1 deg")
+        ctx = mode.build_main_context(config)
+        assert ctx["patient_roll_value"] == 1.0
+
+    def test_main_context_passes_negative_roll(self, make_config: Any) -> None:
+        mode = DicomMode()
+        config = make_config(patient_roll="-5 deg")
+        ctx = mode.build_main_context(config)
+        assert ctx["patient_roll_value"] == -5.0
+
 
 class TestBuildSubContext:
     def test_replaces_patient_yaw(self, make_config: Any) -> None:
@@ -50,6 +74,12 @@ class TestBuildSubContext:
         config = make_config(patient_yaw="90. deg")
         ctx = mode.build_sub_context(config)
         assert ctx["patient_yaw"] == "90 deg"
+
+    def test_replaces_patient_pitch(self, make_config: Any) -> None:
+        mode = DicomMode()
+        config = make_config(patient_pitch="2. deg")
+        ctx = mode.build_sub_context(config)
+        assert ctx["patient_pitch"] == "2 deg"
 
     def test_replaces_dicom_directory(self, make_config: Any) -> None:
         mode = DicomMode()

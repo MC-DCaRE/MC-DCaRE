@@ -51,6 +51,8 @@ from src.models.keys import (
     ISO_Y,
     ISO_Z,
     PATIENT_ID,
+    PATIENT_PITCH,
+    PATIENT_ROLL,
     PATIENT_YAW,
     RESET,
     ROTATION_RATE,
@@ -615,7 +617,7 @@ class MainView:
         )
 
     def _build_dicom_patient_layer(self) -> sg.Frame:
-        """Patient-shift and yaw-rotation inputs relative to isocenter."""
+        """Patient-shift and rotation inputs relative to isocenter."""
         d = self._defaults
         return sg.Frame(
             "Patient set up adjustments",
@@ -652,6 +654,24 @@ class MainView:
                     sg.In(
                         default_text=str(d.dicom.patient_yaw),
                         key=PATIENT_YAW,
+                        size=(10, 1),
+                        enable_events=True,
+                    ),
+                ],
+                [
+                    sg.Text("Patient Pitch Rotation", size=(14, 1), text_color="black"),
+                    sg.In(
+                        default_text=str(d.dicom.patient_pitch),
+                        key=PATIENT_PITCH,
+                        size=(10, 1),
+                        enable_events=True,
+                    ),
+                ],
+                [
+                    sg.Text("Patient Roll Rotation", size=(14, 1), text_color="black"),
+                    sg.In(
+                        default_text=str(d.dicom.patient_roll),
+                        key=PATIENT_ROLL,
                         size=(10, 1),
                         enable_events=True,
                     ),

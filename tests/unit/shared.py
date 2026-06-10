@@ -17,6 +17,9 @@ DEFAULT_MAIN_CONTEXT: dict = {
     "graphics_enabled": False,
     "simulation_type": "CTDI",
     "phantom_size": "16",
+    "patient_yaw": "0 deg",
+    "patient_pitch": "0 deg",
+    "patient_roll_value": 0.0,
     "rotation_direction": "CBCT Clockwise",
     "start_angle_value": 0.0,
     "second_angle_value": 0.0,
@@ -41,6 +44,7 @@ DEFAULT_CTDI_SUB_CONTEXT: dict = {
 
 DEFAULT_DICOM_SUB_CONTEXT: dict = {
     "patient_yaw": "0 deg",
+    "patient_pitch": "0 deg",
     "dicom_directory": "/sampledicom/setA",
     "isocenter_x": "0 mm",
     "isocenter_y": "0 mm",

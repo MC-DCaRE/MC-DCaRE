@@ -48,10 +48,10 @@ d:Ph/Default/EMRangeMax=1.0 MeV
 # Actively rotate imaging system
 s:Ge/Rotation/Type="Group"
 s:Ge/Rotation/Parent="World"
-dc:Ge/Rotation/RotX= 0. deg
-d:Ge/patrotation/yaw= 0 deg
+dc:Ge/Rotation/RotX= {{ patient_pitch }}
+d:Ge/patrotation/yaw= {{ patient_yaw }}
 dc:Ge/Rotation/RotY= 180. deg + Ge/patrotation/yaw
-dc:Ge/Rotation/RotZ= Tf/Rotate/Value deg # Time feature defined below # add 90 deg to get actual gantry angle referencing
+dc:Ge/Rotation/RotZ= Tf/Rotate/Value + {{ patient_roll_value }} deg # Time feature defined below
 d:Ge/Rotation/TransX=0.0 mm
 d:Ge/Rotation/TransY=0.0 mm
 d:Ge/Rotation/TransZ=0.0 mm

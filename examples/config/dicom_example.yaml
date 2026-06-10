@@ -41,6 +41,8 @@ dicom:
   patient_shift_y: 0. mm
   patient_shift_z: 0. mm
   patient_yaw: 0. deg
+  patient_pitch: 0. deg
+  patient_roll: 0. deg
   graphics_enabled: false
 # CTDI section is ignored for DICOM simulations
 

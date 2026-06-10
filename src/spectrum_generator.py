@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import logging
 import os
+from datetime import datetime, timezone
 
 import numpy as np
 import spekpy as sp
+import yaml
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +23,9 @@ class SpectrumGenerator:
         histories: str,
         project_root: str,
         dose_calibration_factor: float = 1.0,
+        fan_mode: str = "",
+        seed: int = 9,
+        threads: int = 1,
     ) -> None:
         """Generate a kV spectrum and write calibration factor and TOPAS spectrum files.
 
@@ -29,8 +34,11 @@ class SpectrumGenerator:
             exposure: Tube current-time product in mAs.
             histories: Number of primary histories as a string.
             project_root: Root directory of the MC-DCaRE project (output goes to tmp/).
-            dose_calibration_factor: Multiplicative correction factor derived from
-                measurement-to-simulation CTDI-w ratio. Default 1.0 (no correction).
+            dose_calibration_factor: Multiplicative correction factor. Default 1.0
+                (post-hoc calibration applied after simulation).
+            fan_mode: Fan mode string ("Full Fan" or "Half Fan").
+            seed: Random seed for reproducibility.
+            threads: Number of simulation threads.
         """
         logger.info(
             "Generating spectrum: %f kV, %f mAs, %s histories",
@@ -38,9 +46,9 @@ class SpectrumGenerator:
             exposure,
             histories,
         )
-        # SpekPy inherent filtration: dk=0.2 mm Al equivalent.
-        # TrueBeam GS-1542 tube spec lists 2.7 mm Al inherent filtration.
-        # The 0.7 mm Ti filter is modeled separately in TOPAS geometry.
+        # SpekPy energy bin width: dk=0.2 keV (finer spectral resolution than default 0.5 keV).
+        # No SpekPy filtration is applied; filtration is modeled in TOPAS geometry
+        # (0.7 mm Ti beam hardening filter, bowtie filter).
         s = sp.Spek(
             kvp=anode_voltage,
             th=14,
@@ -55,10 +63,44 @@ class SpectrumGenerator:
         karr, spkarr = s.get_spectrum(edges=False, diff=False)
         no_particles: float = 4 * np.pi * 0.1**2 * s.get_flu()
 
-        calib_factor: float = (no_particles / int(histories)) * dose_calibration_factor
+        if exposure <= 0:
+            raise ValueError("exposure (mAs) must be positive, got %s" % exposure)
+        if int(histories) <= 0:
+            raise ValueError("histories must be positive, got %s" % histories)
 
+        # Per-mAs normalization factor (independent of mAs due to SpekPy linearity).
+        norm_factor: float = no_particles / (int(histories) * exposure)
+
+        # Combined calibration factor for backward-compatible head_calibration_factor.txt.
+        calib_factor: float = norm_factor * exposure * dose_calibration_factor
+
+        # Write structured simulation metadata.
+        metadata: dict = {
+            "norm_factor": norm_factor,
+            "mAs": exposure,
+            "total_histories": int(histories),
+            "dcf_used": dose_calibration_factor,
+            "spekpy": {
+                "kvp": anode_voltage,
+                "th": 14,
+                "dk": 0.2,
+                "z": 0.1,
+                "mas": exposure,
+                "version": sp.__version__,
+            },
+            "fan_mode": fan_mode,
+            "seed": seed,
+            "threads": threads,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        metadata_path = os.path.join(project_root, "tmp", "simulation_metadata.yaml")
+        with open(metadata_path, "w", encoding="utf-8") as f:
+            yaml.dump(metadata, f, default_flow_style=False, sort_keys=False)
+        logger.info("Simulation metadata written to %s", metadata_path)
+
+        # Write backward-compatible head_calibration_factor.txt.
         calib_path = os.path.join(project_root, "tmp", "head_calibration_factor.txt")
-        with open(calib_path, "w") as f:
+        with open(calib_path, "w", encoding="utf-8") as f:
             f.write("%.10e" % calib_factor)
             f.write("\nMultiply dose by the factor above to get absolute dose \n")
             f.write("The number of histories in this run was: " + histories + "\n")
@@ -96,7 +138,7 @@ class SpectrumGenerator:
         )
 
         spectrum_path = os.path.join(project_root, "tmp", "ConvertedTopasFile.txt")
-        with open(spectrum_path, "w") as f:
+        with open(spectrum_path, "w", encoding="utf-8") as f:
             f.write(converted_file)
 
         logger.info("Spectrum files written to %s/tmp/", project_root)

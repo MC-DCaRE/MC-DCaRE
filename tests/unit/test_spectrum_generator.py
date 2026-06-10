@@ -5,6 +5,7 @@ import os
 import sys
 import numpy as np
 import pytest
+import yaml
 from unittest.mock import patch, MagicMock
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -55,6 +56,7 @@ class TestSpectrumGenerator:
         self, mock_sp: MagicMock, tmp_path: object
     ) -> None:
         mock_sp.Spek.return_value = MockSpek()
+        mock_sp.__version__ = "2.0.1"
         os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
         SpectrumGenerator.generate(100.0, 10.0, "100000", str(tmp_path))
         mock_sp.Spek.assert_called_once_with(kvp=100.0, th=14, mas=10.0, dk=0.2, z=0.1)
@@ -64,6 +66,7 @@ class TestSpectrumGenerator:
         self, mock_sp: MagicMock, tmp_path: object
     ) -> None:
         mock_sp.Spek.return_value = MockSpek()
+        mock_sp.__version__ = "2.0.1"
         os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
         SpectrumGenerator.generate(100.0, 10.0, "100000", str(tmp_path))
         calib_path = os.path.join(str(tmp_path), "tmp", "head_calibration_factor.txt")
@@ -74,6 +77,7 @@ class TestSpectrumGenerator:
         self, mock_sp: MagicMock, tmp_path: object
     ) -> None:
         mock_sp.Spek.return_value = MockSpek()
+        mock_sp.__version__ = "2.0.1"
         os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
         SpectrumGenerator.generate(100.0, 10.0, "100000", str(tmp_path))
         converted_path = os.path.join(str(tmp_path), "tmp", "ConvertedTopasFile.txt")
@@ -84,6 +88,7 @@ class TestSpectrumGenerator:
         self, mock_sp: MagicMock, tmp_path: object
     ) -> None:
         mock_sp.Spek.return_value = MockSpek()
+        mock_sp.__version__ = "2.0.1"
         os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
         SpectrumGenerator.generate(100.0, 10.0, "100000", str(tmp_path))
         calib_path = os.path.join(str(tmp_path), "tmp", "head_calibration_factor.txt")
@@ -98,6 +103,7 @@ class TestSpectrumGenerator:
         self, mock_sp: MagicMock, tmp_path: object
     ) -> None:
         mock_sp.Spek.return_value = MockSpek()
+        mock_sp.__version__ = "2.0.1"
         os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
         SpectrumGenerator.generate(100.0, 10.0, "100000", str(tmp_path))
         converted_path = os.path.join(str(tmp_path), "tmp", "ConvertedTopasFile.txt")
@@ -111,6 +117,7 @@ class TestSpectrumGenerator:
         self, mock_sp: MagicMock, tmp_path: object
     ) -> None:
         mock_sp.Spek.return_value = MockSpek()
+        mock_sp.__version__ = "2.0.1"
         os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
         SpectrumGenerator.generate(100.0, 10.0, "100000", str(tmp_path))
         converted_path = os.path.join(str(tmp_path), "tmp", "ConvertedTopasFile.txt")
@@ -123,6 +130,7 @@ class TestSpectrumGenerator:
         self, mock_sp: MagicMock, tmp_path: object
     ) -> None:
         mock_sp.Spek.return_value = MockSpek()
+        mock_sp.__version__ = "2.0.1"
         os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
         SpectrumGenerator.generate(100.0, 10.0, "100000", str(tmp_path))
         calib_path = os.path.join(str(tmp_path), "tmp", "head_calibration_factor.txt")
@@ -137,6 +145,7 @@ class TestSpectrumGenerator:
         self, mock_sp: MagicMock, tmp_path: object
     ) -> None:
         mock_sp.Spek.return_value = MockSpek()
+        mock_sp.__version__ = "2.0.1"
         os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
         SpectrumGenerator.generate(
             100.0, 10.0, "100000", str(tmp_path), dose_calibration_factor=1.5
@@ -153,6 +162,7 @@ class TestSpectrumGenerator:
         self, mock_sp: MagicMock, tmp_path: object
     ) -> None:
         mock_sp.Spek.return_value = MockSpek()
+        mock_sp.__version__ = "2.0.1"
         os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
         SpectrumGenerator.generate(100.0, 10.0, "100000", str(tmp_path))
         calib_path = os.path.join(str(tmp_path), "tmp", "head_calibration_factor.txt")
@@ -164,6 +174,65 @@ class TestSpectrumGenerator:
         with open(calib_path, "r") as f:
             with_factor = float(f.readline().strip())
         assert abs(with_factor - expected_no_factor) < 1e-10
+
+    @patch("src.spectrum_generator.sp")
+    def test_creates_simulation_metadata_yaml(
+        self, mock_sp: MagicMock, tmp_path: object
+    ) -> None:
+        mock_sp.Spek.return_value = MockSpek()
+        mock_sp.__version__ = "2.0.1"
+        os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
+        SpectrumGenerator.generate(
+            120.0,
+            100.0,
+            "500000",
+            str(tmp_path),
+            fan_mode="Full Fan",
+            seed=42,
+            threads=4,
+        )
+        meta_path = os.path.join(str(tmp_path), "tmp", "simulation_metadata.yaml")
+        assert os.path.exists(meta_path)
+
+        with open(meta_path) as f:
+            meta = yaml.safe_load(f)
+
+        assert meta["mAs"] == 100.0
+        assert meta["total_histories"] == 500000
+        assert meta["dcf_used"] == 1.0
+        assert meta["fan_mode"] == "Full Fan"
+        assert meta["seed"] == 42
+        assert meta["threads"] == 4
+        assert meta["spekpy"]["kvp"] == 120.0
+        assert meta["spekpy"]["th"] == 14
+        assert meta["spekpy"]["dk"] == 0.2
+        assert meta["spekpy"]["z"] == 0.1
+        assert meta["spekpy"]["mas"] == 100.0
+        assert meta["spekpy"]["version"] == "2.0.1"
+        assert "timestamp" in meta
+
+    @patch("src.spectrum_generator.sp")
+    def test_metadata_norm_factor_is_per_mAs(
+        self, mock_sp: MagicMock, tmp_path: object
+    ) -> None:
+        mock_sp.Spek.return_value = MockSpek()
+        mock_sp.__version__ = "2.0.1"
+        os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
+        SpectrumGenerator.generate(100.0, 10.0, "100000", str(tmp_path))
+
+        meta_path = os.path.join(str(tmp_path), "tmp", "simulation_metadata.yaml")
+        with open(meta_path) as f:
+            meta = yaml.safe_load(f)
+
+        # norm_factor should be no_particles / (histories * mAs)
+        expected_norm = 4.0 * math.pi * 0.01 * 1000.0 / (100000 * 10.0)
+        assert abs(meta["norm_factor"] - expected_norm) < 1e-10
+
+        # Backward-compat factor should equal norm_factor * mAs * dcf
+        calib_path = os.path.join(str(tmp_path), "tmp", "head_calibration_factor.txt")
+        with open(calib_path) as f:
+            calib = float(f.readline().strip())
+        assert abs(calib - meta["norm_factor"] * meta["mAs"] * meta["dcf_used"]) < 1e-10
 
 
 if __name__ == "__main__":

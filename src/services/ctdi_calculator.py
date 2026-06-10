@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import logging
+import math
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
 import pandas as pd
+import yaml
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +23,10 @@ class CTDICalculator:
 
     def __init__(self, runfolder: Path) -> None:
         self.runfolder = runfolder
-        self.calibration_factor = self._extract_calibration_factor()
+        self.simulation_metadata: Optional[Dict] = None
+        self.calibration_factor, self.simulation_metadata = (
+            self._read_simulation_metadata()
+        )
 
     def calculate(self) -> List[Dict]:
         """Compute CTDI-w results for each available file type (dtm, tle)."""
@@ -53,6 +58,52 @@ class CTDICalculator:
         except Exception as e:
             logger.error("Error saving results: %s", e)
             raise
+
+    def _read_simulation_metadata(
+        self,
+    ) -> tuple[float, Optional[Dict]]:
+        """Read simulation metadata from runfolder.
+
+        Tries ``simulation_metadata.yaml`` first (structured provenance),
+        falls back to ``head_calibration_factor.txt`` for backward compatibility.
+
+        Returns:
+            Tuple of (calibration_factor, metadata_dict_or_None).
+        """
+        metadata_path = self.runfolder / "simulation_metadata.yaml"
+        if metadata_path.exists():
+            try:
+                with open(metadata_path, "r", encoding="utf-8") as f:
+                    metadata = yaml.safe_load(f)
+                if isinstance(metadata, dict):
+                    combined = (
+                        metadata["norm_factor"] * metadata["mAs"] * metadata["dcf_used"]
+                    )
+                    if not isinstance(combined, (int, float)) or not math.isfinite(
+                        combined
+                    ):
+                        logger.warning(
+                            "Non-finite calibration factor from metadata; falling back"
+                        )
+                    else:
+                        logger.info(
+                            "Loaded simulation metadata: norm_factor=%.6e, mAs=%s, dcf=%s",
+                            metadata["norm_factor"],
+                            metadata["mAs"],
+                            metadata["dcf_used"],
+                        )
+                        return combined, metadata
+                logger.warning(
+                    "simulation_metadata.yaml is not a valid mapping; falling back"
+                )
+            except (KeyError, TypeError, yaml.YAMLError) as exc:
+                logger.warning(
+                    "Failed to parse simulation_metadata.yaml (%s); falling back", exc
+                )
+
+        # Fallback to legacy calibration factor file.
+        factor = self._extract_calibration_factor()
+        return factor, None
 
     def _extract_calibration_factor(self) -> float:
         """Read the head calibration factor from the run folder."""

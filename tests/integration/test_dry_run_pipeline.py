@@ -25,12 +25,15 @@ def _mock_generate(
     histories: str,
     project_root: str,
     dose_calibration_factor: float = 1.0,
+    **kwargs: object,
 ) -> None:
     tmp_dir = os.path.join(project_root, "tmp")
     with open(os.path.join(tmp_dir, "ConvertedTopasFile.txt"), "w") as f:
         f.write("mock spectrum\n")
     with open(os.path.join(tmp_dir, "head_calibration_factor.txt"), "w") as f:
         f.write("1.0\n")
+    with open(os.path.join(tmp_dir, "simulation_metadata.yaml"), "w") as f:
+        f.write("norm_factor: 1.0\nmAs: 100\n")
 
 
 @pytest.fixture
@@ -115,7 +118,6 @@ def fake_project(tmp_path: Any) -> Any:
         "fullfan.txt",
         "halffan.txt",
         "Muen.dat",
-        "NbParticlesInTime.txt",
         "HUtoMaterialSchneider.txt",
     ]:
         with open(os.path.join(include_dir, name), "w") as f:
@@ -216,9 +218,9 @@ class TestDicomDryRunPipeline:
             "patientDICOM.txt",
             "HUtoMaterialSchneider.txt",
             "Muen.dat",
-            "NbParticlesInTime.txt",
             "ConvertedTopasFile.txt",
             "head_calibration_factor.txt",
+            "simulation_metadata.yaml",
             "fullfan.txt",
         ]:
             assert os.path.isfile(os.path.join(rundir, fname)), "Missing: " + fname
@@ -304,9 +306,9 @@ class TestCtdiDryRunPipeline:
 
         for fname in [
             "Muen.dat",
-            "NbParticlesInTime.txt",
             "ConvertedTopasFile.txt",
             "head_calibration_factor.txt",
+            "simulation_metadata.yaml",
             "fullfan.txt",
         ]:
             assert os.path.isfile(os.path.join(rundir, fname)), "Missing: " + fname

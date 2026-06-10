@@ -341,6 +341,9 @@ kilo.jsonc
 .local_paths.yaml
 config.local.yaml
 
+# Machine-specific calibration data (use calibration.example.yaml as template)
+calibration.yaml
+
 # Beads / Dolt files (added by bd init)
 .dolt/
 *.db

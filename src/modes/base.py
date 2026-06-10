@@ -82,13 +82,16 @@ class SimulationMode(ABC):
             project_root, "src", "boilerplates", "TOPAS_includeFiles"
         )
         shutil.copy(os.path.join(include_dir, "Muen.dat"), rundatadir)
-        shutil.copy(os.path.join(include_dir, "NbParticlesInTime.txt"), rundatadir)
         shutil.copy(
             os.path.join(project_root, "tmp", "ConvertedTopasFile.txt"),
             rundatadir,
         )
         shutil.copy(
             os.path.join(project_root, "tmp", "head_calibration_factor.txt"),
+            rundatadir,
+        )
+        shutil.copy(
+            os.path.join(project_root, "tmp", "simulation_metadata.yaml"),
             rundatadir,
         )
         fan_mode = config.imaging.fan_mode

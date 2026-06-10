@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import pytest
 import pandas as pd
+import yaml
 
 from src.services.ctdi_calculator import CTDICalculator
 
@@ -235,6 +236,96 @@ class TestExtractCalibrationFactor:
 
         with pytest.raises(ValueError, match="No calibration factor"):
             CTDICalculator(tmp_path)
+
+
+class TestReadSimulationMetadata:
+    def test_reads_simulation_metadata_yaml(self, tmp_path: Path) -> None:
+        metadata = {
+            "norm_factor": 1.27e16,
+            "mAs": 100.0,
+            "dcf_used": 1.0,
+            "total_histories": 100000000,
+        }
+        (tmp_path / "simulation_metadata.yaml").write_text(
+            yaml.dump(metadata, default_flow_style=False)
+        )
+        (tmp_path / "head_calibration_factor.txt").write_text("1.0\n")
+
+        calc = CTDICalculator(tmp_path)
+        assert calc.calibration_factor == 1.27e16 * 100.0 * 1.0
+        assert calc.simulation_metadata is not None
+        assert calc.simulation_metadata["norm_factor"] == 1.27e16
+
+    def test_falls_back_to_head_calibration_factor(self, tmp_path: Path) -> None:
+        (tmp_path / "head_calibration_factor.txt").write_text("2.5\n")
+
+        calc = CTDICalculator(tmp_path)
+        assert calc.calibration_factor == 2.5
+        assert calc.simulation_metadata is None
+
+    def test_prefers_yaml_over_legacy_file(self, tmp_path: Path) -> None:
+        metadata = {
+            "norm_factor": 5.0,
+            "mAs": 10.0,
+            "dcf_used": 1.0,
+        }
+        (tmp_path / "simulation_metadata.yaml").write_text(
+            yaml.dump(metadata, default_flow_style=False)
+        )
+        (tmp_path / "head_calibration_factor.txt").write_text("999.0\n")
+
+        calc = CTDICalculator(tmp_path)
+        # Should use YAML (5.0 * 10.0 * 1.0 = 50.0), not legacy (999.0)
+        assert calc.calibration_factor == 50.0
+        assert calc.simulation_metadata is not None
+
+    def test_falls_back_on_malformed_yaml(self, tmp_path: Path) -> None:
+        (tmp_path / "simulation_metadata.yaml").write_text("not a mapping\n")
+        (tmp_path / "head_calibration_factor.txt").write_text("3.0\n")
+
+        calc = CTDICalculator(tmp_path)
+        assert calc.calibration_factor == 3.0
+        assert calc.simulation_metadata is None
+
+    def test_falls_back_on_missing_keys(self, tmp_path: Path) -> None:
+        (tmp_path / "simulation_metadata.yaml").write_text(
+            yaml.dump({"norm_factor": 1.0}, default_flow_style=False)
+        )
+        (tmp_path / "head_calibration_factor.txt").write_text("4.0\n")
+
+        calc = CTDICalculator(tmp_path)
+        assert calc.calibration_factor == 4.0
+        assert calc.simulation_metadata is None
+
+    def test_falls_back_on_non_finite_combined(self, tmp_path: Path) -> None:
+        metadata = {
+            "norm_factor": float("nan"),
+            "mAs": 100.0,
+            "dcf_used": 1.0,
+        }
+        (tmp_path / "simulation_metadata.yaml").write_text(
+            yaml.dump(metadata, default_flow_style=False)
+        )
+        (tmp_path / "head_calibration_factor.txt").write_text("5.0\n")
+
+        calc = CTDICalculator(tmp_path)
+        assert calc.calibration_factor == 5.0
+        assert calc.simulation_metadata is None
+
+    def test_falls_back_on_inf_combined(self, tmp_path: Path) -> None:
+        metadata = {
+            "norm_factor": 1.0,
+            "mAs": float("inf"),
+            "dcf_used": 1.0,
+        }
+        (tmp_path / "simulation_metadata.yaml").write_text(
+            yaml.dump(metadata, default_flow_style=False)
+        )
+        (tmp_path / "head_calibration_factor.txt").write_text("6.0\n")
+
+        calc = CTDICalculator(tmp_path)
+        assert calc.calibration_factor == 6.0
+        assert calc.simulation_metadata is None
 
 
 if __name__ == "__main__":

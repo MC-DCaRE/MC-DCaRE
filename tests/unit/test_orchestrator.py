@@ -87,7 +87,14 @@ class TestRunDicomSimulation:
                     with patch.object(DicomMode, "execute"):
                         orch.run_dicom_simulation(config)
         mock_sg_cls.generate.assert_called_once_with(
-            100.0, 200.0, "100000000", "/project", 1.0
+            100.0,
+            200.0,
+            "100000000",
+            "/project",
+            1.0,
+            fan_mode="Full Fan",
+            seed=9,
+            threads=1,
         )
 
     @patch("src.orchestrator.SpectrumGenerator")
@@ -171,7 +178,14 @@ class TestRunCtdiSimulation:
                     with patch.object(CtdiMode, "execute"):
                         orch.run_ctdi_simulation(config)
         mock_sg_cls.generate.assert_called_once_with(
-            80.0, 50.0, "100000000", "/project", 1.0
+            80.0,
+            50.0,
+            "100000000",
+            "/project",
+            1.0,
+            fan_mode="Full Fan",
+            seed=9,
+            threads=1,
         )
 
 
@@ -257,7 +271,14 @@ class TestOrchestratorCalibrationFactor:
                     with patch.object(DicomMode, "execute"):
                         orch.run(config)
         mock_sg_cls.generate.assert_called_once_with(
-            100.0, 200.0, "100000000", "/project", 1.0523
+            100.0,
+            200.0,
+            "100000000",
+            "/project",
+            1.0523,
+            fan_mode="Full Fan",
+            seed=9,
+            threads=1,
         )
 
 

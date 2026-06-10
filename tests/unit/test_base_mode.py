@@ -21,7 +21,7 @@ def fake_project(tmp_path: Any) -> Any:
     os.makedirs(include_dir)
     os.makedirs(tmp_dir)
 
-    for name in ["Muen.dat", "NbParticlesInTime.txt"]:
+    for name in ["Muen.dat"]:
         with open(os.path.join(include_dir, name), "w") as f:
             f.write(name + " content\n")
 
@@ -29,7 +29,11 @@ def fake_project(tmp_path: Any) -> Any:
         with open(os.path.join(include_dir, name), "w") as f:
             f.write(name + " content\n")
 
-    for name in ["ConvertedTopasFile.txt", "head_calibration_factor.txt"]:
+    for name in [
+        "ConvertedTopasFile.txt",
+        "head_calibration_factor.txt",
+        "simulation_metadata.yaml",
+    ]:
         with open(os.path.join(tmp_dir, name), "w") as f:
             f.write(name + " content\n")
 
@@ -52,11 +56,6 @@ class TestCopyCommonFiles:
         rundir = self._run(fake_project, config)
         assert os.path.isfile(os.path.join(rundir, "Muen.dat"))
 
-    def test_copies_nb_particles(self, fake_project: Any) -> None:
-        config = SimulationConfig()
-        rundir = self._run(fake_project, config)
-        assert os.path.isfile(os.path.join(rundir, "NbParticlesInTime.txt"))
-
     def test_copies_converted_topas(self, fake_project: Any) -> None:
         config = SimulationConfig()
         rundir = self._run(fake_project, config)
@@ -66,6 +65,11 @@ class TestCopyCommonFiles:
         config = SimulationConfig()
         rundir = self._run(fake_project, config)
         assert os.path.isfile(os.path.join(rundir, "head_calibration_factor.txt"))
+
+    def test_copies_simulation_metadata(self, fake_project: Any) -> None:
+        config = SimulationConfig()
+        rundir = self._run(fake_project, config)
+        assert os.path.isfile(os.path.join(rundir, "simulation_metadata.yaml"))
 
     def test_copies_fullfan_for_full_fan(self, fake_project: Any) -> None:
         config = SimulationConfig(
@@ -89,6 +93,6 @@ class TestCopyCommonFiles:
         assert not os.path.isfile(os.path.join(rundir, "fullfan.txt"))
         assert not os.path.isfile(os.path.join(rundir, "halffan.txt"))
         assert os.path.isfile(os.path.join(rundir, "Muen.dat"))
-        assert os.path.isfile(os.path.join(rundir, "NbParticlesInTime.txt"))
         assert os.path.isfile(os.path.join(rundir, "ConvertedTopasFile.txt"))
         assert os.path.isfile(os.path.join(rundir, "head_calibration_factor.txt"))
+        assert os.path.isfile(os.path.join(rundir, "simulation_metadata.yaml"))

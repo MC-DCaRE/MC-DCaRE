@@ -79,7 +79,11 @@ class Orchestrator:
             metadata = yaml.safe_load(f)
         if not isinstance(metadata, dict):
             raise ValueError("Invalid metadata file: %s" % scoring_metadata_path)
-        original_norm = metadata.get("norm_factor", 0.0)
+        if "norm_factor" not in metadata:
+            raise ValueError(
+                "Scoring metadata missing 'norm_factor': %s" % scoring_metadata_path
+            )
+        original_norm = metadata["norm_factor"]
         metadata["norm_factor"] = original_norm / phase_space_multiple_use
         metadata["phase_space_multiple_use"] = phase_space_multiple_use
         metadata["phase_space_source"] = scoring_metadata_path
@@ -178,8 +182,11 @@ class Orchestrator:
         detach: bool,
     ) -> None:
         """Phase space scoring pipeline."""
+        if not isinstance(mode, CtdiMode):
+            raise TypeError(
+                "Phase space scoring requires CtdiMode, got %s" % type(mode).__name__
+            )
         ctdi_mode = mode
-        assert isinstance(ctdi_mode, CtdiMode)
 
         # Score mode still needs spectrum for the beam source.
         voltage: float = config.imaging.anode_voltage.value
@@ -244,8 +251,11 @@ class Orchestrator:
         detach: bool,
     ) -> None:
         """Phase space replay pipeline."""
+        if not isinstance(mode, CtdiMode):
+            raise TypeError(
+                "Phase space replay requires CtdiMode, got %s" % type(mode).__name__
+            )
         ctdi_mode = mode
-        assert isinstance(ctdi_mode, CtdiMode)
 
         # Replay mode: NO SpectrumGenerator.
 

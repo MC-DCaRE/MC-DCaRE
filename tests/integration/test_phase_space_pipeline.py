@@ -122,6 +122,7 @@ class TestScoringPipelineDryRun:
 
     def test_replay_without_file_raises_validation(self, tmp_path: Any) -> None:
         config = SimulationConfig(
+            imaging=ImagingConfig(simulation_type="CTDI"),
             ctdi=CtdiConfig(phase_space_mode="replay"),
         )
         with pytest.raises(ValueError, match="phase_space_file is required"):

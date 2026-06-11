@@ -482,3 +482,100 @@ class TestExposureValidation:
 
         config = SimulationConfig(imaging=ImagingConfig(exposure="100 mAs"))
         config.validate()
+
+
+class TestPhaseSpaceConfig:
+    def test_default_mode_is_off(self) -> None:
+        from src.config import CtdiConfig
+
+        config = CtdiConfig()
+        assert config.phase_space_mode == "off"
+        assert config.phase_space_file == ""
+        assert config.phase_space_multiple_use == 1
+
+    def test_off_mode_passes_validation(self) -> None:
+        from src.config import CtdiConfig
+
+        config = SimulationConfig(ctdi=CtdiConfig(phase_space_mode="off"))
+        config.validate()
+
+    def test_score_mode_passes_validation(self) -> None:
+        from src.config import CtdiConfig
+
+        config = SimulationConfig(ctdi=CtdiConfig(phase_space_mode="score"))
+        config.validate()
+
+    def test_replay_without_file_raises(self) -> None:
+        from src.config import CtdiConfig
+
+        config = SimulationConfig(
+            ctdi=CtdiConfig(phase_space_mode="replay", phase_space_file="")
+        )
+        with pytest.raises(ValueError, match="phase_space_file is required"):
+            config.validate()
+
+    def test_replay_with_nonexistent_file_raises(self) -> None:
+        from src.config import CtdiConfig
+
+        config = SimulationConfig(
+            ctdi=CtdiConfig(
+                phase_space_mode="replay",
+                phase_space_file="/nonexistent/path.phsp",
+            )
+        )
+        with pytest.raises(ValueError, match="does not exist"):
+            config.validate()
+
+    def test_replay_with_existing_file_passes(self, tmp_path: Any) -> None:
+        from src.config import CtdiConfig
+
+        phsp_file = tmp_path / "beam.phsp"
+        phsp_file.write_bytes(b"\x00" * 100)
+        config = SimulationConfig(
+            ctdi=CtdiConfig(
+                phase_space_mode="replay",
+                phase_space_file=str(phsp_file),
+            )
+        )
+        config.validate()
+
+    def test_invalid_mode_raises(self) -> None:
+        from src.config import CtdiConfig
+
+        config = SimulationConfig(ctdi=CtdiConfig(phase_space_mode="invalid"))
+        with pytest.raises(ValueError, match="phase_space_mode must be one of"):
+            config.validate()
+
+    def test_multiple_use_zero_raises(self) -> None:
+        from src.config import CtdiConfig
+
+        config = SimulationConfig(ctdi=CtdiConfig(phase_space_multiple_use=0))
+        with pytest.raises(ValueError, match="phase_space_multiple_use must be >= 1"):
+            config.validate()
+
+    def test_multiple_use_negative_raises(self) -> None:
+        from src.config import CtdiConfig
+
+        config = SimulationConfig(ctdi=CtdiConfig(phase_space_multiple_use=-5))
+        with pytest.raises(ValueError, match="phase_space_multiple_use must be >= 1"):
+            config.validate()
+
+    def test_yaml_roundtrip_phase_space(self) -> None:
+        from src.config import CtdiConfig
+
+        config = SimulationConfig(
+            ctdi=CtdiConfig(
+                phase_space_mode="score",
+                phase_space_multiple_use=10,
+            )
+        )
+        with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False, mode="w") as f:
+            path: str = f.name
+        try:
+            config.to_yaml(path)
+            loaded = SimulationConfig.from_yaml(path)
+            assert loaded.ctdi.phase_space_mode == "score"
+            assert loaded.ctdi.phase_space_multiple_use == 10
+            assert loaded.ctdi.phase_space_file == ""
+        finally:
+            os.unlink(path)

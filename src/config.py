@@ -162,6 +162,9 @@ class CtdiConfig:
     user_field_y2: Quantity = _q(10.7, "cm")
     graphics_enabled: bool = False
     water_chamber_enabled: bool = False
+    phase_space_mode: str = "off"
+    phase_space_file: str = ""
+    phase_space_multiple_use: int = 1
 
     def __post_init__(self) -> None:
         _coerce_quantities(self, _CTDI_Q_FIELDS)
@@ -234,6 +237,30 @@ class SimulationConfig:
         if self.imaging.exposure.value <= 0:
             raise ValueError(
                 "Exposure must be positive, got {}".format(self.imaging.exposure.value)
+            )
+        valid_phase_space_modes = ("off", "score", "replay")
+        if self.ctdi.phase_space_mode not in valid_phase_space_modes:
+            raise ValueError(
+                "phase_space_mode must be one of {}, got {!r}".format(
+                    valid_phase_space_modes, self.ctdi.phase_space_mode
+                )
+            )
+        if self.ctdi.phase_space_mode == "replay":
+            if not self.ctdi.phase_space_file:
+                raise ValueError(
+                    "phase_space_file is required when phase_space_mode is 'replay'"
+                )
+            if not os.path.isfile(self.ctdi.phase_space_file):
+                raise ValueError(
+                    "phase_space_file does not exist: {}".format(
+                        self.ctdi.phase_space_file
+                    )
+                )
+        if self.ctdi.phase_space_multiple_use < 1:
+            raise ValueError(
+                "phase_space_multiple_use must be >= 1, got {}".format(
+                    self.ctdi.phase_space_multiple_use
+                )
             )
 
     @staticmethod

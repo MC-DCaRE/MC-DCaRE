@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 from src.config import (
     GeneralConfig,
     SimulationConfig,
+    _resolve_imaging_mode,
     quantity_unit_stripper,
 )
 from src.gui.adapter import config_to_gui, gui_to_config
@@ -506,22 +507,24 @@ class TestPhaseSpaceConfig:
         config.validate()
 
     def test_replay_without_file_raises(self) -> None:
-        from src.config import CtdiConfig
+        from src.config import CtdiConfig, ImagingConfig
 
         config = SimulationConfig(
-            ctdi=CtdiConfig(phase_space_mode="replay", phase_space_file="")
+            imaging=ImagingConfig(simulation_type="CTDI"),
+            ctdi=CtdiConfig(phase_space_mode="replay", phase_space_file=""),
         )
         with pytest.raises(ValueError, match="phase_space_file is required"):
             config.validate()
 
     def test_replay_with_nonexistent_file_raises(self) -> None:
-        from src.config import CtdiConfig
+        from src.config import CtdiConfig, ImagingConfig
 
         config = SimulationConfig(
+            imaging=ImagingConfig(simulation_type="CTDI"),
             ctdi=CtdiConfig(
                 phase_space_mode="replay",
                 phase_space_file="/nonexistent/path.phsp",
-            )
+            ),
         )
         with pytest.raises(ValueError, match="does not exist"):
             config.validate()
@@ -540,23 +543,32 @@ class TestPhaseSpaceConfig:
         config.validate()
 
     def test_invalid_mode_raises(self) -> None:
-        from src.config import CtdiConfig
+        from src.config import CtdiConfig, ImagingConfig
 
-        config = SimulationConfig(ctdi=CtdiConfig(phase_space_mode="invalid"))
+        config = SimulationConfig(
+            imaging=ImagingConfig(simulation_type="CTDI"),
+            ctdi=CtdiConfig(phase_space_mode="invalid"),
+        )
         with pytest.raises(ValueError, match="phase_space_mode must be one of"):
             config.validate()
 
     def test_multiple_use_zero_raises(self) -> None:
-        from src.config import CtdiConfig
+        from src.config import CtdiConfig, ImagingConfig
 
-        config = SimulationConfig(ctdi=CtdiConfig(phase_space_multiple_use=0))
+        config = SimulationConfig(
+            imaging=ImagingConfig(simulation_type="CTDI"),
+            ctdi=CtdiConfig(phase_space_multiple_use=0),
+        )
         with pytest.raises(ValueError, match="phase_space_multiple_use must be >= 1"):
             config.validate()
 
     def test_multiple_use_negative_raises(self) -> None:
-        from src.config import CtdiConfig
+        from src.config import CtdiConfig, ImagingConfig
 
-        config = SimulationConfig(ctdi=CtdiConfig(phase_space_multiple_use=-5))
+        config = SimulationConfig(
+            imaging=ImagingConfig(simulation_type="CTDI"),
+            ctdi=CtdiConfig(phase_space_multiple_use=-5),
+        )
         with pytest.raises(ValueError, match="phase_space_multiple_use must be >= 1"):
             config.validate()
 
@@ -579,3 +591,161 @@ class TestPhaseSpaceConfig:
             assert loaded.ctdi.phase_space_file == ""
         finally:
             os.unlink(path)
+
+
+class TestResolveImagingMode:
+    """Tests for _resolve_imaging_mode() (tasks 6.4-6.7)."""
+
+    def test_valid_cbct_resolution(self) -> None:
+        img, ctdi = _resolve_imaging_mode(
+            {"rotation_direction": "CBCT Clockwise", "imaging_mode": "Head"},
+            {},
+        )
+        assert img["anode_voltage"] == "100 kV"
+        assert img["exposure"] == "150 mAs"
+        assert img["rotation_rate"] == "0.4 deg/s"
+        assert ctdi["phantom_size"] == "16 cm"
+
+    def test_invalid_key_raises_value_error(self) -> None:
+        with pytest.raises(ValueError, match="No imaging mode found"):
+            _resolve_imaging_mode(
+                {
+                    "rotation_direction": "CBCT Clockwise",
+                    "imaging_mode": "NonExistent",
+                },
+                {},
+            )
+
+    def test_missing_rotation_direction_skips_resolution(self) -> None:
+        img, ctdi = _resolve_imaging_mode({"imaging_mode": "Head"}, {})
+        assert "anode_voltage" not in img
+
+    def test_missing_imaging_mode_skips_resolution(self) -> None:
+        img, ctdi = _resolve_imaging_mode({"rotation_direction": "CBCT Clockwise"}, {})
+        assert "anode_voltage" not in img
+
+    def test_kv_kv_direction_skips_resolution(self) -> None:
+        img, ctdi = _resolve_imaging_mode(
+            {"rotation_direction": "kV-kV", "imaging_mode": "Head"},
+            {},
+        )
+        # Should return dicts unchanged (no resolution applied)
+        assert "anode_voltage" not in img
+
+    def test_yaml_override_wins(self) -> None:
+        img, ctdi = _resolve_imaging_mode(
+            {
+                "rotation_direction": "CBCT Clockwise",
+                "imaging_mode": "Head",
+                "anode_voltage": "80 kV",
+            },
+            {},
+        )
+        assert img["anode_voltage"] == "80 kV"
+
+    def test_absent_key_falls_back(self) -> None:
+        img, ctdi = _resolve_imaging_mode(
+            {
+                "rotation_direction": "CBCT Clockwise",
+                "imaging_mode": "Head",
+            },
+            {},
+        )
+        assert img["rotation_rate"] == "0.4 deg/s"
+
+    def test_null_falls_back(self) -> None:
+        img, ctdi = _resolve_imaging_mode(
+            {
+                "rotation_direction": "CBCT Clockwise",
+                "imaging_mode": "Head",
+                "exposure": None,
+            },
+            {},
+        )
+        assert img["exposure"] == "150 mAs"
+
+    def test_empty_string_falls_back(self) -> None:
+        img, ctdi = _resolve_imaging_mode(
+            {
+                "rotation_direction": "CBCT Clockwise",
+                "imaging_mode": "Head",
+                "exposure": "",
+            },
+            {},
+        )
+        assert img["exposure"] == "150 mAs"
+
+    def test_dose_factor_not_in_output(self) -> None:
+        img, ctdi = _resolve_imaging_mode(
+            {"rotation_direction": "CBCT Clockwise", "imaging_mode": "Head"},
+            {},
+        )
+        assert "dose_factor" not in img
+        assert "dose_calibration_factor" not in img
+        assert "dose_factor" not in ctdi
+
+    def test_ctdi_phantom_maps_to_phantom_size(self) -> None:
+        from src.models.enums import PhantomSize
+
+        valid = {e.value for e in PhantomSize}
+        img, ctdi = _resolve_imaging_mode(
+            {"rotation_direction": "CBCT Clockwise", "imaging_mode": "Thorax"},
+            {},
+        )
+        assert ctdi["phantom_size"] == "32 cm"
+        assert ctdi["phantom_size"] in valid
+
+    def test_ctdi_phantom_16cm_valid(self) -> None:
+        from src.models.enums import PhantomSize
+
+        img, ctdi = _resolve_imaging_mode(
+            {"rotation_direction": "CBCT Clockwise", "imaging_mode": "Head"},
+            {},
+        )
+        assert ctdi["phantom_size"] == "16 cm"
+        assert ctdi["phantom_size"] in {e.value for e in PhantomSize}
+
+
+class TestMinimalYamlIntegration:
+    """Task 6.8: minimal YAML produces fully populated SimulationConfig."""
+
+    def test_minimal_ctdi_yaml_produces_full_config(self, tmp_path: Any) -> None:
+        config_file = tmp_path / "minimal.yaml"
+        config_file.write_text(
+            "general:\n"
+            "  seed: '9'\n"
+            "  threads: '1'\n"
+            "  histories: '100'\n"
+            "imaging:\n"
+            "  simulation_type: CTDI\n"
+            "  rotation_direction: CBCT Clockwise\n"
+            "  imaging_mode: Head\n"
+            "ctdi:\n"
+            "  dose_to_medium_zbins: '100'\n"
+        )
+        config = SimulationConfig.from_yaml(str(config_file))
+        # Verify beam params auto-populated from mode
+        assert config.imaging.anode_voltage.value == 100.0
+        assert config.imaging.exposure.value == 150.0
+        assert config.imaging.rotation_rate.value == 0.4
+        assert config.imaging.fan_mode == "Full Fan"
+        assert config.ctdi.phantom_size == "16 cm"
+        assert config.imaging.imaging_mode == "Head"
+
+    def test_minimal_thorax_resolves_32cm_phantom(self, tmp_path: Any) -> None:
+        config_file = tmp_path / "thorax.yaml"
+        config_file.write_text(
+            "general:\n"
+            "  seed: '9'\n"
+            "  threads: '1'\n"
+            "  histories: '100'\n"
+            "imaging:\n"
+            "  simulation_type: CTDI\n"
+            "  rotation_direction: CBCT Anticlockwise\n"
+            "  imaging_mode: Thorax\n"
+            "ctdi:\n"
+            "  dose_to_medium_zbins: '100'\n"
+        )
+        config = SimulationConfig.from_yaml(str(config_file))
+        assert config.ctdi.phantom_size == "32 cm"
+        assert config.imaging.rotation_rate.value == -0.4

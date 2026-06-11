@@ -26,6 +26,10 @@ _MAX_MEMORY_MB = 1024  # Refuse to load files larger than 1 GB into RAM
 class PhaseSpaceAnalyzer:
     """Analyzes TOPAS Binary format .phsp files for beam characterization.
 
+    Assumes kV imaging where all particles are gammas. Particle type is
+    not inferred from the binary data — the ``particle_types`` field in
+    the output is always ``{"gamma": <count>}``.
+
     Args:
         phsp_path: Path to the Binary format .phsp file.
         metadata_path: Optional path to simulation_metadata.yaml for

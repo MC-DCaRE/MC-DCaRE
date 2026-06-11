@@ -358,7 +358,7 @@ class SimulationConfig:
                 val = getattr(section, f_name)
                 section_data[f_name] = str(val) if isinstance(val, Quantity) else val
             data[section_name] = section_data
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             yaml.dump(data, f, default_flow_style=False, sort_keys=False)
 
     @classmethod
@@ -374,7 +374,7 @@ class SimulationConfig:
         Raises:
             ValueError: If the YAML content is not a mapping or fails validation.
         """
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
         if not isinstance(data, dict):
             raise ValueError(

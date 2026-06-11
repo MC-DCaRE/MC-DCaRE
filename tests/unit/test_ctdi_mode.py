@@ -225,3 +225,121 @@ class TestGenerateSingleParameterFile:
         assert "ChamberPlugBottom" in content
         assert "ChamberPlugLeft" in content
         assert "ChamberPlugRight" in content
+
+
+class TestPhaseSpaceModeBranching:
+    """Tests for phase_space_mode branching in CtdiMode."""
+
+    def test_score_mode_selects_score_template(self, make_config: Any) -> None:
+        mode = CtdiMode()
+        config = make_config(phase_space_mode="score")
+        assert mode._get_main_template(config) == "ctdi_phsp_score.j2"
+
+    def test_replay_mode_selects_replay_template(self, make_config: Any) -> None:
+        mode = CtdiMode()
+        config = make_config(phase_space_mode="replay", phase_space_file="/fake.phsp")
+        assert mode._get_main_template(config) == "ctdi_phsp_replay.j2"
+
+    def test_off_mode_selects_default_template(self, make_config: Any) -> None:
+        mode = CtdiMode()
+        config = make_config(phase_space_mode="off")
+        assert mode._get_main_template(config) == "headsourcecode_boilerplate.j2"
+
+    def test_score_mode_output_name(self, make_config: Any) -> None:
+        mode = CtdiMode()
+        config = make_config(phase_space_mode="score")
+        assert mode._get_main_output(config) == "ctdi_phsp_score.txt"
+
+    def test_replay_mode_output_name(self, make_config: Any) -> None:
+        mode = CtdiMode()
+        config = make_config(phase_space_mode="replay", phase_space_file="/fake.phsp")
+        assert mode._get_main_output(config) == "ctdi_phsp_replay.txt"
+
+    def test_score_mode_no_sub_template(self, make_config: Any) -> None:
+        mode = CtdiMode()
+        config = make_config(phase_space_mode="score")
+        assert mode.get_sub_template_name(config) == ""
+        assert mode.get_sub_file_name(config) == ""
+
+    def test_score_mode_empty_sub_context(self, make_config: Any) -> None:
+        mode = CtdiMode()
+        config = make_config(phase_space_mode="score")
+        ctx = mode.build_sub_context(config)
+        assert ctx == {}
+
+    def test_replay_mode_sub_context_has_phantom(self, make_config: Any) -> None:
+        mode = CtdiMode()
+        config = make_config(phase_space_mode="replay", phase_space_file="/fake.phsp")
+        ctx = mode.build_sub_context(config)
+        assert "plug_positions" in ctx
+        assert "couch_enabled" in ctx
+
+    def test_replay_main_context_has_phase_space_params(self, make_config: Any) -> None:
+        mode = CtdiMode()
+        config = make_config(
+            phase_space_mode="replay",
+            phase_space_file="/fake.phsp",
+            phase_space_multiple_use=10,
+        )
+        ctx = mode.build_main_context(config)
+        assert ctx["phase_space_file"] == "/fake.phsp"
+        assert ctx["phase_space_multiple_use"] == 10
+
+    def test_replay_main_context_no_collimators(self, make_config: Any) -> None:
+        mode = CtdiMode()
+        config = make_config(phase_space_mode="replay", phase_space_file="/fake.phsp")
+        ctx = mode.build_main_context(config)
+        assert "coll1_trans_y" not in ctx
+        assert "fan_mode" not in ctx
+
+    def test_score_mode_main_context_has_collimators(self, make_config: Any) -> None:
+        mode = CtdiMode()
+        config = make_config(phase_space_mode="score")
+        ctx = mode.build_main_context(config)
+        assert "coll1_trans_y" in ctx
+        assert "fan_mode" in ctx
+
+    def test_replay_compute_histories_returns_zero(self, make_config: Any) -> None:
+        mode = CtdiMode()
+        config = make_config(phase_space_mode="replay", phase_space_file="/fake.phsp")
+        assert mode.compute_histories(config) == "0"
+
+    def test_score_prepare_run_creates_phase_space_dir(
+        self, tmp_path: Any, make_config: Any
+    ) -> None:
+        mode = CtdiMode()
+        config = make_config(phase_space_mode="score")
+        rundir = str(tmp_path / "run")
+        os.makedirs(rundir)
+        # Create required files for copy_common_files.
+        src_tmp = tmp_path / "project" / "tmp"
+        src_tmp.mkdir(parents=True)
+        (src_tmp / "ConvertedTopasFile.txt").write_text("spec")
+        (src_tmp / "head_calibration_factor.txt").write_text("1.0")
+        (src_tmp / "simulation_metadata.yaml").write_text("norm_factor: 1.0\n")
+        include_dir = (
+            tmp_path / "project" / "src" / "boilerplates" / "TOPAS_includeFiles"
+        )
+        include_dir.mkdir(parents=True)
+        (include_dir / "Muen.dat").write_text("muen")
+        (include_dir / "fullfan.txt").write_text("bowtie")
+        mode.prepare_run(config, rundir, str(tmp_path / "project"))
+        assert os.path.isdir(os.path.join(rundir, "phase_space"))
+
+    def test_replay_prepare_run_copies_phsp_file(
+        self, tmp_path: Any, make_config: Any
+    ) -> None:
+        mode = CtdiMode()
+        phsp = tmp_path / "beam.phsp"
+        phsp.write_bytes(b"\x00" * 100)
+        config = make_config(phase_space_mode="replay", phase_space_file=str(phsp))
+        rundir = str(tmp_path / "run")
+        os.makedirs(rundir)
+        include_dir = (
+            tmp_path / "project" / "src" / "boilerplates" / "TOPAS_includeFiles"
+        )
+        include_dir.mkdir(parents=True)
+        (include_dir / "Muen.dat").write_text("muen")
+        mode.prepare_run(config, rundir, str(tmp_path / "project"))
+        assert os.path.isfile(os.path.join(rundir, "beam.phsp"))
+        assert os.path.isfile(os.path.join(rundir, "Muen.dat"))

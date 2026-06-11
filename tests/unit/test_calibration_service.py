@@ -254,5 +254,60 @@ class TestApply:
         assert tle_results[0]["note"] == "uncalibrated — secondary comparison"
 
 
+class TestReplayCalibration:
+    """Verify calibration chain works correctly for replay mode.
+
+    The orchestrator writes simulation_metadata.yaml with norm_factor
+    adjusted to original_norm_factor / PhaseSpaceMultipleUse. The
+    CTDICalculator reads this and computes calibration_factor =
+    norm_factor * mAs * dcf_used automatically.
+    """
+
+    def _make_runfolder_with_metadata(
+        self, tmp_path: Any, norm_factor: float, mAs: float = 100.0, dcf: float = 1.0
+    ) -> Path:
+        """Create a minimal runfolder with simulation_metadata.yaml."""
+        rf = tmp_path / "runfolder"
+        rf.mkdir(parents=True, exist_ok=True)
+        metadata = {
+            "norm_factor": norm_factor,
+            "mAs": mAs,
+            "dcf_used": dcf,
+        }
+        with open(rf / "simulation_metadata.yaml", "w") as f:
+            yaml.dump(metadata, f)
+        return rf
+
+    def test_replay_calibration_factor_divided_by_m(self, tmp_path: Any) -> None:
+        """Replay norm_factor = original / M gives calibration_factor / M."""
+        M = 10
+        original_norm = 1.0e-10
+        replay_norm = original_norm / M
+
+        rf = self._make_runfolder_with_metadata(tmp_path, norm_factor=replay_norm)
+        calc = CTDICalculator(rf)
+        expected = replay_norm * 100.0 * 1.0
+        assert abs(calc.calibration_factor - expected) < 1e-20
+
+    def test_replay_vs_direct_calibration(self, tmp_path: Any) -> None:
+        """Direct and replay produce proportional calibration factors."""
+        M = 5
+        original_norm = 2.0e-10
+        replay_norm = original_norm / M
+
+        rf_direct = self._make_runfolder_with_metadata(
+            tmp_path / "direct", norm_factor=original_norm
+        )
+        rf_replay = self._make_runfolder_with_metadata(
+            tmp_path / "replay", norm_factor=replay_norm
+        )
+
+        calc_direct = CTDICalculator(rf_direct)
+        calc_replay = CTDICalculator(rf_replay)
+
+        ratio = calc_direct.calibration_factor / calc_replay.calibration_factor
+        assert abs(ratio - M) < 0.001
+
+
 if __name__ == "__main__":
     pytest.main([__file__])

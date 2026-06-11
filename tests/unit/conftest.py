@@ -34,6 +34,7 @@ def _make_config(**overrides: Any) -> SimulationConfig:
             ctdi_kw[k] = v
         else:
             top_level_kw[k] = v
+    ctdi_kw.setdefault("phase_space_mode", "off")
     return SimulationConfig(
         general=GeneralConfig(**general_kw),
         imaging=ImagingConfig(**imaging_kw),

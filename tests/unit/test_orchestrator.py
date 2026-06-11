@@ -346,3 +346,147 @@ class TestCopyConfigYaml:
                 with patch.object(DicomMode, "execute"):
                     orch.run_with_runfolder(rundir, config)
         assert os.path.isfile(os.path.join(rundir, "sim.yaml"))
+
+
+class TestOrchestratorPhaseSpace:
+    """Tests for phase space mode branching in Orchestrator."""
+
+    @patch("src.orchestrator.SpectrumGenerator")
+    @patch("src.orchestrator.BoilerplateManager")
+    def test_score_mode_calls_spectrum_generator(
+        self,
+        mock_bm_cls: MagicMock,
+        mock_sg_cls: MagicMock,
+        make_config: Any,
+    ) -> None:
+        config = make_config(
+            simulation_type="CTDI",
+            topas_directory="/topas/bin",
+            histories="100000",
+            anode_voltage="80 kV",
+            exposure="50 mAs",
+            phantom_size="16 cm",
+            phase_space_mode="score",
+        )
+        mock_renderer = MagicMock()
+        mock_bm_cls.return_value.create_renderer.return_value = mock_renderer
+        rundir = "/rundir"
+        orch = Orchestrator("/project")
+        with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
+            with patch.object(CtdiMode, "prepare_run"):
+                with patch.object(CtdiMode, "execute"):
+                    orch.run_with_runfolder(rundir, config, dry_run=True)
+        mock_sg_cls.generate.assert_called_once()
+
+    @patch("src.orchestrator.SpectrumGenerator")
+    @patch("src.orchestrator.BoilerplateManager")
+    def test_replay_mode_skips_spectrum_generator(
+        self,
+        mock_bm_cls: MagicMock,
+        mock_sg_cls: MagicMock,
+        make_config: Any,
+        tmp_path: Any,
+    ) -> None:
+        phsp_file = tmp_path / "beam.phsp"
+        phsp_file.write_bytes(b"\x00" * 100)
+        config = make_config(
+            simulation_type="CTDI",
+            topas_directory="/topas/bin",
+            histories="100000",
+            anode_voltage="80 kV",
+            exposure="50 mAs",
+            phantom_size="16 cm",
+            phase_space_mode="replay",
+            phase_space_file=str(phsp_file),
+        )
+        mock_renderer = MagicMock()
+        mock_bm_cls.return_value.create_renderer.return_value = mock_renderer
+        rundir = "/rundir"
+        orch = Orchestrator("/project")
+        with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
+            with patch.object(CtdiMode, "prepare_run"):
+                with patch.object(CtdiMode, "execute"):
+                    orch.run_with_runfolder(rundir, config, dry_run=True)
+        mock_sg_cls.generate.assert_not_called()
+
+    @patch("src.orchestrator.SpectrumGenerator")
+    @patch("src.orchestrator.BoilerplateManager")
+    def test_score_mode_uses_score_template(
+        self,
+        mock_bm_cls: MagicMock,
+        mock_sg_cls: MagicMock,
+        make_config: Any,
+    ) -> None:
+        config = make_config(
+            simulation_type="CTDI",
+            topas_directory="/topas/bin",
+            histories="100000",
+            anode_voltage="80 kV",
+            exposure="50 mAs",
+            phantom_size="16 cm",
+            phase_space_mode="score",
+        )
+        mock_renderer = MagicMock()
+        mock_bm_cls.return_value.create_renderer.return_value = mock_renderer
+        rundir = "/rundir"
+        orch = Orchestrator("/project")
+        with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
+            with patch.object(CtdiMode, "prepare_run"):
+                with patch.object(CtdiMode, "execute"):
+                    orch.run_with_runfolder(rundir, config, dry_run=True)
+        render_calls = mock_renderer.render.call_args_list
+        template_names = [c[0][0] for c in render_calls]
+        assert "ctdi_phsp_score.j2" in template_names
+
+    @patch("src.orchestrator.SpectrumGenerator")
+    @patch("src.orchestrator.BoilerplateManager")
+    def test_replay_mode_uses_replay_template(
+        self,
+        mock_bm_cls: MagicMock,
+        mock_sg_cls: MagicMock,
+        make_config: Any,
+        tmp_path: Any,
+    ) -> None:
+        phsp_file = tmp_path / "beam.phsp"
+        phsp_file.write_bytes(b"\x00" * 100)
+        config = make_config(
+            simulation_type="CTDI",
+            topas_directory="/topas/bin",
+            histories="100000",
+            anode_voltage="80 kV",
+            exposure="50 mAs",
+            phantom_size="16 cm",
+            phase_space_mode="replay",
+            phase_space_file=str(phsp_file),
+        )
+        mock_renderer = MagicMock()
+        mock_bm_cls.return_value.create_renderer.return_value = mock_renderer
+        rundir = "/rundir"
+        orch = Orchestrator("/project")
+        with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
+            with patch.object(CtdiMode, "prepare_run"):
+                with patch.object(CtdiMode, "execute"):
+                    orch.run_with_runfolder(rundir, config, dry_run=True)
+        render_calls = mock_renderer.render.call_args_list
+        template_names = [c[0][0] for c in render_calls]
+        assert "ctdi_phsp_replay.j2" in template_names
+
+    def test_write_replay_metadata_adjusts_norm_factor(self, tmp_path: Any) -> None:
+        metadata = {
+            "norm_factor": 1.0e-10,
+            "mAs": 100.0,
+            "dcf_used": 1.0,
+            "total_histories": 1000000,
+        }
+        meta_path = tmp_path / "simulation_metadata.yaml"
+        import yaml
+
+        with open(meta_path, "w") as f:
+            yaml.dump(metadata, f)
+        rundir = str(tmp_path / "run")
+        os.makedirs(rundir)
+        Orchestrator._write_replay_metadata(rundir, str(meta_path), 10)
+        with open(os.path.join(rundir, "simulation_metadata.yaml")) as f:
+            result = yaml.safe_load(f)
+        assert abs(result["norm_factor"] - 1.0e-11) < 1e-20
+        assert result["phase_space_multiple_use"] == 10

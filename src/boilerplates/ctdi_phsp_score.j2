@@ -1,0 +1,297 @@
+# Phase Space Scoring Template — records particles surviving the beam line
+# Based on headsourcecode_boilerplate.j2 with phantom/dose scoring removed
+# and a PhaseSpace scorer added after the beam hardening filter.
+######################################################
+
+## Include File ###############################
+includeFile=ConvertedTopasFile.txt
+{% if fan_mode == 'Full Fan' %}includeFile = fullfan.txt
+{% endif %}
+{% if fan_mode == 'Half Fan' %}includeFile = halffan.txt
+{% endif %}
+
+## Some Control Parameters ####################
+i:Ts/Seed = {{ seed }}
+i:Ts/NumberOfThreads = {{ threads }}
+s:Ts/G4DataDirectory = "{{ g4_data_directory }}"
+
+## Define World Geometry ############################
+d:Ge/World/HLX=1.2 m # HalfLength
+d:Ge/World/HLY=1.2 m
+d:Ge/World/HLZ=1.2 m
+
+
+
+
+# Physics ############################################
+
+s:Ph/ListName="Default"
+b:Ph/ListProcesses="False"
+s:Ph/Default/Type="Geant4_Modular"
+sv:Ph/Default/Modules=1 "g4em-standard_opt4"
+
+d:Ph/Default/EMRangeMin=100. eV
+d:Ph/Default/EMRangeMax=1.0 MeV
+
+# Group Component ###########################################
+
+s:Ge/Rotation/Type="Group"
+s:Ge/Rotation/Parent="World"
+dc:Ge/Rotation/RotX= {{ patient_pitch }}
+d:Ge/patrotation/yaw= {{ patient_yaw }}
+dc:Ge/Rotation/RotY= 180. deg + Ge/patrotation/yaw
+dc:Ge/Rotation/RotZ= Tf/Rotate/Value + {{ patient_roll_value }} deg
+d:Ge/Rotation/TransX=0.0 mm
+d:Ge/Rotation/TransY=0.0 mm
+d:Ge/Rotation/TransZ=0.0 mm
+
+# X-Y blades group
+s:Ge/CollimatorsVertical/Type="Group"
+s:Ge/CollimatorsVertical/Parent="Rotation"
+d:Ge/CollimatorsVertical/RotX=90. deg
+d:Ge/CollimatorsVertical/RotY=0. deg
+d:Ge/CollimatorsVertical/RotZ=0. deg
+d:Ge/CollimatorsVertical/TransY=11.7 cm + Ge/BeamPosition/TransY
+
+s:Ge/CollimatorsHorizontal/Type="Group"
+s:Ge/CollimatorsHorizontal/Parent="CollimatorsVertical"
+dc:Ge/CollimatorsHorizontal/RotX=0. deg
+dc:Ge/CollimatorsHorizontal/RotY=0. deg
+dc:Ge/CollimatorsHorizontal/RotZ=180. deg
+d:Ge/CollimatorsHorizontal/TransZ=1.4 cm + Ge/Coll1/LY
+
+# top collimator
+s:Ge/Coll1/Type="G4RTrap"
+s:Ge/Coll1/Parent="CollimatorsVertical"
+s:Ge/Coll1/Material="Lead"
+dc:Ge/Coll1/TransX=0 cm
+dc:Ge/Coll1/TransY = {{ coll1_trans_y }}
+dc:Ge/Coll1/TransZ=0. cm
+dc:Ge/Coll1/RotX=-90. deg
+dc:Ge/Coll1/RotY=90. deg
+dc:Ge/Coll1/RotZ=0 deg
+dc:Ge/Coll1/LZ=120. mm
+dc:Ge/Coll1/LY=3. mm
+dc:Ge/Coll1/LX=100. mm
+dc:Ge/Coll1/LTX=92. mm
+s:Ge/Coll1/Color="red"
+
+# bottom collimator
+s:Ge/Coll2/Type="G4RTrap"
+s:Ge/Coll2/Parent="CollimatorsVertical"
+s:Ge/Coll2/Material="Lead"
+dc:Ge/Coll2/TransX=0 cm
+dc:Ge/Coll2/TransY = {{ coll2_trans_y }}
+dc:Ge/Coll2/TransZ=0. cm
+dc:Ge/Coll2/RotX=-90. deg
+dc:Ge/Coll2/RotY=270. deg
+dc:Ge/Coll2/RotZ=0 deg
+dc:Ge/Coll2/LZ=120. mm
+dc:Ge/Coll2/LY=3. mm
+dc:Ge/Coll2/LX=100. mm
+dc:Ge/Coll2/LTX=92. mm
+s:Ge/Coll2/Color="red"
+
+# right collimator
+s:Ge/Coll3/Type="G4RTrap"
+s:Ge/Coll3/Parent="CollimatorsHorizontal"
+s:Ge/Coll3/Material="Lead"
+dc:Ge/Coll3/TransX = {{ coll3_trans_x }}
+dc:Ge/Coll3/TransY=0. cm
+dc:Ge/Coll3/TransZ=0. cm
+dc:Ge/Coll3/RotX=-90. deg
+dc:Ge/Coll3/RotY=180. deg
+dc:Ge/Coll3/RotZ=0 deg
+dc:Ge/Coll3/LZ=120. mm
+dc:Ge/Coll3/LY=3. mm
+dc:Ge/Coll3/LX=100. mm
+dc:Ge/Coll3/LTX=92. mm
+s:Ge/Coll3/Color="red"
+
+# left collimator
+s:Ge/Coll4/Type="G4RTrap"
+s:Ge/Coll4/Parent="CollimatorsHorizontal"
+s:Ge/Coll4/Material="Lead"
+dc:Ge/Coll4/TransX = {{ coll4_trans_x }}
+dc:Ge/Coll4/TransY=0. cm
+dc:Ge/Coll4/TransZ=0. cm
+dc:Ge/Coll4/RotX=-90. deg
+dc:Ge/Coll4/RotY=0. deg
+dc:Ge/Coll4/RotZ=0 deg
+dc:Ge/Coll4/LZ=120. mm
+dc:Ge/Coll4/LY=3. mm
+dc:Ge/Coll4/LX=100. mm
+dc:Ge/Coll4/LTX=92. mm
+s:Ge/Coll4/Color="red"
+
+# top collimator steel backing
+s:Ge/Coll1steel/Type="G4RTrap"
+s:Ge/Coll1steel/Parent="CollimatorsVertical"
+s:Ge/Coll1steel/Material="Steel"
+dc:Ge/Coll1steel/TransX=0 cm
+dc:Ge/Coll1steel/TransY=Ge/Coll1/TransY - 0.2 cm
+dc:Ge/Coll1steel/TransZ=-0.25 cm
+dc:Ge/Coll1steel/RotX=-90. deg
+dc:Ge/Coll1steel/RotY=90. deg
+dc:Ge/Coll1steel/RotZ=0 deg
+dc:Ge/Coll1steel/LZ=120. mm
+dc:Ge/Coll1steel/LY=2. mm
+dc:Ge/Coll1steel/LX=100. mm
+dc:Ge/Coll1steel/LTX=100. mm
+s:Ge/Coll1steel/Color="pink"
+
+# bottom collimator steel backing
+s:Ge/Coll2steel/Type="G4RTrap"
+s:Ge/Coll2steel/Parent="CollimatorsVertical"
+s:Ge/Coll2steel/Material="Steel"
+dc:Ge/Coll2steel/TransX=0 cm
+dc:Ge/Coll2steel/TransY=Ge/Coll2/TransY + 0.2 cm
+dc:Ge/Coll2steel/TransZ=-0.25 cm
+dc:Ge/Coll2steel/RotX=-90. deg
+dc:Ge/Coll2steel/RotY=270. deg
+dc:Ge/Coll2steel/RotZ=0 deg
+dc:Ge/Coll2steel/LZ=120. mm
+dc:Ge/Coll2steel/LY=2. mm
+dc:Ge/Coll2steel/LX=100. mm
+dc:Ge/Coll2steel/LTX=100. mm
+s:Ge/Coll2steel/Color="pink"
+
+# right collimator steel backing
+s:Ge/Coll3steel/Type="G4RTrap"
+s:Ge/Coll3steel/Parent="CollimatorsHorizontal"
+s:Ge/Coll3steel/Material="Steel"
+dc:Ge/Coll3steel/TransX=Ge/Coll3/TransX - 0.2 cm
+dc:Ge/Coll3steel/TransY=0. cm
+dc:Ge/Coll3steel/TransZ=-0.25 cm
+dc:Ge/Coll3steel/RotX=-90. deg
+dc:Ge/Coll3steel/RotY=180. deg
+dc:Ge/Coll3steel/RotZ=0 deg
+dc:Ge/Coll3steel/LZ=120. mm
+dc:Ge/Coll3steel/LY=2. mm
+dc:Ge/Coll3steel/LX=100. mm
+dc:Ge/Coll3steel/LTX=100. mm
+s:Ge/Coll3steel/Color="pink"
+
+# left collimator steel backing
+s:Ge/Coll4steel/Type="G4RTrap"
+s:Ge/Coll4steel/Parent="CollimatorsHorizontal"
+s:Ge/Coll4steel/Material="Steel"
+dc:Ge/Coll4steel/TransX=Ge/Coll4/TransX + 0.2 cm
+dc:Ge/Coll4steel/TransY=0. cm
+dc:Ge/Coll4steel/TransZ=-0.25 cm
+dc:Ge/Coll4steel/RotX=-90. deg
+dc:Ge/Coll4steel/RotY=0. deg
+dc:Ge/Coll4steel/RotZ=0 deg
+dc:Ge/Coll4steel/LZ=120. mm
+dc:Ge/Coll4steel/LY=2. mm
+dc:Ge/Coll4steel/LX=100. mm
+dc:Ge/Coll4steel/LTX=100. mm
+s:Ge/Coll4steel/Color="pink"
+
+# Beam Hardening Filter Group
+s:Ge/BeamHardeningFilterGroup/Type="Group"
+s:Ge/BeamHardeningFilterGroup/Parent="CollimatorsHorizontal"
+d:Ge/BeamHardeningFilterGroup/RotX=0. deg
+d:Ge/BeamHardeningFilterGroup/RotY=0. deg
+d:Ge/BeamHardeningFilterGroup/RotZ=0. deg
+d:Ge/BeamHardeningFilterGroup/TransZ=1.59 cm
+
+# Beam Hardening Filter — Ti 0.7 mm
+s:Ge/BeamHardeningFilter/Type="TsBox"
+s:Ge/BeamHardeningFilter/Material="Titanium"
+s:Ge/BeamHardeningFilter/Parent="BeamHardeningFilterGroup"
+d:Ge/BeamHardeningFilter/HLX=0.1 m
+d:Ge/BeamHardeningFilter/HLY=0.1 m
+d:Ge/BeamHardeningFilter/HLZ=0.7 mm
+d:Ge/BeamHardeningFilter/TransX=0. m
+d:Ge/BeamHardeningFilter/TransY=0. m
+d:Ge/BeamHardeningFilter/TransZ=0. m
+dc:Ge/BeamHardeningFilter/RotX=0. deg
+dc:Ge/BeamHardeningFilter/RotY=0. deg
+dc:Ge/BeamHardeningFilter/RotZ=0. deg
+s:Ge/BeamHardeningFilter/Color="lightblue"
+s:Ge/BeamHardeningFilter/DrawingStyle="WireFrame"
+
+
+###########################################################
+# Phase Space Scoring Surface — positioned after BHF
+# TransY = BHF position + clearance
+# NOTE: TransY value must be verified with a graphics run (task 9).
+#       The current value is an estimate based on beam line geometry.
+###########################################################
+s:Ge/PhspSurface/Type     = "TsBox"
+s:Ge/PhspSurface/Parent   = "Rotation"
+s:Ge/PhspSurface/Material = "Vacuum"
+d:Ge/PhspSurface/HLX      = 50.0 cm
+d:Ge/PhspSurface/HLY      = 0.1 mm
+d:Ge/PhspSurface/HLZ      = 50.0 cm
+# TransY: source at Y=-100cm, CollVert at Y=-88.3cm, BHF downstream ~2cm more
+# Scoring surface at Y ≈ -86 cm (downstream of all source-side geometry)
+d:Ge/PhspSurface/TransY   = -86.0 cm
+
+# PhaseSpace Scorer
+s:Sc/PhspOut/Quantity            = "PhaseSpace"
+s:Sc/PhspOut/Surface             = "PhspSurface/YPlusSurface"
+s:Sc/PhspOut/OutputType          = "Binary"
+s:Sc/PhspOut/OutputFile          = "beam_exit_phsp"
+b:Sc/PhspOut/KillAfterPhaseSpace = "True"
+s:Sc/PhspOut/IfOutputFileAlreadyExists = "Overwrite"
+
+###########################################################
+# Define beam source - cone beam
+###########################################################
+s:Ge/BeamPosition/Parent="Rotation"
+s:Ge/BeamPosition/Type = "Group"
+d:Ge/BeamPosition/TransX=0. cm
+d:Ge/BeamPosition/TransY=-1000. mm
+d:Ge/BeamPosition/TransZ=0. m
+d:Ge/BeamPosition/RotX = 90. deg
+d:Ge/BeamPosition/RotY = 0. deg
+d:Ge/BeamPosition/RotZ = 0. deg
+s:So/beam/BeamEnergySpectrumType = "Continuous"
+s:So/beam/Type = "Beam"
+s:So/beam/Component = "BeamPosition"
+s:So/beam/BeamParticle = "gamma"
+s:So/beam/BeamPositionDistribution = "Gaussian"
+s:So/beam/BeamPositionCutoffShape = "Rectangle"
+d:So/beam/BeamPositionCutoffX = 50. mm
+d:So/beam/BeamPositionCutoffY = 50. mm
+d:So/beam/BeamPositionSpreadX = 0.4246 mm
+d:So/beam/BeamPositionSpreadY = 0.4246 mm
+s:So/beam/BeamAngularDistribution = "Gaussian"
+d:So/beam/BeamAngularCutoffX = 90. deg
+d:So/beam/BeamAngularCutoffY = 90. deg
+d:So/beam/BeamAngularSpreadX = 26.1 deg
+d:So/beam/BeamAngularSpreadY = 27.5 deg
+
+i:So/beam/NumberOfHistoriesInRun = {{ histories }}
+
+# Time Feature ####################################
+
+i:Tf/NumberOfSequentialTimes = {{ sequential_times }}
+i:Tf/Verbosity = 0
+d:Tf/TimelineEnd = {{ timeline_end }}
+{% if rotation_direction == 'kV-kV' %}
+s:Tf/Rotate/Function = "Step"
+dv:Tf/Rotate/Times = 2 1 2 s
+dv:Tf/Rotate/Values = 2 {{ start_angle_value }} {{ second_angle_value }} deg
+{% else %}
+s:Tf/Rotate/Function = "Linear deg"
+d:Tf/Rotate/Rate = {{ rotation_rate }}
+d:Tf/Rotate/StartValue = {{ start_angle }}
+{% endif %}
+i:Ts/ShowHistoryCountAtInterval = 100000
+
+
+{% if graphics_enabled %}Ts/UseQt="True"
+s:Gr/ViewA/Type="OpenGL"
+b:Gr/Enable="True"
+{% endif %}
+i:Gr/ViewA/WindowSizeX=1024
+i:Gr/ViewA/WindowSizeY=768
+d:Gr/ViewA/Theta=70.0 deg
+d:Gr/ViewA/Phi=10.0 deg
+b:Gr/ViewA/IncludeAxes="True"
+d:Gr/ViewA/AxesSize=0.5 m
+b:Ts/ShowCPUTime="True"
+sv:Gr/ViewA/VisibleWorlds = 1 "All"

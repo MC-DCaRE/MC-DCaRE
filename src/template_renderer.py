@@ -44,7 +44,7 @@ class TemplateRenderer:
         rendered: str = template.render(**context)
         output_path: str = os.path.join(self._tmp_dir, output_name)
         os.makedirs(self._tmp_dir, exist_ok=True)
-        with open(output_path, "w") as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             f.write(rendered)
         logger.info("Rendered %s -> %s", template_name, output_path)
         return output_path

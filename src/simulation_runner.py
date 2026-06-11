@@ -88,7 +88,7 @@ class SimulationRunner:
                 stderr=subprocess.STDOUT,
                 text=True,
             )
-            with open(log_path, "w") as log_file:
+            with open(log_path, "w", encoding="utf-8") as log_file:
                 if proc.stdout is not None:
                     for line in proc.stdout:
                         log_file.write(line)
@@ -130,7 +130,7 @@ class SimulationRunner:
     ) -> None:
         """Spawn TOPAS in a new session, write PID file, and return."""
         log_dest = log_path or os.path.join(working_dir, "topas_detached.log")
-        log_fh = open(log_dest, "w")  # noqa: SIM115
+        log_fh = open(log_dest, "w", encoding="utf-8")  # noqa: SIM115
         proc = subprocess.Popen(
             command,
             cwd=working_dir,
@@ -139,7 +139,7 @@ class SimulationRunner:
             start_new_session=True,
         )
         pid_path = os.path.join(working_dir, _PID_FILENAME)
-        with open(pid_path, "w") as f:
+        with open(pid_path, "w", encoding="utf-8") as f:
             f.write(str(proc.pid))
         logger.info("TOPAS detached (pid=%d). PID file: %s", proc.pid, pid_path)
 
@@ -155,7 +155,7 @@ class SimulationRunner:
         if not os.path.isfile(pid_path):
             return False
         try:
-            pid = int(open(pid_path).read().strip())
+            pid = int(open(pid_path, encoding="utf-8").read().strip())
         except (ValueError, OSError):
             return False
         try:

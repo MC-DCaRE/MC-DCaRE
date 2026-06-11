@@ -265,9 +265,9 @@ class CtdiMode(SimulationMode):
 
         rendered_path = os.path.join(project_root, "tmp", output)
         output_file = os.path.join(rundatadir, "CTDI_phsp_score.txt")
-        with open(rendered_path, "r") as f:
+        with open(rendered_path, "r", encoding="utf-8") as f:
             content = f.read()
-        with open(output_file, "w") as f:
+        with open(output_file, "w", encoding="utf-8") as f:
             f.write(content)
         return output_file
 
@@ -289,7 +289,7 @@ class CtdiMode(SimulationMode):
 
         # Concatenate replay template with phantom include.
         replay_path = os.path.join(project_root, "tmp", self._get_main_output(config))
-        with open(replay_path, "r") as f:
+        with open(replay_path, "r", encoding="utf-8") as f:
             replay_content = f.read()
 
         sub_template = self.get_sub_template_name(config)
@@ -300,7 +300,7 @@ class CtdiMode(SimulationMode):
         )
         combined = replay_content + phantom_rendered
         output_file = os.path.join(rundatadir, "CTDI_phsp_replay.txt")
-        with open(output_file, "w") as f:
+        with open(output_file, "w", encoding="utf-8") as f:
             f.write(combined)
         return output_file
 
@@ -317,7 +317,7 @@ class CtdiMode(SimulationMode):
         )
         sub_template = self.get_sub_template_name(config)
         headsource_path = os.path.join(project_root, "tmp", "headsourcecode.txt")
-        with open(headsource_path, "r") as f:
+        with open(headsource_path, "r", encoding="utf-8") as f:
             headsource_content = f.read()
         sub_context = self.build_sub_context(config)
         phantom_rendered = renderer.render_string(
@@ -326,6 +326,6 @@ class CtdiMode(SimulationMode):
         )
         combined = headsource_content + phantom_rendered
         output_file = os.path.join(rundatadir, "CTDI_all_positions.txt")
-        with open(output_file, "w") as f:
+        with open(output_file, "w", encoding="utf-8") as f:
             f.write(combined)
         return output_file

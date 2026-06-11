@@ -467,6 +467,19 @@ class TestOrchestratorPhaseSpace:
         with pytest.raises(ValueError, match="Invalid metadata file"):
             Orchestrator._write_replay_metadata(rundir, str(bad_path), 1)
 
+    def test_write_replay_metadata_rejects_missing_norm_factor(
+        self, tmp_path: Any
+    ) -> None:
+        import yaml
+
+        meta_path = tmp_path / "simulation_metadata.yaml"
+        with open(meta_path, "w") as f:
+            yaml.dump({"mAs": 100.0}, f)
+        rundir = str(tmp_path / "run")
+        os.makedirs(rundir)
+        with pytest.raises(ValueError, match="missing 'norm_factor'"):
+            Orchestrator._write_replay_metadata(rundir, str(meta_path), 1)
+
     def test_replay_metadata_found_alongside_phsp_file(self, tmp_path: Any) -> None:
         """Replay mode finds metadata in the same dir as the .phsp file."""
         import yaml

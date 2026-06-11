@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 # Fields: x, y, z, dx (direction cosine x), dy, energy, weight
 # Particle type is inferred (all gammas for kV imaging).
 _RECORD_SIZE = 56  # 7 * 8 bytes
+_MAX_MEMORY_MB = 1024  # Refuse to load files larger than 1 GB into RAM
 
 
 class PhaseSpaceAnalyzer:
@@ -48,8 +49,9 @@ class PhaseSpaceAnalyzer:
         Returns:
             Dict with beam characterization statistics.
         """
-        file_size_mb = os.path.getsize(self.phsp_path) / (1024 * 1024)
-        n_records = int(os.path.getsize(self.phsp_path) / _RECORD_SIZE)
+        file_size = os.path.getsize(self.phsp_path)
+        file_size_mb = file_size / (1024 * 1024)
+        n_records = int(file_size / _RECORD_SIZE)
 
         logger.info(
             "Analyzing %s: %.2f MB, %d particles",
@@ -57,6 +59,13 @@ class PhaseSpaceAnalyzer:
             file_size_mb,
             n_records,
         )
+
+        if file_size_mb > _MAX_MEMORY_MB:
+            raise MemoryError(
+                "Phase space file too large (%.0f MB > %d MB limit). "
+                "Use chunked analysis or reduce particle count."
+                % (file_size_mb, _MAX_MEMORY_MB)
+            )
 
         if n_records == 0:
             return self._empty_result(file_size_mb)

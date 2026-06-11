@@ -19,6 +19,7 @@ from typing import Any, Dict, Tuple, Type
 import yaml
 
 from src.models.enums import FanMode, PhantomSize, RotationDirection, SimulationType
+from src.models.imaging_mode import IMAGING_MODES, ImagingMode
 from src.models.quantity import Quantity
 
 logger = logging.getLogger(__name__)
@@ -170,6 +171,78 @@ class CtdiConfig:
         _coerce_quantities(self, _CTDI_Q_FIELDS)
 
 
+def _resolve_imaging_mode(imaging_data: dict, ctdi_data: dict) -> tuple[dict, dict]:
+    """Auto-populate imaging/CTDI fields from protocol name lookup.
+
+    Composites ``rotation_direction + "_" + imaging_mode`` into a key for
+    :data:`IMAGING_MODES`, then fills absent/empty fields in *imaging_data*
+    and *ctdi_data* from the resolved mode.  Explicit YAML values always win
+    over mode defaults.
+
+    For kV-kV directions, resolution is skipped (no-op) since those configs
+    carry all beam parameters explicitly.
+
+    Args:
+        imaging_data: Raw ``imaging`` section from YAML.
+        ctdi_data: Raw ``ctdi`` section from YAML.
+
+    Returns:
+        Modified ``(imaging_data, ctdi_data)`` dicts.
+
+    Raises:
+        ValueError: If required keys are missing or mode not found.
+    """
+    direction = imaging_data.get("rotation_direction")
+    if direction is None:
+        # No direction specified — skip resolution (backward compat).
+        return imaging_data, ctdi_data
+
+    if direction.startswith("kV-kV"):
+        # kV-kV configs carry all beam parameters explicitly; skip resolution.
+        return imaging_data, ctdi_data
+
+    mode_name = imaging_data.get("imaging_mode")
+    if mode_name is None:
+        # No mode specified — skip resolution (backward compat).
+        return imaging_data, ctdi_data
+
+    key = "{}_{}".format(direction, mode_name)
+    if key not in IMAGING_MODES:
+        valid = sorted(IMAGING_MODES.keys())
+        raise ValueError(
+            "No imaging mode found for key {!r}. Valid keys: {}".format(key, valid)
+        )
+
+    mode: ImagingMode = IMAGING_MODES[key]
+
+    # Mapping: (mode_attr, target_dict_key, target_dict_name)
+    _FIELD_MAP: list[tuple[str, str, str]] = [
+        ("voltage", "anode_voltage", "imaging"),
+        ("ctdi_phantom", "phantom_size", "ctdi"),
+        ("start_angle", "start_angle", "imaging"),
+        ("rotation_rate", "rotation_rate", "imaging"),
+        ("timeline_end", "timeline_end", "imaging"),
+        ("fan_mode", "fan_mode", "imaging"),
+        ("field_x1", "field_x1", "imaging"),
+        ("field_x2", "field_x2", "imaging"),
+        ("field_y1", "field_y1", "imaging"),
+        ("field_y2", "field_y2", "imaging"),
+        ("blade_x1", "blade_x1", "imaging"),
+        ("blade_x2", "blade_x2", "imaging"),
+        ("blade_y1", "blade_y1", "imaging"),
+        ("blade_y2", "blade_y2", "imaging"),
+        ("exposure", "exposure", "imaging"),
+    ]
+
+    for mode_attr, target_key, target_dict in _FIELD_MAP:
+        target = imaging_data if target_dict == "imaging" else ctdi_data
+        yaml_val = target.get(target_key)
+        if yaml_val is None or yaml_val == "":
+            target[target_key] = getattr(mode, mode_attr)
+
+    return imaging_data, ctdi_data
+
+
 @dataclass(frozen=True)
 class SimulationConfig:
     """Top-level configuration composing general, imaging, DICOM, and CTDI sections."""
@@ -238,30 +311,32 @@ class SimulationConfig:
             raise ValueError(
                 "Exposure must be positive, got {}".format(self.imaging.exposure.value)
             )
-        valid_phase_space_modes = ("off", "score", "replay")
-        if self.ctdi.phase_space_mode not in valid_phase_space_modes:
-            raise ValueError(
-                "phase_space_mode must be one of {}, got {!r}".format(
-                    valid_phase_space_modes, self.ctdi.phase_space_mode
-                )
-            )
-        if self.ctdi.phase_space_mode == "replay":
-            if not self.ctdi.phase_space_file:
+        # Phase space validation only applies to CTDI simulation type.
+        if self.imaging.simulation_type == "CTDI":
+            valid_phase_space_modes = ("off", "score", "replay")
+            if self.ctdi.phase_space_mode not in valid_phase_space_modes:
                 raise ValueError(
-                    "phase_space_file is required when phase_space_mode is 'replay'"
-                )
-            if not os.path.isfile(self.ctdi.phase_space_file):
-                raise ValueError(
-                    "phase_space_file does not exist: {}".format(
-                        self.ctdi.phase_space_file
+                    "phase_space_mode must be one of {}, got {!r}".format(
+                        valid_phase_space_modes, self.ctdi.phase_space_mode
                     )
                 )
-        if self.ctdi.phase_space_multiple_use < 1:
-            raise ValueError(
-                "phase_space_multiple_use must be >= 1, got {}".format(
-                    self.ctdi.phase_space_multiple_use
+            if self.ctdi.phase_space_mode == "replay":
+                if not self.ctdi.phase_space_file:
+                    raise ValueError(
+                        "phase_space_file is required when phase_space_mode is 'replay'"
+                    )
+                if not os.path.isfile(self.ctdi.phase_space_file):
+                    raise ValueError(
+                        "phase_space_file does not exist: {}".format(
+                            self.ctdi.phase_space_file
+                        )
+                    )
+            if self.ctdi.phase_space_multiple_use < 1:
+                raise ValueError(
+                    "phase_space_multiple_use must be >= 1, got {}".format(
+                        self.ctdi.phase_space_multiple_use
+                    )
                 )
-            )
 
     @staticmethod
     def _validate_enum_field(field_name: str, value: str, enum_cls: Type[Enum]) -> None:
@@ -305,11 +380,14 @@ class SimulationConfig:
             raise ValueError(
                 "YAML config must be a mapping, got {}".format(type(data).__name__)
             )
+        imaging_data = data.get("imaging", {})
+        ctdi_data = data.get("ctdi", {})
+        imaging_data, ctdi_data = _resolve_imaging_mode(imaging_data, ctdi_data)
         config = cls(
             general=GeneralConfig(**data.get("general", {})),
-            imaging=ImagingConfig(**data.get("imaging", {})),
+            imaging=ImagingConfig(**imaging_data),
             dicom=DicomConfig(**data.get("dicom", {})),
-            ctdi=CtdiConfig(**data.get("ctdi", {})),
+            ctdi=CtdiConfig(**ctdi_data),
             config_yaml_path=os.path.abspath(path),
         )
         config.validate()

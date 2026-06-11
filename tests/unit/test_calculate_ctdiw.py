@@ -7,7 +7,7 @@ import pytest
 import pandas as pd
 import yaml
 
-from src.services.ctdi_calculator import CTDICalculator
+from src.services.ctdi_calculator import CTDICalculator, PRIMARY_SCORER
 
 
 def _make_cal(tmp_path: Path) -> CTDICalculator:
@@ -72,7 +72,7 @@ class TestFindChamberFiles:
         calc = _make_cal(tmp_path)
         chamber_files = calc._find_chamber_files()
 
-        assert len(chamber_files) == 3
+        assert len(chamber_files) == 4
         for file_type in file_types:
             assert len(chamber_files[file_type]) == 5
             for position in positions:
@@ -134,6 +134,8 @@ class TestProcessFileType:
 
         assert result is not None
         assert result["FileType"] == "dtw"
+        assert result["scorer_type"] == "dtw"
+        assert result["is_primary"] is False
         assert (
             result["PeripheralDoseAverage"]
             == (1.0e-10 + 1.2e-10 + 0.8e-10 + 1.1e-10) / 4
@@ -216,8 +218,14 @@ class TestCalculate:
 
         assert len(results) == 3
         assert results[0]["FileType"] == "dtm"
+        assert results[0]["scorer_type"] == "dtm"
+        assert results[0]["is_primary"] is False
         assert results[1]["FileType"] == "tle"
+        assert results[1]["scorer_type"] == "tle"
+        assert results[1]["is_primary"] is True
         assert results[2]["FileType"] == "dtw"
+        assert results[2]["scorer_type"] == "dtw"
+        assert results[2]["is_primary"] is False
 
 
 class TestExtractCalibrationFactor:
@@ -326,6 +334,314 @@ class TestReadSimulationMetadata:
         calc = CTDICalculator(tmp_path)
         assert calc.calibration_factor == 6.0
         assert calc.simulation_metadata is None
+
+
+class TestCompareScorers:
+    def _make_results(
+        self,
+        tle_ctdi: float = 1.0e-10,
+        dtm_ctdi: float = 0.9e-10,
+        dtw_ctdi: float = 1.1e-10,
+    ) -> list[dict]:
+        return [
+            {
+                "FileType": "tle",
+                "scorer_type": "tle",
+                "is_primary": True,
+                "CTDI_w": tle_ctdi,
+                "PeripheralDoseAverage": tle_ctdi * 0.8,
+                "CenterDose": tle_ctdi * 1.4,
+            },
+            {
+                "FileType": "dtm",
+                "scorer_type": "dtm",
+                "is_primary": False,
+                "CTDI_w": dtm_ctdi,
+                "PeripheralDoseAverage": dtm_ctdi * 0.8,
+                "CenterDose": dtm_ctdi * 1.4,
+            },
+            {
+                "FileType": "dtw",
+                "scorer_type": "dtw",
+                "is_primary": False,
+                "CTDI_w": dtw_ctdi,
+                "PeripheralDoseAverage": dtw_ctdi * 0.8,
+                "CenterDose": dtw_ctdi * 1.4,
+            },
+        ]
+
+    def test_compare_scorers_full_comparison(self, tmp_path: Path) -> None:
+        calc = _make_cal(tmp_path)
+        results = self._make_results()
+        comparison = calc.compare_scorers(results)
+
+        assert "tle_vs_dtm_ratio" in comparison
+        assert "tle_vs_dtw_ratio" in comparison
+        assert "systematic_note" in comparison
+
+        assert comparison["tle_vs_dtm_ratio"]["overall"] == pytest.approx(1.0 / 0.9)
+        assert comparison["tle_vs_dtw_ratio"]["overall"] == pytest.approx(1.0 / 1.1)
+
+    def test_compare_scorers_per_position_ratios(self, tmp_path: Path) -> None:
+        calc = _make_cal(tmp_path)
+        results = self._make_results()
+        comparison = calc.compare_scorers(results)
+
+        dtm_ratio = comparison["tle_vs_dtm_ratio"]
+        assert "peripheral_avg" in dtm_ratio
+        assert "center" in dtm_ratio
+
+    def test_compare_scorers_raises_on_tle_only(self, tmp_path: Path) -> None:
+        calc = _make_cal(tmp_path)
+        results = [
+            {
+                "FileType": "tle",
+                "scorer_type": "tle",
+                "is_primary": True,
+                "CTDI_w": 1.0e-10,
+            }
+        ]
+        with pytest.raises(ValueError, match="at least one analogue scorer"):
+            calc.compare_scorers(results)
+
+    def test_compare_scorers_raises_on_no_tle(self, tmp_path: Path) -> None:
+        calc = _make_cal(tmp_path)
+        results = [
+            {
+                "FileType": "dtm",
+                "scorer_type": "dtm",
+                "is_primary": False,
+                "CTDI_w": 1.0e-10,
+            }
+        ]
+        with pytest.raises(ValueError, match="must contain TLE"):
+            calc.compare_scorers(results)
+
+    def test_compare_scorers_tle_plus_dtm_only(self, tmp_path: Path) -> None:
+        calc = _make_cal(tmp_path)
+        results = [
+            {
+                "FileType": "tle",
+                "scorer_type": "tle",
+                "is_primary": True,
+                "CTDI_w": 1.0e-10,
+                "PeripheralDoseAverage": 0.8e-10,
+                "CenterDose": 1.4e-10,
+            },
+            {
+                "FileType": "dtm",
+                "scorer_type": "dtm",
+                "is_primary": False,
+                "CTDI_w": 0.9e-10,
+                "PeripheralDoseAverage": 0.7e-10,
+                "CenterDose": 1.3e-10,
+            },
+        ]
+        comparison = calc.compare_scorers(results)
+        assert "tle_vs_dtm_ratio" in comparison
+        assert "tle_vs_dtw_ratio" not in comparison
+
+
+class TestScorerTypeFields:
+    def test_primary_scorer_constant(self) -> None:
+        assert PRIMARY_SCORER == "tle"
+
+    def test_process_file_type_tle_is_primary(self, tmp_path: Path) -> None:
+        calc = _make_cal(tmp_path)
+        chamber_files = {
+            "Bottom": tmp_path / "ChamberPlugBottom_tle.csv",
+            "Top": tmp_path / "ChamberPlugTop_tle.csv",
+            "Left": tmp_path / "ChamberPlugLeft_tle.csv",
+            "Right": tmp_path / "ChamberPlugRight_tle.csv",
+            "Centre": tmp_path / "ChamberPlugCentre_tle.csv",
+        }
+        with patch.object(
+            calc,
+            "_extract_dose_from_file",
+            side_effect=[1.0e-10, 1.2e-10, 0.8e-10, 1.1e-10, 2.0e-10],
+        ):
+            result = calc._process_file_type(chamber_files, "tle")
+
+        assert result is not None
+        assert result["scorer_type"] == "tle"
+        assert result["is_primary"] is True
+
+    def test_process_file_type_dtm_not_primary(self, tmp_path: Path) -> None:
+        calc = _make_cal(tmp_path)
+        chamber_files = {
+            "Bottom": tmp_path / "ChamberPlugBottom_dtm.csv",
+            "Top": tmp_path / "ChamberPlugTop_dtm.csv",
+            "Left": tmp_path / "ChamberPlugLeft_dtm.csv",
+            "Right": tmp_path / "ChamberPlugRight_dtm.csv",
+            "Centre": tmp_path / "ChamberPlugCentre_dtm.csv",
+        }
+        with patch.object(
+            calc,
+            "_extract_dose_from_file",
+            side_effect=[1.0e-10, 1.2e-10, 0.8e-10, 1.1e-10, 2.0e-10],
+        ):
+            result = calc._process_file_type(chamber_files, "dtm")
+
+        assert result is not None
+        assert result["scorer_type"] == "dtm"
+        assert result["is_primary"] is False
+
+
+class TestFindWaterChamberFiles:
+    def test_find_water_chamber_files(self, tmp_path: Path) -> None:
+        positions = ["Bottom", "Top", "Left", "Right", "Centre"]
+        for position in positions:
+            (tmp_path / "ChamberPlug{}_water_dtm.csv".format(position)).write_text(
+                "1.0e-10"
+            )
+
+        calc = _make_cal(tmp_path)
+        chamber_files = calc._find_chamber_files()
+
+        assert "water_dtm" in chamber_files
+        assert len(chamber_files["water_dtm"]) == 5
+        for position in positions:
+            assert position in chamber_files["water_dtm"]
+
+    def test_water_chamber_files_absent_by_default(self, tmp_path: Path) -> None:
+        positions = ["Bottom", "Top", "Left", "Right", "Centre"]
+        for position in positions:
+            for ftype in ["dtm", "tle", "dtw"]:
+                (tmp_path / "ChamberPlug{}_{}.csv".format(position, ftype)).write_text(
+                    "1.0e-10"
+                )
+
+        calc = _make_cal(tmp_path)
+        chamber_files = calc._find_chamber_files()
+
+        assert "water_dtm" in chamber_files
+        assert len(chamber_files["water_dtm"]) == 0
+
+
+class TestCalculateWaterChamber:
+    def test_calculate_includes_water_results(self, tmp_path: Path) -> None:
+        positions = ["Bottom", "Top", "Left", "Right", "Centre"]
+        for position in positions:
+            for ftype in ["dtm", "tle", "dtw", "water_dtm"]:
+                (tmp_path / "ChamberPlug{}_{}.csv".format(position, ftype)).write_text(
+                    "1.0e-10"
+                )
+
+        calc = _make_cal(tmp_path)
+
+        with patch.object(
+            calc,
+            "_extract_dose_from_file",
+            return_value=1.0e-10,
+        ):
+            results = calc.calculate()
+
+        scorer_types = [r["scorer_type"] for r in results]
+        assert "water_dtm" in scorer_types
+        water_result = [r for r in results if r["scorer_type"] == "water_dtm"][0]
+        assert water_result["is_primary"] is False
+        assert water_result["FileType"] == "water_dtm"
+
+    def test_calculate_without_water_files(self, tmp_path: Path) -> None:
+        positions = ["Bottom", "Top", "Left", "Right", "Centre"]
+        for position in positions:
+            for ftype in ["dtm", "tle", "dtw"]:
+                (tmp_path / "ChamberPlug{}_{}.csv".format(position, ftype)).write_text(
+                    "1.0e-10"
+                )
+
+        calc = _make_cal(tmp_path)
+
+        with patch.object(
+            calc,
+            "_extract_dose_from_file",
+            return_value=1.0e-10,
+        ):
+            results = calc.calculate()
+
+        scorer_types = [r["scorer_type"] for r in results]
+        assert "water_dtm" not in scorer_types
+        assert len(results) == 3
+
+
+class TestCompareScorersGuards:
+    def test_duplicate_scorer_type_raises(self, tmp_path: Path) -> None:
+        calc = _make_cal(tmp_path)
+        results = [
+            {
+                "FileType": "tle",
+                "scorer_type": "tle",
+                "is_primary": True,
+                "CTDI_w": 1.0e-10,
+                "PeripheralDoseAverage": 0.8e-10,
+                "CenterDose": 1.4e-10,
+            },
+            {
+                "FileType": "dtm",
+                "scorer_type": "dtm",
+                "is_primary": False,
+                "CTDI_w": 0.9e-10,
+                "PeripheralDoseAverage": 0.7e-10,
+                "CenterDose": 1.3e-10,
+            },
+            {
+                "FileType": "dtm",
+                "scorer_type": "dtm",
+                "is_primary": False,
+                "CTDI_w": 0.95e-10,
+                "PeripheralDoseAverage": 0.75e-10,
+                "CenterDose": 1.35e-10,
+            },
+        ]
+        with pytest.raises(ValueError, match="Duplicate scorer_type"):
+            calc.compare_scorers(results)
+
+    def test_non_finite_tle_ctdi_raises(self, tmp_path: Path) -> None:
+
+        calc = _make_cal(tmp_path)
+        results = [
+            {
+                "FileType": "tle",
+                "scorer_type": "tle",
+                "is_primary": True,
+                "CTDI_w": float("nan"),
+                "PeripheralDoseAverage": 0.8e-10,
+                "CenterDose": 1.4e-10,
+            },
+            {
+                "FileType": "dtm",
+                "scorer_type": "dtm",
+                "is_primary": False,
+                "CTDI_w": 0.9e-10,
+                "PeripheralDoseAverage": 0.7e-10,
+                "CenterDose": 1.3e-10,
+            },
+        ]
+        with pytest.raises(ValueError, match="not finite"):
+            calc.compare_scorers(results)
+
+    def test_non_finite_analogue_ctdi_raises(self, tmp_path: Path) -> None:
+        calc = _make_cal(tmp_path)
+        results = [
+            {
+                "FileType": "tle",
+                "scorer_type": "tle",
+                "is_primary": True,
+                "CTDI_w": 1.0e-10,
+                "PeripheralDoseAverage": 0.8e-10,
+                "CenterDose": 1.4e-10,
+            },
+            {
+                "FileType": "dtm",
+                "scorer_type": "dtm",
+                "is_primary": False,
+                "CTDI_w": float("inf"),
+                "PeripheralDoseAverage": 0.7e-10,
+                "CenterDose": 1.3e-10,
+            },
+        ]
+        with pytest.raises(ValueError, match="not finite"):
+            calc.compare_scorers(results)
 
 
 if __name__ == "__main__":

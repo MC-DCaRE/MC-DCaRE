@@ -117,6 +117,84 @@ b:Ge/ChamberPlugRight/isParallel="True"
 s:Ge/ChamberPlugRight/ParallelWorldName="ChamberPlugRight"
 s:Ge/ChamberPlugRight/color="Brown"
 
+{% if water_chamber_enabled %}
+#ChamberPlugs — Water-filled, each in its own parallel world for sensitivity studies
+s:Ge/ChamberPlugCentre_water/Type="TsCylinder"
+s:Ge/ChamberPlugCentre_water/Parent="couchgroup"
+s:Ge/ChamberPlugCentre_water/Material="Water"
+d:Ge/ChamberPlugCentre_water/RMin=0.0 mm
+d:Ge/ChamberPlugCentre_water/RMax=6.55 mm
+d:Ge/ChamberPlugCentre_water/HL=50.0 mm
+d:Ge/ChamberPlugCentre_water/SPhi=0. deg
+d:Ge/ChamberPlugCentre_water/DPhi=360. deg
+d:Ge/ChamberPlugCentre_water/TransX=0.0 mm
+d:Ge/ChamberPlugCentre_water/TransY=0.0 mm
+d:Ge/ChamberPlugCentre_water/TransZ=0.0 mm
+b:Ge/ChamberPlugCentre_water/isParallel="True"
+s:Ge/ChamberPlugCentre_water/ParallelWorldName="ChamberPlugCentre_water"
+s:Ge/ChamberPlugCentre_water/color="Blue"
+
+s:Ge/ChamberPlugTop_water/Type="TsCylinder"
+s:Ge/ChamberPlugTop_water/Parent="couchgroup"
+s:Ge/ChamberPlugTop_water/Material="Water"
+d:Ge/ChamberPlugTop_water/RMin=0.0 mm
+d:Ge/ChamberPlugTop_water/RMax=6.55 mm
+d:Ge/ChamberPlugTop_water/HL=50.0 mm
+d:Ge/ChamberPlugTop_water/SPhi=0. deg
+d:Ge/ChamberPlugTop_water/DPhi=360. deg
+d:Ge/ChamberPlugTop_water/TransX=0.0 mm
+d:Ge/ChamberPlugTop_water/TransY=-150.0 mm
+d:Ge/ChamberPlugTop_water/TransZ=0.0 mm
+b:Ge/ChamberPlugTop_water/isParallel="True"
+s:Ge/ChamberPlugTop_water/ParallelWorldName="ChamberPlugTop_water"
+s:Ge/ChamberPlugTop_water/color="Cyan"
+
+s:Ge/ChamberPlugBottom_water/Type="TsCylinder"
+s:Ge/ChamberPlugBottom_water/Parent="couchgroup"
+s:Ge/ChamberPlugBottom_water/Material="Water"
+d:Ge/ChamberPlugBottom_water/RMin=0.0 mm
+d:Ge/ChamberPlugBottom_water/RMax=6.55 mm
+d:Ge/ChamberPlugBottom_water/HL=50.0 mm
+d:Ge/ChamberPlugBottom_water/SPhi=0. deg
+d:Ge/ChamberPlugBottom_water/DPhi=360. deg
+d:Ge/ChamberPlugBottom_water/TransX=0.0 mm
+d:Ge/ChamberPlugBottom_water/TransY=150.0 mm
+d:Ge/ChamberPlugBottom_water/TransZ=0.0 mm
+b:Ge/ChamberPlugBottom_water/isParallel="True"
+s:Ge/ChamberPlugBottom_water/ParallelWorldName="ChamberPlugBottom_water"
+s:Ge/ChamberPlugBottom_water/color="Teal"
+
+s:Ge/ChamberPlugLeft_water/Type="TsCylinder"
+s:Ge/ChamberPlugLeft_water/Parent="couchgroup"
+s:Ge/ChamberPlugLeft_water/Material="Water"
+d:Ge/ChamberPlugLeft_water/RMin=0.0 mm
+d:Ge/ChamberPlugLeft_water/RMax=6.55 mm
+d:Ge/ChamberPlugLeft_water/HL=50.0 mm
+d:Ge/ChamberPlugLeft_water/SPhi=0. deg
+d:Ge/ChamberPlugLeft_water/DPhi=360. deg
+d:Ge/ChamberPlugLeft_water/TransX=-150.0 mm
+d:Ge/ChamberPlugLeft_water/TransY=0.0 mm
+d:Ge/ChamberPlugLeft_water/TransZ=0.0 mm
+b:Ge/ChamberPlugLeft_water/isParallel="True"
+s:Ge/ChamberPlugLeft_water/ParallelWorldName="ChamberPlugLeft_water"
+s:Ge/ChamberPlugLeft_water/color="Aquamarine"
+
+s:Ge/ChamberPlugRight_water/Type="TsCylinder"
+s:Ge/ChamberPlugRight_water/Parent="couchgroup"
+s:Ge/ChamberPlugRight_water/Material="Water"
+d:Ge/ChamberPlugRight_water/RMin=0.0 mm
+d:Ge/ChamberPlugRight_water/RMax=6.55 mm
+d:Ge/ChamberPlugRight_water/HL=50.0 mm
+d:Ge/ChamberPlugRight_water/SPhi=0. deg
+d:Ge/ChamberPlugRight_water/DPhi=360. deg
+d:Ge/ChamberPlugRight_water/TransX=150.0 mm
+d:Ge/ChamberPlugRight_water/TransY=0.0 mm
+d:Ge/ChamberPlugRight_water/TransZ=0.0 mm
+b:Ge/ChamberPlugRight_water/isParallel="True"
+s:Ge/ChamberPlugRight_water/ParallelWorldName="ChamberPlugRight_water"
+s:Ge/ChamberPlugRight_water/color="Navy"
+{% endif %}
+
 
 ##Scoring###########################################
 
@@ -147,3 +225,17 @@ i:Sc/{{ position }}_dtw/ZBins={{ dose_to_water_zbins }}
 sv:Sc/{{ position }}_dtw/Report = 4 "Sum" "Histories" "Count_In_Bin" "Standard_Deviation"
 s:Sc/{{ position }}_dtw/OutputFile="{{ position }}_dtw"
 {% endfor %}
+{% if water_chamber_enabled %}
+
+# 5 additional DTM scorers for water-filled chamber volumes
+{% for position in plug_positions %}
+s:Sc/{{ position }}_water_dtm/Quantity="DoseToMaterial"
+s:Sc/{{ position }}_water_dtm/Component="{{ position }}_water"
+s:Sc/{{ position }}_water_dtm/IfOutputFileAlreadyExists="Overwrite"
+i:Sc/{{ position }}_water_dtm/ZBins={{ dose_to_medium_zbins }}
+s:Sc/{{ position }}_water_dtm/Material="Water"
+b:Sc/{{ position }}_water_dtm/PreCalculateStoppingPowerRatios="True"
+sv:Sc/{{ position }}_water_dtm/Report = 4 "Sum" "Histories" "Count_In_Bin" "Standard_Deviation"
+s:Sc/{{ position }}_water_dtm/OutputFile="{{ position }}_water_dtm"
+{% endfor %}
+{% endif %}

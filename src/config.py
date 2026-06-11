@@ -161,6 +161,7 @@ class CtdiConfig:
     user_field_y1: Quantity = _q(10.7, "cm")
     user_field_y2: Quantity = _q(10.7, "cm")
     graphics_enabled: bool = False
+    water_chamber_enabled: bool = False
 
     def __post_init__(self) -> None:
         _coerce_quantities(self, _CTDI_Q_FIELDS)

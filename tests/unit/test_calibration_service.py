@@ -181,12 +181,22 @@ class TestApply:
         ):
             results = svc.apply(rf, 120, "Full Fan")
 
-        assert len(results) > 0
-        for r in results:
-            assert r["dcf_applied"] == 1.034
-            assert r["mAs_ratio"] == 1.0
-            expected_calibrated = self._EXPECTED_CTDI_W * 1.034
-            assert abs(r["CTDI_w_calibrated"] - expected_calibrated) < 1e-12
+        assert len(results) == 3
+        # Only TLE result is calibrated
+        tle_results = [r for r in results if r["scorer_type"] == "tle"]
+        assert len(tle_results) == 1
+        assert tle_results[0]["dcf_applied"] == 1.034
+        assert tle_results[0]["mAs_ratio"] == 1.0
+        expected_calibrated = self._EXPECTED_CTDI_W * 1.034
+        assert abs(tle_results[0]["CTDI_w_calibrated"] - expected_calibrated) < 1e-12
+
+        # Non-TLE results are uncalibrated
+        non_tle = [r for r in results if r["scorer_type"] != "tle"]
+        assert len(non_tle) == 2
+        for r in non_tle:
+            assert r["dcf_applied"] is None
+            assert r["CTDI_w_calibrated"] is None
+            assert r["note"] == "uncalibrated — secondary comparison"
 
     def test_apply_at_different_mAs(self, cal_file: Path, tmp_path: Path) -> None:
         svc = CalibrationService(cal_file)
@@ -197,10 +207,11 @@ class TestApply:
         ):
             results = svc.apply(rf, 120, "Full Fan", target_mAs=200.0)
 
-        for r in results:
-            assert r["mAs_ratio"] == 2.0
-            expected_calibrated = self._EXPECTED_CTDI_W * 1.034 * 2.0
-            assert abs(r["CTDI_w_calibrated"] - expected_calibrated) < 1e-12
+        tle_results = [r for r in results if r["scorer_type"] == "tle"]
+        assert len(tle_results) == 1
+        assert tle_results[0]["mAs_ratio"] == 2.0
+        expected_calibrated = self._EXPECTED_CTDI_W * 1.034 * 2.0
+        assert abs(tle_results[0]["CTDI_w_calibrated"] - expected_calibrated) < 1e-12
 
     def test_apply_raises_on_missing_metadata(
         self, cal_file: Path, tmp_path: Path
@@ -218,6 +229,29 @@ class TestApply:
         rf = self._make_runfolder(tmp_path)
         with pytest.raises(ValueError, match="No DCF calibrated"):
             svc.apply(rf, 80, "Full Fan")
+
+    def test_apply_with_dtm_scorer_type(self, cal_file: Path, tmp_path: Path) -> None:
+        """When scorer_type='dtm', DTM gets calibrated and TLE is uncalibrated."""
+        svc = CalibrationService(cal_file)
+        rf = self._make_runfolder(tmp_path, mAs=100.0)
+
+        with patch.object(
+            CTDICalculator, "_extract_dose_from_file", return_value=self._MOCK_DOSE
+        ):
+            results = svc.apply(rf, 120, "Full Fan", scorer_type="dtm")
+
+        # DTM result is calibrated
+        dtm_results = [r for r in results if r["scorer_type"] == "dtm"]
+        assert len(dtm_results) == 1
+        assert dtm_results[0]["dcf_applied"] == 1.034
+        assert dtm_results[0]["CTDI_w_calibrated"] is not None
+
+        # TLE result is uncalibrated
+        tle_results = [r for r in results if r["scorer_type"] == "tle"]
+        assert len(tle_results) == 1
+        assert tle_results[0]["dcf_applied"] is None
+        assert tle_results[0]["CTDI_w_calibrated"] is None
+        assert tle_results[0]["note"] == "uncalibrated — secondary comparison"
 
 
 if __name__ == "__main__":

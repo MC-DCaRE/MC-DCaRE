@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from src.models.calibration import CalibrationEntry, MachineCalibration
-from src.services.ctdi_calculator import CTDICalculator
+from src.services.ctdi_calculator import CTDICalculator, PRIMARY_SCORER
 
 logger = logging.getLogger(__name__)
 
@@ -112,14 +112,20 @@ class CalibrationService:
         kV: int,
         fan_mode: str,
         target_mAs: Optional[float] = None,
+        scorer_type: str = PRIMARY_SCORER,
     ) -> List[Dict]:
         """Full calibration pipeline: CTDICalculator -> DCF -> mAs scaling.
+
+        Only results matching *scorer_type* (default ``"tle"``) receive
+        the DCF and mAs correction.  All other scorer types are returned
+        uncalibrated with ``"dcf_applied": null`` and a ``"note"`` field.
 
         Args:
             runfolder: Path to the simulation runfolder.
             kV: Tube voltage in kV.
             fan_mode: Fan mode string.
             target_mAs: Optional mAs to scale to. If None, uses simulation mAs.
+            scorer_type: Which scorer type to calibrate (default ``"tle"``).
 
         Returns:
             List of result dicts with calibrated CTDI-w values.
@@ -158,12 +164,23 @@ class CalibrationService:
 
         calibrated: List[Dict] = []
         for result in results:
-            calibrated.append(
-                {
-                    **result,
-                    "CTDI_w_calibrated": result["CTDI_w"] * dcf * mAs_ratio,
-                    "dcf_applied": dcf,
-                    "mAs_ratio": mAs_ratio,
-                }
-            )
+            if result.get("scorer_type") == scorer_type:
+                calibrated.append(
+                    {
+                        **result,
+                        "CTDI_w_calibrated": result["CTDI_w"] * dcf * mAs_ratio,
+                        "dcf_applied": dcf,
+                        "mAs_ratio": mAs_ratio,
+                    }
+                )
+            else:
+                calibrated.append(
+                    {
+                        **result,
+                        "CTDI_w_calibrated": None,
+                        "dcf_applied": None,
+                        "mAs_ratio": mAs_ratio,
+                        "note": "uncalibrated — secondary comparison",
+                    }
+                )
         return calibrated

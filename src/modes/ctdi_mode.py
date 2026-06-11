@@ -102,6 +102,7 @@ class CtdiMode(SimulationMode):
             "dose_to_medium_zbins": config.ctdi.dose_to_medium_zbins,
             "tle_zbins": config.ctdi.tle_zbins,
             "dose_to_water_zbins": config.ctdi.dose_to_water_zbins,
+            "water_chamber_enabled": config.ctdi.water_chamber_enabled,
         }
 
     def get_sub_template_name(self, config: SimulationConfig) -> str:

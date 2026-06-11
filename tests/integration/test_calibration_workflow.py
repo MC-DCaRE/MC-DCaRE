@@ -152,11 +152,19 @@ class TestFullCalibrationFlow:
             results = svc2.apply(rf, 100, "Full Fan")
 
         assert len(results) == 3
-        for r in results:
-            assert abs(r["dcf_applied"] - expected_dcf) < 1e-10
-            assert r["mAs_ratio"] == 1.0
-            expected_calibrated = self._expected_ctdi_w() * expected_dcf
-            assert abs(r["CTDI_w_calibrated"] - expected_calibrated) < 1e-12
+        # Only TLE result is calibrated
+        tle_results = [r for r in results if r["scorer_type"] == "tle"]
+        assert len(tle_results) == 1
+        assert abs(tle_results[0]["dcf_applied"] - expected_dcf) < 1e-10
+        assert tle_results[0]["mAs_ratio"] == 1.0
+        expected_calibrated = self._expected_ctdi_w() * expected_dcf
+        assert abs(tle_results[0]["CTDI_w_calibrated"] - expected_calibrated) < 1e-12
+
+        # Non-TLE results are uncalibrated
+        non_tle = [r for r in results if r["scorer_type"] != "tle"]
+        for r in non_tle:
+            assert r["dcf_applied"] is None
+            assert r["CTDI_w_calibrated"] is None
 
     def test_apply_with_mAs_scaling(self, tmp_path: Path) -> None:
         cal_path = _make_calibration_yaml(tmp_path / "calibration.yaml")
@@ -174,8 +182,12 @@ class TestFullCalibrationFlow:
 
         for r in results:
             assert r["mAs_ratio"] == 2.0
-            expected_calibrated = self._expected_ctdi_w() * expected_dcf * 2.0
-            assert abs(r["CTDI_w_calibrated"] - expected_calibrated) < 1e-12
+
+        # Only TLE result is calibrated
+        tle_results = [r for r in results if r["scorer_type"] == "tle"]
+        assert len(tle_results) == 1
+        expected_calibrated = self._expected_ctdi_w() * expected_dcf * 2.0
+        assert abs(tle_results[0]["CTDI_w_calibrated"] - expected_calibrated) < 1e-12
 
 
 class TestBackwardCompatibility:

@@ -32,7 +32,15 @@ class TestUnitConversion:
     def test_reference_conversion(self, tmp_path: Path) -> None:
         bench = _make_bench(tmp_path)
         ref_mSv = 8.52
-        mock_results = [{"FileType": "dtm", "CTDI_w": ref_mSv * MSV_TO_GY}]
+        ref_Gy = ref_mSv * MSV_TO_GY
+        mock_results = [
+            {
+                "FileType": "tle",
+                "scorer_type": "tle",
+                "is_primary": True,
+                "CTDI_w": ref_Gy,
+            },
+        ]
 
         with patch.object(bench.calculator, "validate"):
             with patch.object(bench.calculator, "calculate", return_value=mock_results):
@@ -48,7 +56,14 @@ class TestCompareWithinTolerance:
         ref_mSv = 10.0
         ref_Gy = ref_mSv * MSV_TO_GY
         simulated_Gy = ref_Gy * 1.05
-        mock_results = [{"FileType": "dtm", "CTDI_w": simulated_Gy}]
+        mock_results = [
+            {
+                "FileType": "tle",
+                "scorer_type": "tle",
+                "is_primary": True,
+                "CTDI_w": simulated_Gy,
+            },
+        ]
 
         with patch.object(bench.calculator, "validate"):
             with patch.object(bench.calculator, "calculate", return_value=mock_results):
@@ -65,7 +80,14 @@ class TestCompareOutsideTolerance:
         ref_mSv = 10.0
         ref_Gy = ref_mSv * MSV_TO_GY
         simulated_Gy = ref_Gy * 1.25
-        mock_results = [{"FileType": "dtm", "CTDI_w": simulated_Gy}]
+        mock_results = [
+            {
+                "FileType": "tle",
+                "scorer_type": "tle",
+                "is_primary": True,
+                "CTDI_w": simulated_Gy,
+            },
+        ]
 
         with patch.object(bench.calculator, "validate"):
             with patch.object(bench.calculator, "calculate", return_value=mock_results):
@@ -82,7 +104,14 @@ class TestCompareNegativeDeviation:
         ref_mSv = 10.0
         ref_Gy = ref_mSv * MSV_TO_GY
         simulated_Gy = ref_Gy * 0.92
-        mock_results = [{"FileType": "dtm", "CTDI_w": simulated_Gy}]
+        mock_results = [
+            {
+                "FileType": "tle",
+                "scorer_type": "tle",
+                "is_primary": True,
+                "CTDI_w": simulated_Gy,
+            },
+        ]
 
         with patch.object(bench.calculator, "validate"):
             with patch.object(bench.calculator, "calculate", return_value=mock_results):
@@ -110,24 +139,33 @@ class TestCompareEdgeCases:
                 results = bench.compare(8.5)
         assert results == []
 
-    def test_multiple_file_types(self, tmp_path: Path) -> None:
+    def test_multiple_file_types_only_tle_benchmarked(self, tmp_path: Path) -> None:
         bench = _make_bench(tmp_path)
         ref_mSv = 10.0
         ref_Gy = ref_mSv * MSV_TO_GY
         mock_results = [
-            {"FileType": "dtm", "CTDI_w": ref_Gy * 1.02},
-            {"FileType": "tle", "CTDI_w": ref_Gy * 0.97},
+            {
+                "FileType": "dtm",
+                "scorer_type": "dtm",
+                "is_primary": False,
+                "CTDI_w": ref_Gy * 1.02,
+            },
+            {
+                "FileType": "tle",
+                "scorer_type": "tle",
+                "is_primary": True,
+                "CTDI_w": ref_Gy * 0.97,
+            },
         ]
 
         with patch.object(bench.calculator, "validate"):
             with patch.object(bench.calculator, "calculate", return_value=mock_results):
                 results = bench.compare(ref_mSv, tolerance_pct=5.0)
 
-        assert len(results) == 2
-        assert results[0].file_type == "dtm"
+        # Only TLE is benchmarked
+        assert len(results) == 1
+        assert results[0].file_type == "tle"
         assert results[0].pass_fail == "PASS"
-        assert results[1].file_type == "tle"
-        assert results[1].pass_fail == "PASS"
 
 
 class TestFormatReport:

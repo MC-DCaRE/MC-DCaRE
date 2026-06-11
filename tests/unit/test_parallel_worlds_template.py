@@ -235,3 +235,88 @@ class TestCTDIPhantom32ParallelWorlds:
         assert "Ge/ChamberPlugBottom/TransY=150.0 mm" in rendered
         assert "Ge/ChamberPlugLeft/TransX=-150.0 mm" in rendered
         assert "Ge/ChamberPlugRight/TransX=150.0 mm" in rendered
+
+
+class TestWaterChamberEnabled:
+    """Tests for water_chamber_enabled=true template rendering."""
+
+    def _water_context(self) -> dict[str, object]:
+        ctx = dict(_DEFAULT_CONTEXT)
+        ctx["water_chamber_enabled"] = True
+        return ctx
+
+    # --- 16cm phantom ---
+
+    def test_16cm_water_volumes_present(self, boilerplates_dir: str) -> None:
+        rendered = _render_template(
+            boilerplates_dir, "CTDIphantom_16.j2", self._water_context()
+        )
+        for position in _PLUG_POSITIONS:
+            assert f'Ge/{position}_water/Material="Water"' in rendered, (
+                f"{position}_water should have Water material"
+            )
+
+    def test_16cm_water_scorers_present(self, boilerplates_dir: str) -> None:
+        rendered = _render_template(
+            boilerplates_dir, "CTDIphantom_16.j2", self._water_context()
+        )
+        for position in _PLUG_POSITIONS:
+            assert f"Sc/{position}_water_dtm/Quantity" in rendered, (
+                f"Scorer {position}_water_dtm should be defined"
+            )
+
+    def test_16cm_water_output_files(self, boilerplates_dir: str) -> None:
+        rendered = _render_template(
+            boilerplates_dir, "CTDIphantom_16.j2", self._water_context()
+        )
+        for position in _PLUG_POSITIONS:
+            assert f'OutputFile="{position}_water_dtm"' in rendered, (
+                f"Missing OutputFile for {position}_water_dtm"
+            )
+
+    def test_16cm_water_plug_offsets_70mm(self, boilerplates_dir: str) -> None:
+        rendered = _render_template(
+            boilerplates_dir, "CTDIphantom_16.j2", self._water_context()
+        )
+        assert "Ge/ChamberPlugTop_water/TransY=-70.0 mm" in rendered
+        assert "Ge/ChamberPlugBottom_water/TransY=70.0 mm" in rendered
+        assert "Ge/ChamberPlugLeft_water/TransX=-70.0 mm" in rendered
+        assert "Ge/ChamberPlugRight_water/TransX=70.0 mm" in rendered
+
+    # --- 32cm phantom ---
+
+    def test_32cm_water_volumes_present(self, boilerplates_dir: str) -> None:
+        rendered = _render_template(
+            boilerplates_dir, "CTDIphantom_32.j2", self._water_context()
+        )
+        for position in _PLUG_POSITIONS:
+            assert f'Ge/{position}_water/Material="Water"' in rendered, (
+                f"{position}_water should have Water material"
+            )
+
+    def test_32cm_water_scorers_present(self, boilerplates_dir: str) -> None:
+        rendered = _render_template(
+            boilerplates_dir, "CTDIphantom_32.j2", self._water_context()
+        )
+        for position in _PLUG_POSITIONS:
+            assert f"Sc/{position}_water_dtm/Quantity" in rendered, (
+                f"Scorer {position}_water_dtm should be defined"
+            )
+
+    def test_32cm_water_plug_offsets_150mm(self, boilerplates_dir: str) -> None:
+        rendered = _render_template(
+            boilerplates_dir, "CTDIphantom_32.j2", self._water_context()
+        )
+        assert "Ge/ChamberPlugTop_water/TransY=-150.0 mm" in rendered
+        assert "Ge/ChamberPlugBottom_water/TransY=150.0 mm" in rendered
+        assert "Ge/ChamberPlugLeft_water/TransX=-150.0 mm" in rendered
+        assert "Ge/ChamberPlugRight_water/TransX=150.0 mm" in rendered
+
+    # --- disabled (default) ---
+
+    def test_no_water_when_disabled(self, boilerplates_dir: str) -> None:
+        ctx = dict(_DEFAULT_CONTEXT)
+        ctx["water_chamber_enabled"] = False
+        rendered = _render_template(boilerplates_dir, "CTDIphantom_16.j2", ctx)
+        assert "ChamberPlugCentre_water" not in rendered
+        assert "_water_dtm" not in rendered

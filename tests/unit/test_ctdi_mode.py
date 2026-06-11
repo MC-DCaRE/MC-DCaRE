@@ -119,6 +119,18 @@ class TestBuildSubContext:
             "ChamberPlugRight",
         ]
 
+    def test_water_chamber_disabled_by_default(self, make_config: Any) -> None:
+        mode = CtdiMode()
+        config = make_config()
+        ctx = mode.build_sub_context(config)
+        assert ctx["water_chamber_enabled"] is False
+
+    def test_water_chamber_enabled_in_context(self, make_config: Any) -> None:
+        mode = CtdiMode()
+        config = make_config(water_chamber_enabled=True)
+        ctx = mode.build_sub_context(config)
+        assert ctx["water_chamber_enabled"] is True
+
 
 class TestGetSubFileName:
     def test_returns_16_phantom_for_16cm(self, make_config: Any) -> None:

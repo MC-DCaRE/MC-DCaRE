@@ -9,7 +9,7 @@ from typing import List
 
 import pandas as pd
 
-from src.services.ctdi_calculator import CTDICalculator
+from src.services.ctdi_calculator import CTDICalculator, PRIMARY_SCORER
 
 logger = logging.getLogger(__name__)
 
@@ -39,12 +39,15 @@ class BenchmarkCalculator:
     ) -> List[BenchmarkResult]:
         """Compute simulated CTDI-w and compare against a reference in mSv.
 
+        Only TLE (primary) scorer results are benchmarked by default.
+        Other scorer types are skipped.
+
         Args:
             reference_mSv: Measured CTDI-w reference value in mSv.
             tolerance_pct: Acceptable percentage deviation (default 10%).
 
         Returns:
-            One BenchmarkResult per scorer file type found in the runfolder.
+            One BenchmarkResult for the primary (TLE) scorer, if present.
 
         Raises:
             ValueError: If reference_mSv is zero or negative.
@@ -66,6 +69,13 @@ class BenchmarkCalculator:
 
         benchmark_results: List[BenchmarkResult] = []
         for calc_result in calc_results:
+            if calc_result.get("scorer_type") != PRIMARY_SCORER:
+                logger.info(
+                    "Skipping non-primary scorer %s in benchmark",
+                    calc_result.get("scorer_type", calc_result.get("FileType")),
+                )
+                continue
+
             simulated_Gy = calc_result["CTDI_w"]
             deviation = (simulated_Gy - reference_Gy) / reference_Gy * 100
             status = "PASS" if abs(deviation) <= tolerance_pct else "FAIL"

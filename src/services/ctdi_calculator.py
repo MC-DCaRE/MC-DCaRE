@@ -16,6 +16,9 @@ logger = logging.getLogger(__name__)
 PERIPHERAL_POSITIONS = ["Bottom", "Top", "Left", "Right"]
 CENTER_POSITION = "Centre"
 FILE_TYPES = ["dtm", "tle", "dtw"]
+WATER_FILE_TYPES = ["water_dtm"]
+ALL_FILE_TYPES = FILE_TYPES + WATER_FILE_TYPES
+PRIMARY_SCORER = "tle"
 
 
 class CTDICalculator:
@@ -29,16 +32,25 @@ class CTDICalculator:
         )
 
     def calculate(self) -> List[Dict]:
-        """Compute CTDI-w results for each available file type (dtm, tle)."""
+        """Compute CTDI-w results for each available scorer type.
+
+        Returns one result dict per scorer type found in the runfolder.
+        Each dict includes ``"scorer_type"``
+        (``"tle"``|``"dtm"``|``"dtw"``|``"water_dtm"``)
+        and ``"is_primary"`` (``True`` for TLE).
+        """
         chamber_files = self._find_chamber_files()
         results: List[Dict] = []
-        for file_type in FILE_TYPES:
+        all_types = ALL_FILE_TYPES
+        for file_type in all_types:
             if chamber_files[file_type]:
-                result = self._process_file_type(chamber_files[file_type], file_type)
+                # Water DTM files keep their file_type as scorer_type ("water_dtm")
+                scorer_type = file_type
+                result = self._process_file_type(chamber_files[file_type], scorer_type)
                 if result:
                     results.append(result)
             else:
-                logger.warning("No files found for %s", file_type)
+                logger.info("No files found for %s", file_type)
         return results
 
     def save_results(self, results: List[Dict], output_path: Path) -> None:
@@ -130,7 +142,7 @@ class CTDICalculator:
         """Locate all ChamberPlug CSV files organised by file type and position."""
         chamber_files: Dict[str, Dict[str, Path]] = {}
 
-        for file_type in FILE_TYPES:
+        for file_type in ALL_FILE_TYPES:
             chamber_files[file_type] = {}
 
             for position in PERIPHERAL_POSITIONS + [CENTER_POSITION]:
@@ -201,8 +213,22 @@ class CTDICalculator:
     def _process_file_type(
         self, chamber_files: Dict[str, Path], file_type: str
     ) -> Optional[Dict]:
-        """Compute peripheral average, center dose, and CTDI-w for one file type."""
-        logger.info("Processing %s files", file_type)
+        """Compute peripheral average, center dose, and CTDI-w for one file type.
+
+        The ``file_type`` parameter doubles as the scorer type label
+        (``"tle"``, ``"dtm"``, ``"dtw"``, ``"water_dtm"``).  The result
+        dict includes ``"scorer_type"`` and ``"is_primary"`` fields so
+        downstream consumers can distinguish measurement-equivalent (TLE)
+        results from secondary and water-chamber scorers.
+        """
+        scorer_type = file_type
+        is_primary = scorer_type == PRIMARY_SCORER
+        logger.info(
+            "Processing %s files (scorer_type=%s, is_primary=%s)",
+            file_type,
+            scorer_type,
+            is_primary,
+        )
 
         peripheral_doses: List[float] = []
         for position in PERIPHERAL_POSITIONS:
@@ -243,6 +269,8 @@ class CTDICalculator:
 
             return {
                 "FileType": file_type,
+                "scorer_type": scorer_type,
+                "is_primary": is_primary,
                 "PeripheralDoseAverage": peripheral_avg,
                 "CenterDose": center_dose,
                 "CTDI_w": ctdi_w,
@@ -252,6 +280,95 @@ class CTDICalculator:
         else:
             logger.error("Insufficient data to calculate CTDI_w for %s", file_type)
             return None
+
+    def compare_scorers(self, results: List[Dict]) -> Dict:
+        """Compare TLE results against analogue scorer results.
+
+        Water-chamber scorers (``"water_dtm"``) are excluded from
+        comparison because they share the same physics as DTM — only
+        the fill material differs.
+
+        Args:
+            results: Output of :meth:`calculate` — list of result dicts,
+                each containing ``"scorer_type"`` and ``"CTDI_w"`` keys.
+
+        Returns:
+            A dict with ``"tle_vs_dtm_ratio"``, ``"tle_vs_dtw_ratio"``
+            (each a dict of per-position ratios plus ``"overall"``), and
+            a ``"systematic_note"`` explaining the kerma-vs-dose
+            discrepancy.
+
+        Raises:
+            ValueError: If *results* does not contain at least TLE and
+                one analogue scorer, or if duplicate scorer types are
+                detected.
+        """
+        by_type: Dict[str, Dict] = {}
+        for r in results:
+            st = r["scorer_type"]
+            if st in by_type:
+                raise ValueError(
+                    "Duplicate scorer_type %r in results — "
+                    "each scorer type must appear at most once" % st
+                )
+            by_type[st] = r
+
+        if PRIMARY_SCORER not in by_type:
+            raise ValueError("Results must contain TLE scorer data for comparison")
+
+        analogue_types = [t for t in ("dtm", "dtw") if t in by_type]
+        if not analogue_types:
+            raise ValueError(
+                "Results must contain at least one analogue scorer (DTM or DTW) for comparison"
+            )
+
+        comparison: Dict[str, object] = {}
+
+        for analogue in analogue_types:
+            tle_ctdi = by_type[PRIMARY_SCORER]["CTDI_w"]
+            analogue_ctdi = by_type[analogue]["CTDI_w"]
+
+            if not math.isfinite(tle_ctdi):
+                raise ValueError("TLE CTDI_w is not finite (%s)" % tle_ctdi)
+            if not math.isfinite(analogue_ctdi):
+                raise ValueError(
+                    "%s CTDI_w is not finite (%s)" % (analogue, analogue_ctdi)
+                )
+
+            ratio_key = "tle_vs_{}_ratio".format(analogue)
+
+            if analogue_ctdi != 0.0:
+                overall_ratio = tle_ctdi / analogue_ctdi
+            else:
+                overall_ratio = float("inf")
+
+            ratio_data: Dict[str, object] = {"overall": overall_ratio}
+
+            # Per-position ratios if position data is available
+            tle_periph = by_type[PRIMARY_SCORER].get("PeripheralDoseAverage", 0.0)
+            analogue_periph = by_type[analogue].get("PeripheralDoseAverage", 0.0)
+            tle_center = by_type[PRIMARY_SCORER].get("CenterDose", 0.0)
+            analogue_center = by_type[analogue].get("CenterDose", 0.0)
+
+            if analogue_periph != 0.0:
+                ratio_data["peripheral_avg"] = tle_periph / analogue_periph
+            else:
+                ratio_data["peripheral_avg"] = float("inf")
+            if analogue_center != 0.0:
+                ratio_data["center"] = tle_center / analogue_center
+            else:
+                ratio_data["center"] = float("inf")
+
+            comparison[ratio_key] = ratio_data
+
+        comparison["systematic_note"] = (
+            "TLE estimates collision kerma (fluence-weighted), while DTM/DTW "
+            "score analogue absorbed dose (event-based). A systematic ratio "
+            "different from 1.0 reflects the fundamental kerma-vs-dose "
+            "distinction, not a simulation error."
+        )
+
+        return comparison
 
     @staticmethod
     def calculate_ctdi_w(peripheral_doses: List[float], center_dose: float) -> float:
@@ -293,7 +410,7 @@ class CTDICalculator:
             raise ValueError("Path is not a directory: {}".format(self.runfolder))
 
         chamber_files_found = False
-        for file_type in FILE_TYPES:
+        for file_type in ALL_FILE_TYPES:
             for position in PERIPHERAL_POSITIONS + [CENTER_POSITION]:
                 pattern = "ChamberPlug{}_{}.csv".format(position, file_type)
                 if (self.runfolder / pattern).exists():

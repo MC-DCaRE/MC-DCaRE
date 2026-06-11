@@ -40,6 +40,7 @@ DEFAULT_CTDI_SUB_CONTEXT: dict = {
     "dose_to_medium_zbins": "100",
     "tle_zbins": "100",
     "dose_to_water_zbins": "100",
+    "water_chamber_enabled": False,
 }
 
 DEFAULT_DICOM_SUB_CONTEXT: dict = {

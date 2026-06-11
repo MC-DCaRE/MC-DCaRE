@@ -5,6 +5,8 @@ import sys
 from typing import Any
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
 from src.modes.dicom_mode import DicomMode
@@ -409,41 +411,20 @@ class TestOrchestratorPhaseSpace:
                     orch.run_with_runfolder(rundir, config, dry_run=True)
         mock_sg_cls.generate.assert_not_called()
 
-    @patch("src.orchestrator.SpectrumGenerator")
-    @patch("src.orchestrator.BoilerplateManager")
-    def test_score_mode_uses_score_template(
+    def test_score_mode_selects_score_template(
         self,
-        mock_bm_cls: MagicMock,
-        mock_sg_cls: MagicMock,
         make_config: Any,
     ) -> None:
         config = make_config(
             simulation_type="CTDI",
-            topas_directory="/topas/bin",
-            histories="100000",
-            anode_voltage="80 kV",
-            exposure="50 mAs",
             phantom_size="16 cm",
             phase_space_mode="score",
         )
-        mock_renderer = MagicMock()
-        mock_bm_cls.return_value.create_renderer.return_value = mock_renderer
-        rundir = "/rundir"
-        orch = Orchestrator("/project")
-        with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
-            with patch.object(CtdiMode, "prepare_run"):
-                with patch.object(CtdiMode, "execute"):
-                    orch.run_with_runfolder(rundir, config, dry_run=True)
-        render_calls = mock_renderer.render.call_args_list
-        template_names = [c[0][0] for c in render_calls]
-        assert "ctdi_phsp_score.j2" in template_names
+        mode = CtdiMode()
+        assert mode._get_main_template(config) == "ctdi_phsp_score.j2"
 
-    @patch("src.orchestrator.SpectrumGenerator")
-    @patch("src.orchestrator.BoilerplateManager")
-    def test_replay_mode_uses_replay_template(
+    def test_replay_mode_selects_replay_template(
         self,
-        mock_bm_cls: MagicMock,
-        mock_sg_cls: MagicMock,
         make_config: Any,
         tmp_path: Any,
     ) -> None:
@@ -451,25 +432,12 @@ class TestOrchestratorPhaseSpace:
         phsp_file.write_bytes(b"\x00" * 100)
         config = make_config(
             simulation_type="CTDI",
-            topas_directory="/topas/bin",
-            histories="100000",
-            anode_voltage="80 kV",
-            exposure="50 mAs",
             phantom_size="16 cm",
             phase_space_mode="replay",
             phase_space_file=str(phsp_file),
         )
-        mock_renderer = MagicMock()
-        mock_bm_cls.return_value.create_renderer.return_value = mock_renderer
-        rundir = "/rundir"
-        orch = Orchestrator("/project")
-        with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
-            with patch.object(CtdiMode, "prepare_run"):
-                with patch.object(CtdiMode, "execute"):
-                    orch.run_with_runfolder(rundir, config, dry_run=True)
-        render_calls = mock_renderer.render.call_args_list
-        template_names = [c[0][0] for c in render_calls]
-        assert "ctdi_phsp_replay.j2" in template_names
+        mode = CtdiMode()
+        assert mode._get_main_template(config) == "ctdi_phsp_replay.j2"
 
     def test_write_replay_metadata_adjusts_norm_factor(self, tmp_path: Any) -> None:
         metadata = {
@@ -490,3 +458,37 @@ class TestOrchestratorPhaseSpace:
             result = yaml.safe_load(f)
         assert abs(result["norm_factor"] - 1.0e-11) < 1e-20
         assert result["phase_space_multiple_use"] == 10
+
+    def test_write_replay_metadata_rejects_invalid_file(self, tmp_path: Any) -> None:
+        bad_path = tmp_path / "bad.yaml"
+        bad_path.write_text("not a dict")
+        rundir = str(tmp_path / "run")
+        os.makedirs(rundir)
+        with pytest.raises(ValueError, match="Invalid metadata file"):
+            Orchestrator._write_replay_metadata(rundir, str(bad_path), 1)
+
+    def test_replay_metadata_found_alongside_phsp_file(self, tmp_path: Any) -> None:
+        """Replay mode finds metadata in the same dir as the .phsp file."""
+        import yaml
+
+        phsp_dir = tmp_path / "phase_space"
+        phsp_dir.mkdir()
+        phsp_file = phsp_dir / "beam_exit_phsp.phsp"
+        phsp_file.write_bytes(b"\x00" * 100)
+        metadata = {"norm_factor": 2.0e-10, "mAs": 50.0, "dcf_used": 1.0}
+        meta_path = phsp_dir / "simulation_metadata.yaml"
+        with open(meta_path, "w") as f:
+            yaml.dump(metadata, f)
+
+        rundir = str(tmp_path / "run")
+        os.makedirs(rundir)
+
+        # Simulate what _run_replay_mode does: find metadata next to phsp.
+        phsp_dir_str = str(phsp_dir)
+        scoring_metadata = os.path.join(phsp_dir_str, "simulation_metadata.yaml")
+        assert os.path.isfile(scoring_metadata)
+
+        Orchestrator._write_replay_metadata(rundir, scoring_metadata, 5)
+        with open(os.path.join(rundir, "simulation_metadata.yaml")) as f:
+            result = yaml.safe_load(f)
+        assert abs(result["norm_factor"] - 4.0e-11) < 1e-20

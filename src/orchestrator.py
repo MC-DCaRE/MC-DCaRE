@@ -181,17 +181,10 @@ class Orchestrator:
         ctdi_mode = mode
         assert isinstance(ctdi_mode, CtdiMode)
 
-        # Render scoring template.
-        renderer = self.boilerplate_manager.create_renderer()
-        main_context = ctdi_mode.build_main_context(config)
-        template_name = ctdi_mode._get_main_template(config)
-        output_name = ctdi_mode._get_main_output(config)
-        renderer.render(template_name, main_context, output_name)
-
         # Score mode still needs spectrum for the beam source.
         voltage: float = config.imaging.anode_voltage.value
         exposure: float = config.imaging.exposure.value
-        histories: str = config.general.histories
+        histories: str = ctdi_mode.compute_histories(config)
         dose_calibration_factor: float = float(config.general.dose_calibration_factor)
         SpectrumGenerator.generate(
             voltage,
@@ -234,6 +227,14 @@ class Orchestrator:
                 shutil.move(phsp_file, dest)
                 logger.info("Moved phase space file to %s", dest)
 
+                # Copy metadata to phase_space/ so replay can find it.
+                if os.path.isfile(metadata_path):
+                    metadata_dest = os.path.join(
+                        rundir, "phase_space", "simulation_metadata.yaml"
+                    )
+                    shutil.copy2(metadata_path, metadata_dest)
+                    logger.info("Copied metadata to %s", metadata_dest)
+
     def _run_replay_mode(
         self,
         rundir: str,
@@ -246,27 +247,20 @@ class Orchestrator:
         ctdi_mode = mode
         assert isinstance(ctdi_mode, CtdiMode)
 
-        # Render replay template.
-        renderer = self.boilerplate_manager.create_renderer()
-        main_context = ctdi_mode.build_main_context(config)
-        template_name = ctdi_mode._get_main_template(config)
-        output_name = ctdi_mode._get_main_output(config)
-        renderer.render(template_name, main_context, output_name)
-
         # Replay mode: NO SpectrumGenerator.
 
         # Prepare run: copies Muen.dat + phase space file.
         ctdi_mode.prepare_run(config, rundir, self.project_root)
 
         # Copy scoring run's metadata with adjusted norm_factor.
+        # The scoring pipeline copies simulation_metadata.yaml into the
+        # same directory as the .phsp file (phase_space/ subdirectory).
         phsp_dir = os.path.dirname(config.ctdi.phase_space_file)
         scoring_metadata = os.path.join(phsp_dir, "simulation_metadata.yaml")
         if not os.path.isfile(scoring_metadata):
-            # Try looking in phase_space subdirectory next to the phsp file.
+            # Fallback: check the runfolder root (older scoring runs).
             parent_dir = os.path.dirname(phsp_dir)
-            scoring_metadata = os.path.join(
-                parent_dir, "phase_space", "simulation_metadata.yaml"
-            )
+            scoring_metadata = os.path.join(parent_dir, "simulation_metadata.yaml")
         if os.path.isfile(scoring_metadata):
             self._write_replay_metadata(
                 rundir,
@@ -278,12 +272,6 @@ class Orchestrator:
                 "No scoring metadata found for phase space file; "
                 "calibration may be incorrect"
             )
-
-        # Render phantom sub-template and concatenate.
-        sub_template_name = ctdi_mode.get_sub_template_name(config)
-        sub_output_name = ctdi_mode.get_sub_file_name(config)
-        sub_context = ctdi_mode.build_sub_context(config)
-        renderer.render(sub_template_name, sub_context, sub_output_name)
 
         if not dry_run:
             ctdi_mode.execute(config, rundir, self.project_root, detach=detach)

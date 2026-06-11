@@ -20,8 +20,6 @@ logger = logging.getLogger(__name__)
 # Fields: x, y, z, dx (direction cosine x), dy, energy, weight
 # Particle type is inferred (all gammas for kV imaging).
 _RECORD_SIZE = 56  # 7 * 8 bytes
-_RECORD_FORMAT = "7d"  # 7 doubles
-_PARTICLE_FIELDS = ("x", "y", "z", "dx", "dy", "energy", "weight")
 
 
 class PhaseSpaceAnalyzer:

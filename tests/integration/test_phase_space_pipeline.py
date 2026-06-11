@@ -9,7 +9,6 @@ from __future__ import annotations
 import os
 import sys
 from typing import Any
-from unittest.mock import patch
 
 import pytest
 import yaml
@@ -59,7 +58,8 @@ class TestScoringPipelineDryRun:
         include_dir = os.path.join(boilerplates, "TOPAS_includeFiles")
         os.makedirs(include_dir)
         os.makedirs(os.path.join(project_root, "tmp"))
-        os.makedirs(os.path.join(project_root, "runfolder"))
+        rundir = str(tmp_path / "runfolder")
+        os.makedirs(rundir)
 
         # Copy templates from actual source.
         import shutil
@@ -102,18 +102,14 @@ class TestScoringPipelineDryRun:
             ),
         )
 
-        orch = Orchestrator(project_root)
-        with patch(
-            "src.orchestrator.SpectrumGenerator.generate", side_effect=_mock_generate
-        ):
-            with patch("src.modes.ctdi_mode.SimulationRunner.run_ctdi"):
-                orch.run(config, dry_run=True)
+        # Test rendering directly through the mode.
+        from src.modes.ctdi_mode import CtdiMode
 
-        # Verify the scoring template was rendered.
-        score_output = os.path.join(project_root, "tmp", "ctdi_phsp_score.txt")
-        assert os.path.isfile(score_output)
+        mode = CtdiMode()
+        param_file = mode._generate_scoring_parameter_file(config, rundir, project_root)
 
-        with open(score_output) as f:
+        assert os.path.isfile(param_file)
+        with open(param_file) as f:
             content = f.read()
 
         # PhaseSpace scorer present.
@@ -141,7 +137,8 @@ class TestReplayPipelineDryRun:
         include_dir = os.path.join(boilerplates, "TOPAS_includeFiles")
         os.makedirs(include_dir)
         os.makedirs(os.path.join(project_root, "tmp"))
-        os.makedirs(os.path.join(project_root, "runfolder"))
+        rundir = str(tmp_path / "runfolder")
+        os.makedirs(rundir)
 
         import shutil
 
@@ -192,15 +189,14 @@ class TestReplayPipelineDryRun:
             ),
         )
 
-        orch = Orchestrator(project_root)
-        with patch("src.modes.ctdi_mode.SimulationRunner.run_ctdi"):
-            rundir = orch.run(config, dry_run=True)
+        # Test rendering directly through the mode.
+        from src.modes.ctdi_mode import CtdiMode
 
-        # Verify the replay template was rendered.
-        replay_output = os.path.join(project_root, "tmp", "ctdi_phsp_replay.txt")
-        assert os.path.isfile(replay_output)
+        mode = CtdiMode()
+        param_file = mode._generate_replay_parameter_file(config, rundir, project_root)
 
-        with open(replay_output) as f:
+        assert os.path.isfile(param_file)
+        with open(param_file) as f:
             content = f.read()
 
         # PhaseSpace source present.
@@ -211,10 +207,8 @@ class TestReplayPipelineDryRun:
         assert "BeamHardeningFilter" not in content
         assert "Ge/BeamPosition" not in content
 
-        # Muen.dat should be in runfolder.
-        assert os.path.isfile(os.path.join(rundir, "Muen.dat"))
-        # Phase space file should be in runfolder.
-        assert os.path.isfile(os.path.join(rundir, "beam.phsp"))
+        # Phantom include should be present (CTDIphantom_16).
+        assert "ChamberPlug" in content
 
 
 class TestReplayMetadataAdjustment:

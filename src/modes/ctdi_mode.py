@@ -83,8 +83,31 @@ class CtdiMode(SimulationMode):
     def build_main_context(self, config: SimulationConfig) -> Dict[str, object]:
         mode = self._get_phase_space_mode(config)
 
+        # Replay mode: no collimators, no beam line, PhaseSpace source params.
+        if mode == "replay":
+            size_number: str = config.ctdi.phantom_size.split()[0]
+            return {
+                "g4_data_directory": config.general.g4_data_directory,
+                "seed": config.general.seed,
+                "threads": config.general.threads,
+                "sequential_times": config.imaging.sequential_times,
+                "timeline_end": str(config.imaging.timeline_end),
+                "rotation_rate": str(config.imaging.rotation_rate),
+                "start_angle": str(config.imaging.start_angle),
+                "graphics_enabled": config.ctdi.graphics_enabled,
+                "phantom_size": size_number,
+                "patient_yaw": "0 deg",
+                "patient_pitch": "0 deg",
+                "patient_roll_value": 0.0,
+                "phase_space_file": os.path.basename(config.ctdi.phase_space_file),
+                "phase_space_multiple_use": config.ctdi.phase_space_multiple_use,
+                **_compute_angle_values(
+                    config.imaging.rotation_direction, config.imaging.start_angle
+                ),
+            }
+
         # Base context shared by off and score modes (beam line geometry).
-        size_number: str = config.ctdi.phantom_size.split()[0]
+        size_number = config.ctdi.phantom_size.split()[0]
         coll1: str = str(config.imaging.blade_x1)
         coll2: str = str(config.imaging.blade_x2)
         coll3: str = str(config.imaging.blade_y1)
@@ -124,28 +147,6 @@ class CtdiMode(SimulationMode):
                 config.imaging.rotation_direction, config.imaging.start_angle
             ),
         }
-
-        if mode == "replay":
-            # Replay mode: no collimators, no beam line, PhaseSpace source params.
-            return {
-                "g4_data_directory": config.general.g4_data_directory,
-                "seed": config.general.seed,
-                "threads": config.general.threads,
-                "sequential_times": config.imaging.sequential_times,
-                "timeline_end": str(config.imaging.timeline_end),
-                "rotation_rate": str(config.imaging.rotation_rate),
-                "start_angle": str(config.imaging.start_angle),
-                "graphics_enabled": config.ctdi.graphics_enabled,
-                "phantom_size": size_number,
-                "patient_yaw": "0 deg",
-                "patient_pitch": "0 deg",
-                "patient_roll_value": 0.0,
-                "phase_space_file": config.ctdi.phase_space_file,
-                "phase_space_multiple_use": config.ctdi.phase_space_multiple_use,
-                **_compute_angle_values(
-                    config.imaging.rotation_direction, config.imaging.start_angle
-                ),
-            }
 
         return base_context
 

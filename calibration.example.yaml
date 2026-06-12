@@ -15,7 +15,7 @@ calibrations:
     fan_mode: "Full Fan"
     reference_mAs: 750.0
     measured_ctdi_w_mGy: 9792.6
-    dcf: 0.001256
+    dcf: 0.004486
   - kV: 125
     fan_mode: "Half Fan"
     reference_mAs: 1080.0

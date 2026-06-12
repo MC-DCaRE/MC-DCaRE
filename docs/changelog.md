@@ -7,18 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-
-- Replaced Python multiprocessing with TOPAS Parallel Worlds (Layered Mass Geometry) for CTDI simulations. A single TOPAS process now scores all 5 chamber plug positions (Centre, Top, Bottom, Left, Right) simultaneously using parallel worlds, eliminating the need for Python-level multiprocessing. The full `threads` count from the config is allocated to the single TOPAS process instead of being split across 5 separate processes, giving TOPAS/Geant4 maximum multithreading efficiency.
-- CTDI simulations now generate a single `CTDI_all_positions.txt` parameter file with 15 scorers (3 per position) instead of 5 separate parameter files.
-- `SimulationRunner` no longer uses `multiprocessing`; `run_ctdi()` removed in favour of direct `run_topas()` call from `CtdiMode.execute()`.
-
-### Fixed
-
-- `CtdiMode.compute_histories()` now correctly multiplies `histories` by `sequential_times` to produce total histories, matching `DicomMode`. This ensures the calibration factor in `head_calibration_factor.txt` is computed with the correct denominator for both CTDI and DICOM simulation modes.
-
 ### Added
 
+- `ImagingMode` dataclass extended to 21 fields: `ctdi_phantom`, `dose_factor`, `start_angle`, `fan_detail`, `no_projections`, `proj_increment`, `acquisition_time`, `ctiw_reference`
+- 26 new CBCT protocol entries (47 total): Spotlight Head (4), Spotlight Abdo (4), Chest, Pelvis Small, Low Dose Thorax, Large Body, plus Anticlockwise counterparts for all new protocols
+- `_resolve_imaging_mode()` in `config.py` auto-populates beam parameters from protocol name in YAML configs
+- `_RESOLVE_FIELD_MAP` module constant defining the 15-field mapping between `ImagingMode` attributes and config dict keys
+- Dynamic CBCT protocol dropdown in GUI (20 unique names extracted from `IMAGING_MODES`)
+- `CTDI_PHANTOM` GUI element updates from selected mode's `ctdi_phantom` field
 - `dose_calibration_factor` field in `GeneralConfig` for measurement-corrected dose output
 - `BenchmarkCalculator` service with `benchmark` subcommand in `calculate_ctdiw.py`
 - `compute_calibration_factor()` to derive simulation-to-measurement normalization ratio
@@ -28,6 +24,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Real-time TOPAS stdout/stderr capture via `subprocess.Popen` with per-process log files
 - `.local_paths.yaml` and `config.local.yaml` in `.gitignore` for machine-specific configs
 - `Orchestrator._copy_config_yaml()` copies the source config YAML into the runfolder for reproducibility and provenance tracking
+
+### Changed
+
+- Replaced Python multiprocessing with TOPAS Parallel Worlds (Layered Mass Geometry) for CTDI simulations. A single TOPAS process now scores all 5 chamber plug positions (Centre, Top, Bottom, Left, Right) simultaneously using parallel worlds, eliminating the need for Python-level multiprocessing. The full `threads` count from the config is allocated to the single TOPAS process instead of being split across 5 separate processes, giving TOPAS/Geant4 maximum multithreading efficiency.
+- CTDI simulations now generate a single `CTDI_all_positions.txt` parameter file with 15 scorers (3 per position) instead of 5 separate parameter files.
+- `SimulationRunner` no longer uses `multiprocessing`; `run_ctdi()` removed in favour of direct `run_topas()` call from `CtdiMode.execute()`.
+- YAML configs simplified: beam parameters (voltage, exposure, blades, field size, etc.) no longer need to be specified manually when `rotation_direction` and `imaging_mode` are set
+- `imaging_modes_lookuptable.py` is now a one-line re-export of `BACKWARD_COMPAT_LOOKUP` from `imaging_mode.py`
+- `IMAGING_MODE_SELECTION_LABELS` expanded from 7 to 21 entries
+- `as_tuple()` uses `dataclasses.fields()` dynamically instead of hardcoded field count
+- `BACKWARD_COMPAT_LOOKUP` maps 48 old-style keys to 21-element tuples
+
+### Fixed
+
+- `CtdiMode.compute_histories()` now correctly multiplies `histories` by `sequential_times` to produce total histories, matching `DicomMode`. This ensures the calibration factor in `head_calibration_factor.txt` is computed with the correct denominator for both CTDI and DICOM simulation modes.
+- Empty string `rotation_direction` and `imaging_mode` values in YAML no longer raise `ValueError` — skip resolution for backward compatibility
+- Whitespace-padded direction/mode values are stripped before lookup
+- `field_x2` normalized from `"14.0 cm"` to `"14 cm"` for consistency with `field_x1`
 
 ---
 

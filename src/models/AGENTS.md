@@ -7,7 +7,7 @@ Immutable domain value objects and constants for simulation configuration. Defin
 Flat module with no subdirectories. Each file is a self-contained domain concept:
 - `enums.py` defines simulation and fan type enumerations used by `modes/` and `config.py`
 - `quantity.py` defines a `Quantity` frozen dataclass for physical values with units
-- `imaging_mode.py` provides a large frozen dataclass (~398 lines) mapping beam parameters (rotation rate, voltage, bowtie, SAD, blade openings) for each Varian TrueBeam imaging mode
+- `imaging_mode.py` provides a frozen dataclass (21 fields) mapping beam parameters (rotation rate, voltage, fan mode, field size, blade openings, CTDI phantom, dose factor, acquisition geometry) for 47 Varian TrueBeam kV imaging protocols. Includes `IMAGING_MODES` lookup dict, `BACKWARD_COMPAT_LOOKUP` for legacy key names, and `IMAGING_MODE_SELECTION_LABELS` for GUI dropdowns.
 - `keys.py` defines string constants used as FreeSimpleGUI element keys throughout `gui/`
 
 ## Key Files
@@ -16,7 +16,7 @@ Flat module with no subdirectories. Each file is a self-contained domain concept
 |---|---|
 | `enums.py` | `SimulationType` (DICOM/CTDI) and `FanMode` (FullFan/HalfFan) enums |
 | `quantity.py` | `Quantity` frozen dataclass for physical values with value and unit fields |
-| `imaging_mode.py` | `ImagingMode` frozen dataclass with rotation rate, voltage, bowtie type, SAD, blade openings, and lookup tables for all TrueBeam kV imaging presets |
+| `imaging_mode.py` | `ImagingMode` frozen dataclass (21 fields) with lookup tables for 47 TrueBeam kV imaging presets, blade constants, and `BACKWARD_COMPAT_LOOKUP` |
 | `keys.py` | Uppercase string constants (`-KEY-` format) for FreeSimpleGUI element identification |
 
 ## Conventions

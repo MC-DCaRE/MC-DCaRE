@@ -55,7 +55,12 @@ class TestImagingModesLookup:
     def test_selection_keys_structure(self):
         """Test that selection keys match expected parameters."""
         selection = imaging_modes_lookup["selection"]
-        expected_keys = [
+
+        # Original 13 + 8 new labels = 21
+        assert len(selection) == 21, f"Expected 21 keys, got {len(selection)}"
+
+        # Original keys must still be present
+        original_keys = [
             "Rotation Rate",
             "kVp",
             "exposure",
@@ -70,21 +75,16 @@ class TestImagingModesLookup:
             "BLADE_Y1",
             "BLADE_Y2",
         ]
-
-        assert len(selection) == len(expected_keys), (
-            f"Expected {len(expected_keys)} keys, got {len(selection)}"
-        )
-
-        for key in expected_keys:
+        for key in original_keys:
             assert key in selection, f"Missing selection key: {key}"
 
     def test_mode_values_structure(self):
         """Test that each mode has correct number of parameters."""
-        expected_param_count = 13  # Should match selection keys
+        expected_param_count = 21  # 13 original + 8 new fields
 
         for mode_name, mode_values in imaging_modes_lookup.items():
             if mode_name == "selection":
-                continue  # Skip selection key
+                continue
 
             assert isinstance(mode_values, list), f"Mode {mode_name} should be a list"
             assert len(mode_values) == expected_param_count, (
@@ -316,10 +316,21 @@ class TestImagingModesLookup:
                     "Thorax",
                     "Pelvis",
                     "Pelvis Large",
+                    "4D Spotlight",
+                    "4D Thorax",
+                    "Abdomen",
+                    "Abdo Spotlight",
+                    "Breast 360",
+                    "Extremity Spotlight",
+                    "Head and Shoulders",
+                    "Head SRS",
+                    "Paediatric Body",
+                    "Pediatric Head",
+                    "Pelvis Spotlight",
+                    "SBRT Spine",
+                    "Thorax Spotlight",
                 ]
-                body_part = "_".join(
-                    cbct_parts[1:]
-                )  # Join remaining parts for body part with size
+                body_part = "_".join(cbct_parts[1:])
                 assert body_part in valid_body_parts, (
                     f"Invalid CBCT body part: {body_part}"
                 )
@@ -355,7 +366,7 @@ class TestImagingModesLookup:
         non_selection_modes = [
             k for k in imaging_modes_lookup.keys() if k != "selection"
         ]
-        expected_mode_count = 21  # 8 CBCT Clockwise + 8 CBCT Anticlockwise + 5 kV-kV (actual count in data)
+        expected_mode_count = 47  # 20 CW + 20 ACW + 7 kV-kV
 
         assert len(non_selection_modes) == expected_mode_count, (
             f"Expected {expected_mode_count} modes, got {len(non_selection_modes)}"

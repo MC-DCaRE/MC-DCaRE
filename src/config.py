@@ -171,7 +171,33 @@ class CtdiConfig:
         _coerce_quantities(self, _CTDI_Q_FIELDS)
 
 
-def _resolve_imaging_mode(imaging_data: dict, ctdi_data: dict) -> tuple[dict, dict]:
+# Mode field → config dict key mapping for _resolve_imaging_mode().
+# (ImagingMode attribute, target dict key, target dict: "imaging" or "ctdi")
+# dose_factor, fan_detail, no_projections, proj_increment, acquisition_time,
+# and ctdiw_reference are intentionally excluded — metadata only, no config
+# field to populate yet.
+_RESOLVE_FIELD_MAP: list[tuple[str, str, str]] = [
+    ("voltage", "anode_voltage", "imaging"),
+    ("ctdi_phantom", "phantom_size", "ctdi"),
+    ("start_angle", "start_angle", "imaging"),
+    ("rotation_rate", "rotation_rate", "imaging"),
+    ("timeline_end", "timeline_end", "imaging"),
+    ("fan_mode", "fan_mode", "imaging"),
+    ("field_x1", "field_x1", "imaging"),
+    ("field_x2", "field_x2", "imaging"),
+    ("field_y1", "field_y1", "imaging"),
+    ("field_y2", "field_y2", "imaging"),
+    ("blade_x1", "blade_x1", "imaging"),
+    ("blade_x2", "blade_x2", "imaging"),
+    ("blade_y1", "blade_y1", "imaging"),
+    ("blade_y2", "blade_y2", "imaging"),
+    ("exposure", "exposure", "imaging"),
+]
+
+
+def _resolve_imaging_mode(
+    imaging_data: dict, ctdi_data: dict | None = None
+) -> tuple[dict, dict]:
     """Auto-populate imaging/CTDI fields from protocol name lookup.
 
     Composites ``rotation_direction + "_" + imaging_mode`` into a key for
@@ -179,31 +205,35 @@ def _resolve_imaging_mode(imaging_data: dict, ctdi_data: dict) -> tuple[dict, di
     and *ctdi_data* from the resolved mode.  Explicit YAML values always win
     over mode defaults.
 
-    For kV-kV directions, resolution is skipped (no-op) since those configs
-    carry all beam parameters explicitly.
+    Skips resolution when direction or mode is absent/empty (backward compat),
+    or when direction is kV-kV (those configs carry all beam parameters
+    explicitly).
 
     Args:
         imaging_data: Raw ``imaging`` section from YAML.
-        ctdi_data: Raw ``ctdi`` section from YAML.
+        ctdi_data: Raw ``ctdi`` section from YAML, or None.
 
     Returns:
         Modified ``(imaging_data, ctdi_data)`` dicts.
 
     Raises:
-        ValueError: If required keys are missing or mode not found.
+        ValueError: If the composed key does not match any mode.
     """
-    direction = imaging_data.get("rotation_direction")
-    if direction is None:
-        # No direction specified — skip resolution (backward compat).
+    if ctdi_data is None:
+        ctdi_data = {}
+
+    direction = (imaging_data.get("rotation_direction") or "").strip()
+    if not direction:
+        # No direction (None or empty) — skip resolution (backward compat).
         return imaging_data, ctdi_data
 
     if direction.startswith("kV-kV"):
         # kV-kV configs carry all beam parameters explicitly; skip resolution.
         return imaging_data, ctdi_data
 
-    mode_name = imaging_data.get("imaging_mode")
-    if mode_name is None:
-        # No mode specified — skip resolution (backward compat).
+    mode_name = (imaging_data.get("imaging_mode") or "").strip()
+    if not mode_name:
+        # No mode (None or empty) — skip resolution (backward compat).
         return imaging_data, ctdi_data
 
     key = "{}_{}".format(direction, mode_name)
@@ -215,26 +245,7 @@ def _resolve_imaging_mode(imaging_data: dict, ctdi_data: dict) -> tuple[dict, di
 
     mode: ImagingMode = IMAGING_MODES[key]
 
-    # Mapping: (mode_attr, target_dict_key, target_dict_name)
-    _FIELD_MAP: list[tuple[str, str, str]] = [
-        ("voltage", "anode_voltage", "imaging"),
-        ("ctdi_phantom", "phantom_size", "ctdi"),
-        ("start_angle", "start_angle", "imaging"),
-        ("rotation_rate", "rotation_rate", "imaging"),
-        ("timeline_end", "timeline_end", "imaging"),
-        ("fan_mode", "fan_mode", "imaging"),
-        ("field_x1", "field_x1", "imaging"),
-        ("field_x2", "field_x2", "imaging"),
-        ("field_y1", "field_y1", "imaging"),
-        ("field_y2", "field_y2", "imaging"),
-        ("blade_x1", "blade_x1", "imaging"),
-        ("blade_x2", "blade_x2", "imaging"),
-        ("blade_y1", "blade_y1", "imaging"),
-        ("blade_y2", "blade_y2", "imaging"),
-        ("exposure", "exposure", "imaging"),
-    ]
-
-    for mode_attr, target_key, target_dict in _FIELD_MAP:
+    for mode_attr, target_key, target_dict in _RESOLVE_FIELD_MAP:
         target = imaging_data if target_dict == "imaging" else ctdi_data
         yaml_val = target.get(target_key)
         if yaml_val is None or yaml_val == "":

@@ -73,7 +73,7 @@ _IMAGING_MODES_DATA: Dict[str, tuple] = {
     "CBCT Clockwise_Image Gently": (
         "0.4 deg/s",
         "80 kV",
-        "100 mAs",
+        "100.2 mAs",
         "Full Fan",
         "501 s",
         "14 cm",
@@ -96,7 +96,7 @@ _IMAGING_MODES_DATA: Dict[str, tuple] = {
     "CBCT Clockwise_Head": (
         "0.4 deg/s",
         "100 kV",
-        "150 mAs",
+        "150.3 mAs",
         "Full Fan",
         "501 s",
         "14 cm",
@@ -165,7 +165,7 @@ _IMAGING_MODES_DATA: Dict[str, tuple] = {
     "CBCT Clockwise_Thorax": (
         "0.4 deg/s",
         "125 kV",
-        "270 mAs",
+        "268.5 mAs",
         "Half Fan",
         "900 s",
         "24.7 cm",
@@ -188,7 +188,7 @@ _IMAGING_MODES_DATA: Dict[str, tuple] = {
     "CBCT Clockwise_Pelvis": (
         "0.4 deg/s",
         "125 kV",
-        "1080 mAs",
+        "1074 mAs",
         "Half Fan",
         "900 s",
         "24.7 cm",
@@ -211,7 +211,7 @@ _IMAGING_MODES_DATA: Dict[str, tuple] = {
     "CBCT Clockwise_Pelvis Large": (
         "0.4 deg/s",
         "140 kV",
-        "1688 mAs",
+        "1700.5 mAs",
         "Half Fan",
         "900 s",
         "24.7 cm",
@@ -235,7 +235,7 @@ _IMAGING_MODES_DATA: Dict[str, tuple] = {
     "CBCT Anticlockwise_Image Gently": (
         "-0.4 deg/s",
         "80 kV",
-        "100 mAs",
+        "100.2 mAs",
         "Full Fan",
         "501 s",
         "14 cm",
@@ -258,7 +258,7 @@ _IMAGING_MODES_DATA: Dict[str, tuple] = {
     "CBCT Anticlockwise_Head": (
         "-0.4 deg/s",
         "100 kV",
-        "150 mAs",
+        "150.3 mAs",
         "Full Fan",
         "501 s",
         "14 cm",
@@ -327,7 +327,7 @@ _IMAGING_MODES_DATA: Dict[str, tuple] = {
     "CBCT Anticlockwise_Thorax": (
         "-0.4 deg/s",
         "125 kV",
-        "270 mAs",
+        "268.5 mAs",
         "Half Fan",
         "900 s",
         "24.7 cm",
@@ -350,7 +350,7 @@ _IMAGING_MODES_DATA: Dict[str, tuple] = {
     "CBCT Anticlockwise_Pelvis": (
         "-0.4 deg/s",
         "125 kV",
-        "1080 mAs",
+        "1074 mAs",
         "Half Fan",
         "900 s",
         "24.7 cm",
@@ -373,7 +373,7 @@ _IMAGING_MODES_DATA: Dict[str, tuple] = {
     "CBCT Anticlockwise_Pelvis Large": (
         "-0.4 deg/s",
         "140 kV",
-        "1688 mAs",
+        "1700.5 mAs",
         "Half Fan",
         "900 s",
         "24.7 cm",
@@ -741,7 +741,7 @@ _IMAGING_MODES_DATA: Dict[str, tuple] = {
     "CBCT Clockwise_Pelvis Spotlight": (
         "0.4 deg/s",
         "125 kV",
-        "750 mAs",
+        "751.5 mAs",
         "Full Fan",
         "501 s",
         "14 cm",
@@ -1041,7 +1041,7 @@ _IMAGING_MODES_DATA: Dict[str, tuple] = {
     "CBCT Anticlockwise_Pelvis Spotlight": (
         "-0.4 deg/s",
         "125 kV",
-        "750 mAs",
+        "751.5 mAs",
         "Full Fan",
         "501 s",
         "14 cm",

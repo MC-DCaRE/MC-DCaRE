@@ -11,6 +11,7 @@ imaging:
   simulation_type: CTDI
   rotation_direction: CBCT Clockwise
   imaging_mode: Pelvis Large
+  exposure: '1700.5 mAs'
   sequential_times: '80'
   time_verbosity: '0'
 ctdi:

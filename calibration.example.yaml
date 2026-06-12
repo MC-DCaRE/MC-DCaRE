@@ -1,38 +1,33 @@
 machine: "TrueBeam-SN1234"
-date_calibrated: "2026-06-10"
+date_calibrated: "2026-06-13"
 calibrations:
-  - kV: 120
-    fan_mode: "Full Fan"
-    reference_mAs: 100
-    measured_ctdi_w_mGy: 45.2
-    dcf: 1.034
   - kV: 80
     fan_mode: "Full Fan"
-    reference_mAs: 100
-    measured_ctdi_w_mGy: null
-    dcf: null
+    reference_mAs: 100.0
+    measured_ctdi_w_mGy: 828.1
+    dcf: 0.001087
   - kV: 100
     fan_mode: "Full Fan"
-    reference_mAs: 100
-    measured_ctdi_w_mGy: null
-    dcf: null
+    reference_mAs: 150.0
+    measured_ctdi_w_mGy: 2679.2
+    dcf: 0.001194
   - kV: 125
     fan_mode: "Full Fan"
-    reference_mAs: 100
-    measured_ctdi_w_mGy: null
-    dcf: null
+    reference_mAs: 750.0
+    measured_ctdi_w_mGy: 9792.6
+    dcf: 0.001256
   - kV: 125
     fan_mode: "Half Fan"
-    reference_mAs: 100
+    reference_mAs: 1080.0
+    measured_ctdi_w_mGy: 9506.9
+    dcf: 0.001672
+  - kV: 140
+    fan_mode: "Full Fan"
+    reference_mAs: null
     measured_ctdi_w_mGy: null
     dcf: null
   - kV: 140
-    fan_mode: "Full Fan"
-    reference_mAs: 100
-    measured_ctdi_w_mGy: null
-    dcf: null
-  - kV: 140
     fan_mode: "Half Fan"
-    reference_mAs: 100
-    measured_ctdi_w_mGy: null
-    dcf: null
+    reference_mAs: 1700.5
+    measured_ctdi_w_mGy: 20629.0
+    dcf: 0.001798

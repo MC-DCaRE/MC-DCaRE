@@ -38,21 +38,40 @@ Each protocol carries 21 beam parameters (rotation rate, voltage, exposure, fan 
 
 Take note of the file directory for TOPASMC and Geant4.
 
-### Running MC-DCaRE
+### Quick Start
 
-**GUI mode:** Run `run_simulation.py` and launch the GUI. Select your Geant4 directory and TOPAS binary location, then configure your simulation.
-
-**CLI mode:**
 ```bash
-# Run a simulation from YAML config
-uv run python run_simulation.py run --config config.yaml
-
 # Generate a default config file
 uv run python run_simulation.py generate-config --output my_config.yaml
 
-# Validate a config without running
-uv run python run_simulation.py validate --config my_config.yaml
+# Edit paths and protocol selection
+# Then run:
+uv run python run_simulation.py run my_config.yaml
 ```
+
+### CLI Reference
+
+```bash
+# Run simulation
+uv run python run_simulation.py run <config_file> [--dry-run] [--detach]
+
+# Validate config without running
+uv run python run_simulation.py validate <config_file>
+
+# Compute CTDI-w from runfolder output
+uv run python calculate_ctdiw.py <runfolder>
+
+# Benchmark against measured reference
+uv run python calculate_ctdiw.py benchmark <runfolder> --reference <mSv>
+```
+
+### Complete Workflow
+
+See **[docs/workflow.md](docs/workflow.md)** for the full end-to-end guide:
+
+1. **Calibrate** — align simulated dose with physical measurements on your TrueBeam
+2. **Validate** — verify CTDI dose against Varian reference specifications
+3. **Estimate** — compute patient-specific imaging dose using DICOM CT datasets
 
 ### Minimal YAML Configuration
 

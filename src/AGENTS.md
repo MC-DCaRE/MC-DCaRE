@@ -24,7 +24,6 @@ Subdirectories:
 | `simulation_runner.py` | Executes TOPAS simulations as single processes, captures stdout/stderr to log files |
 | `spectrum_generator.py` | Generates X-ray spectrum definitions via SpekPy |
 | `fieldtobladeopening.py` | Converts field size to collimator blade opening positions |
-| `imaging_modes_lookuptable.py` | Re-exports `BACKWARD_COMPAT_LOOKUP` from `imaging_mode.py` for backward compatibility |
 
 ## Conventions
 - `from __future__ import annotations` in every module

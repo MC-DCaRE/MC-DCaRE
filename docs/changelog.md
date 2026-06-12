@@ -31,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CTDI simulations now generate a single `CTDI_all_positions.txt` parameter file with 15 scorers (3 per position) instead of 5 separate parameter files.
 - `SimulationRunner` no longer uses `multiprocessing`; `run_ctdi()` removed in favour of direct `run_topas()` call from `CtdiMode.execute()`.
 - YAML configs simplified: beam parameters (voltage, exposure, blades, field size, etc.) no longer need to be specified manually when `rotation_direction` and `imaging_mode` are set
-- `imaging_modes_lookuptable.py` is now a one-line re-export of `BACKWARD_COMPAT_LOOKUP` from `imaging_mode.py`
+- `imaging_modes_lookuptable.py` removed; all consumers now import directly from `imaging_mode.py`
 - `IMAGING_MODE_SELECTION_LABELS` expanded from 7 to 21 entries
 - `as_tuple()` uses `dataclasses.fields()` dynamically instead of hardcoded field count
 - `BACKWARD_COMPAT_LOOKUP` maps 48 old-style keys to 21-element tuples

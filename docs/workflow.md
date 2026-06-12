@@ -1,0 +1,452 @@
+# MC-DCaRE Workflow Guide
+
+Complete guide for running MC-DCaRE simulations: from local calibration through CTDI validation to patient-specific DICOM dose estimation.
+
+## Prerequisites
+
+- TOPAS MC installed (with Geant4 backend)
+- Python 3.11+ with `uv` package manager
+- SpekPy (installed automatically with project dependencies)
+
+Configure paths in your YAML config or via environment variables:
+
+```yaml
+general:
+  g4_data_directory: /path/to/G4Data          # or set G4DATA_DIR
+  topas_directory: /path/to/topas/bin/topas   # or set TOPAS_DIR
+```
+
+## Overview
+
+MC-DCaRE simulates kV imaging dose from the Varian TrueBeam system. Three simulation types are supported:
+
+| Type | Geometry | Use Case |
+|---|---|---|
+| **CTDI** | Standard PMMA phantom (16 cm or 32 cm) | Beam model validation, calibration |
+| **DICOM** | Patient CT images | Patient-specific dose estimation |
+| **kV-kV** | CTDI phantom with 2D pair geometry | kV-kV imaging dose |
+
+The typical workflow has three phases:
+
+1. **Calibrate** the beam model against measured CTDI data
+2. **Validate** CTDI dose against reference specifications
+3. **Estimate** patient dose using DICOM geometry
+
+---
+
+## Phase 1: Local Calibration
+
+Calibration aligns simulated dose with physical measurements on your specific TrueBeam unit. You run this once per kV/fan-mode combination.
+
+### Step 1.1: Run a calibration simulation
+
+Create a CTDI config with `dose_calibration_factor: "1.0"` (uncalibrated):
+
+```yaml
+# calibration_config.yaml
+general:
+  g4_data_directory: /path/to/G4Data
+  topas_directory: /path/to/topas/bin/topas
+  histories: "1000000"
+  threads: "4"
+  dose_calibration_factor: "1.0"    # uncalibrated
+
+imaging:
+  simulation_type: "CTDI"
+  rotation_direction: "CBCT Clockwise"
+  imaging_mode: "Head"              # 100 kV, Full Fan, 16 cm phantom
+
+ctdi:
+  phantom_size: "16 cm"
+```
+
+Run:
+
+```bash
+uv run python run_simulation.py run calibration_config.yaml
+```
+
+This produces a runfolder (e.g. `runfolder/2026-06-12_14-30-00/`) containing dose output CSVs for all 5 chamber plug positions and 3 scorer types (TLE, DTM, DTW).
+
+### Step 1.2: Compute the dose calibration factor
+
+Use the benchmark CLI to compare simulated CTDI-w against your measured reference value:
+
+```bash
+uv run python calculate_ctdiw.py benchmark runfolder/2026-06-12_14-30-00/ \
+  --reference 5.72 \
+  --tolerance 10.0
+```
+
+Arguments:
+- `--reference`: Measured CTDI-w in mSv (from your physical measurement or the Varian spec sheet)
+- `--tolerance`: Acceptable deviation percentage (default 10%)
+
+Output:
+- PASS/FAIL verdict with deviation percentage
+- Recommended `dose_calibration_factor` value
+
+### Step 1.3: Store the calibration factor
+
+Option A: Update `calibration.yaml` (machine calibration database):
+
+```yaml
+machine: "TrueBeam-SN1234"
+date_calibrated: "2026-06-12"
+calibrations:
+  - kV: 100
+    fan_mode: "Full Fan"
+    reference_mAs: 150
+    measured_ctdi_w_mGy: 5.72
+    dcf: 0.94    # computed in Step 1.2
+```
+
+Option B: Set `dose_calibration_factor` directly in your simulation config:
+
+```yaml
+general:
+  dose_calibration_factor: "0.94"
+```
+
+### Calibration scope
+
+Repeat Steps 1.1-1.3 for each kV/fan-mode combination you intend to use. The calibration database (`calibration.yaml`) stores multiple entries keyed by `(kV, fan_mode)`. The `CalibrationService` automatically selects the correct DCF during post-processing based on the simulation's voltage and fan mode.
+
+---
+
+## Phase 2: CTDI Validation
+
+Once calibrated, validate that your beam model reproduces CTDI reference values for the standard imaging protocols.
+
+### Step 2.1: Run a validated simulation
+
+Use the calibrated factor in your config:
+
+```yaml
+# ctdi_validation.yaml
+general:
+  g4_data_directory: /path/to/G4Data
+  topas_directory: /path/to/topas/bin/topas
+  histories: "5000000"
+  threads: "8"
+  dose_calibration_factor: "0.94"
+
+imaging:
+  simulation_type: "CTDI"
+  rotation_direction: "CBCT Clockwise"
+  imaging_mode: "Head"
+
+ctdi:
+  phantom_size: "16 cm"
+```
+
+### Step 2.2: Compute CTDI-w
+
+```bash
+uv run python calculate_ctdiw.py runfolder/2026-06-12_15-00-00/
+```
+
+This outputs `CTDIw_results.csv` with CTDI-w values for each scorer type:
+- **TLE** (primary): Track Length Estimator — measurement-equivalent, calibrated
+- **DTM**: Dose to Medium — uncalibrated, for comparison
+- **DTW**: Dose to Water — uncalibrated, for comparison
+
+### Step 2.3: Benchmark against reference
+
+```bash
+uv run python calculate_ctdiw.py benchmark runfolder/2026-06-12_15-00-00/ \
+  --reference 5.72
+```
+
+A PASS result confirms your beam model is validated.
+
+### Available protocols
+
+47 imaging modes are available. Select via `rotation_direction` and `imaging_mode`:
+
+| Rotation Direction | Imaging Mode | kV | Fan | Phantom |
+|---|---|---|---|---|
+| CBCT Clockwise / Anticlockwise | Image Gently | 80 | Full | 16 cm |
+| CBCT Clockwise / Anticlockwise | Head | 100 | Full | 16 cm |
+| CBCT Clockwise / Anticlockwise | Short Thorax | 100 | Full | 32 cm |
+| CBCT Clockwise / Anticlockwise | Spotlight | 100 | Full | 32 cm |
+| CBCT Clockwise / Anticlockwise | Thorax | 125 | Half | 32 cm |
+| CBCT Clockwise / Anticlockwise | Pelvis | 125 | Half | 32 cm |
+| CBCT Clockwise / Anticlockwise | Pelvis Large | 125 | Half | 32 cm |
+| CBCT Clockwise / Anticlockwise | Chest | 100 | Full | 32 cm |
+| CBCT Clockwise / Anticlockwise | Pelvis Small | 100 | Full | 32 cm |
+| CBCT Clockwise / Anticlockwise | Low Dose Thorax | 100 | Full | 32 cm |
+| CBCT Clockwise / Anticlockwise | Large Body | 125 | Half | 32 cm |
+| CBCT Clockwise / Anticlockwise | Spotlight Head 1-4 | 100 | Full | 32 cm |
+| CBCT Clockwise / Anticlockwise | Spotlight Abdo 1-4 | 100 | Full | 32 cm |
+| kV-kV | kV-kV | 100 | Full | N/A |
+
+### CTDI scoring
+
+Each CTDI simulation scores all 5 chamber plug positions simultaneously (Centre, Top, Bottom, Left, Right) using TOPAS Parallel Worlds. Three scorer types run per position:
+
+| Scorer | Physics | Role |
+|---|---|---|
+| **TLE** | Collision kerma (fluence-weighted) | Primary — measurement-equivalent |
+| **DTM** | Absorbed dose (event-based) | Secondary comparison |
+| **DTW** | Dose scored in water medium | Secondary comparison |
+
+CTDI-w is calculated as:
+
+```
+CTDI_w = (2/3) x peripheral_avg + (1/3) x center_dose
+```
+
+---
+
+## Phase 3: DICOM Patient Dose Estimation
+
+With a validated beam model, estimate patient-specific imaging dose using CT DICOM datasets.
+
+### Step 3.1: Prepare DICOM data
+
+Place your CT DICOM image series in a directory. Optionally include an RT Plan DICOM file.
+
+```
+/path/to/patient/
+├── CT_Slice001.dcm
+├── CT_Slice002.dcm
+├── ...
+└── RP.Plan.dcm              # optional
+```
+
+### Step 3.2: Create a DICOM config
+
+```yaml
+# dicom_patient.yaml
+general:
+  g4_data_directory: /path/to/G4Data
+  topas_directory: /path/to/topas/bin/topas
+  histories: "5000000"
+  threads: "8"
+  dose_calibration_factor: "0.94"
+
+imaging:
+  simulation_type: "DICOM"
+  rotation_direction: "CBCT Clockwise"
+  imaging_mode: "Head"
+
+dicom:
+  dicom_directory: "/path/to/patient"
+  dicom_rp_file: "/path/to/patient/RP.Plan.dcm"
+  patient_id: "PT001"
+  isocenter_x: "0 mm"
+  isocenter_y: "0 mm"
+  isocenter_z: "0 mm"
+  patient_shift_x: "0. mm"
+  patient_shift_y: "0. mm"
+  patient_shift_z: "0. mm"
+  patient_yaw: "0. deg"
+  patient_pitch: "0. deg"
+  patient_roll: "0. deg"
+```
+
+Beam parameters (voltage, field size, blades, rotation rate) are auto-resolved from the protocol name, same as CTDI mode.
+
+### Step 3.3: Run the simulation
+
+```bash
+uv run python run_simulation.py run dicom_patient.yaml
+```
+
+### Step 3.4: Review output
+
+The runfolder contains:
+
+| File | Purpose |
+|---|---|
+| `headsourcecode.txt` | TOPAS beam line parameter file |
+| `patientDICOM.txt` | Patient geometry include file |
+| `HUtoMaterialSchneider.txt` | HU-to-material conversion table |
+| `PT001_CBCT Clockwise_Head_0 deg_DOSE_PTV.*` | 3D dose distribution output |
+
+DICOM mode produces a 3D dose grid rather than per-position CSVs. Use your standard DICOM-RT analysis tools to evaluate the dose distribution.
+
+---
+
+## Advanced Features
+
+### Phase Space Scoring and Replay (CTDI only)
+
+For repeated simulations with the same beam line, score the phase space once and replay it to skip beam transport.
+
+**Score mode** (beam line only, no phantom):
+
+```yaml
+ctdi:
+  phase_space_mode: "score"
+```
+
+Produces `beam_exit_phsp.phsp` + beam statistics in the `phase_space/` subdirectory.
+
+**Replay mode** (uses scored phase space with phantom):
+
+```yaml
+ctdi:
+  phase_space_mode: "replay"
+  phase_space_file: "/path/to/beam_exit_phsp.phsp"
+  phase_space_multiple_use: 5  # reuse each particle 5 times
+```
+
+No spectrum generation in replay mode. The norm factor is divided by `phase_space_multiple_use` for correct normalization.
+
+### Water Chamber Volumes (CTDI only)
+
+Enable water-filled chamber volumes for additional DTM scoring:
+
+```yaml
+ctdi:
+  water_chamber_enabled: true
+```
+
+Adds 5 extra DTM scorers (`_water_dtm`) — one per chamber plug position.
+
+### Dry Run
+
+Validate your configuration and render templates without running TOPAS:
+
+```bash
+uv run python run_simulation.py run config.yaml --dry-run
+```
+
+### Detached Mode
+
+Run TOPAS in the background:
+
+```bash
+uv run python run_simulation.py run config.yaml --detach
+```
+
+Writes `topas.pid` to the runfolder. Monitor progress via `topas_ctdi.log`.
+
+---
+
+## CLI Reference
+
+### Simulation CLI (`run_simulation.py`)
+
+```bash
+# Run simulation
+uv run python run_simulation.py run <config_file> [--dry-run] [--detach]
+
+# Generate default config template
+uv run python run_simulation.py generate-config [--output my_config.yaml]
+
+# Validate config without running
+uv run python run_simulation.py validate <config_file>
+
+# Convert config between YAML and JSON
+uv run python run_simulation.py convert <input> <output> [--format yaml|json]
+```
+
+### Post-Processing CLI (`calculate_ctdiw.py`)
+
+```bash
+# Compute CTDI-w for all scorer types
+uv run python calculate_ctdiw.py <runfolder> [--output results.csv]
+
+# Benchmark against measured reference
+uv run python calculate_ctdiw.py benchmark <runfolder> \
+  --reference <mSv> [--tolerance 10.0] [--output benchmark.csv]
+```
+
+---
+
+## Runfolder Structure
+
+Every simulation produces a timestamped runfolder:
+
+```
+runfolder/2026-06-12_14-30-00/
+├── config.yaml                       # Copy of source config (provenance)
+├── simulation.log                    # Python application log
+├── simulation_metadata.yaml          # norm_factor, mAs, dcf_used, SpekPy params
+├── head_calibration_factor.txt       # Legacy combined calibration factor
+├── ConvertedTopasFile.txt            # TOPAS energy spectrum
+├── Muen.dat                          # Mass-energy absorption coefficients
+├── fullfan.txt                       # Bowtie filter (Full Fan) or halffan.txt (Half Fan)
+│
+│── # CTDI mode:
+├── CTDI_all_positions.txt            # Combined TOPAS parameter file
+├── topas_ctdi.log                    # TOPAS stdout/stderr
+├── ChamberPlugCentre_tle.csv         # Dose outputs (15 files: 5 positions x 3 scorers)
+├── ChamberPlugCentre_dtm.csv
+├── ChamberPlugCentre_dtw.csv
+├── ChamberPlugTop_tle.csv
+├── ...
+│
+│── # DICOM mode:
+├── headsourcecode.txt                # TOPAS beam line parameter file
+├── patientDICOM.txt                  # Patient geometry include file
+├── HUtoMaterialSchneider.txt         # HU-to-material conversion
+├── topas_dicom.log                   # TOPAS stdout/stderr
+└── PT001_CBCT Clockwise_Head_0 deg_DOSE_PTV.*  # 3D dose output
+```
+
+---
+
+## Configuration Reference
+
+### Minimal CTDI Config
+
+```yaml
+general:
+  g4_data_directory: /path/to/G4Data
+  topas_directory: /path/to/topas/bin/topas
+
+imaging:
+  simulation_type: "CTDI"
+  rotation_direction: "CBCT Clockwise"
+  imaging_mode: "Head"
+
+ctdi:
+  phantom_size: "16 cm"
+```
+
+All beam parameters (voltage, exposure, field size, blade openings, rotation rate, fan mode) are auto-resolved from the protocol lookup table. Override any parameter by including it explicitly in the config — explicit values take precedence.
+
+### Minimal DICOM Config
+
+```yaml
+general:
+  g4_data_directory: /path/to/G4Data
+  topas_directory: /path/to/topas/bin/topas
+
+imaging:
+  simulation_type: "DICOM"
+  rotation_direction: "CBCT Clockwise"
+  imaging_mode: "Head"
+
+dicom:
+  dicom_directory: /path/to/patient/dicom
+  patient_id: "PT001"
+```
+
+### kV-kV Config
+
+kV-kV configs do **not** use mode resolution. All beam parameters must be specified explicitly:
+
+```yaml
+imaging:
+  simulation_type: "CTDI"
+  rotation_direction: "kV-kV"
+  anode_voltage: "100 kV"
+  exposure: "100 mAs"
+  fan_mode: "Full Fan"
+  rotation_rate: "0.4 deg/s"
+  timeline_end: "501 s"
+  start_angle: "0 deg"
+  field_x1: "14 cm"
+  field_x2: "14 cm"
+  field_y1: "10.7 cm"
+  field_y2: "10.7 cm"
+  blade_x1: "6.175536078965273 cm"
+  blade_x2: "-6.175536078965273 cm"
+  blade_y1: "5.814471115800571 cm"
+  blade_y2: "-5.814471115800571 cm"
+```

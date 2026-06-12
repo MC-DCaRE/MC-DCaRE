@@ -336,7 +336,7 @@ cython_debug/
 /test/samplefile
 
 .kilo/
-.opencode/
+.opencode/node_modules/
 kilo.jsonc
 .local_paths.yaml
 config.local.yaml

@@ -99,7 +99,9 @@ class CtdiMode(SimulationMode):
                 "patient_yaw": "0 deg",
                 "patient_pitch": "0 deg",
                 "patient_roll_value": 0.0,
-                "phase_space_file": os.path.basename(config.ctdi.phase_space_file),
+                "phase_space_file": os.path.splitext(
+                    os.path.basename(config.ctdi.phase_space_file)
+                )[0],
                 "phase_space_multiple_use": config.ctdi.phase_space_multiple_use,
                 **_compute_angle_values(
                     config.imaging.rotation_direction, config.imaging.start_angle

@@ -80,7 +80,7 @@
 - Verified config validation: replay without file raises error
 - Verified replay `simulation_metadata.yaml` has norm_factor = original_norm_factor / M
 
-- [ ] ### 9. Verify scoring surface position
+- [x] ### 9. Verify scoring surface position
 **Spec**: phase-space-scoring
 **Files**: `src/boilerplates/ctdi_phsp_score.j2`
 - Run scoring template with graphics enabled on a short test (1e4 histories)
@@ -88,9 +88,11 @@
 - Confirm PhaseSpace scorer captures particles (non-zero output file)
 - Adjust TransY if needed to clear all source-side geometry
 - Document the verified position in the template comments
-- **SKIPPED: Requires live TOPAS installation**
+- **Verified 2026-06-12**: TransY=-86.0 cm confirmed correct. Surface is downstream
+  of collimators and BHF. Positions -86.5 to -86.8 overlap with Coll3/Coll3steel.
+  Test: 10000 histories → 2565 particles scored (25.6% survival fraction).
 
-- [ ] ### 10. Verify replay source positioning
+- [x] ### 10. Verify replay source positioning
 **Spec**: phase-space-replay
 **Files**: `src/boilerplates/ctdi_phsp_replay.j2`
 - Run replay template with graphics enabled on a short test using the .phsp file from task 9
@@ -98,4 +100,7 @@
 - Verify that the Rotation group time feature correctly sweeps the PhaseSpace source around the phantom
 - If `Component = "Rotation"` produces incorrect particle positions (double-transformation), add a positioning component inside Rotation and re-test
 - Document the verified configuration in the template comments
-- **SKIPPED: Requires live TOPAS installation**
+- **Verified 2026-06-12**: Component="Rotation" works correctly, no double-transformation.
+  All 2565 particles from scoring run replayed successfully.
+  Fixed bug: phase_space_file must be passed to template WITHOUT .phsp extension
+  (TOPAS appends .phsp to PhaseSpaceFileName). Updated CtdiMode.build_main_context().

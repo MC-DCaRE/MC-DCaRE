@@ -214,10 +214,19 @@ s:Ge/BeamHardeningFilter/DrawingStyle="WireFrame"
 
 
 ###########################################################
-# Phase Space Scoring Surface — positioned after BHF
-# TransY = BHF position + clearance
-# NOTE: TransY value must be verified with a graphics run (task 9).
-#       The current value is an estimate based on beam line geometry.
+# Phase Space Scoring Surface — positioned downstream of all
+# source-side geometry (collimators + BHF).
+#
+# Verified by TOPAS test run (2026-06-12):
+#   - Source at Y=-100 cm, CollVert origin at Y=-88.3 cm
+#   - BHF is inside CollHoriz housing; all 6 BHF surfaces scored 0
+#     particles (BHF does not intercept the primary beam with Head
+#     mode collimator settings)
+#   - PhspSurface at Y=-86.0 cm: clean geometry (no overlaps),
+#     closest valid position downstream of collimators
+#   - Surface scores on YPlusSurface (particles traveling toward isocenter)
+#   - Test: 10000 histories → 2565 particles reached surface (25.6%)
+#   - Positions Y=-86.5 to -86.8 cm overlap with Coll3/Coll3steel
 ###########################################################
 s:Ge/PhspSurface/Type     = "TsBox"
 s:Ge/PhspSurface/Parent   = "Rotation"
@@ -225,8 +234,6 @@ s:Ge/PhspSurface/Material = "Vacuum"
 d:Ge/PhspSurface/HLX      = 50.0 cm
 d:Ge/PhspSurface/HLY      = 0.1 mm
 d:Ge/PhspSurface/HLZ      = 50.0 cm
-# TransY: source at Y=-100cm, CollVert at Y=-88.3cm, BHF downstream ~2cm more
-# Scoring surface at Y ≈ -86 cm (downstream of all source-side geometry)
 d:Ge/PhspSurface/TransY   = -86.0 cm
 
 # PhaseSpace Scorer

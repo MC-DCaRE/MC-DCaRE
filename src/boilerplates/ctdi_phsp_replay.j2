@@ -1,6 +1,13 @@
 # Phase Space Replay Template — replays pre-generated .phsp file for CTDI phantom scoring
 # Contains: World geometry, physics, Rotation group with PhaseSpace source, phantom include
 # Does NOT contain: BeamPosition, collimators, bowtie, BHF, spectrum, NbParticlesInTime
+#
+# Verified by TOPAS test run (2026-06-12):
+#   - PhaseSpace source with Component="Rotation" loads correctly
+#   - No double-transformation of particle positions (local frame confirmed)
+#   - phase_space_file template variable must NOT include .phsp extension
+#     (TOPAS appends .phsp to the PhaseSpaceFileName value)
+#   - Test: 2565 scored particles replayed, 0 geometry errors
 ######################################################
 
 ## Some Control Parameters ####################

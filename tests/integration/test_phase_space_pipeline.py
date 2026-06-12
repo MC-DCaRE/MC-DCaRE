@@ -202,6 +202,7 @@ class TestReplayPipelineDryRun:
 
         # PhaseSpace source present.
         assert 'So/beam/Type                  = "PhaseSpace"' in content
+        assert 'So/beam/PhaseSpaceFileName    = "beam"' in content
         assert "PhaseSpaceMultipleUse" in content
         # No beam line geometry.
         assert "CollimatorsVertical" not in content

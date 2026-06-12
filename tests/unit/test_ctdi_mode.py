@@ -285,6 +285,24 @@ class TestPhaseSpaceModeBranching:
         assert ctx["phase_space_file"] == "fake"
         assert ctx["phase_space_multiple_use"] == 10
 
+    def test_replay_strips_only_last_extension(self, make_config: Any) -> None:
+        mode = CtdiMode()
+        config = make_config(
+            phase_space_mode="replay",
+            phase_space_file="/path/to/run.beam.phsp",
+        )
+        ctx = mode.build_main_context(config)
+        assert ctx["phase_space_file"] == "run.beam"
+
+    def test_replay_no_extension_passes_through(self, make_config: Any) -> None:
+        mode = CtdiMode()
+        config = make_config(
+            phase_space_mode="replay",
+            phase_space_file="/path/to/beamfile",
+        )
+        ctx = mode.build_main_context(config)
+        assert ctx["phase_space_file"] == "beamfile"
+
     def test_replay_main_context_no_collimators(self, make_config: Any) -> None:
         mode = CtdiMode()
         config = make_config(phase_space_mode="replay", phase_space_file="/fake.phsp")

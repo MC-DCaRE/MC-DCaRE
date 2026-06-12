@@ -9,8 +9,8 @@
 # imaging mode lookup table. Override any field by adding it explicitly.
 
 general:
-  g4_data_directory: /root/G4Data
-  topas_directory: /root/topas/bin/topas
+  g4_data_directory: /home/bchcphysics/Applications/GEANT4/G4DATA
+  topas_directory: /home/bchcphysics/Applications/TOPAS/OpenTOPAS-build/topas
   seed: '9'
   threads: '1'
   histories: '100000'

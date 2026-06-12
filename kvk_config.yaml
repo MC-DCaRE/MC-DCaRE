@@ -3,8 +3,8 @@
 # Dry-run: uv run python run_simulation.py run kvk_config.yaml --dry-run
 
 general:
-  g4_data_directory: /home/ethanb/Applications/GEANT4/G4DATA
-  topas_directory: /home/ethanb/Applications/TOPAS/OpenTOPAS-build/topas
+  g4_data_directory: /home/bchcphysics/Applications/GEANT4/G4DATA
+  topas_directory: /home/bchcphysics/Applications/TOPAS/OpenTOPAS-build/topas
   seed: '9'
   threads: '1'
   histories: '1000'

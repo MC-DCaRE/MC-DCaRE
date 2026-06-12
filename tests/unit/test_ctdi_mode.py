@@ -282,7 +282,7 @@ class TestPhaseSpaceModeBranching:
             phase_space_multiple_use=10,
         )
         ctx = mode.build_main_context(config)
-        assert ctx["phase_space_file"] == "fake.phsp"
+        assert ctx["phase_space_file"] == "fake"
         assert ctx["phase_space_multiple_use"] == 10
 
     def test_replay_main_context_no_collimators(self, make_config: Any) -> None:

@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Tuple
 
 import FreeSimpleGUI as sg
 from src.config import SimulationConfig
-from src.models.imaging_mode import ImagingMode
+from src.models.imaging_mode import IMAGING_MODES, ImagingMode
 from src.models.keys import (
     BLADE_X1,
     BLADE_X2,
@@ -404,6 +404,20 @@ class MainView:
             vertical_alignment="top",
         )
 
+    @staticmethod
+    def _cbct_protocol_names() -> list[str]:
+        """Extract unique CBCT protocol names from IMAGING_MODES keys."""
+        seen: set[str] = set()
+        names: list[str] = []
+        for key in IMAGING_MODES:
+            if not key.startswith("CBCT "):
+                continue
+            _, _, name = key.partition("_")
+            if name not in seen:
+                seen.add(name)
+                names.append(name)
+        return names
+
     def _build_imaging_protocol_layer(self) -> sg.Frame:
         """Imaging-protocol dropdown and read-only field-size / bowtie fields."""
         d = self._defaults
@@ -413,15 +427,7 @@ class MainView:
                 [
                     sg.Text("Imaging Protocol", size=(10, 1), text_color="black"),
                     sg.Combo(
-                        [
-                            "Image Gently",
-                            "Head",
-                            "Short Thorax",
-                            "Spotlight",
-                            "Thorax",
-                            "Pelvis",
-                            "Pelvis Large",
-                        ],
+                        self._cbct_protocol_names(),
                         default_value="Image Gently",
                         key=IMAGING_MODE,
                         readonly=True,
@@ -985,6 +991,8 @@ class MainView:
         self.window[BLADE_X2].update(mode.blade_x2)
         self.window[BLADE_Y1].update(mode.blade_y1)
         self.window[BLADE_Y2].update(mode.blade_y2)
+        # ctdi_phantom maps to phantom_size on the CTDI tab
+        self.window[CTDI_PHANTOM].update(mode.ctdi_phantom)
 
     def set_tab_visibility(self, sim_type: str) -> None:
         """Show the tab for *sim_type* (``"DICOM"`` or ``"CTDI"``) and hide the other."""

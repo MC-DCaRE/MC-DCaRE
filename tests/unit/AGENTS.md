@@ -12,7 +12,7 @@ Isolated unit tests for every module in `src/`. Each test file covers one source
 |---|---|
 | `conftest.py` | Shared fixtures: default `SimulationConfig`, temporary directories, sample configs |
 | `shared.py` | Context dict constants (`MAIN_CONTEXT`, `CTDI_SUB_CONTEXT`, `DICOM_SUB_CONTEXT`) for mode and orchestrator tests |
-| `test_config.py` | `SimulationConfig` creation, YAML round-trip, validation, defaults |
+| `test_config.py` | `SimulationConfig` creation, YAML round-trip, validation, defaults, `_resolve_imaging_mode()` (15-field resolution, edge cases, completeness) |
 | `test_orchestrator.py` | `Orchestrator` mode selection, Jinja2 rendering, run directory preparation |
 | `test_ctdi_mode.py` | `CtdiMode` context building, plug file generation, blade opening calculation |
 | `test_dicom_mode.py` | `DicomMode` context building, DICOM file staging, include file selection |
@@ -23,10 +23,10 @@ Isolated unit tests for every module in `src/`. Each test file covers one source
 | `test_run_simulation_cli.py` | CLI entry point commands, config generation, validation |
 | `test_spectrum_generator.py` | `SpectrumGenerator` X-ray spectrum generation, SpekPy integration |
 | `test_gui_controller.py` | `GUIController` event handling, config updates, orchestrator delegation |
-| `test_gui_view.py` | `MainView` layout construction, element presence, theme application |
+| `test_gui_view.py` | `MainView` layout construction, element presence, theme application, imaging mode field updates (including CTDI phantom) |
 | `test_enums.py` | `SimulationType` and `FanMode` enum values and membership |
 | `test_quantity.py` | `Quantity` dataclass immutability, value/unit access |
-| `test_imaging_mode.py` | `ImagingMode` lookup tables, parameter retrieval by mode name |
+| `test_imaging_mode.py` | `ImagingMode` lookup tables (47 modes, 21 fields), parameter retrieval by mode name, fan/blade consistency, phantom validation, backward compat |
 | `test_fieldtobladeopening.py` | `fieldtobladeopening` conversion function, boundary values |
 | `test_calculate_ctdiw.py` | CTDI-w calculation from chamber plug CSV data |
 

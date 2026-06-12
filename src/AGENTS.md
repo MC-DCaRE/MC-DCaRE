@@ -7,7 +7,7 @@ Core source package for MC-DCaRE (Monte Carlo Dose Calculation and Research Envi
 `Orchestrator` is the central coordinator. Flow: `config.py` defines `SimulationConfig` -> `Orchestrator` creates a runfolder and selects a `SimulationMode` (DICOM or CTDI) -> mode builds Jinja2 context dict -> `TemplateRenderer` renders `.j2` boilerplate templates -> `SimulationRunner` executes TOPAS as a single process per simulation (capturing output to log files) -> `CTDICalculator` post-processes results. For CTDI mode, all 5 chamber plug positions are scored simultaneously using TOPAS Parallel Worlds (Layered Mass Geometry) in a single process. Three scorer types run per position (TLE, DTM, DTW); TLE is designated primary (measurement-equivalent). Optional water-filled chamber volumes add 5 more DTM scorers (`_water_dtm`) gated by `ctdi.water_chamber_enabled`. `CalibrationService.apply()` calibrates only TLE results by default. Python logging is tee'd to `<runfolder>/simulation.log` (filename configurable via `GeneralConfig.log_filename`).
 
 Subdirectories:
-- **models/** — Immutable dataclasses: `Quantity`, `ImagingMode`, enums (`SimulationType`, `FanMode`), UI keys
+- **models/** — Immutable dataclasses: `Quantity`, `ImagingMode` (21 fields, 47 protocols), enums (`SimulationType`, `FanMode`), UI keys
 - **modes/** — Strategy pattern: `SimulationMode` ABC with `DicomMode` and `CtdiMode` implementations
 - **gui/** — FreeSimpleGUI MVC: `MainView` (layout) + `controller.py` (event handling)
 - **services/** — Post-simulation services: `CTDICalculator` (scorer-aware CTDI metrics with TLE as primary), `CalibrationService` (DCF applied to TLE only), `BenchmarkCalculator` (benchmarks TLE only)
@@ -17,14 +17,14 @@ Subdirectories:
 
 | File | Role |
 |---|---|
-| `config.py` | `SimulationConfig` dataclass, all configuration parameters |
+| `config.py` | `SimulationConfig` dataclass, all configuration parameters, `_resolve_imaging_mode()` for name-based config resolution |
 | `orchestrator.py` | Central coordinator: mode selection, Jinja2 rendering, run execution |
 | `boilerplate_manager.py` | Creates `TemplateRenderer`, manages `tmp/` working directory |
 | `template_renderer.py` | Jinja2 template rendering with `FileSystemLoader` |
 | `simulation_runner.py` | Executes TOPAS simulations as single processes, captures stdout/stderr to log files |
 | `spectrum_generator.py` | Generates X-ray spectrum definitions via SpekPy |
 | `fieldtobladeopening.py` | Converts field size to collimator blade opening positions |
-| `imaging_modes_lookuptable.py` | Lookup table for TrueBeam imaging mode parameters |
+| `imaging_modes_lookuptable.py` | Re-exports `BACKWARD_COMPAT_LOOKUP` from `imaging_mode.py` for backward compatibility |
 
 ## Conventions
 - `from __future__ import annotations` in every module

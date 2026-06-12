@@ -632,6 +632,62 @@ class TestResolveImagingMode:
         # Should return dicts unchanged (no resolution applied)
         assert "anode_voltage" not in img
 
+    def test_empty_string_direction_skips_resolution(self) -> None:
+        img, ctdi = _resolve_imaging_mode(
+            {"rotation_direction": "", "imaging_mode": "Head"},
+            {},
+        )
+        assert "anode_voltage" not in img
+
+    def test_empty_string_mode_skips_resolution(self) -> None:
+        img, ctdi = _resolve_imaging_mode(
+            {"rotation_direction": "CBCT Clockwise", "imaging_mode": ""},
+            {},
+        )
+        assert "anode_voltage" not in img
+
+    def test_ctdi_data_none_defaults_to_empty_dict(self) -> None:
+        from src.models.imaging_mode import IMAGING_MODES as MODES
+
+        img, ctdi = _resolve_imaging_mode(
+            {"rotation_direction": "CBCT Clockwise", "imaging_mode": "Head"},
+            None,
+        )
+        assert ctdi["phantom_size"] == MODES["CBCT Clockwise_Head"].ctdi_phantom
+
+    def test_resolve_field_map_completeness(self) -> None:
+        """Ensure test assertions stay coupled to _RESOLVE_FIELD_MAP size."""
+        from src.config import _RESOLVE_FIELD_MAP
+
+        assert len(_RESOLVE_FIELD_MAP) == 15, (
+            "_RESOLVE_FIELD_MAP has {} entries — update this test and "
+            "test_all_15_fields_resolved".format(len(_RESOLVE_FIELD_MAP))
+        )
+
+    def test_all_15_fields_resolved(self) -> None:
+        from src.models.imaging_mode import IMAGING_MODES as MODES
+
+        mode = MODES["CBCT Clockwise_Head"]
+        img, ctdi = _resolve_imaging_mode(
+            {"rotation_direction": "CBCT Clockwise", "imaging_mode": "Head"},
+            {},
+        )
+        assert img["anode_voltage"] == mode.voltage
+        assert img["start_angle"] == mode.start_angle
+        assert img["rotation_rate"] == mode.rotation_rate
+        assert img["timeline_end"] == mode.timeline_end
+        assert img["fan_mode"] == mode.fan_mode
+        assert img["field_x1"] == mode.field_x1
+        assert img["field_x2"] == mode.field_x2
+        assert img["field_y1"] == mode.field_y1
+        assert img["field_y2"] == mode.field_y2
+        assert img["blade_x1"] == mode.blade_x1
+        assert img["blade_x2"] == mode.blade_x2
+        assert img["blade_y1"] == mode.blade_y1
+        assert img["blade_y2"] == mode.blade_y2
+        assert img["exposure"] == mode.exposure
+        assert ctdi["phantom_size"] == mode.ctdi_phantom
+
     def test_yaml_override_wins(self) -> None:
         img, ctdi = _resolve_imaging_mode(
             {

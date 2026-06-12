@@ -18,6 +18,7 @@ from src.models.keys import (
     BLADE_Y2,
     COUCH,
     CTDI_BLADE,
+    CTDI_PHANTOM,
     CTDI_TAB,
     DICOM_TAB,
     EXPOSURE,
@@ -89,6 +90,7 @@ class TestUpdateImagingModeFields:
             BLADE_X2,
             BLADE_Y1,
             BLADE_Y2,
+            CTDI_PHANTOM,
         ]
         elements = _make_element_dict(keys)
         mock_window.__getitem__ = MagicMock(side_effect=lambda k: elements[k])
@@ -107,6 +109,14 @@ class TestUpdateImagingModeFields:
             blade_x2="-6.175536078965273 cm",
             blade_y1="5.814471115800571 cm",
             blade_y2="-5.814471115800571 cm",
+            ctdi_phantom="16 cm",
+            dose_factor="1.0",
+            start_angle="0 deg",
+            fan_detail="Full Fan",
+            no_projections="680",
+            proj_increment="0.5 deg",
+            acquisition_time="340 s",
+            ctdiw_reference="TBD",
         )
 
         view.update_imaging_mode_fields(mode)
@@ -124,6 +134,7 @@ class TestUpdateImagingModeFields:
         elements[BLADE_X2].update.assert_called_with(mode.blade_x2)
         elements[BLADE_Y1].update.assert_called_with(mode.blade_y1)
         elements[BLADE_Y2].update.assert_called_with(mode.blade_y2)
+        elements[CTDI_PHANTOM].update.assert_called_with(mode.ctdi_phantom)
 
 
 class TestSetTabVisibility:

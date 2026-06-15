@@ -83,7 +83,14 @@ def _coerce_quantities(obj: Any, field_names: Tuple[str, ...]) -> None:
 
 @dataclass(frozen=True)
 class GeneralConfig:
-    """TOPAS runtime and environment settings."""
+    """TOPAS runtime and environment settings.
+
+    .. deprecated::
+        ``dose_calibration_factor`` is deprecated. Post-hoc calibration is
+        handled by :class:`CalibrationService` via ``calibration.yaml``.
+        The value is written to ``simulation_metadata.yaml`` as ``dcf_hint``
+        for reference only and is never applied automatically.
+    """
 
     g4_data_directory: str = ""
     topas_directory: str = ""
@@ -311,6 +318,14 @@ class SimulationConfig:
                 "Config field 'dose_calibration_factor' must be positive, got {}".format(
                     calib_val
                 )
+            )
+        if calib_val != 1.0:
+            logger.warning(
+                "dose_calibration_factor=%.6f is deprecated — "
+                "value is written as dcf_hint to metadata for reference only "
+                "and is NOT applied automatically. "
+                "Use CalibrationService with calibration.yaml for post-hoc calibration.",
+                calib_val,
             )
         if not 40 <= self.imaging.anode_voltage.value <= 150:
             raise ValueError(

@@ -10,11 +10,41 @@ import pytest
 from src.services.ctdi_benchmark import BenchmarkCalculator, BenchmarkResult, MSV_TO_GY
 
 
-def _make_bench(tmp_path: Path) -> BenchmarkCalculator:
-    (tmp_path / "head_calibration_factor.txt").write_text("1.0\n")
+def _make_bench(tmp_path: Path, mAs: float = 100.0) -> BenchmarkCalculator:
+    import yaml
+    metadata = {
+        "total_histories": 1000000,
+        "exposure_mAs": mAs,
+        "spectrum_fluence_photons_per_mAs": 2.34e8,
+    }
+    (tmp_path / "simulation_metadata.yaml").write_text(
+        yaml.dump(metadata, default_flow_style=False)
+    )
     for position in ["Bottom", "Top", "Left", "Right", "Centre"]:
         (tmp_path / "ChamberPlug{}_dtm.csv".format(position)).write_text("1.0e-10")
     return BenchmarkCalculator(tmp_path)
+
+
+def _make_raw_result(
+    raw_sum: float,
+    scorer_type: str = "tle",
+    is_primary: bool = True,
+    total_histories: int = 1000000,
+    exposure_mAs: float = 100.0,
+    spectrum_fluence: float = 2.34e8,
+) -> dict:
+    return {
+        "scorer_type": scorer_type,
+        "is_primary": is_primary,
+        "raw_sum": raw_sum,
+        "peripheral_raw_sums": {},
+        "center_raw_sum": raw_sum,
+        "metadata": {
+            "total_histories": total_histories,
+            "exposure_mAs": exposure_mAs,
+            "spectrum_fluence_photons_per_mAs": spectrum_fluence,
+        },
+    }
 
 
 class TestBenchmarkResult:
@@ -32,15 +62,9 @@ class TestUnitConversion:
     def test_reference_conversion(self, tmp_path: Path) -> None:
         bench = _make_bench(tmp_path)
         ref_mSv = 8.52
-        ref_Gy = ref_mSv * MSV_TO_GY
-        mock_results = [
-            {
-                "FileType": "tle",
-                "scorer_type": "tle",
-                "is_primary": True,
-                "CTDI_w": ref_Gy,
-            },
-        ]
+        norm_factor = 2.34e8 / 1e6
+        raw_sum = ref_mSv * MSV_TO_GY / (norm_factor * 100.0)
+        mock_results = [_make_raw_result(raw_sum)]
 
         with patch.object(bench.calculator, "validate"):
             with patch.object(bench.calculator, "calculate", return_value=mock_results):
@@ -54,16 +78,9 @@ class TestCompareWithinTolerance:
     def test_simulated_close_to_reference(self, tmp_path: Path) -> None:
         bench = _make_bench(tmp_path)
         ref_mSv = 10.0
-        ref_Gy = ref_mSv * MSV_TO_GY
-        simulated_Gy = ref_Gy * 1.05
-        mock_results = [
-            {
-                "FileType": "tle",
-                "scorer_type": "tle",
-                "is_primary": True,
-                "CTDI_w": simulated_Gy,
-            },
-        ]
+        norm_factor = 2.34e8 / 1e6
+        raw_sum = ref_mSv * MSV_TO_GY * 1.05 / (norm_factor * 100.0)
+        mock_results = [_make_raw_result(raw_sum)]
 
         with patch.object(bench.calculator, "validate"):
             with patch.object(bench.calculator, "calculate", return_value=mock_results):
@@ -78,16 +95,9 @@ class TestCompareOutsideTolerance:
     def test_simulated_far_from_reference(self, tmp_path: Path) -> None:
         bench = _make_bench(tmp_path)
         ref_mSv = 10.0
-        ref_Gy = ref_mSv * MSV_TO_GY
-        simulated_Gy = ref_Gy * 1.25
-        mock_results = [
-            {
-                "FileType": "tle",
-                "scorer_type": "tle",
-                "is_primary": True,
-                "CTDI_w": simulated_Gy,
-            },
-        ]
+        norm_factor = 2.34e8 / 1e6
+        raw_sum = ref_mSv * MSV_TO_GY * 1.25 / (norm_factor * 100.0)
+        mock_results = [_make_raw_result(raw_sum)]
 
         with patch.object(bench.calculator, "validate"):
             with patch.object(bench.calculator, "calculate", return_value=mock_results):
@@ -102,16 +112,9 @@ class TestCompareNegativeDeviation:
     def test_simulated_below_reference(self, tmp_path: Path) -> None:
         bench = _make_bench(tmp_path)
         ref_mSv = 10.0
-        ref_Gy = ref_mSv * MSV_TO_GY
-        simulated_Gy = ref_Gy * 0.92
-        mock_results = [
-            {
-                "FileType": "tle",
-                "scorer_type": "tle",
-                "is_primary": True,
-                "CTDI_w": simulated_Gy,
-            },
-        ]
+        norm_factor = 2.34e8 / 1e6
+        raw_sum = ref_mSv * MSV_TO_GY * 0.92 / (norm_factor * 100.0)
+        mock_results = [_make_raw_result(raw_sum)]
 
         with patch.object(bench.calculator, "validate"):
             with patch.object(bench.calculator, "calculate", return_value=mock_results):
@@ -142,20 +145,11 @@ class TestCompareEdgeCases:
     def test_multiple_file_types_only_tle_benchmarked(self, tmp_path: Path) -> None:
         bench = _make_bench(tmp_path)
         ref_mSv = 10.0
-        ref_Gy = ref_mSv * MSV_TO_GY
+        norm_factor = 2.34e8 / 1e6
+        raw_sum = ref_mSv * MSV_TO_GY * 0.97 / (norm_factor * 100.0)
         mock_results = [
-            {
-                "FileType": "dtm",
-                "scorer_type": "dtm",
-                "is_primary": False,
-                "CTDI_w": ref_Gy * 1.02,
-            },
-            {
-                "FileType": "tle",
-                "scorer_type": "tle",
-                "is_primary": True,
-                "CTDI_w": ref_Gy * 0.97,
-            },
+            _make_raw_result(raw_sum * 1.02, scorer_type="dtm", is_primary=False),
+            _make_raw_result(raw_sum, scorer_type="tle", is_primary=True),
         ]
 
         with patch.object(bench.calculator, "validate"):

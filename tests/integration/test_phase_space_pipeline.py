@@ -258,11 +258,11 @@ class TestReplayMetadataAdjustment:
             "norm_factor": original_norm / M,
             "mAs": mAs,
             "dcf_used": dcf,
+            "total_histories": 1000000,
         }
         with open(rundir / "simulation_metadata.yaml", "w") as f:
             yaml.dump(metadata, f)
 
         calc = CTDICalculator(rundir)
-        # calibration_factor = (original_norm / M) * mAs * dcf
-        expected = original_norm / M * mAs * dcf
-        assert abs(calc.calibration_factor - expected) < 1e-20
+        assert calc.total_histories == 1000000
+        assert calc.exposure_mAs == mAs

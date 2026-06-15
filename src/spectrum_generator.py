@@ -27,15 +27,15 @@ class SpectrumGenerator:
         seed: int = 9,
         threads: int = 1,
     ) -> None:
-        """Generate a kV spectrum and write calibration factor and TOPAS spectrum files.
+        """Generate a kV spectrum and write metadata and TOPAS spectrum files.
 
         Args:
             anode_voltage: Tube voltage in kV.
             exposure: Tube current-time product in mAs.
             histories: Number of primary histories as a string.
             project_root: Root directory of the MC-DCaRE project (output goes to tmp/).
-            dose_calibration_factor: Multiplicative correction factor. Default 1.0
-                (post-hoc calibration applied after simulation).
+            dose_calibration_factor: Deprecated — written as ``dcf_hint`` only.
+                Post-hoc calibration is handled by ``CalibrationService``.
             fan_mode: Fan mode string ("Full Fan" or "Half Fan").
             seed: Random seed for reproducibility.
             threads: Number of simulation threads.
@@ -46,9 +46,6 @@ class SpectrumGenerator:
             exposure,
             histories,
         )
-        # SpekPy energy bin width: dk=0.2 keV (finer spectral resolution than default 0.5 keV).
-        # No SpekPy filtration is applied; filtration is modeled in TOPAS geometry
-        # (0.7 mm Ti beam hardening filter, bowtie filter).
         s = sp.Spek(
             kvp=anode_voltage,
             th=14,
@@ -68,18 +65,14 @@ class SpectrumGenerator:
         if int(histories) <= 0:
             raise ValueError("histories must be positive, got %s" % histories)
 
-        # Per-mAs normalization factor (independent of mAs due to SpekPy linearity).
-        norm_factor: float = no_particles / (int(histories) * exposure)
+        spectrum_fluence_photons_per_mAs: float = no_particles / int(histories)
+        calib_factor: float = no_particles / int(histories) * dose_calibration_factor
 
-        # Combined calibration factor for backward-compatible head_calibration_factor.txt.
-        calib_factor: float = norm_factor * exposure * dose_calibration_factor
-
-        # Write structured simulation metadata.
+        # Write structured simulation metadata (new schema).
         metadata: dict = {
-            "norm_factor": float(norm_factor),
-            "mAs": exposure,
             "total_histories": int(histories),
-            "dcf_used": dose_calibration_factor,
+            "exposure_mAs": exposure,
+            "spectrum_fluence_photons_per_mAs": float(spectrum_fluence_photons_per_mAs),
             "spekpy": {
                 "kvp": anode_voltage,
                 "th": 14,
@@ -93,12 +86,15 @@ class SpectrumGenerator:
             "threads": threads,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
+        if dose_calibration_factor != 1.0:
+            metadata["dcf_hint"] = dose_calibration_factor
+
         metadata_path = os.path.join(project_root, "tmp", "simulation_metadata.yaml")
         with open(metadata_path, "w", encoding="utf-8") as f:
             yaml.dump(metadata, f, default_flow_style=False, sort_keys=False)
         logger.info("Simulation metadata written to %s", metadata_path)
 
-        # Write backward-compatible head_calibration_factor.txt.
+        # Write backward-compatible head_calibration_factor.txt (deprecated path).
         calib_path = os.path.join(project_root, "tmp", "head_calibration_factor.txt")
         with open(calib_path, "w", encoding="utf-8") as f:
             f.write("%.10e" % calib_factor)

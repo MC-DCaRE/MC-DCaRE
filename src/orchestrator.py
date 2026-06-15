@@ -80,13 +80,22 @@ class Orchestrator:
         if not isinstance(metadata, dict):
             raise ValueError("Invalid metadata file: %s" % scoring_metadata_path)
         if "norm_factor" not in metadata:
-            raise ValueError(
-                "Scoring metadata missing 'norm_factor': %s" % scoring_metadata_path
-            )
+            total_histories = metadata.get("total_histories", 0)
+            spectrum_fluence = metadata.get("spectrum_fluence_photons_per_mAs")
+            if total_histories > 0 and spectrum_fluence and spectrum_fluence > 0:
+                metadata["norm_factor"] = spectrum_fluence / total_histories
+            else:
+                raise ValueError(
+                    "Scoring metadata missing 'norm_factor' and cannot compute from "
+                    "available fields (need total_histories + "
+                    "spectrum_fluence_photons_per_mAs): %s" % scoring_metadata_path
+                )
         original_norm = metadata["norm_factor"]
         metadata["norm_factor"] = original_norm / phase_space_multiple_use
         metadata["phase_space_multiple_use"] = phase_space_multiple_use
         metadata["phase_space_source"] = scoring_metadata_path
+        if "total_histories" not in metadata:
+            metadata["total_histories"] = 0
         dest_path = os.path.join(rundir, "simulation_metadata.yaml")
         with open(dest_path, "w", encoding="utf-8") as f:
             yaml.dump(metadata, f, default_flow_style=False, sort_keys=False)

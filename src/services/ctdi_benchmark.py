@@ -39,6 +39,8 @@ class BenchmarkCalculator:
     ) -> List[BenchmarkResult]:
         """Compute simulated CTDI-w and compare against a reference in mSv.
 
+        Uses the normalization pipeline to compute raw Gy
+        (norm_factor x mAs, no DCF) from raw Sum values.
         Only TLE (primary) scorer results are benchmarked by default.
         Other scorer types are skipped.
 
@@ -67,21 +69,33 @@ class BenchmarkCalculator:
             logger.error("No CTDI-w results from calculator")
             return []
 
+        metadata = calc_results[0].get("metadata", {}) if calc_results else {}
+        total_histories = metadata.get("total_histories", 0)
+        exposure_mAs = metadata.get("exposure_mAs", 0.0)
+        spectrum_fluence = metadata.get("spectrum_fluence_photons_per_mAs")
+
+        if spectrum_fluence and spectrum_fluence > 0 and total_histories > 0:
+            norm_factor = spectrum_fluence / total_histories
+        else:
+            norm_factor = self.calculator.simulation_metadata.get("norm_factor", 1.0) if self.calculator.simulation_metadata else 1.0
+
         benchmark_results: List[BenchmarkResult] = []
         for calc_result in calc_results:
             if calc_result.get("scorer_type") != PRIMARY_SCORER:
                 logger.info(
                     "Skipping non-primary scorer %s in benchmark",
-                    calc_result.get("scorer_type", calc_result.get("FileType")),
+                    calc_result.get("scorer_type", ""),
                 )
                 continue
 
-            simulated_Gy = calc_result["CTDI_w"]
+            raw_sum = calc_result.get("raw_sum", 0.0)
+            simulated_Gy = raw_sum * norm_factor * exposure_mAs
+
             deviation = (simulated_Gy - reference_Gy) / reference_Gy * 100
             status = "PASS" if abs(deviation) <= tolerance_pct else "FAIL"
 
             result = BenchmarkResult(
-                file_type=calc_result["FileType"],
+                file_type=calc_result.get("scorer_type", ""),
                 simulated_ctdi_w_Gy=simulated_Gy,
                 reference_ctdi_w_Gy=reference_Gy,
                 deviation_pct=deviation,

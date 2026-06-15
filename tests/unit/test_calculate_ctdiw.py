@@ -10,8 +10,15 @@ import yaml
 from src.services.ctdi_calculator import CTDICalculator, PRIMARY_SCORER
 
 
-def _make_cal(tmp_path: Path) -> CTDICalculator:
-    (tmp_path / "head_calibration_factor.txt").write_text("1.0\n")
+def _make_cal(tmp_path: Path, histories: int = 1000000, mAs: float = 100.0) -> CTDICalculator:
+    metadata = {
+        "total_histories": histories,
+        "exposure_mAs": mAs,
+        "spectrum_fluence_photons_per_mAs": 2.34e8,
+    }
+    (tmp_path / "simulation_metadata.yaml").write_text(
+        yaml.dump(metadata, default_flow_style=False)
+    )
     return CTDICalculator(tmp_path)
 
 
@@ -133,16 +140,16 @@ class TestProcessFileType:
             result = calc._process_file_type(chamber_files, "dtw")
 
         assert result is not None
-        assert result["FileType"] == "dtw"
         assert result["scorer_type"] == "dtw"
         assert result["is_primary"] is False
-        assert (
-            result["PeripheralDoseAverage"]
-            == (1.0e-10 + 1.2e-10 + 0.8e-10 + 1.1e-10) / 4
+        assert result["raw_sum"] == pytest.approx(
+            (2 / 3) * (1.0e-10 + 1.2e-10 + 0.8e-10 + 1.1e-10) / 4 + (1 / 3) * 2.0e-10
         )
-        assert result["CenterDose"] == 2.0e-10
-        assert "CTDI_w" in result
-        assert "Timestamp" in result
+        assert result["peripheral_raw_sums"]["Bottom"] == 1.0e-10
+        assert result["peripheral_raw_sums"]["Top"] == 1.2e-10
+        assert result["peripheral_raw_sums"]["Left"] == 0.8e-10
+        assert result["peripheral_raw_sums"]["Right"] == 1.1e-10
+        assert result["center_raw_sum"] == 2.0e-10
 
     def test_process_file_type_insufficient_data(self, tmp_path: Path) -> None:
         calc = _make_cal(tmp_path)
@@ -162,11 +169,20 @@ class TestSaveResults:
     def test_save_results_success(self, tmp_path: Path) -> None:
         results = [
             {
-                "FileType": "dtw",
-                "PeripheralDoseAverage": 1.0e-10,
-                "CenterDose": 2.0e-10,
-                "CTDI_w": 1.333333e-10,
-                "Timestamp": "2024-01-01T12:00:00",
+                "scorer_type": "dtw",
+                "is_primary": False,
+                "raw_sum": 1.333333e-10,
+                "peripheral_raw_sums": {
+                    "Bottom": 1.0e-10,
+                    "Top": 1.2e-10,
+                    "Left": 0.8e-10,
+                    "Right": 1.1e-10,
+                },
+                "center_raw_sum": 2.0e-10,
+                "metadata": {
+                    "total_histories": 1000000,
+                    "exposure_mAs": 100.0,
+                },
             }
         ]
 
@@ -178,23 +194,31 @@ class TestSaveResults:
 
         df = pd.read_csv(output_path)
         assert len(df) == 1
-        assert df.iloc[0]["FileType"] == "dtw"
-        assert df.iloc[0]["CTDI_w"] == 1.333333e-10
+        assert df.iloc[0]["scorer_type"] == "dtw"
+        assert df.iloc[0]["raw_sum"] == 1.333333e-10
 
 
 class TestValidate:
     def test_validate_valid_runfolder(self, tmp_path: Path) -> None:
+        metadata = {"total_histories": 1000000, "exposure_mAs": 100.0, "spectrum_fluence_photons_per_mAs": 2.34e8}
+        (tmp_path / "simulation_metadata.yaml").write_text(
+            yaml.dump(metadata, default_flow_style=False)
+        )
         (tmp_path / "ChamberPlugTop_dtm.csv").write_text("1.0e-10")
 
-        calc = _make_cal(tmp_path)
+        calc = CTDICalculator(tmp_path)
         calc.validate()
 
     def test_validate_nonexistent_runfolder(self) -> None:
-        with pytest.raises(FileNotFoundError, match="Calibration file not found"):
+        with pytest.raises(FileNotFoundError, match="No metadata found"):
             CTDICalculator(Path("nonexistent"))
 
     def test_validate_no_chamber_files(self, tmp_path: Path) -> None:
-        calc = _make_cal(tmp_path)
+        metadata = {"total_histories": 1000000, "exposure_mAs": 100.0, "spectrum_fluence_photons_per_mAs": 2.34e8}
+        (tmp_path / "simulation_metadata.yaml").write_text(
+            yaml.dump(metadata, default_flow_style=False)
+        )
+        calc = CTDICalculator(tmp_path)
         with pytest.raises(ValueError):
             calc.validate()
 
@@ -217,37 +241,85 @@ class TestCalculate:
             results = calc.calculate()
 
         assert len(results) == 3
-        assert results[0]["FileType"] == "dtm"
         assert results[0]["scorer_type"] == "dtm"
         assert results[0]["is_primary"] is False
-        assert results[1]["FileType"] == "tle"
         assert results[1]["scorer_type"] == "tle"
         assert results[1]["is_primary"] is True
-        assert results[2]["FileType"] == "dtw"
         assert results[2]["scorer_type"] == "dtw"
         assert results[2]["is_primary"] is False
 
+        # Verify metadata is attached
+        for r in results:
+            assert "metadata" in r
+            assert r["metadata"]["total_histories"] == 1000000
+            assert r["metadata"]["exposure_mAs"] == 100.0
+            assert r["metadata"]["spectrum_fluence_photons_per_mAs"] == 2.34e8
+            # No CTDI_w at top level
+            assert "CTDI_w" not in r
 
-class TestExtractCalibrationFactor:
-    def test_calibration_file_present(self, tmp_path: Path) -> None:
-        (tmp_path / "head_calibration_factor.txt").write_text("2.5\n")
+
+class TestCalculateWaterChamber:
+    def test_calculate_includes_water_results(self, tmp_path: Path) -> None:
+        positions = ["Bottom", "Top", "Left", "Right", "Centre"]
+        for position in positions:
+            for ftype in ["dtm", "tle", "dtw", "water_dtm"]:
+                (tmp_path / "ChamberPlug{}_{}.csv".format(position, ftype)).write_text(
+                    "1.0e-10"
+                )
+
+        calc = _make_cal(tmp_path)
+
+        with patch.object(
+            calc,
+            "_extract_dose_from_file",
+            return_value=1.0e-10,
+        ):
+            results = calc.calculate()
+
+        scorer_types = [r["scorer_type"] for r in results]
+        assert "water_dtm" in scorer_types
+        water_result = [r for r in results if r["scorer_type"] == "water_dtm"][0]
+        assert water_result["is_primary"] is False
+
+    def test_calculate_without_water_files(self, tmp_path: Path) -> None:
+        positions = ["Bottom", "Top", "Left", "Right", "Centre"]
+        for position in positions:
+            for ftype in ["dtm", "tle", "dtw"]:
+                (tmp_path / "ChamberPlug{}_{}.csv".format(position, ftype)).write_text(
+                    "1.0e-10"
+                )
+
+        calc = _make_cal(tmp_path)
+
+        with patch.object(
+            calc,
+            "_extract_dose_from_file",
+            return_value=1.0e-10,
+        ):
+            results = calc.calculate()
+
+        scorer_types = [r["scorer_type"] for r in results]
+        assert "water_dtm" not in scorer_types
+        assert len(results) == 3
+
+
+class TestReadMetadata:
+    def test_reads_new_metadata(self, tmp_path: Path) -> None:
+        metadata = {
+            "total_histories": 500000,
+            "exposure_mAs": 200.0,
+            "spectrum_fluence_photons_per_mAs": 1.5e8,
+        }
+        (tmp_path / "simulation_metadata.yaml").write_text(
+            yaml.dump(metadata, default_flow_style=False)
+        )
 
         calc = CTDICalculator(tmp_path)
-        assert calc.calibration_factor == 2.5
+        assert calc.total_histories == 500000
+        assert calc.exposure_mAs == 200.0
+        assert calc.simulation_metadata is not None
 
-    def test_calibration_file_missing(self, tmp_path: Path) -> None:
-        with pytest.raises(FileNotFoundError, match="Calibration file not found"):
-            CTDICalculator(tmp_path)
-
-    def test_calibration_file_comment_only(self, tmp_path: Path) -> None:
-        (tmp_path / "head_calibration_factor.txt").write_text("# comment\n")
-
-        with pytest.raises(ValueError, match="No calibration factor"):
-            CTDICalculator(tmp_path)
-
-
-class TestReadSimulationMetadata:
-    def test_reads_simulation_metadata_yaml(self, tmp_path: Path) -> None:
+    def test_reads_old_metadata(self, tmp_path: Path) -> None:
         metadata = {
             "norm_factor": 1.27e16,
             "mAs": 100.0,
@@ -257,116 +329,89 @@ class TestReadSimulationMetadata:
         (tmp_path / "simulation_metadata.yaml").write_text(
             yaml.dump(metadata, default_flow_style=False)
         )
-        (tmp_path / "head_calibration_factor.txt").write_text("1.0\n")
 
         calc = CTDICalculator(tmp_path)
-        assert calc.calibration_factor == 1.27e16 * 100.0 * 1.0
+        assert calc.total_histories == 100000000
+        assert calc.exposure_mAs == 100.0
         assert calc.simulation_metadata is not None
-        assert calc.simulation_metadata["norm_factor"] == 1.27e16
 
     def test_falls_back_to_head_calibration_factor(self, tmp_path: Path) -> None:
-        (tmp_path / "head_calibration_factor.txt").write_text("2.5\n")
+        (tmp_path / "head_calibration_factor.txt").write_text(
+            "2.5\n"
+            "Multiply dose by the factor above to get absolute dose\n"
+            "The number of histories in this run was: 500000\n"
+        )
 
         calc = CTDICalculator(tmp_path)
-        assert calc.calibration_factor == 2.5
+        assert calc.total_histories == 500000
+        assert calc.exposure_mAs == 0.0
         assert calc.simulation_metadata is None
 
     def test_prefers_yaml_over_legacy_file(self, tmp_path: Path) -> None:
         metadata = {
-            "norm_factor": 5.0,
-            "mAs": 10.0,
-            "dcf_used": 1.0,
+            "total_histories": 100000,
+            "exposure_mAs": 50.0,
+            "spectrum_fluence_photons_per_mAs": 2.34e8,
         }
         (tmp_path / "simulation_metadata.yaml").write_text(
             yaml.dump(metadata, default_flow_style=False)
         )
-        (tmp_path / "head_calibration_factor.txt").write_text("999.0\n")
+        (tmp_path / "head_calibration_factor.txt").write_text(
+            "999.0\n"
+            "The number of histories in this run was: 200000\n"
+        )
 
         calc = CTDICalculator(tmp_path)
-        # Should use YAML (5.0 * 10.0 * 1.0 = 50.0), not legacy (999.0)
-        assert calc.calibration_factor == 50.0
+        assert calc.total_histories == 100000
+        assert calc.exposure_mAs == 50.0
         assert calc.simulation_metadata is not None
+
+    def test_raises_when_no_metadata(self, tmp_path: Path) -> None:
+        with pytest.raises(FileNotFoundError, match="No metadata found"):
+            CTDICalculator(tmp_path)
 
     def test_falls_back_on_malformed_yaml(self, tmp_path: Path) -> None:
         (tmp_path / "simulation_metadata.yaml").write_text("not a mapping\n")
-        (tmp_path / "head_calibration_factor.txt").write_text("3.0\n")
-
-        calc = CTDICalculator(tmp_path)
-        assert calc.calibration_factor == 3.0
-        assert calc.simulation_metadata is None
-
-    def test_falls_back_on_missing_keys(self, tmp_path: Path) -> None:
-        (tmp_path / "simulation_metadata.yaml").write_text(
-            yaml.dump({"norm_factor": 1.0}, default_flow_style=False)
+        (tmp_path / "head_calibration_factor.txt").write_text(
+            "3.0\n"
+            "The number of histories in this run was: 300000\n"
         )
-        (tmp_path / "head_calibration_factor.txt").write_text("4.0\n")
 
         calc = CTDICalculator(tmp_path)
-        assert calc.calibration_factor == 4.0
-        assert calc.simulation_metadata is None
-
-    def test_falls_back_on_non_finite_combined(self, tmp_path: Path) -> None:
-        metadata = {
-            "norm_factor": float("nan"),
-            "mAs": 100.0,
-            "dcf_used": 1.0,
-        }
-        (tmp_path / "simulation_metadata.yaml").write_text(
-            yaml.dump(metadata, default_flow_style=False)
-        )
-        (tmp_path / "head_calibration_factor.txt").write_text("5.0\n")
-
-        calc = CTDICalculator(tmp_path)
-        assert calc.calibration_factor == 5.0
-        assert calc.simulation_metadata is None
-
-    def test_falls_back_on_inf_combined(self, tmp_path: Path) -> None:
-        metadata = {
-            "norm_factor": 1.0,
-            "mAs": float("inf"),
-            "dcf_used": 1.0,
-        }
-        (tmp_path / "simulation_metadata.yaml").write_text(
-            yaml.dump(metadata, default_flow_style=False)
-        )
-        (tmp_path / "head_calibration_factor.txt").write_text("6.0\n")
-
-        calc = CTDICalculator(tmp_path)
-        assert calc.calibration_factor == 6.0
-        assert calc.simulation_metadata is None
+        assert calc.total_histories == 300000
 
 
 class TestCompareScorers:
     def _make_results(
         self,
-        tle_ctdi: float = 1.0e-10,
-        dtm_ctdi: float = 0.9e-10,
-        dtw_ctdi: float = 1.1e-10,
+        tle_raw: float = 1.0e-10,
+        dtm_raw: float = 0.9e-10,
+        dtw_raw: float = 1.1e-10,
     ) -> list[dict]:
         return [
             {
-                "FileType": "tle",
                 "scorer_type": "tle",
                 "is_primary": True,
-                "CTDI_w": tle_ctdi,
-                "PeripheralDoseAverage": tle_ctdi * 0.8,
-                "CenterDose": tle_ctdi * 1.4,
+                "raw_sum": tle_raw,
+                "peripheral_raw_sums": {"Bottom": tle_raw * 0.8, "Top": tle_raw * 0.8, "Left": tle_raw * 0.8, "Right": tle_raw * 0.8},
+                "center_raw_sum": tle_raw * 1.4,
+                "metadata": {"total_histories": 1000000, "exposure_mAs": 100.0},
             },
             {
-                "FileType": "dtm",
                 "scorer_type": "dtm",
                 "is_primary": False,
-                "CTDI_w": dtm_ctdi,
-                "PeripheralDoseAverage": dtm_ctdi * 0.8,
-                "CenterDose": dtm_ctdi * 1.4,
+                "raw_sum": dtm_raw,
+                "peripheral_raw_sums": {"Bottom": dtm_raw * 0.8, "Top": dtm_raw * 0.8, "Left": dtm_raw * 0.8, "Right": dtm_raw * 0.8},
+                "center_raw_sum": dtm_raw * 1.4,
+                "metadata": {"total_histories": 1000000, "exposure_mAs": 100.0},
             },
             {
-                "FileType": "dtw",
                 "scorer_type": "dtw",
                 "is_primary": False,
-                "CTDI_w": dtw_ctdi,
-                "PeripheralDoseAverage": dtw_ctdi * 0.8,
-                "CenterDose": dtw_ctdi * 1.4,
+                "raw_sum": dtw_raw,
+                "peripheral_raw_sums": {"Bottom": dtw_raw * 0.8, "Top": dtw_raw * 0.8, "Left": dtw_raw * 0.8, "Right": dtw_raw * 0.8},
+                "center_raw_sum": dtw_raw * 1.4,
+                "metadata": {"total_histories": 1000000, "exposure_mAs": 100.0},
             },
         ]
 
@@ -395,10 +440,12 @@ class TestCompareScorers:
         calc = _make_cal(tmp_path)
         results = [
             {
-                "FileType": "tle",
                 "scorer_type": "tle",
                 "is_primary": True,
-                "CTDI_w": 1.0e-10,
+                "raw_sum": 1.0e-10,
+                "peripheral_raw_sums": {},
+                "center_raw_sum": 1.0e-10,
+                "metadata": {"total_histories": 1000000, "exposure_mAs": 100.0},
             }
         ]
         with pytest.raises(ValueError, match="at least one analogue scorer"):
@@ -408,10 +455,12 @@ class TestCompareScorers:
         calc = _make_cal(tmp_path)
         results = [
             {
-                "FileType": "dtm",
                 "scorer_type": "dtm",
                 "is_primary": False,
-                "CTDI_w": 1.0e-10,
+                "raw_sum": 1.0e-10,
+                "peripheral_raw_sums": {},
+                "center_raw_sum": 1.0e-10,
+                "metadata": {"total_histories": 1000000, "exposure_mAs": 100.0},
             }
         ]
         with pytest.raises(ValueError, match="must contain TLE"):
@@ -421,20 +470,20 @@ class TestCompareScorers:
         calc = _make_cal(tmp_path)
         results = [
             {
-                "FileType": "tle",
                 "scorer_type": "tle",
                 "is_primary": True,
-                "CTDI_w": 1.0e-10,
-                "PeripheralDoseAverage": 0.8e-10,
-                "CenterDose": 1.4e-10,
+                "raw_sum": 1.0e-10,
+                "peripheral_raw_sums": {"Bottom": 0.8e-10, "Top": 0.8e-10, "Left": 0.8e-10, "Right": 0.8e-10},
+                "center_raw_sum": 1.4e-10,
+                "metadata": {"total_histories": 1000000, "exposure_mAs": 100.0},
             },
             {
-                "FileType": "dtm",
                 "scorer_type": "dtm",
                 "is_primary": False,
-                "CTDI_w": 0.9e-10,
-                "PeripheralDoseAverage": 0.7e-10,
-                "CenterDose": 1.3e-10,
+                "raw_sum": 0.9e-10,
+                "peripheral_raw_sums": {"Bottom": 0.7e-10, "Top": 0.7e-10, "Left": 0.7e-10, "Right": 0.7e-10},
+                "center_raw_sum": 1.3e-10,
+                "metadata": {"total_histories": 1000000, "exposure_mAs": 100.0},
             },
         ]
         comparison = calc.compare_scorers(results)
@@ -518,126 +567,79 @@ class TestFindWaterChamberFiles:
         assert len(chamber_files["water_dtm"]) == 0
 
 
-class TestCalculateWaterChamber:
-    def test_calculate_includes_water_results(self, tmp_path: Path) -> None:
-        positions = ["Bottom", "Top", "Left", "Right", "Centre"]
-        for position in positions:
-            for ftype in ["dtm", "tle", "dtw", "water_dtm"]:
-                (tmp_path / "ChamberPlug{}_{}.csv".format(position, ftype)).write_text(
-                    "1.0e-10"
-                )
-
-        calc = _make_cal(tmp_path)
-
-        with patch.object(
-            calc,
-            "_extract_dose_from_file",
-            return_value=1.0e-10,
-        ):
-            results = calc.calculate()
-
-        scorer_types = [r["scorer_type"] for r in results]
-        assert "water_dtm" in scorer_types
-        water_result = [r for r in results if r["scorer_type"] == "water_dtm"][0]
-        assert water_result["is_primary"] is False
-        assert water_result["FileType"] == "water_dtm"
-
-    def test_calculate_without_water_files(self, tmp_path: Path) -> None:
-        positions = ["Bottom", "Top", "Left", "Right", "Centre"]
-        for position in positions:
-            for ftype in ["dtm", "tle", "dtw"]:
-                (tmp_path / "ChamberPlug{}_{}.csv".format(position, ftype)).write_text(
-                    "1.0e-10"
-                )
-
-        calc = _make_cal(tmp_path)
-
-        with patch.object(
-            calc,
-            "_extract_dose_from_file",
-            return_value=1.0e-10,
-        ):
-            results = calc.calculate()
-
-        scorer_types = [r["scorer_type"] for r in results]
-        assert "water_dtm" not in scorer_types
-        assert len(results) == 3
-
-
 class TestCompareScorersGuards:
     def test_duplicate_scorer_type_raises(self, tmp_path: Path) -> None:
         calc = _make_cal(tmp_path)
         results = [
             {
-                "FileType": "tle",
                 "scorer_type": "tle",
                 "is_primary": True,
-                "CTDI_w": 1.0e-10,
-                "PeripheralDoseAverage": 0.8e-10,
-                "CenterDose": 1.4e-10,
+                "raw_sum": 1.0e-10,
+                "peripheral_raw_sums": {},
+                "center_raw_sum": 1.0e-10,
+                "metadata": {"total_histories": 1000000, "exposure_mAs": 100.0},
             },
             {
-                "FileType": "dtm",
                 "scorer_type": "dtm",
                 "is_primary": False,
-                "CTDI_w": 0.9e-10,
-                "PeripheralDoseAverage": 0.7e-10,
-                "CenterDose": 1.3e-10,
+                "raw_sum": 0.9e-10,
+                "peripheral_raw_sums": {},
+                "center_raw_sum": 0.9e-10,
+                "metadata": {"total_histories": 1000000, "exposure_mAs": 100.0},
             },
             {
-                "FileType": "dtm",
                 "scorer_type": "dtm",
                 "is_primary": False,
-                "CTDI_w": 0.95e-10,
-                "PeripheralDoseAverage": 0.75e-10,
-                "CenterDose": 1.35e-10,
+                "raw_sum": 0.95e-10,
+                "peripheral_raw_sums": {},
+                "center_raw_sum": 0.95e-10,
+                "metadata": {"total_histories": 1000000, "exposure_mAs": 100.0},
             },
         ]
         with pytest.raises(ValueError, match="Duplicate scorer_type"):
             calc.compare_scorers(results)
 
-    def test_non_finite_tle_ctdi_raises(self, tmp_path: Path) -> None:
-
+    def test_non_finite_tle_raw_raises(self, tmp_path: Path) -> None:
         calc = _make_cal(tmp_path)
         results = [
             {
-                "FileType": "tle",
                 "scorer_type": "tle",
                 "is_primary": True,
-                "CTDI_w": float("nan"),
-                "PeripheralDoseAverage": 0.8e-10,
-                "CenterDose": 1.4e-10,
+                "raw_sum": float("nan"),
+                "peripheral_raw_sums": {},
+                "center_raw_sum": 1.0e-10,
+                "metadata": {"total_histories": 1000000, "exposure_mAs": 100.0},
             },
             {
-                "FileType": "dtm",
                 "scorer_type": "dtm",
                 "is_primary": False,
-                "CTDI_w": 0.9e-10,
-                "PeripheralDoseAverage": 0.7e-10,
-                "CenterDose": 1.3e-10,
+                "raw_sum": 0.9e-10,
+                "peripheral_raw_sums": {},
+                "center_raw_sum": 0.9e-10,
+                "metadata": {"total_histories": 1000000, "exposure_mAs": 100.0},
             },
         ]
         with pytest.raises(ValueError, match="not finite"):
             calc.compare_scorers(results)
 
-    def test_non_finite_analogue_ctdi_raises(self, tmp_path: Path) -> None:
+    def test_non_finite_analogue_raw_raises(self, tmp_path: Path) -> None:
         calc = _make_cal(tmp_path)
         results = [
             {
-                "FileType": "tle",
                 "scorer_type": "tle",
                 "is_primary": True,
-                "CTDI_w": 1.0e-10,
-                "PeripheralDoseAverage": 0.8e-10,
-                "CenterDose": 1.4e-10,
+                "raw_sum": 1.0e-10,
+                "peripheral_raw_sums": {},
+                "center_raw_sum": 1.0e-10,
+                "metadata": {"total_histories": 1000000, "exposure_mAs": 100.0},
             },
             {
-                "FileType": "dtm",
                 "scorer_type": "dtm",
                 "is_primary": False,
-                "CTDI_w": float("inf"),
-                "PeripheralDoseAverage": 0.7e-10,
-                "CenterDose": 1.3e-10,
+                "raw_sum": float("inf"),
+                "peripheral_raw_sums": {},
+                "center_raw_sum": 0.9e-10,
+                "metadata": {"total_histories": 1000000, "exposure_mAs": 100.0},
             },
         ]
         with pytest.raises(ValueError, match="not finite"):

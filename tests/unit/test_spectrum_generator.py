@@ -197,9 +197,10 @@ class TestSpectrumGenerator:
         with open(meta_path) as f:
             meta = yaml.safe_load(f)
 
-        assert meta["mAs"] == 100.0
+        assert meta["exposure_mAs"] == 100.0
         assert meta["total_histories"] == 500000
-        assert meta["dcf_used"] == 1.0
+        assert "dcf_used" not in meta
+        assert "norm_factor" not in meta
         assert meta["fan_mode"] == "Full Fan"
         assert meta["seed"] == 42
         assert meta["threads"] == 4
@@ -210,9 +211,10 @@ class TestSpectrumGenerator:
         assert meta["spekpy"]["mas"] == 100.0
         assert meta["spekpy"]["version"] == "2.0.1"
         assert "timestamp" in meta
+        assert "spectrum_fluence_photons_per_mAs" in meta
 
     @patch("src.spectrum_generator.sp")
-    def test_metadata_norm_factor_is_per_mAs(
+    def test_metadata_spectrum_fluence_is_per_mAs(
         self, mock_sp: MagicMock, tmp_path: object
     ) -> None:
         mock_sp.Spek.return_value = MockSpek()
@@ -224,15 +226,40 @@ class TestSpectrumGenerator:
         with open(meta_path) as f:
             meta = yaml.safe_load(f)
 
-        # norm_factor should be no_particles / (histories * mAs)
-        expected_norm = 4.0 * math.pi * 0.01 * 1000.0 / (100000 * 10.0)
-        assert abs(meta["norm_factor"] - expected_norm) < 1e-10
+        expected_fluence = 4.0 * math.pi * 0.01 * 1000.0 / 100000
+        assert abs(meta["spectrum_fluence_photons_per_mAs"] - expected_fluence) < 1e-10
 
-        # Backward-compat factor should equal norm_factor * mAs * dcf
-        calib_path = os.path.join(str(tmp_path), "tmp", "head_calibration_factor.txt")
-        with open(calib_path) as f:
-            calib = float(f.readline().strip())
-        assert abs(calib - meta["norm_factor"] * meta["mAs"] * meta["dcf_used"]) < 1e-10
+    @patch("src.spectrum_generator.sp")
+    def test_metadata_does_not_include_dcf_hint_when_one(
+        self, mock_sp: MagicMock, tmp_path: object
+    ) -> None:
+        mock_sp.Spek.return_value = MockSpek()
+        mock_sp.__version__ = "2.0.1"
+        os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
+        SpectrumGenerator.generate(100.0, 10.0, "100000", str(tmp_path))
+
+        meta_path = os.path.join(str(tmp_path), "tmp", "simulation_metadata.yaml")
+        with open(meta_path) as f:
+            meta = yaml.safe_load(f)
+
+        assert "dcf_hint" not in meta
+
+    @patch("src.spectrum_generator.sp")
+    def test_metadata_includes_dcf_hint_when_not_one(
+        self, mock_sp: MagicMock, tmp_path: object
+    ) -> None:
+        mock_sp.Spek.return_value = MockSpek()
+        mock_sp.__version__ = "2.0.1"
+        os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
+        SpectrumGenerator.generate(
+            100.0, 10.0, "100000", str(tmp_path), dose_calibration_factor=0.85
+        )
+
+        meta_path = os.path.join(str(tmp_path), "tmp", "simulation_metadata.yaml")
+        with open(meta_path) as f:
+            meta = yaml.safe_load(f)
+
+        assert meta["dcf_hint"] == 0.85
 
 
 if __name__ == "__main__":

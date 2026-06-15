@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 import math
-from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -26,28 +25,42 @@ class CTDICalculator:
 
     def __init__(self, runfolder: Path) -> None:
         self.runfolder = runfolder
+        self.total_histories: int = 0
+        self.exposure_mAs: float = 0.0
         self.simulation_metadata: Optional[Dict] = None
-        self.calibration_factor, self.simulation_metadata = (
-            self._read_simulation_metadata()
-        )
+        self._read_metadata()
 
     def calculate(self) -> List[Dict]:
-        """Compute CTDI-w results for each available scorer type.
+        """Compute raw CTDI-w results for each available scorer type.
 
         Returns one result dict per scorer type found in the runfolder.
         Each dict includes ``"scorer_type"``
-        (``"tle"``|``"dtm"``|``"dtw"``|``"water_dtm"``)
-        and ``"is_primary"`` (``True`` for TLE).
+        (``"tle"``|``"dtm"``|``"dtw"``|``"water_dtm"``),
+        ``"is_primary"`` (``True`` for TLE),
+        ``"raw_sum"`` (un-normalized CTDI-w from raw Sum values),
+        per-position raw sums, and ``"metadata"`` with
+        ``total_histories`` and ``exposure_mAs``.
+        No calibration factor, norm_factor, or DCF is applied.
         """
         chamber_files = self._find_chamber_files()
         results: List[Dict] = []
-        all_types = ALL_FILE_TYPES
-        for file_type in all_types:
+        for file_type in ALL_FILE_TYPES:
             if chamber_files[file_type]:
-                # Water DTM files keep their file_type as scorer_type ("water_dtm")
                 scorer_type = file_type
                 result = self._process_file_type(chamber_files[file_type], scorer_type)
                 if result:
+                    result["metadata"] = {
+                        "total_histories": self.total_histories,
+                        "exposure_mAs": self.exposure_mAs,
+                    }
+                    if (
+                        self.simulation_metadata
+                        and "spectrum_fluence_photons_per_mAs"
+                        in self.simulation_metadata
+                    ):
+                        result["metadata"]["spectrum_fluence_photons_per_mAs"] = (
+                            self.simulation_metadata["spectrum_fluence_photons_per_mAs"]
+                        )
                     results.append(result)
             else:
                 logger.info("No files found for %s", file_type)
@@ -63,24 +76,34 @@ class CTDICalculator:
         Raises:
             Exception: Re-raises any I/O or pandas error.
         """
+        flat: List[Dict] = []
+        for r in results:
+            row = {
+                "scorer_type": r.get("scorer_type"),
+                "is_primary": r.get("is_primary"),
+                "raw_sum": r.get("raw_sum"),
+                "total_histories": r.get("metadata", {}).get("total_histories"),
+                "exposure_mAs": r.get("metadata", {}).get("exposure_mAs"),
+            }
+            for pos_name, pos_sum in (r.get("peripheral_raw_sums") or {}).items():
+                row["peripheral_" + pos_name.lower()] = pos_sum
+            row["center_raw_sum"] = r.get("center_raw_sum")
+            flat.append(row)
         try:
-            df = pd.DataFrame(results)
+            df = pd.DataFrame(flat)
             df.to_csv(output_path, index=False)
             logger.info("Results saved to: %s", output_path)
         except Exception as e:
             logger.error("Error saving results: %s", e)
             raise
 
-    def _read_simulation_metadata(
-        self,
-    ) -> tuple[float, Optional[Dict]]:
+    def _read_metadata(self) -> None:
         """Read simulation metadata from runfolder.
 
         Tries ``simulation_metadata.yaml`` first (structured provenance),
         falls back to ``head_calibration_factor.txt`` for backward compatibility.
-
-        Returns:
-            Tuple of (calibration_factor, metadata_dict_or_None).
+        Sets ``self.total_histories``, ``self.exposure_mAs``, and
+        ``self.simulation_metadata``.
         """
         metadata_path = self.runfolder / "simulation_metadata.yaml"
         if metadata_path.exists():
@@ -88,23 +111,11 @@ class CTDICalculator:
                 with open(metadata_path, "r", encoding="utf-8") as f:
                     metadata = yaml.safe_load(f)
                 if isinstance(metadata, dict):
-                    combined = (
-                        metadata["norm_factor"] * metadata["mAs"] * metadata["dcf_used"]
-                    )
-                    if not isinstance(combined, (int, float)) or not math.isfinite(
-                        combined
-                    ):
-                        logger.warning(
-                            "Non-finite calibration factor from metadata; falling back"
-                        )
+                    if "norm_factor" in metadata:
+                        self._read_old_metadata(metadata)
                     else:
-                        logger.info(
-                            "Loaded simulation metadata: norm_factor=%.6e, mAs=%s, dcf=%s",
-                            metadata["norm_factor"],
-                            metadata["mAs"],
-                            metadata["dcf_used"],
-                        )
-                        return combined, metadata
+                        self._read_new_metadata(metadata)
+                    return
                 logger.warning(
                     "simulation_metadata.yaml is not a valid mapping; falling back"
                 )
@@ -114,29 +125,73 @@ class CTDICalculator:
                 )
 
         # Fallback to legacy calibration factor file.
-        factor = self._extract_calibration_factor()
-        return factor, None
+        self._extract_legacy_metadata()
 
-    def _extract_calibration_factor(self) -> float:
-        """Read the head calibration factor from the run folder."""
+    def _read_new_metadata(self, metadata: Dict) -> None:
+        """Parse new-format simulation_metadata.yaml."""
+        self.total_histories = int(metadata["total_histories"])
+        self.exposure_mAs = float(metadata["exposure_mAs"])
+        self.simulation_metadata = metadata
+        logger.info(
+            "Loaded new-format metadata: histories=%s, mAs=%s",
+            self.total_histories,
+            self.exposure_mAs,
+        )
+
+    def _read_old_metadata(self, metadata: Dict) -> None:
+        """Parse old-format simulation_metadata.yaml (norm_factor/mAs/dcf_used)."""
+        self.total_histories = int(metadata.get("total_histories", 0))
+        if self.total_histories <= 0:
+            logger.warning(
+                "Old-format metadata missing valid total_histories; defaulting to 0"
+            )
+        self.exposure_mAs = float(metadata["mAs"])
+        self.simulation_metadata = metadata
+        logger.info(
+            "Loaded old-format metadata: histories=%s, mAs=%s",
+            self.total_histories,
+            self.exposure_mAs,
+        )
+
+    def _extract_legacy_metadata(self) -> None:
+        """Read total_histories from legacy head_calibration_factor.txt."""
         calib_file = self.runfolder / "head_calibration_factor.txt"
         if not calib_file.exists():
-            raise FileNotFoundError("Calibration file not found: {}".format(calib_file))
+            raise FileNotFoundError(
+                "No metadata found in runfolder: {}".format(self.runfolder)
+            )
+
+        logger.warning(
+            "Using legacy head_calibration_factor.txt — "
+            "consider regenerating simulation_metadata.yaml"
+        )
 
         with open(calib_file, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
+        total_histories = 0
         for line in lines:
-            line = line.strip()
-            if line and not line.startswith("#") and not line.startswith(" "):
+            line_stripped = line.strip()
+            if line_stripped.startswith("The number of histories in this run was:"):
                 try:
-                    factor = float(line)
-                    logger.info("Calibration factor found: %s", factor)
-                    return factor
-                except ValueError:
+                    total_histories = int(line_stripped.split(":")[1].strip())
+                    break
+                except (ValueError, IndexError):
                     continue
 
-        raise ValueError("No calibration factor found in {}".format(calib_file))
+        if total_histories <= 0:
+            logger.warning(
+                "Could not parse total_histories from %s; defaulting to 0",
+                calib_file,
+            )
+
+        self.total_histories = total_histories
+        self.exposure_mAs = 0.0
+        self.simulation_metadata = None
+        logger.info(
+            "Legacy metadata: histories=%s (exposure_mAs unavailable from legacy format)",
+            total_histories,
+        )
 
     def _find_chamber_files(self) -> Dict[str, Dict[str, Path]]:
         """Locate all ChamberPlug CSV files organised by file type and position."""
@@ -213,13 +268,15 @@ class CTDICalculator:
     def _process_file_type(
         self, chamber_files: Dict[str, Path], file_type: str
     ) -> Optional[Dict]:
-        """Compute peripheral average, center dose, and CTDI-w for one file type.
+        """Compute raw (unscaled) CTDI-w and per-position raw Sum values.
 
         The ``file_type`` parameter doubles as the scorer type label
         (``"tle"``, ``"dtm"``, ``"dtw"``, ``"water_dtm"``).  The result
         dict includes ``"scorer_type"`` and ``"is_primary"`` fields so
         downstream consumers can distinguish measurement-equivalent (TLE)
         results from secondary and water-chamber scorers.
+
+        No calibration factor, norm_factor, or DCF is applied.
         """
         scorer_type = file_type
         is_primary = scorer_type == PRIMARY_SCORER
@@ -230,52 +287,40 @@ class CTDICalculator:
             is_primary,
         )
 
-        peripheral_doses: List[float] = []
+        peripheral_raw: List[float] = []
+        peripheral_sums: Dict[str, float] = {}
         for position in PERIPHERAL_POSITIONS:
             if position in chamber_files:
                 dose = self._extract_dose_from_file(chamber_files[position])
                 if dose is not None:
-                    scaled_dose = dose * self.calibration_factor
-                    peripheral_doses.append(scaled_dose)
-                    logger.info(
-                        "%s dose: %.6e Gy (scaled by factor %s)",
-                        position,
-                        scaled_dose,
-                        self.calibration_factor,
-                    )
+                    peripheral_raw.append(dose)
+                    peripheral_sums[position] = dose
+                    logger.info("%s raw sum: %.6e (unscaled)", position, dose)
                 else:
                     logger.warning("Failed to extract dose from %s file", position)
             else:
                 logger.warning("Missing %s position file", position)
 
-        center_dose: Optional[float] = None
+        center_raw: Optional[float] = None
         if CENTER_POSITION in chamber_files:
             dose = self._extract_dose_from_file(chamber_files[CENTER_POSITION])
             if dose is not None:
-                center_dose = dose * self.calibration_factor
-                logger.info(
-                    "Center dose: %.6e Gy (scaled by factor %s)",
-                    center_dose,
-                    self.calibration_factor,
-                )
+                center_raw = dose
+                logger.info("Center raw sum: %.6e (unscaled)", center_raw)
             else:
                 logger.warning("Failed to extract dose from center file")
         else:
             logger.warning("Missing center position file")
 
-        if peripheral_doses and center_dose is not None:
-            ctdi_w = self.calculate_ctdi_w(peripheral_doses, center_dose)
-            peripheral_avg = sum(peripheral_doses) / len(peripheral_doses)
+        if peripheral_raw and center_raw is not None:
+            raw_ctdi_w = self.calculate_ctdi_w(peripheral_raw, center_raw)
 
             return {
-                "FileType": file_type,
                 "scorer_type": scorer_type,
                 "is_primary": is_primary,
-                "PeripheralDoseAverage": peripheral_avg,
-                "CenterDose": center_dose,
-                "CTDI_w": ctdi_w,
-                "CalibrationFactor": self.calibration_factor,
-                "Timestamp": datetime.now().isoformat(),
+                "raw_sum": raw_ctdi_w,
+                "peripheral_raw_sums": peripheral_sums,
+                "center_raw_sum": center_raw,
             }
         else:
             logger.error("Insufficient data to calculate CTDI_w for %s", file_type)
@@ -290,7 +335,7 @@ class CTDICalculator:
 
         Args:
             results: Output of :meth:`calculate` — list of result dicts,
-                each containing ``"scorer_type"`` and ``"CTDI_w"`` keys.
+                each containing ``"scorer_type"`` and ``"raw_sum"`` keys.
 
         Returns:
             A dict with ``"tle_vs_dtm_ratio"``, ``"tle_vs_dtw_ratio"``
@@ -325,33 +370,41 @@ class CTDICalculator:
         comparison: Dict[str, object] = {}
 
         for analogue in analogue_types:
-            tle_ctdi = by_type[PRIMARY_SCORER]["CTDI_w"]
-            analogue_ctdi = by_type[analogue]["CTDI_w"]
+            tle_raw = by_type[PRIMARY_SCORER]["raw_sum"]
+            analogue_raw = by_type[analogue]["raw_sum"]
 
-            if not math.isfinite(tle_ctdi):
-                raise ValueError("TLE CTDI_w is not finite (%s)" % tle_ctdi)
-            if not math.isfinite(analogue_ctdi):
+            if not math.isfinite(tle_raw):
+                raise ValueError("TLE raw_sum is not finite (%s)" % tle_raw)
+            if not math.isfinite(analogue_raw):
                 raise ValueError(
-                    "%s CTDI_w is not finite (%s)" % (analogue, analogue_ctdi)
+                    "%s raw_sum is not finite (%s)" % (analogue, analogue_raw)
                 )
 
             ratio_key = "tle_vs_{}_ratio".format(analogue)
 
-            if analogue_ctdi != 0.0:
-                overall_ratio = tle_ctdi / analogue_ctdi
+            if analogue_raw != 0.0:
+                overall_ratio = tle_raw / analogue_raw
             else:
                 overall_ratio = float("inf")
 
             ratio_data: Dict[str, object] = {"overall": overall_ratio}
 
-            # Per-position ratios if position data is available
-            tle_periph = by_type[PRIMARY_SCORER].get("PeripheralDoseAverage", 0.0)
-            analogue_periph = by_type[analogue].get("PeripheralDoseAverage", 0.0)
-            tle_center = by_type[PRIMARY_SCORER].get("CenterDose", 0.0)
-            analogue_center = by_type[analogue].get("CenterDose", 0.0)
+            tle_periph = by_type[PRIMARY_SCORER].get("peripheral_raw_sums", {})
+            analogue_periph = by_type[analogue].get("peripheral_raw_sums", {})
+            tle_center = by_type[PRIMARY_SCORER].get("center_raw_sum", 0.0)
+            analogue_center = by_type[analogue].get("center_raw_sum", 0.0)
 
-            if analogue_periph != 0.0:
-                ratio_data["peripheral_avg"] = tle_periph / analogue_periph
+            tle_periph_avg = (
+                sum(tle_periph.values()) / len(tle_periph) if tle_periph else 0.0
+            )
+            analogue_periph_avg = (
+                sum(analogue_periph.values()) / len(analogue_periph)
+                if analogue_periph
+                else 0.0
+            )
+
+            if analogue_periph_avg != 0.0:
+                ratio_data["peripheral_avg"] = tle_periph_avg / analogue_periph_avg
             else:
                 ratio_data["peripheral_avg"] = float("inf")
             if analogue_center != 0.0:

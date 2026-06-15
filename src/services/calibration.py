@@ -106,6 +106,108 @@ class CalibrationService:
             return None
         return entry.dcf
 
+    def normalize(
+        self,
+        raw_result: Dict,
+        kV: int,
+        fan_mode: str,
+        target_mAs: Optional[float] = None,
+        dcf_override: Optional[float] = None,
+    ) -> Dict:
+        """Apply full normalization pipeline to a single raw result.
+
+        Computes CTDI-w in Gy by applying norm_factor, mAs scaling, and
+        DCF. Returns a dict with full provenance of all normalization
+        steps.
+
+        Normalization formula:
+            norm_factor = spectrum_fluence / total_histories
+            CTDI_w_raw_Gy = raw_ctdi_w * norm_factor * mAs_used
+            CTDI_w_calibrated_Gy = CTDI_w_raw_Gy * DCF
+
+        Args:
+            raw_result: A single result dict from
+                :meth:`CTDICalculator.calculate()`.
+            kV: Tube voltage in kV.
+            fan_mode: Fan mode string.
+            target_mAs: Optional mAs to rescale to. If None, uses
+                metadata exposure_mAs.
+            dcf_override: Optional DCF override. If None, looks up
+                from calibration.yaml.
+
+        Returns:
+            Dict with keys:
+            - ``ctdi_w_calibrated_Gy``
+            - ``ctdi_w_raw_Gy``
+            - ``dcf_applied`` (float or None)
+            - ``dcf_source`` (``"calibration.yaml"``, ``"override"``, or None)
+            - ``mAs_used``
+            - ``mAs_simulated``
+            - ``norm_factor``
+            - ``scorer_type``
+            - ``is_primary``
+
+        Raises:
+            ValueError: If metadata is missing required fields.
+        """
+        metadata = raw_result.get("metadata", {})
+        total_histories = metadata.get("total_histories", 0)
+        exposure_mAs = metadata.get("exposure_mAs", 0.0)
+
+        if total_histories <= 0 or exposure_mAs <= 0:
+            raise ValueError(
+                "Cannot normalize: invalid metadata "
+                "(total_histories=%s, exposure_mAs=%s)"
+                % (total_histories, exposure_mAs)
+            )
+
+        # Compute norm_factor from available metadata.
+        spectrum_fluence = metadata.get("spectrum_fluence_photons_per_mAs")
+        if spectrum_fluence is not None and spectrum_fluence > 0:
+            norm_factor = spectrum_fluence / total_histories
+        elif metadata.get("norm_factor"):
+            norm_factor = metadata["norm_factor"]
+        else:
+            raise ValueError(
+                "Cannot compute norm_factor: need either "
+                "spectrum_fluence_photons_per_mAs or norm_factor in metadata"
+            )
+
+        mAs_simulated = exposure_mAs
+        mAs_used = target_mAs if target_mAs is not None else mAs_simulated
+
+        raw_ctdi_w = raw_result.get("raw_sum", 0.0)
+        if not math.isfinite(raw_ctdi_w):
+            raise ValueError("raw_sum is not finite: %s" % raw_ctdi_w)
+
+        # raw Gy: norm_factor * mAs applied, no DCF
+        ctdi_w_raw_Gy = raw_ctdi_w * norm_factor * mAs_used
+
+        # DCF lookup
+        dcf: Optional[float] = dcf_override
+        dcf_source: Optional[str] = None
+        if dcf_override is not None:
+            dcf_source = "override"
+        else:
+            dcf_candidate = self.lookup_dcf(kV, fan_mode)
+            if dcf_candidate is not None:
+                dcf = dcf_candidate
+                dcf_source = "calibration.yaml"
+
+        ctdi_w_calibrated_Gy = ctdi_w_raw_Gy * dcf if dcf is not None else None
+
+        return {
+            "ctdi_w_calibrated_Gy": ctdi_w_calibrated_Gy,
+            "ctdi_w_raw_Gy": ctdi_w_raw_Gy,
+            "dcf_applied": dcf,
+            "dcf_source": dcf_source,
+            "mAs_used": mAs_used,
+            "mAs_simulated": mAs_simulated,
+            "norm_factor": norm_factor,
+            "scorer_type": raw_result.get("scorer_type"),
+            "is_primary": raw_result.get("is_primary", False),
+        }
+
     def apply(
         self,
         runfolder: Path,
@@ -114,7 +216,7 @@ class CalibrationService:
         target_mAs: Optional[float] = None,
         scorer_type: str = PRIMARY_SCORER,
     ) -> List[Dict]:
-        """Full calibration pipeline: CTDICalculator -> DCF -> mAs scaling.
+        """Full calibration pipeline: CTDICalculator -> normalize -> DCF.
 
         Only results matching *scorer_type* (default ``"tle"``) receive
         the DCF and mAs correction.  All other scorer types are returned
@@ -132,45 +234,30 @@ class CalibrationService:
 
         Raises:
             FileNotFoundError: If simulation_metadata.yaml is missing.
-            ValueError: If DCF is None or CTDICalculator returns empty results.
+            ValueError: If CTDICalculator returns empty results.
         """
-        metadata_path = runfolder / "simulation_metadata.yaml"
-        if not metadata_path.exists():
-            raise FileNotFoundError(
-                "simulation_metadata.yaml not found in %s" % runfolder
-            )
-
         calculator = CTDICalculator(runfolder)
-        if calculator.simulation_metadata is None:
-            raise ValueError("Could not read simulation metadata from %s" % runfolder)
-        try:
-            sim_mAs: float = float(calculator.simulation_metadata["mAs"])
-        except (KeyError, TypeError, ValueError) as exc:
-            raise ValueError(
-                "Malformed simulation_metadata.yaml in %s: %s" % (runfolder, exc)
-            ) from exc
 
         results = calculator.calculate()
         if not results:
             raise ValueError("CTDICalculator returned empty results for %s" % runfolder)
 
-        dcf = self.lookup_dcf(kV, fan_mode)
-        if dcf is None:
-            raise ValueError("No DCF calibrated for (%d, %s)" % (kV, fan_mode))
-
-        mAs_ratio = 1.0
-        if target_mAs is not None and target_mAs != sim_mAs:
-            mAs_ratio = target_mAs / sim_mAs
-
         calibrated: List[Dict] = []
         for result in results:
             if result.get("scorer_type") == scorer_type:
+                norm_result = self.normalize(
+                    result, kV, fan_mode, target_mAs=target_mAs
+                )
                 calibrated.append(
                     {
                         **result,
-                        "CTDI_w_calibrated": result["CTDI_w"] * dcf * mAs_ratio,
-                        "dcf_applied": dcf,
-                        "mAs_ratio": mAs_ratio,
+                        "CTDI_w_calibrated": norm_result["ctdi_w_calibrated_Gy"],
+                        "CTDI_w_raw": norm_result["ctdi_w_raw_Gy"],
+                        "dcf_applied": norm_result["dcf_applied"],
+                        "mAs_ratio": norm_result["mAs_used"]
+                        / norm_result["mAs_simulated"]
+                        if norm_result["mAs_simulated"] > 0
+                        else 1.0,
                     }
                 )
             else:
@@ -178,8 +265,9 @@ class CalibrationService:
                     {
                         **result,
                         "CTDI_w_calibrated": None,
+                        "CTDI_w_raw": None,
                         "dcf_applied": None,
-                        "mAs_ratio": mAs_ratio,
+                        "mAs_ratio": 1.0,
                         "note": "uncalibrated — secondary comparison",
                     }
                 )

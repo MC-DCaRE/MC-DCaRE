@@ -1,0 +1,32 @@
+# MC-DCaRE CTDI validation: half-dose half-arc test
+# 125 kV Half Fan, Pelvis, half rotation (timeline_end=450 s)
+# Halved exposure (540 mAs) + half rotation, same seq_times=80 for stats
+# Tests DCF linearity: arc change is irrelevant at same mAs (proven by half-arc v2 test),
+# so the 540 mAs from 1080 mAs is the dominant effect on raw CTDI_w
+
+general:
+  g4_data_directory: /home/bchcphysics/Applications/GEANT4/G4DATA
+  topas_directory: /home/bchcphysics/Applications/TOPAS/OpenTOPAS-build/topas
+  seed: '9'
+  threads: '20'
+  histories: '1000000'
+  dose_calibration_factor: '1.0'
+  log_filename: simulation.log
+imaging:
+  simulation_type: CTDI
+  rotation_direction: CBCT Clockwise
+  imaging_mode: Pelvis
+  exposure: "540 mAs"
+  sequential_times: '80'
+  timeline_end: '450 s'
+  time_verbosity: '0'
+ctdi:
+  dose_to_medium_zbins: '100'
+  tle_zbins: '100'
+  dose_to_water_zbins: '100'
+  couch_enabled: true
+  couch_width: 260. mm
+  couch_thickness: 0.4 mm
+  couch_length: 1000 mm
+  user_blade_enabled: false
+  graphics_enabled: false

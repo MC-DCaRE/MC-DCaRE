@@ -4,30 +4,50 @@ calibrations:
   - kV: 80
     fan_mode: "Full Fan"
     reference_mAs: 100.0
+    reference_protocol: "Image Gently"
+    reference_ctdi_w_mGy: 0.9
     measured_ctdi_w_mGy: 828.1
     dcf: 0.001087
+    date: "2026-06-12"
   - kV: 100
     fan_mode: "Full Fan"
     reference_mAs: 150.0
+    reference_protocol: "Head"
+    reference_ctdi_w_mGy: 3.2
     measured_ctdi_w_mGy: 2679.2
     dcf: 0.001194
+    date: "2026-06-12"
   - kV: 125
     fan_mode: "Full Fan"
     reference_mAs: 750.0
+    reference_protocol: "Short Thorax"
+    reference_ctdi_w_mGy: 43.93
+    note: "scaled from 12.3 mGy @ 210 mAs"
     measured_ctdi_w_mGy: 9792.6
     dcf: 0.004486
+    date: "2026-06-12"
   - kV: 125
     fan_mode: "Half Fan"
     reference_mAs: 1080.0
+    reference_protocol: "Pelvis"
+    reference_ctdi_w_mGy: 15.9
     measured_ctdi_w_mGy: 9506.9
     dcf: 0.001672
+    date: "2026-06-12"
   - kV: 140
     fan_mode: "Full Fan"
     reference_mAs: null
+    reference_protocol: null
+    reference_ctdi_w_mGy: null
     measured_ctdi_w_mGy: null
     dcf: null
+    date: null
+    note: "no CBCT protocol in reference table"
   - kV: 140
     fan_mode: "Half Fan"
     reference_mAs: 1700.5
+    reference_protocol: "Pelvis Large"
+    reference_ctdi_w_mGy: 37.1
     measured_ctdi_w_mGy: 20629.0
     dcf: 0.001798
+    date: "2026-06-12"

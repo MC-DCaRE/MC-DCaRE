@@ -9,23 +9,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `ImagingMode` dataclass extended to 21 fields: `ctdi_phantom`, `dose_factor`, `start_angle`, `fan_detail`, `no_projections`, `proj_increment`, `acquisition_time`, `ctiw_reference`
-- 26 new CBCT protocol entries (47 total): Spotlight Head (4), Spotlight Abdo (4), Chest, Pelvis Small, Low Dose Thorax, Large Body, plus Anticlockwise counterparts for all new protocols
-- `_resolve_imaging_mode()` in `config.py` auto-populates beam parameters from protocol name in YAML configs
-- `_RESOLVE_FIELD_MAP` module constant defining the 15-field mapping between `ImagingMode` attributes and config dict keys
-- Dynamic CBCT protocol dropdown in GUI (20 unique names extracted from `IMAGING_MODES`)
-- `CTDI_PHANTOM` GUI element updates from selected mode's `ctdi_phantom` field
-- `dose_calibration_factor` field in `GeneralConfig` for measurement-corrected dose output
-- `BenchmarkCalculator` service with `benchmark` subcommand in `calculate_ctdiw.py`
-- `compute_calibration_factor()` to derive simulation-to-measurement normalization ratio
-- Simulation logs recorded to runfolder: `simulation.log` (Python application log), `topas_*.log` (per-process TOPAS output)
-- `log_filename` field in `GeneralConfig` to configure the application log file name (default: `simulation.log`)
-- `run_with_runfolder()` and `create_runfolder()` on `Orchestrator` for early runfolder creation and file logging
-- Real-time TOPAS stdout/stderr capture via `subprocess.Popen` with per-process log files
-- `.local_paths.yaml` and `config.local.yaml` in `.gitignore` for machine-specific configs
-- `Orchestrator._copy_config_yaml()` copies the source config YAML into the runfolder for reproducibility and provenance tracking
+- Dose Calibration Factor (DCF) for all beam-quality groups:
+  - **80 kV Full Fan** (Image Gently, 100 mAs): DCF = 0.001087
+  - **100 kV Full Fan** (Head, 150 mAs): DCF = 0.001194
+  - **125 kV Full Fan** (Pelvis Spotlight, 750 mAs, scaled from Short Thorax ref 12.3 mGy @ 210 mAs): DCF = 0.004486
+  - **125 kV Half Fan** (Pelvis, 1080 mAs): DCF = 0.001672
+  - **140 kV Half Fan** (Pelvis Large, 1700.5 mAs): DCF = 0.001798
+- 4 calibration run configs (`configs/cal_*.yaml`) and 1 cross-validation config (`configs/xval_125kv_ff_short-thorax.yaml`)
+- `calibration.example.yaml` populated with all computed DCFs and measured CTDI_w values
+- Cross-validation confirms DCF transfer within (kV, fan) group:
+  - 125 kV FF: Pelvis (750 mAs) → Short Thorax (210 mAs): +0.00% error
+  - 125 kV HF: Pelvis (1080 mAs) → Thorax (268.5 mAs): −0.62% error
+- Arc-dependence test confirms DCF is independent of arc length at same (kV, fan_mode):
+  - 125 kV HF Pelvis half-arc (timeline_end=450 s, 80 seq, 80M histories, 1074 mAs): raw CTDI_w=9.583 Gy, DCF-applied=16.02 mGy vs 15.9 mGy ref (+0.75%), PASS
+  - Raw CTDI_w does NOT halve with arc length — same head_cal_factor (same mAs + same total_histories) keeps dose-per-particle normalization constant; only angular distribution changes
+  - `NumberOfSequentialTimes` controls total particles only, not arc geometry
+- Dose-level linearity test confirms DCF scales correctly with mAs:
+  - 125 kV HF Pelvis half-dose (540 mAs, half of 1080): raw CTDI_w=4.818 Gy (50.7% of full dose), calibrated=8.06 mGy vs half-reference 7.95 mGy (+1.34%), PASS
+  - DCF linearity holds — the calibration chain correctly handles partial exposures
+- Cross-fan-mode test confirms DCFs do NOT transfer between fan modes at the same kV:
+  - 125 kV FF DCF (0.004486) applied to 125 kV HF simulation: +165% error
+  - Each (kV, fan_mode) pair requires independent calibration
 
 ### Changed
+
+- 125 kV FF DCF corrected from 0.001256 → 0.004486 (previous used un-scaled Short Thorax reference of 12.3 mGy at 210 mAs against 750 mAs calibration)
+
+### Notes
+
+- 100 kV Half Fan (4 protocols, 150 mAs): no reference CTDI_w available, cannot calibrate
+- 140 kV Full Fan: no CBCT protocol in reference table, cannot calibrate
+- Half fan summary: 100 kV HF: no reference, cannot calibrate. 125 kV HF (12 protocols): calibrated and cross-validated. 140 kV HF (2 protocols): calibrated, no second reference for cross-validation
+- DCF is specific to (kV, fan_mode) — Full Fan and Half Fan at the same kV differ by factor 2.68× (125 kV) due to different bowtie filtration and scatter geometry
+
+### Changed (previous)
 
 - Replaced Python multiprocessing with TOPAS Parallel Worlds (Layered Mass Geometry) for CTDI simulations. A single TOPAS process now scores all 5 chamber plug positions (Centre, Top, Bottom, Left, Right) simultaneously using parallel worlds, eliminating the need for Python-level multiprocessing. The full `threads` count from the config is allocated to the single TOPAS process instead of being split across 5 separate processes, giving TOPAS/Geant4 maximum multithreading efficiency.
 - CTDI simulations now generate a single `CTDI_all_positions.txt` parameter file with 15 scorers (3 per position) instead of 5 separate parameter files.

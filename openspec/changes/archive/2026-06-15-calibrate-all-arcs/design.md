@@ -44,15 +44,18 @@ For each:
 **Goal**: Test whether the 125 kV Half Fan DCF (calibrated on full-arc Pelvis) holds for a partial-arc configuration with the same beam quality.
 
 **Config modification**: Copy the Pelvis config but:
-- `sequential_times`: reduce from 80 to ~40 (half the projections)
-- `timeline_end`: reduce from 900 s to ~400 s (half the rotation arc)
+- `timeline_end`: reduce from 900 s to 450 s (half the rotation arc)
+- Keep `sequential_times: 80` unchanged (same statistics as full arc)
 - Keep everything else identical: kV, fan_mode, field sizes, blade openings, histories
 
-**Predictions**:
-- If arc-independent: calibrated CTDI_w matches (e.g. Pelvis full arc ~15.9 mGy, truncated arc ~15.9 * 400/900 ≈ 7.1 mGy before DCF, same after DCF)
-- If arc-dependent: calibrated CTDI_w diverges from reference scaled by arc ratio
+*Note: `NumberOfSequentialTimes` only controls total particles (statistics multiplier), not the arc geometry. The arc is controlled entirely by `timeline_end` and `rotation_rate`.*
 
-Run the partial-arc config with both DCF=1.0 (raw) and DCF=0.0016725 (calibrated) to check.
+**Predictions**:
+- Raw CTDI_w ≈ 4.75 Gy (half of 9.51 Gy full arc, because same total_histories and head_cal_factor but half the rotation delivers half the dose per particle)
+- Calibrated: 4.75 × 1000 × 0.001672 = 7.94 mGy (vs 7.95 mGy expected for half-arc reference = 15.9 / 2)
+- If DCF is arc-independent: calibrated CTDI_w matches 7.95 mGy within statistics
+
+Run the half-arc config with `dose_calibration_factor: 1.0` (raw), compute CTDI_w, then apply DCF manually or via benchmark.
 
 ### Phase 4: Update calibration.example.yaml
 

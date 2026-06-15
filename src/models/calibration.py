@@ -31,9 +31,13 @@ class CalibrationEntry:
     reference_mAs: float
     measured_ctdi_w_mGy: Optional[float] = None
     dcf: Optional[float] = None
+    reference_protocol: Optional[str] = None
+    reference_ctdi_w_mGy: Optional[float] = None
+    date: Optional[str] = None
+    note: Optional[str] = None
 
     def __post_init__(self) -> None:
-        for name in ("measured_ctdi_w_mGy", "dcf"):
+        for name in ("measured_ctdi_w_mGy", "dcf", "reference_ctdi_w_mGy"):
             val = getattr(self, name)
             if val is not None and not isinstance(val, (int, float)):
                 raise TypeError(
@@ -103,6 +107,10 @@ class MachineCalibration:
                     "reference_mAs": e.reference_mAs,
                     "measured_ctdi_w_mGy": e.measured_ctdi_w_mGy,
                     "dcf": e.dcf,
+                    "reference_protocol": e.reference_protocol,
+                    "reference_ctdi_w_mGy": e.reference_ctdi_w_mGy,
+                    "date": e.date,
+                    "note": e.note,
                 }
                 for e in self.calibrations
             ],

@@ -1,4 +1,4 @@
-# MC-DCaRE CTDI calibration: 140 kV Half Fan (Pelvis Large)
+# MC-DCaRE CTDI calibration: 140 kV Full Fan (no reference protocol)
 general:
   g4_data_directory: /home/bchcphysics/Applications/GEANT4/G4DATA
   topas_directory: /home/bchcphysics/Applications/TOPAS/OpenTOPAS-build/topas
@@ -10,8 +10,8 @@ general:
 imaging:
   simulation_type: CTDI
   rotation_direction: CBCT Clockwise
-  imaging_mode: Pelvis Large
-  exposure: '1700.5 mAs'
+  imaging_mode: Head
+  anode_voltage: '140 kV'
   sequential_times: '150'
   time_verbosity: '0'
 ctdi:

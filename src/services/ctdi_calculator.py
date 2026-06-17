@@ -53,14 +53,15 @@ class CTDICalculator:
                         "total_histories": self.total_histories,
                         "exposure_mAs": self.exposure_mAs,
                     }
-                    if (
-                        self.simulation_metadata
-                        and "spectrum_fluence_photons_per_mAs"
-                        in self.simulation_metadata
-                    ):
-                        result["metadata"]["spectrum_fluence_photons_per_mAs"] = (
-                            self.simulation_metadata["spectrum_fluence_photons_per_mAs"]
-                        )
+                    if self.simulation_metadata:
+                        if "spectrum_fluence_photons_per_mAs" in self.simulation_metadata:
+                            result["metadata"]["spectrum_fluence_photons_per_mAs"] = (
+                                self.simulation_metadata["spectrum_fluence_photons_per_mAs"]
+                            )
+                        if "norm_factor" in self.simulation_metadata:
+                            result["metadata"]["norm_factor"] = (
+                                self.simulation_metadata["norm_factor"]
+                            )
                     results.append(result)
             else:
                 logger.info("No files found for %s", file_type)

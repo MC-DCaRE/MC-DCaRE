@@ -228,7 +228,7 @@ def benchmark(
         console.print("\nSome comparisons FAIL.", style="bold red")
 
     console.print("\nRecommended DCF by scorer:", style="yellow")
-    primary_factor = None
+    primary_simulated_Gy = None
     for r in results:
         cal_factor = BenchmarkCalculator.compute_calibration_factor(
             r.simulated_ctdi_w_Gy, r.reference_ctdi_w_Gy
@@ -237,20 +237,20 @@ def benchmark(
             console.print("  {}: N/A (simulated dose is zero)".format(r.file_type))
         else:
             console.print("  {}: {:.6e}".format(r.file_type, cal_factor))
-            if primary_factor is None:
-                primary_factor = cal_factor
+            if primary_simulated_Gy is None:
+                primary_simulated_Gy = r.simulated_ctdi_w_Gy
 
     # Write DCF to calibration.yaml if kV and fan_mode provided
     if (
         kV is not None
         and fan_mode is not None
-        and primary_factor is not None
-        and not math.isnan(primary_factor)
+        and primary_simulated_Gy is not None
+        and not math.isnan(primary_simulated_Gy)
     ):
         try:
             calib_svc = CalibrationService(Path(calibration_yaml))
             dcf_value = calib_svc.compute_dcf(
-                kV, fan_mode, primary_factor, reference, force=True
+                kV, fan_mode, primary_simulated_Gy, reference, force=True
             )
             console.print(
                 "\nDCF written to {}: ({}, {}) -> {:.6f}".format(

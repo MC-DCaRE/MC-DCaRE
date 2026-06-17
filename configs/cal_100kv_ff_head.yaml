@@ -11,7 +11,7 @@ imaging:
   simulation_type: CTDI
   rotation_direction: CBCT Clockwise
   imaging_mode: Head
-  sequential_times: '80'
+  sequential_times: '150'
   time_verbosity: '0'
 ctdi:
   dose_to_medium_zbins: '100'

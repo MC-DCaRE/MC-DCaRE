@@ -1,53 +1,62 @@
-machine: "TrueBeam-SN1234"
-date_calibrated: "2026-06-13"
+machine: TrueBeam-SN1234
+date_calibrated: '2026-06-18'
 calibrations:
-  - kV: 80
-    fan_mode: "Full Fan"
-    reference_mAs: 100.0
-    reference_protocol: "Image Gently"
-    reference_ctdi_w_mGy: 0.9
-    measured_ctdi_w_mGy: 828.1
-    dcf: 0.001087
-    date: "2026-06-12"
-  - kV: 100
-    fan_mode: "Full Fan"
-    reference_mAs: 150.0
-    reference_protocol: "Head"
-    reference_ctdi_w_mGy: 3.2
-    measured_ctdi_w_mGy: 2679.2
-    dcf: 0.001194
-    date: "2026-06-12"
-  - kV: 125
-    fan_mode: "Full Fan"
-    reference_mAs: 750.0
-    reference_protocol: "Short Thorax"
-    reference_ctdi_w_mGy: 43.93
-    note: "scaled from 12.3 mGy @ 210 mAs"
-    measured_ctdi_w_mGy: 9792.6
-    dcf: 0.004486
-    date: "2026-06-12"
-  - kV: 125
-    fan_mode: "Half Fan"
-    reference_mAs: 1080.0
-    reference_protocol: "Pelvis"
-    reference_ctdi_w_mGy: 15.9
-    measured_ctdi_w_mGy: 9506.9
-    dcf: 0.001672
-    date: "2026-06-12"
-  - kV: 140
-    fan_mode: "Full Fan"
-    reference_mAs: null
-    reference_protocol: null
-    reference_ctdi_w_mGy: null
-    measured_ctdi_w_mGy: null
-    dcf: null
-    date: null
-    note: "no CBCT protocol in reference table"
-  - kV: 140
-    fan_mode: "Half Fan"
-    reference_mAs: 1700.5
-    reference_protocol: "Pelvis Large"
-    reference_ctdi_w_mGy: 37.1
-    measured_ctdi_w_mGy: 20629.0
-    dcf: 0.001798
-    date: "2026-06-12"
+- kV: 80
+  fan_mode: Full Fan
+  reference_mAs: 100.2
+  measured_ctdi_w_mGy: 0.9
+  dcf: 1613.771797450256
+  reference_protocol: Image Gently
+  reference_ctdi_w_mGy: 0.9
+  date: null
+  note: matches reference_doses.yaml exactly
+
+- kV: 100
+  fan_mode: Full Fan
+  reference_mAs: 150.3
+  measured_ctdi_w_mGy: 3.2
+  dcf: 1188.6926248294637
+  reference_protocol: Head
+  reference_ctdi_w_mGy: 3.2
+  date: null
+  note: matches reference_doses.yaml exactly
+
+- kV: 125
+  fan_mode: Full Fan
+  reference_mAs: 751.5
+  measured_ctdi_w_mGy: 12.3
+  dcf: 247.31595827185393
+  reference_protocol: Pelvis Spotlight
+  reference_ctdi_w_mGy: 12.3
+  date: null
+  note: FIXED — was 43.93 (mAs-scaled from Short Thorax). Now uses Pelvis Spotlight table value.
+
+- kV: 125
+  fan_mode: Half Fan
+  reference_mAs: 1074
+  measured_ctdi_w_mGy: 15.99
+  dcf: 225.86263401884057
+  reference_protocol: Pelvis
+  reference_ctdi_w_mGy: 15.9
+  date: null
+  note: table:15.9 mGy at 1074 mAs; reference mAs-scaled to 1080 (sim mAs) → 15.99. 0.6% discrepancy.
+
+- kV: 140
+  fan_mode: Full Fan
+  reference_mAs: null
+  measured_ctdi_w_mGy: null
+  dcf: null
+  reference_protocol: null
+  reference_ctdi_w_mGy: null
+  date: null
+  note: no CBCT protocol in reference_doses.yaml for 140 kV Full Fan
+
+- kV: 140
+  fan_mode: Half Fan
+  reference_mAs: 1700.5
+  measured_ctdi_w_mGy: 37.1
+  dcf: 159.8576571355341
+  reference_protocol: Pelvis Large
+  reference_ctdi_w_mGy: 37.1
+  date: null
+  note: matches reference_doses.yaml exactly

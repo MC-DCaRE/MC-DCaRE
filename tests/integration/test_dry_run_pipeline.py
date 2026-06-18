@@ -33,7 +33,9 @@ def _mock_generate(
     with open(os.path.join(tmp_dir, "head_calibration_factor.txt"), "w") as f:
         f.write("1.0\n")
     with open(os.path.join(tmp_dir, "simulation_metadata.yaml"), "w") as f:
-        f.write("total_histories: 100000\nexposure_mAs: 100\nspectrum_fluence_photons_per_mAs: 2.34e8\n")
+        f.write(
+            "total_histories: 100000\nexposure_mAs: 100\nspectrum_fluence_photons_per_mAs: 2.34e8\n"
+        )
 
 
 @pytest.fixture
@@ -231,6 +233,7 @@ class TestDicomDryRunPipeline:
         meta_path = os.path.join(rundir, "simulation_metadata.yaml")
         with open(meta_path) as f:
             import yaml
+
             meta = yaml.safe_load(f)
         assert "total_histories" in meta
         assert "exposure_mAs" in meta

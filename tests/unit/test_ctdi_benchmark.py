@@ -12,6 +12,7 @@ from src.services.ctdi_benchmark import BenchmarkCalculator, BenchmarkResult, MS
 
 def _make_bench(tmp_path: Path, mAs: float = 100.0) -> BenchmarkCalculator:
     import yaml
+
     metadata = {
         "total_histories": 1000000,
         "exposure_mAs": mAs,
@@ -62,8 +63,8 @@ class TestUnitConversion:
     def test_reference_conversion(self, tmp_path: Path) -> None:
         bench = _make_bench(tmp_path)
         ref_mSv = 8.52
-        norm_factor = 2.34e8 / 1e6
-        raw_sum = ref_mSv * MSV_TO_GY / (norm_factor * 100.0)
+        photons_per_mAs = 2.34e8 * 1e6 / 100.0
+        raw_sum = ref_mSv * MSV_TO_GY / (photons_per_mAs * 100.0)
         mock_results = [_make_raw_result(raw_sum)]
 
         with patch.object(bench.calculator, "validate"):
@@ -78,8 +79,8 @@ class TestCompareWithinTolerance:
     def test_simulated_close_to_reference(self, tmp_path: Path) -> None:
         bench = _make_bench(tmp_path)
         ref_mSv = 10.0
-        norm_factor = 2.34e8 / 1e6
-        raw_sum = ref_mSv * MSV_TO_GY * 1.05 / (norm_factor * 100.0)
+        photons_per_mAs = 2.34e8 * 1e6 / 100.0
+        raw_sum = ref_mSv * MSV_TO_GY * 1.05 / (photons_per_mAs * 100.0)
         mock_results = [_make_raw_result(raw_sum)]
 
         with patch.object(bench.calculator, "validate"):
@@ -95,8 +96,8 @@ class TestCompareOutsideTolerance:
     def test_simulated_far_from_reference(self, tmp_path: Path) -> None:
         bench = _make_bench(tmp_path)
         ref_mSv = 10.0
-        norm_factor = 2.34e8 / 1e6
-        raw_sum = ref_mSv * MSV_TO_GY * 1.25 / (norm_factor * 100.0)
+        photons_per_mAs = 2.34e8 * 1e6 / 100.0
+        raw_sum = ref_mSv * MSV_TO_GY * 1.25 / (photons_per_mAs * 100.0)
         mock_results = [_make_raw_result(raw_sum)]
 
         with patch.object(bench.calculator, "validate"):
@@ -112,8 +113,8 @@ class TestCompareNegativeDeviation:
     def test_simulated_below_reference(self, tmp_path: Path) -> None:
         bench = _make_bench(tmp_path)
         ref_mSv = 10.0
-        norm_factor = 2.34e8 / 1e6
-        raw_sum = ref_mSv * MSV_TO_GY * 0.92 / (norm_factor * 100.0)
+        photons_per_mAs = 2.34e8 * 1e6 / 100.0
+        raw_sum = ref_mSv * MSV_TO_GY * 0.92 / (photons_per_mAs * 100.0)
         mock_results = [_make_raw_result(raw_sum)]
 
         with patch.object(bench.calculator, "validate"):
@@ -145,8 +146,8 @@ class TestCompareEdgeCases:
     def test_multiple_file_types_only_tle_benchmarked(self, tmp_path: Path) -> None:
         bench = _make_bench(tmp_path)
         ref_mSv = 10.0
-        norm_factor = 2.34e8 / 1e6
-        raw_sum = ref_mSv * MSV_TO_GY * 0.97 / (norm_factor * 100.0)
+        photons_per_mAs = 2.34e8 * 1e6 / 100.0
+        raw_sum = ref_mSv * MSV_TO_GY * 0.97 / (photons_per_mAs * 100.0)
         mock_results = [
             _make_raw_result(raw_sum * 1.02, scorer_type="dtm", is_primary=False),
             _make_raw_result(raw_sum, scorer_type="tle", is_primary=True),

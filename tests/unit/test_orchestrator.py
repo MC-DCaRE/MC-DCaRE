@@ -460,6 +460,27 @@ class TestOrchestratorPhaseSpace:
         assert abs(result["norm_factor"] - 1.0e-11) < 1e-20
         assert result["phase_space_multiple_use"] == 10
 
+    def test_write_replay_metadata_adjusts_spectrum_fluence(
+        self, tmp_path: Any
+    ) -> None:
+        """New-format metadata: spectrum_fluence is divided by M."""
+        metadata = {
+            "total_histories": 1000000,
+            "exposure_mAs": 100.0,
+            "spectrum_fluence_photons_per_mAs": 2.34e8,
+        }
+        meta_path = tmp_path / "simulation_metadata.yaml"
+        with open(meta_path, "w") as f:
+            yaml.dump(metadata, f)
+        rundir = str(tmp_path / "run")
+        os.makedirs(rundir)
+        Orchestrator._write_replay_metadata(rundir, str(meta_path), 10)
+        with open(os.path.join(rundir, "simulation_metadata.yaml")) as f:
+            result = yaml.safe_load(f)
+        assert abs(result["spectrum_fluence_photons_per_mAs"] - 2.34e7) < 1.0
+        assert "norm_factor" not in result
+        assert result["phase_space_multiple_use"] == 10
+
     def test_write_replay_metadata_rejects_invalid_file(self, tmp_path: Any) -> None:
         bad_path = tmp_path / "bad.yaml"
         bad_path.write_text("not a dict")
@@ -468,15 +489,13 @@ class TestOrchestratorPhaseSpace:
         with pytest.raises(ValueError, match="Invalid metadata file"):
             Orchestrator._write_replay_metadata(rundir, str(bad_path), 1)
 
-    def test_write_replay_metadata_rejects_missing_norm_factor(
-        self, tmp_path: Any
-    ) -> None:
+    def test_write_replay_metadata_rejects_missing_fields(self, tmp_path: Any) -> None:
         meta_path = tmp_path / "simulation_metadata.yaml"
         with open(meta_path, "w") as f:
             yaml.dump({"mAs": 100.0}, f)
         rundir = str(tmp_path / "run")
         os.makedirs(rundir)
-        with pytest.raises(ValueError, match="missing 'norm_factor'"):
+        with pytest.raises(ValueError, match="missing both"):
             Orchestrator._write_replay_metadata(rundir, str(meta_path), 1)
 
     def test_replay_metadata_found_alongside_phsp_file(self, tmp_path: Any) -> None:

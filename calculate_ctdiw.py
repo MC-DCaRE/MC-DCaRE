@@ -24,24 +24,30 @@ DEFAULT_CALIBRATION_PATH = "calibration.yaml"
 
 
 def _compute_raw_Gy(result: dict) -> float:
-    """Compute raw Gy (norm_factor x mAs, no DCF) from a raw result dict."""
+    """Compute raw Gy (photons_per_mAs x mAs, no DCF) from a raw result dict.
+
+    The physical dose is: per_history_dose (TOPAS Sum) x total_real_photons.
+    total_real_photons = photons_per_mAs x mAs, where photons_per_mAs is
+    derived from spectrum_fluence (= no_particles / total_histories) and
+    simplifies to no_particles / mAs, a kV-dependent constant.
+    """
     metadata = result.get("metadata", {})
     total_histories = metadata.get("total_histories", 0)
     exposure_mAs = metadata.get("exposure_mAs", 0.0)
     spectrum_fluence = metadata.get("spectrum_fluence_photons_per_mAs")
 
-    if spectrum_fluence and spectrum_fluence > 0 and total_histories > 0:
-        norm_factor = spectrum_fluence / total_histories
+    if spectrum_fluence and spectrum_fluence > 0 and exposure_mAs > 0:
+        photons_per_mAs = spectrum_fluence * total_histories / exposure_mAs
     elif metadata.get("norm_factor"):
-        norm_factor = metadata["norm_factor"]
+        photons_per_mAs = metadata["norm_factor"] * total_histories
     else:
         raise ValueError(
-            "Cannot compute norm_factor: need either "
+            "Cannot compute photons_per_mAs: need either "
             "spectrum_fluence_photons_per_mAs or norm_factor in metadata"
         )
 
     raw_sum = result.get("raw_sum", 0.0)
-    return raw_sum * norm_factor * exposure_mAs
+    return raw_sum * photons_per_mAs * exposure_mAs
 
 
 @app.command()

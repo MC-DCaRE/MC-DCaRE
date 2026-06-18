@@ -40,7 +40,7 @@ class BenchmarkCalculator:
         """Compute simulated CTDI-w and compare against a reference in mSv.
 
         Uses the normalization pipeline to compute raw Gy
-        (norm_factor x mAs, no DCF) from raw Sum values.
+        (photons_per_mAs x mAs, no DCF) from raw Sum values.
         Only TLE (primary) scorer results are benchmarked by default.
         Other scorer types are skipped.
 
@@ -74,10 +74,15 @@ class BenchmarkCalculator:
         exposure_mAs = metadata.get("exposure_mAs", 0.0)
         spectrum_fluence = metadata.get("spectrum_fluence_photons_per_mAs")
 
-        if spectrum_fluence and spectrum_fluence > 0 and total_histories > 0:
-            norm_factor = spectrum_fluence / total_histories
+        if spectrum_fluence and spectrum_fluence > 0 and exposure_mAs > 0:
+            photons_per_mAs = spectrum_fluence * total_histories / exposure_mAs
         else:
-            norm_factor = self.calculator.simulation_metadata.get("norm_factor", 1.0) if self.calculator.simulation_metadata else 1.0
+            old_nf = (
+                self.calculator.simulation_metadata.get("norm_factor", 1.0)
+                if self.calculator.simulation_metadata
+                else 1.0
+            )
+            photons_per_mAs = old_nf * total_histories
 
         benchmark_results: List[BenchmarkResult] = []
         for calc_result in calc_results:
@@ -89,7 +94,7 @@ class BenchmarkCalculator:
                 continue
 
             raw_sum = calc_result.get("raw_sum", 0.0)
-            simulated_Gy = raw_sum * norm_factor * exposure_mAs
+            simulated_Gy = raw_sum * photons_per_mAs * exposure_mAs
 
             deviation = (simulated_Gy - reference_Gy) / reference_Gy * 100
             status = "PASS" if abs(deviation) <= tolerance_pct else "FAIL"

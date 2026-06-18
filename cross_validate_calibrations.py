@@ -98,9 +98,7 @@ def cross_validate(
     calib_svc = CalibrationService(calibration_path)
     results: List[CrossValidationResult] = []
 
-    runfolders = sorted(
-        [d for d in runfolder_dir.iterdir() if d.is_dir()]
-    )
+    runfolders = sorted([d for d in runfolder_dir.iterdir() if d.is_dir()])
 
     for rf in runfolders:
         meta = extract_runfolder_metadata(rf)
@@ -120,9 +118,7 @@ def cross_validate(
         # Look up DCF
         dcf = calib_svc.lookup_dcf(kV, fan_mode)
         if dcf is None:
-            logger.debug(
-                "Skipping %s: no DCF for (%d kV, %s)", rf.name, kV, fan_mode
-            )
+            logger.debug("Skipping %s: no DCF for (%d kV, %s)", rf.name, kV, fan_mode)
             continue
 
         # Look up reference values from calibration entry
@@ -130,7 +126,9 @@ def cross_validate(
         if entry is None or entry.reference_ctdi_w_mGy is None:
             logger.debug(
                 "Skipping %s: no reference CTDI-w for (%d kV, %s)",
-                rf.name, kV, fan_mode,
+                rf.name,
+                kV,
+                fan_mode,
             )
             continue
 
@@ -140,7 +138,9 @@ def cross_validate(
         if reference_mAs is None or reference_mAs <= 0:
             logger.debug(
                 "Skipping %s: no reference_mAs for (%d kV, %s)",
-                rf.name, kV, fan_mode,
+                rf.name,
+                kV,
+                fan_mode,
             )
             continue
 
@@ -165,21 +165,22 @@ def cross_validate(
 
         raw_sum = tle_result.get("raw_sum", 0.0)
 
-        # Compute norm_factor
+        # Compute photons_per_mAs: no_particles / mAs (kV-dependent constant)
+        # Derived from spectrum_fluence (= no_particles / total_histories)
         result_metadata = tle_result.get("metadata", {})
         th = result_metadata.get("total_histories", 0)
         spectrum_fluence = result_metadata.get("spectrum_fluence_photons_per_mAs")
         old_norm = result_metadata.get("norm_factor")
 
-        if spectrum_fluence and spectrum_fluence > 0 and th > 0:
-            norm_factor = spectrum_fluence / th
+        if spectrum_fluence and spectrum_fluence > 0 and exposure_mAs > 0:
+            photons_per_mAs = spectrum_fluence * th / exposure_mAs
         elif old_norm:
-            norm_factor = old_norm
+            photons_per_mAs = old_norm * th
         else:
-            logger.warning("Cannot compute norm_factor for %s", rf.name)
+            logger.warning("Cannot compute photons_per_mAs for %s", rf.name)
             continue
 
-        raw_Gy = raw_sum * norm_factor * exposure_mAs
+        raw_Gy = raw_sum * photons_per_mAs * exposure_mAs
         calibrated_Gy = raw_Gy * dcf
         calibrated_mGy = calibrated_Gy * 1000.0  # DCF converts Gy→Gy
 
@@ -279,15 +280,25 @@ def print_summary(results: List[CrossValidationResult], tolerance_pct: float) ->
             else 0.0
         )
 
-        status = "[bold green]ALL PASS[/bold green]" if n_fail == 0 else (
-            "[bold red]{}/{} FAIL[/bold red]".format(n_fail, len(errors))
+        status = (
+            "[bold green]ALL PASS[/bold green]"
+            if n_fail == 0
+            else ("[bold red]{}/{} FAIL[/bold red]".format(n_fail, len(errors)))
         )
 
         console.print(
             "  {} kV {} (DCF={:.2f}, ref={:.1f} mGy @ {:.0f} mAs): "
             "{} runs, avg err={:+.3f}%, std={:.3f}%, max={:.3f}% — {}".format(
-                kV, fan_short, dcf, ref_mGy, ref_mAs,
-                len(errors), avg_err, std_err, max_err, status,
+                kV,
+                fan_short,
+                dcf,
+                ref_mGy,
+                ref_mAs,
+                len(errors),
+                avg_err,
+                std_err,
+                max_err,
+                status,
             )
         )
 
@@ -295,7 +306,11 @@ def print_summary(results: List[CrossValidationResult], tolerance_pct: float) ->
     total_fail = len(results) - total_pass
     console.print(
         "\n[bold]Total: {}/{} PASS, {}/{} FAIL (tolerance: {:.1f}%)[/bold]".format(
-            total_pass, len(results), total_fail, len(results), tolerance_pct,
+            total_pass,
+            len(results),
+            total_fail,
+            len(results),
+            tolerance_pct,
         )
     )
 
@@ -307,21 +322,24 @@ def main() -> None:
         description="Cross-validate calibration DCFs against run-folders"
     )
     parser.add_argument(
-        "--calibration", "-c",
+        "--calibration",
+        "-c",
         default=DEFAULT_CALIBRATION_PATH,
         help="Path to calibration YAML file (default: {})".format(
             DEFAULT_CALIBRATION_PATH
         ),
     )
     parser.add_argument(
-        "--runfolder-dir", "-r",
+        "--runfolder-dir",
+        "-r",
         default=DEFAULT_RUNFOLDER_DIR,
         help="Directory containing run-folders (default: {})".format(
             DEFAULT_RUNFOLDER_DIR
         ),
     )
     parser.add_argument(
-        "--tolerance", "-t",
+        "--tolerance",
+        "-t",
         type=float,
         default=10.0,
         help="Tolerance in percent (default: 10.0)",
@@ -347,7 +365,8 @@ def main() -> None:
 
     console.print(
         "Cross-validating DCFs from [cyan]{}[/cyan] against [cyan]{}[/cyan]\n".format(
-            calibration_path, runfolder_dir,
+            calibration_path,
+            runfolder_dir,
         )
     )
 

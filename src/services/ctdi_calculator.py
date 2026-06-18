@@ -54,9 +54,14 @@ class CTDICalculator:
                         "exposure_mAs": self.exposure_mAs,
                     }
                     if self.simulation_metadata:
-                        if "spectrum_fluence_photons_per_mAs" in self.simulation_metadata:
+                        if (
+                            "spectrum_fluence_photons_per_mAs"
+                            in self.simulation_metadata
+                        ):
                             result["metadata"]["spectrum_fluence_photons_per_mAs"] = (
-                                self.simulation_metadata["spectrum_fluence_photons_per_mAs"]
+                                self.simulation_metadata[
+                                    "spectrum_fluence_photons_per_mAs"
+                                ]
                             )
                         if "norm_factor" in self.simulation_metadata:
                             result["metadata"]["norm_factor"] = (

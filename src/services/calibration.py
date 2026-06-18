@@ -116,14 +116,20 @@ class CalibrationService:
     ) -> Dict:
         """Apply full normalization pipeline to a single raw result.
 
-        Computes CTDI-w in Gy by applying norm_factor, mAs scaling, and
-        DCF. Returns a dict with full provenance of all normalization
-        steps.
+        Computes CTDI-w in Gy by converting the TOPAS per-history dose to
+        physical dose via photon scaling, then applying the DCF. Returns a
+        dict with full provenance of all normalization steps.
 
         Normalization formula:
-            norm_factor = spectrum_fluence / total_histories
-            CTDI_w_raw_Gy = raw_ctdi_w * norm_factor * mAs_used
+            photons_per_mAs = spectrum_fluence * total_histories / mAs_simulated
+            CTDI_w_raw_Gy = raw_ctdi_w * photons_per_mAs * mAs_used
             CTDI_w_calibrated_Gy = CTDI_w_raw_Gy * DCF
+
+        photons_per_mAs is a constant for the given kV: spectrum_fluence
+        (from SpekPy via spectrum_generator) already encodes the mAs and
+        total_histories used at simulation time, so the division and
+        multiplication algebraically cancel, leaving a value that depends
+        only on kV and tube geometry.
 
         Args:
             raw_result: A single result dict from
@@ -143,7 +149,7 @@ class CalibrationService:
             - ``dcf_source`` (``"calibration.yaml"``, ``"override"``, or None)
             - ``mAs_used``
             - ``mAs_simulated``
-            - ``norm_factor``
+            - ``photons_per_mAs``
             - ``scorer_type``
             - ``is_primary``
 
@@ -161,7 +167,12 @@ class CalibrationService:
                 % (total_histories, exposure_mAs)
             )
 
-        # Compute photons_per_mAs (constant for kV, independent of mAs and histories).
+        # Compute photons_per_mAs: a kV-dependent constant.
+        # spectrum_fluence = no_particles / total_histories (from spectrum_generator),
+        # where no_particles ∝ mAs. So:
+        #   photons_per_mAs = spectrum_fluence * total_histories / mAs
+        #                   = (no_particles / total_histories) * total_histories / mAs
+        #                   = no_particles / mAs  (kV-dependent constant)
         spectrum_fluence = metadata.get("spectrum_fluence_photons_per_mAs")
         if spectrum_fluence is not None and spectrum_fluence > 0:
             photons_per_mAs = spectrum_fluence * total_histories / exposure_mAs

@@ -40,7 +40,7 @@ class BenchmarkCalculator:
         """Compute simulated CTDI-w and compare against a reference in mSv.
 
         Uses the normalization pipeline to compute raw Gy
-        (norm_factor x mAs, no DCF) from raw Sum values.
+        (photons_per_mAs x mAs, no DCF) from raw Sum values.
         Only TLE (primary) scorer results are benchmarked by default.
         Other scorer types are skipped.
 

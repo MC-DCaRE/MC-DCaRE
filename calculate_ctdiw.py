@@ -27,8 +27,9 @@ def _compute_raw_Gy(result: dict) -> float:
     """Compute raw Gy (photons_per_mAs x mAs, no DCF) from a raw result dict.
 
     The physical dose is: per_history_dose (TOPAS Sum) x total_real_photons.
-    total_real_photons = photons_per_mAs x mAs, where photons_per_mAs is a
-    constant for the given kV (independent of mAs and total_histories).
+    total_real_photons = photons_per_mAs x mAs, where photons_per_mAs is
+    derived from spectrum_fluence (= no_particles / total_histories) and
+    simplifies to no_particles / mAs, a kV-dependent constant.
     """
     metadata = result.get("metadata", {})
     total_histories = metadata.get("total_histories", 0)

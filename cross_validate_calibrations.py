@@ -165,7 +165,8 @@ def cross_validate(
 
         raw_sum = tle_result.get("raw_sum", 0.0)
 
-        # Compute photons_per_mAs (constant for kV, independent of mAs and histories)
+        # Compute photons_per_mAs: no_particles / mAs (kV-dependent constant)
+        # Derived from spectrum_fluence (= no_particles / total_histories)
         result_metadata = tle_result.get("metadata", {})
         th = result_metadata.get("total_histories", 0)
         spectrum_fluence = result_metadata.get("spectrum_fluence_photons_per_mAs")

@@ -161,15 +161,15 @@ class CalibrationService:
                 % (total_histories, exposure_mAs)
             )
 
-        # Compute norm_factor from available metadata.
+        # Compute photons_per_mAs (constant for kV, independent of mAs and histories).
         spectrum_fluence = metadata.get("spectrum_fluence_photons_per_mAs")
         if spectrum_fluence is not None and spectrum_fluence > 0:
-            norm_factor = spectrum_fluence / total_histories
+            photons_per_mAs = spectrum_fluence * total_histories / exposure_mAs
         elif metadata.get("norm_factor"):
-            norm_factor = metadata["norm_factor"]
+            photons_per_mAs = metadata["norm_factor"] * total_histories
         else:
             raise ValueError(
-                "Cannot compute norm_factor: need either "
+                "Cannot compute photons_per_mAs: need either "
                 "spectrum_fluence_photons_per_mAs or norm_factor in metadata"
             )
 
@@ -180,8 +180,8 @@ class CalibrationService:
         if not math.isfinite(raw_ctdi_w):
             raise ValueError("raw_sum is not finite: %s" % raw_ctdi_w)
 
-        # raw Gy: norm_factor * mAs applied, no DCF
-        ctdi_w_raw_Gy = raw_ctdi_w * norm_factor * mAs_used
+        # raw Gy: per_history_dose x photons_per_mAs x mAs (no DCF)
+        ctdi_w_raw_Gy = raw_ctdi_w * photons_per_mAs * mAs_used
 
         # DCF lookup
         dcf: Optional[float] = dcf_override
@@ -203,7 +203,7 @@ class CalibrationService:
             "dcf_source": dcf_source,
             "mAs_used": mAs_used,
             "mAs_simulated": mAs_simulated,
-            "norm_factor": norm_factor,
+            "photons_per_mAs": photons_per_mAs,
             "scorer_type": raw_result.get("scorer_type"),
             "is_primary": raw_result.get("is_primary", False),
         }

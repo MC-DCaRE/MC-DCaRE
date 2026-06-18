@@ -10,7 +10,9 @@ import yaml
 from src.services.ctdi_calculator import CTDICalculator, PRIMARY_SCORER
 
 
-def _make_cal(tmp_path: Path, histories: int = 1000000, mAs: float = 100.0) -> CTDICalculator:
+def _make_cal(
+    tmp_path: Path, histories: int = 1000000, mAs: float = 100.0
+) -> CTDICalculator:
     metadata = {
         "total_histories": histories,
         "exposure_mAs": mAs,
@@ -200,7 +202,11 @@ class TestSaveResults:
 
 class TestValidate:
     def test_validate_valid_runfolder(self, tmp_path: Path) -> None:
-        metadata = {"total_histories": 1000000, "exposure_mAs": 100.0, "spectrum_fluence_photons_per_mAs": 2.34e8}
+        metadata = {
+            "total_histories": 1000000,
+            "exposure_mAs": 100.0,
+            "spectrum_fluence_photons_per_mAs": 2.34e8,
+        }
         (tmp_path / "simulation_metadata.yaml").write_text(
             yaml.dump(metadata, default_flow_style=False)
         )
@@ -214,7 +220,11 @@ class TestValidate:
             CTDICalculator(Path("nonexistent"))
 
     def test_validate_no_chamber_files(self, tmp_path: Path) -> None:
-        metadata = {"total_histories": 1000000, "exposure_mAs": 100.0, "spectrum_fluence_photons_per_mAs": 2.34e8}
+        metadata = {
+            "total_histories": 1000000,
+            "exposure_mAs": 100.0,
+            "spectrum_fluence_photons_per_mAs": 2.34e8,
+        }
         (tmp_path / "simulation_metadata.yaml").write_text(
             yaml.dump(metadata, default_flow_style=False)
         )
@@ -357,8 +367,7 @@ class TestReadMetadata:
             yaml.dump(metadata, default_flow_style=False)
         )
         (tmp_path / "head_calibration_factor.txt").write_text(
-            "999.0\n"
-            "The number of histories in this run was: 200000\n"
+            "999.0\nThe number of histories in this run was: 200000\n"
         )
 
         calc = CTDICalculator(tmp_path)
@@ -373,8 +382,7 @@ class TestReadMetadata:
     def test_falls_back_on_malformed_yaml(self, tmp_path: Path) -> None:
         (tmp_path / "simulation_metadata.yaml").write_text("not a mapping\n")
         (tmp_path / "head_calibration_factor.txt").write_text(
-            "3.0\n"
-            "The number of histories in this run was: 300000\n"
+            "3.0\nThe number of histories in this run was: 300000\n"
         )
 
         calc = CTDICalculator(tmp_path)
@@ -393,7 +401,12 @@ class TestCompareScorers:
                 "scorer_type": "tle",
                 "is_primary": True,
                 "raw_sum": tle_raw,
-                "peripheral_raw_sums": {"Bottom": tle_raw * 0.8, "Top": tle_raw * 0.8, "Left": tle_raw * 0.8, "Right": tle_raw * 0.8},
+                "peripheral_raw_sums": {
+                    "Bottom": tle_raw * 0.8,
+                    "Top": tle_raw * 0.8,
+                    "Left": tle_raw * 0.8,
+                    "Right": tle_raw * 0.8,
+                },
                 "center_raw_sum": tle_raw * 1.4,
                 "metadata": {"total_histories": 1000000, "exposure_mAs": 100.0},
             },
@@ -401,7 +414,12 @@ class TestCompareScorers:
                 "scorer_type": "dtm",
                 "is_primary": False,
                 "raw_sum": dtm_raw,
-                "peripheral_raw_sums": {"Bottom": dtm_raw * 0.8, "Top": dtm_raw * 0.8, "Left": dtm_raw * 0.8, "Right": dtm_raw * 0.8},
+                "peripheral_raw_sums": {
+                    "Bottom": dtm_raw * 0.8,
+                    "Top": dtm_raw * 0.8,
+                    "Left": dtm_raw * 0.8,
+                    "Right": dtm_raw * 0.8,
+                },
                 "center_raw_sum": dtm_raw * 1.4,
                 "metadata": {"total_histories": 1000000, "exposure_mAs": 100.0},
             },
@@ -409,7 +427,12 @@ class TestCompareScorers:
                 "scorer_type": "dtw",
                 "is_primary": False,
                 "raw_sum": dtw_raw,
-                "peripheral_raw_sums": {"Bottom": dtw_raw * 0.8, "Top": dtw_raw * 0.8, "Left": dtw_raw * 0.8, "Right": dtw_raw * 0.8},
+                "peripheral_raw_sums": {
+                    "Bottom": dtw_raw * 0.8,
+                    "Top": dtw_raw * 0.8,
+                    "Left": dtw_raw * 0.8,
+                    "Right": dtw_raw * 0.8,
+                },
                 "center_raw_sum": dtw_raw * 1.4,
                 "metadata": {"total_histories": 1000000, "exposure_mAs": 100.0},
             },
@@ -473,7 +496,12 @@ class TestCompareScorers:
                 "scorer_type": "tle",
                 "is_primary": True,
                 "raw_sum": 1.0e-10,
-                "peripheral_raw_sums": {"Bottom": 0.8e-10, "Top": 0.8e-10, "Left": 0.8e-10, "Right": 0.8e-10},
+                "peripheral_raw_sums": {
+                    "Bottom": 0.8e-10,
+                    "Top": 0.8e-10,
+                    "Left": 0.8e-10,
+                    "Right": 0.8e-10,
+                },
                 "center_raw_sum": 1.4e-10,
                 "metadata": {"total_histories": 1000000, "exposure_mAs": 100.0},
             },
@@ -481,7 +509,12 @@ class TestCompareScorers:
                 "scorer_type": "dtm",
                 "is_primary": False,
                 "raw_sum": 0.9e-10,
-                "peripheral_raw_sums": {"Bottom": 0.7e-10, "Top": 0.7e-10, "Left": 0.7e-10, "Right": 0.7e-10},
+                "peripheral_raw_sums": {
+                    "Bottom": 0.7e-10,
+                    "Top": 0.7e-10,
+                    "Left": 0.7e-10,
+                    "Right": 0.7e-10,
+                },
                 "center_raw_sum": 1.3e-10,
                 "metadata": {"total_histories": 1000000, "exposure_mAs": 100.0},
             },

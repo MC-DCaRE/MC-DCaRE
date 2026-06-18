@@ -168,8 +168,8 @@ class TestNormalize:
         svc = CalibrationService(cal_file)
         result = svc.normalize(raw_result, 120, "Full Fan")
 
-        norm_factor = 2.34e8 / 1e6
-        expected_raw = 1.0e-15 * norm_factor * 100.0
+        photons_per_mAs = 2.34e8 * 1e6 / 100.0
+        expected_raw = 1.0e-15 * photons_per_mAs * 100.0
         expected_calibrated = expected_raw * 1.034
 
         assert result["ctdi_w_raw_Gy"] == pytest.approx(expected_raw)
@@ -178,16 +178,18 @@ class TestNormalize:
         assert result["dcf_source"] == "calibration.yaml"
         assert result["mAs_used"] == 100.0
         assert result["mAs_simulated"] == 100.0
-        assert result["norm_factor"] == pytest.approx(norm_factor)
+        assert result["photons_per_mAs"] == pytest.approx(photons_per_mAs)
         assert result["scorer_type"] == "tle"
         assert result["is_primary"] is True
 
-    def test_normalize_with_dcf_override(self, cal_file: Path, raw_result: dict) -> None:
+    def test_normalize_with_dcf_override(
+        self, cal_file: Path, raw_result: dict
+    ) -> None:
         svc = CalibrationService(cal_file)
         result = svc.normalize(raw_result, 120, "Full Fan", dcf_override=0.85)
 
-        norm_factor = 2.34e8 / 1e6
-        expected_raw = 1.0e-15 * norm_factor * 100.0
+        photons_per_mAs = 2.34e8 * 1e6 / 100.0
+        expected_raw = 1.0e-15 * photons_per_mAs * 100.0
         expected_calibrated = expected_raw * 0.85
 
         assert result["ctdi_w_calibrated_Gy"] == pytest.approx(expected_calibrated)
@@ -198,8 +200,8 @@ class TestNormalize:
         svc = CalibrationService(cal_file)
         result = svc.normalize(raw_result, 120, "Full Fan", target_mAs=50.0)
 
-        norm_factor = 2.34e8 / 1e6
-        expected_raw = 1.0e-15 * norm_factor * 50.0
+        photons_per_mAs = 2.34e8 * 1e6 / 100.0
+        expected_raw = 1.0e-15 * photons_per_mAs * 50.0
 
         assert result["ctdi_w_raw_Gy"] == pytest.approx(expected_raw)
         assert result["mAs_used"] == 50.0
@@ -215,9 +217,7 @@ class TestNormalize:
         assert result["dcf_applied"] is None
         assert result["dcf_source"] is None
 
-    def test_normalize_raises_on_missing_metadata(
-        self, cal_file: Path
-    ) -> None:
+    def test_normalize_raises_on_missing_metadata(self, cal_file: Path) -> None:
         svc = CalibrationService(cal_file)
         bad_result = {"raw_sum": 1.0e-15, "metadata": {}}
         with pytest.raises(ValueError, match="invalid metadata"):
@@ -244,7 +244,10 @@ class TestNormalize:
             },
         }
         result = svc.normalize(old_result, 120, "Full Fan")
-        assert result["ctdi_w_raw_Gy"] == pytest.approx(1.0e-15 * (2.34e8 / 1e6) * 100.0)
+        photons_per_mAs = (2.34e8 / 1e6) * 1e6
+        assert result["ctdi_w_raw_Gy"] == pytest.approx(
+            1.0e-15 * photons_per_mAs * 100.0
+        )
 
 
 class TestApply:

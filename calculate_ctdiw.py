@@ -259,7 +259,7 @@ def benchmark(
                 kV, fan_mode, primary_simulated_Gy, reference, force=True
             )
             console.print(
-                "\nDCF written to {}: ({}, {}) -> {:.6f}".format(
+                "\nDCF written to {}: ({}, {}) -> {:.6e}".format(
                     calibration_yaml, kV, fan_mode, dcf_value
                 ),
                 style="green",

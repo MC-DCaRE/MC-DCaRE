@@ -29,7 +29,7 @@ LOGFILE="run_all_calibrations.log"
 CALIBRATIONS=(
   "configs/cal_80kv_ff_image-gently.yaml:0.9:80:Full Fan"
   "configs/cal_100kv_ff_head.yaml:3.2:100:Full Fan"
-  "configs/cal_125kv_ff_pelvis-spotlight.yaml:43.93:125:Full Fan"
+  "configs/cal_125kv_ff_pelvis-spotlight.yaml:12.3:125:Full Fan"
   "configs/cal_125kv_hf_pelvis.yaml:15.9:125:Half Fan"
   "configs/cal_140kv_hf_pelvis-large.yaml:37.1:140:Half Fan"
   "configs/cal_140kv_ff.yaml:NONE:140:Full Fan"

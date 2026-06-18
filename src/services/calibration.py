@@ -83,6 +83,10 @@ class CalibrationService:
                         reference_mAs=e.reference_mAs,
                         measured_ctdi_w_mGy=measured_ctdi_w_mGy,
                         dcf=dcf,
+                        reference_protocol=e.reference_protocol,
+                        reference_ctdi_w_mGy=e.reference_ctdi_w_mGy,
+                        date=e.date,
+                        note=e.note,
                     )
                 )
             else:
@@ -96,7 +100,7 @@ class CalibrationService:
         # Persist before updating in-memory state to avoid divergence on write failure.
         new_calibration.to_yaml(self.calibration_path)
         self._calibration = new_calibration
-        logger.info("DCF computed for (%d, %s): %.6f", kV, fan_mode, dcf)
+        logger.info("DCF computed for (%d, %s): %.6e", kV, fan_mode, dcf)
         return dcf
 
     def lookup_dcf(self, kV: int, fan_mode: str) -> Optional[float]:

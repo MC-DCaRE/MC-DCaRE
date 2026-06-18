@@ -243,7 +243,7 @@ def format_report(results: List[CrossValidationResult]) -> str:
             "{:.1f}".format(r.exposure_mAs),
             "{:.0e}".format(r.total_histories),
             "{:.4e}".format(r.raw_Gy),
-            "{:.2f}".format(r.dcf_applied),
+            "{:.4e}".format(r.dcf_applied),
             "{:.3f}".format(r.calibrated_mGy),
             "{:.3f}".format(r.expected_mGy),
             "{:+.2f}".format(r.error_pct),
@@ -287,7 +287,7 @@ def print_summary(results: List[CrossValidationResult], tolerance_pct: float) ->
         )
 
         console.print(
-            "  {} kV {} (DCF={:.2f}, ref={:.1f} mGy @ {:.0f} mAs): "
+            "  {} kV {} (DCF={:.4e}, ref={:.1f} mGy @ {:.0f} mAs): "
             "{} runs, avg err={:+.3f}%, std={:.3f}%, max={:.3f}% — {}".format(
                 kV,
                 fan_short,

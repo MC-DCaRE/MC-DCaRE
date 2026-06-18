@@ -5,7 +5,7 @@ calibrations:
   fan_mode: Full Fan
   reference_mAs: 100.2
   measured_ctdi_w_mGy: 0.9
-  dcf: null
+  dcf: 7.186663737978474e-12
   reference_protocol: Image Gently
   reference_ctdi_w_mGy: 0.9
   date: null
@@ -14,7 +14,7 @@ calibrations:
   fan_mode: Full Fan
   reference_mAs: 150.3
   measured_ctdi_w_mGy: 3.2
-  dcf: null
+  dcf: 7.94046673386082e-12
   reference_protocol: Head
   reference_ctdi_w_mGy: 3.2
   date: null
@@ -23,7 +23,7 @@ calibrations:
   fan_mode: Full Fan
   reference_mAs: 751.5
   measured_ctdi_w_mGy: 12.3
-  dcf: null
+  dcf: 8.260353006279922e-12
   reference_protocol: Pelvis Spotlight
   reference_ctdi_w_mGy: 12.3
   date: null
@@ -32,7 +32,7 @@ calibrations:
   fan_mode: Half Fan
   reference_mAs: 1080.0
   measured_ctdi_w_mGy: 15.9
-  dcf: null
+  dcf: 1.078038538356342e-11
   reference_protocol: Pelvis
   reference_ctdi_w_mGy: 15.9
   date: null
@@ -41,7 +41,7 @@ calibrations:
   fan_mode: Half Fan
   reference_mAs: 1700.5
   measured_ctdi_w_mGy: 37.1
-  dcf: null
+  dcf: 1.2081686487065588e-11
   reference_protocol: Pelvis Large
   reference_ctdi_w_mGy: 37.1
   date: null

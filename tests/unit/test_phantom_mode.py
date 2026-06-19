@@ -120,6 +120,30 @@ class TestBuildSubContext:
         ctx = mode.build_sub_context(config)
         assert ctx["output_filename"] == "MRCP_AM_CW_Head_90 deg_PHANTOM_DOSE"
 
+    def test_icrp_materials_empty_when_no_organs(self, make_config: Any) -> None:
+        mode = PhantomMode()
+        config = make_config()
+        ctx = mode.build_sub_context(config)
+        assert ctx["icrp_materials"] == ""
+
+    def test_icrp_materials_single_organ(self, make_config: Any) -> None:
+        mode = PhantomMode()
+        config = make_config(organ_scoring_ids="Liver")
+        ctx = mode.build_sub_context(config)
+        assert ctx["icrp_materials"] == '1 "Liver"'
+
+    def test_icrp_materials_multiple_organs(self, make_config: Any) -> None:
+        mode = PhantomMode()
+        config = make_config(organ_scoring_ids="Liver, Brain, Thyroid")
+        ctx = mode.build_sub_context(config)
+        assert ctx["icrp_materials"] == '3 "Liver" "Brain" "Thyroid"'
+
+    def test_icrp_materials_strips_whitespace(self, make_config: Any) -> None:
+        mode = PhantomMode()
+        config = make_config(organ_scoring_ids=" Liver , Brain ")
+        ctx = mode.build_sub_context(config)
+        assert ctx["icrp_materials"] == '2 "Liver" "Brain"'
+
 
 class TestGetSubFileName:
     def test_returns_phantom_icrp145_txt(self, make_config: Any) -> None:

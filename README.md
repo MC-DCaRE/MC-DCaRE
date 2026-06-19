@@ -96,20 +96,19 @@ Organ dose estimation using ICRP 145 tetrahedral-mesh reference phantoms (MRCP-A
 
 **1. Build the OpenTOPAS MeshGeom extension**
 
-The `TsTetGeom` component is required to load tetrahedral mesh geometries. It is not included in the base OpenTOPAS distribution.
+The `TsTetGeom` component is required to load tetrahedral mesh geometries. It is not included in the base OpenTOPAS distribution. A build script is provided:
 
 ```bash
-# Clone the extension
-git clone https://github.com/OpenTOPAS/OpenTOPAS-MeshGeom.git
-
-# Build against your OpenTOPAS installation
-cd OpenTOPAS-MeshGeom
-mkdir build && cd build
-cmake -DTOPAS_EXTENSIONS_DIR=<your_extensions_dir> ..
-make -j$(nproc)
+chmod +x scripts/build_meshgeom.sh
+./scripts/build_meshgeom.sh
 ```
 
-Rebuild OpenTOPAS with the extension included. Verify by running a parameter file that instantiates `TsTetGeom` — no "unknown component" error confirms success.
+This clones the MeshGeom extension, rebuilds TOPAS with both nBio and MeshGeom, installs to `~/topas_meshgeom_install`, and verifies the `TsTetGeom` component is registered. After the build, update your config:
+
+```yaml
+general:
+  topas_directory: "~/topas_meshgeom_install/bin"
+```
 
 **2. Assemble phantom data**
 

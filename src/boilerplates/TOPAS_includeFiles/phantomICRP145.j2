@@ -26,6 +26,7 @@ s:Ge/phantomcouch/Color = "red"
 # Supine head-first placement: rotation maps body-height to scanner long axis
 s:Ge/Phantom/Type = "TsTetGeom"
 s:Ge/Phantom/Parent = "World"
+s:Ge/Phantom/Material = "G4_WATER"
 s:Ge/Phantom/NodeFile = "{{ phantom_data_directory }}/MRCP_{{ phantom_sex }}/MRCP_{{ phantom_sex }}.node"
 s:Ge/Phantom/EleFile = "{{ phantom_data_directory }}/MRCP_{{ phantom_sex }}/MRCP_{{ phantom_sex }}.ele"
 s:Ge/Phantom/MaterialFile = "{{ phantom_data_directory }}/MRCP_{{ phantom_sex }}/MRCP_{{ phantom_sex }}.material"
@@ -44,3 +45,6 @@ s:Sc/PhantomDose/Component = "Phantom"
 s:Sc/PhantomDose/IfOutputFileAlreadyExists = "Overwrite"
 s:Sc/PhantomDose/OutputType = "CSV"
 s:Sc/PhantomDose/OutputFile = "{{ output_filename }}"
+sv:Sc/PhantomDose/Report = 1 "sum"
+{% if icrp_materials %}sv:Sc/PhantomDose/ICRPMaterials = {{ icrp_materials }}
+{% endif %}

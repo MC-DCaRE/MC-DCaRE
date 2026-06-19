@@ -81,6 +81,7 @@ CTDI mode additionally concatenates the rendered headsource with per-plug phanto
 | `couch_width/thickness/length` | `config.phantom` | Couch dimensions |
 | `couch_trans_y` | PhantomMode | Computed couch top Y position |
 | `output_filename` | PhantomMode | Formatted organ-dose output file name |
+| `icrp_materials` | PhantomMode | Formatted TsTetGeomScorer organ vector (e.g. `2 "Liver" "Brain"`); empty string omits `ICRPMaterials` line |
 
 ## TOPAS Parameter Conventions
 

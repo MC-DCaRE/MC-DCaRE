@@ -58,6 +58,7 @@ _PHANTOM_SUB_CTX_AM = {
     "couch_length": "1000 mm",
     "couch_trans_y": "-14.04 cm",
     "output_filename": "MRCP_AM_test_PHANTOM_DOSE",
+    "icrp_materials": "",
 }
 
 
@@ -111,6 +112,44 @@ class TestPhantomIncludeTemplate:
             content = f.read()
         assert 'Quantity = "TsTetGeomScorer"' in content
         assert 'Component = "Phantom"' in content
+
+    def test_phantom_material_g4_water(self, tmp_path: Any) -> None:
+        renderer = _make_renderer(tmp_path)
+        result = renderer.render(
+            "phantomICRP145.j2", _PHANTOM_SUB_CTX_AM, "phantom.txt"
+        )
+        with open(result) as f:
+            content = f.read()
+        assert 'Ge/Phantom/Material = "G4_WATER"' in content
+
+    def test_scorer_has_report_sum(self, tmp_path: Any) -> None:
+        renderer = _make_renderer(tmp_path)
+        result = renderer.render(
+            "phantomICRP145.j2", _PHANTOM_SUB_CTX_AM, "phantom.txt"
+        )
+        with open(result) as f:
+            content = f.read()
+        assert 'Report = 1 "sum"' in content
+
+    def test_no_icrp_materials_when_empty(self, tmp_path: Any) -> None:
+        renderer = _make_renderer(tmp_path)
+        result = renderer.render(
+            "phantomICRP145.j2", _PHANTOM_SUB_CTX_AM, "phantom.txt"
+        )
+        with open(result) as f:
+            content = f.read()
+        assert "ICRPMaterials" not in content
+
+    def test_icrp_materials_when_organs_specified(self, tmp_path: Any) -> None:
+        ctx = dict(
+            _PHANTOM_SUB_CTX_AM,
+            icrp_materials='2 "Liver" "Brain"',
+        )
+        renderer = _make_renderer(tmp_path)
+        result = renderer.render("phantomICRP145.j2", ctx, "phantom.txt")
+        with open(result) as f:
+            content = f.read()
+        assert 'ICRPMaterials = 2 "Liver" "Brain"' in content
 
     def test_couch_parent_chain_resolves_to_world(self, tmp_path: Any) -> None:
         renderer = _make_renderer(tmp_path)

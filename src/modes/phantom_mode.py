@@ -69,6 +69,19 @@ class PhantomMode(SimulationMode):
         trans_y_val = config.phantom.trans_y.value
         couch_thickness_val = config.phantom.couch_thickness.value
         couch_trans_y = "{} cm".format(trans_y_val - 14.0 - couch_thickness_val / 10.0)
+
+        # Parse organ_scoring_ids into TsTetGeomScorer ICRPMaterials vector format
+        # Config stores comma-separated organ names; template needs: N "Organ1" "Organ2"
+        organs = [
+            o.strip() for o in config.phantom.organ_scoring_ids.split(",") if o.strip()
+        ]
+        if organs:
+            icrp_materials = "{} {}".format(
+                len(organs), " ".join(f'"{o}"' for o in organs)
+            )
+        else:
+            icrp_materials = ""
+
         return {
             "phantom_data_directory": config.phantom.phantom_data_directory,
             "phantom_sex": config.phantom.phantom_sex,
@@ -84,6 +97,7 @@ class PhantomMode(SimulationMode):
             "couch_length": str(config.phantom.couch_length),
             "couch_trans_y": couch_trans_y,
             "output_filename": output_filename,
+            "icrp_materials": icrp_materials,
         }
 
     def get_sub_file_name(self, config: SimulationConfig) -> str:

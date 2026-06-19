@@ -2,9 +2,8 @@
 # =====================================================================
 # build_meshgeom.sh — Build OpenTOPAS-MeshGeom extension
 # =====================================================================
-# Rebuilds TOPAS 4.2.p3 with the MeshGeom extension (TsTetGeom component)
-# alongside the existing nBio extension. Installs to user space so the
-# system TOPAS is untouched.
+# Rebuilds TOPAS 4.2.p3 with the MeshGeom extension (TsTetGeom component).
+# Installs to user space so the system TOPAS is untouched.
 #
 # Prerequisites:
 #   - OpenTOPAS 4.2.p3 installed at /opt/topas/TOPAS/
@@ -27,13 +26,11 @@ set -euo pipefail
 OPEN_TOPAS_SRC="/opt/topas/TOPAS/OpenTOPAS"
 GEANT4_DIR="/opt/topas/GEANT4/geant4-install/lib/cmake/Geant4"
 GDCM_DIR="/opt/topas/GDCM/gdcm-install/lib/gdcm-2.6"
-NBIO_EXT="/opt/topas/extensions/TOPAS-nBio"
 
 # ---- User-writable paths --------------------------------------------
 WORK_DIR="${HOME}/topas_meshgeom_build"
 MESHGEOM_REPO="https://github.com/OpenTOPAS/OpenTOPAS-MeshGeom.git"
 MESHGEOM_DIR="${WORK_DIR}/TOPAS-MeshGeom"
-EXTENSIONS_DIR="${WORK_DIR}/extensions"
 BUILD_DIR="${WORK_DIR}/build"
 INSTALL_DIR="${HOME}/topas_meshgeom_install"
 
@@ -52,13 +49,13 @@ else
 fi
 ok
 
-# ---- Step 2: Set up extensions directory ----------------------------
-log "Step 2/6: Set up extensions directory (nBio + MeshGeom)"
-mkdir -p "$EXTENSIONS_DIR"
-ln -sfn "$NBIO_EXT"      "$EXTENSIONS_DIR/TOPAS-nBio"
-ln -sfn "$MESHGEOM_DIR"  "$EXTENSIONS_DIR/TOPAS-MeshGeom"
-log "  Extensions:"
-ls -1 "$EXTENSIONS_DIR/" | sed 's/^/    /'
+# ---- Step 2: Verify extension source files --------------------------
+log "Step 2/6: Verify MeshGeom extension source files"
+if ! find "$MESHGEOM_DIR" -name "*.cc" -o -name "*.hh" | grep -q .; then
+    fail "No source files (.cc/.hh) found in $MESHGEOM_DIR"
+fi
+log "  Source files:"
+find "$MESHGEOM_DIR" -name "*.cc" | sed 's/^/    /'
 ok
 
 # ---- Step 3: cmake --------------------------------------------------
@@ -69,8 +66,10 @@ cmake \
     -DTOPAS_TYPE="expanded" \
     -DGeant4_DIR="$GEANT4_DIR" \
     -DGDCM_DIR="$GDCM_DIR" \
-    -DTOPAS_EXTENSIONS_DIR="$EXTENSIONS_DIR" \
+    -DTOPAS_EXTENSIONS_DIR="$MESHGEOM_DIR" \
     -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+    -DTOPAS_USE_QT=ON \
+    -DTOPAS_USE_QT6=ON \
     -B "$BUILD_DIR" \
     -S "$OPEN_TOPAS_SRC" \
     || fail "cmake configuration failed"

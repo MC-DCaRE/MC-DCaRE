@@ -5,7 +5,7 @@ Test suite for MC-DCaRE covering unit tests for all source modules, smoke tests 
 
 ## Architecture
 Three tiers by scope:
-- **unit/** (17 files) — Isolated tests per source module: config, modes, models, orchestrator, GUI, services (CTDI calculator, benchmark), template rendering. Contains `conftest.py` with shared fixtures and `shared.py` with context dict constants.
+- **unit/** (19 files) — Isolated tests per source module: config, modes (CTDI/DICOM/phantom), models, orchestrator, GUI, services (CTDI calculator, benchmark), template rendering. Contains `conftest.py` with shared fixtures and `shared.py` with context dict constants.
 - **smoke/** (3 files) — Lightweight import and initialization checks: config loading, lookup table validation (47 modes, 21 fields)
 - **integration/** — Cross-module pipeline tests: `test_dry_run_pipeline.py` validates full orchestration without running TOPAS
 
@@ -18,6 +18,8 @@ Three tiers by scope:
 | `unit/test_orchestrator.py` | Orchestrator mode selection and Jinja2 rendering tests |
 | `unit/test_ctdi_mode.py` | CTDI simulation mode context building and plug file generation |
 | `unit/test_dicom_mode.py` | DICOM simulation mode context building and file staging |
+| `unit/test_phantom_mode.py` | ICRP 145 phantom mode context building, sex/offset/couch params |
+| `unit/test_phantom_template.py` | phantomICRP145.j2 render-only tests: TsTetGeom, couch, scorer |
 | `unit/test_template_renderer.py` | TemplateRenderer Jinja2 rendering, file output, context substitution |
 | `smoke/test_init.py` | Basic import validation |
 | `integration/test_dry_run_pipeline.py` | End-to-end pipeline without Monte Carlo execution |

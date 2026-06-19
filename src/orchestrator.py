@@ -12,6 +12,7 @@ from src.boilerplate_manager import BoilerplateManager
 from src.modes.base import SimulationMode
 from src.modes.dicom_mode import DicomMode
 from src.modes.ctdi_mode import CtdiMode
+from src.modes.phantom_mode import PhantomMode
 from src.spectrum_generator import SpectrumGenerator
 
 logger = logging.getLogger(__name__)
@@ -25,6 +26,8 @@ class Orchestrator:
     def _get_mode(self, config: SimulationConfig) -> SimulationMode:
         if config.imaging.simulation_type == "DICOM":
             return DicomMode()
+        if config.imaging.simulation_type == "ICRP145":
+            return PhantomMode()
         return CtdiMode()
 
     def _create_runfolder(self) -> str:

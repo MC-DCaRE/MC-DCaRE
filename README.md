@@ -88,6 +88,62 @@ ctdi:
   phantom_size: "16 cm"
 ```
 
+## ICRP 145 Phantom Mode
+
+Organ dose estimation using ICRP 145 tetrahedral-mesh reference phantoms (MRCP-AM / MRCP-AF).
+
+### Prerequisites
+
+**1. Build the OpenTOPAS MeshGeom extension**
+
+The `TsTetGeom` component is required to load tetrahedral mesh geometries. It is not included in the base OpenTOPAS distribution.
+
+```bash
+# Clone the extension
+git clone https://github.com/OpenTOPAS/OpenTOPAS-MeshGeom.git
+
+# Build against your OpenTOPAS installation
+cd OpenTOPAS-MeshGeom
+mkdir build && cd build
+cmake -DTOPAS_EXTENSIONS_DIR=<your_extensions_dir> ..
+make -j$(nproc)
+```
+
+Rebuild OpenTOPAS with the extension included. Verify by running a parameter file that instantiates `TsTetGeom` — no "unknown component" error confirms success.
+
+**2. Assemble phantom data**
+
+Place ICRP 145 mesh files under `data/P145/Phantom_data/`:
+
+```
+data/P145/Phantom_data/
+├── MRCP_AM/
+│   ├── MRCP_AM.node
+│   ├── MRCP_AM.ele
+│   └── MRCP_AM.material
+└── MRCP_AF/
+    ├── MRCP_AF.node
+    ├── MRCP_AF.ele
+    └── MRCP_AF.material
+```
+
+The `.node` and `.ele` files come from the ICRP 145 phantom distribution. The `.material` files can be generated from `_media.dat` using:
+
+```bash
+uv run python scripts/generate_material_from_media.py <input>_media.dat <output>.material
+```
+
+### Minimal YAML Configuration
+
+```yaml
+general:
+  simulation_type: "ICRP145"
+
+phantom:
+  phantom_sex: "AM"          # or "AF"
+  phantom_data_directory: "data/P145/Phantom_data"
+```
+
 ## Project Structure
 
 ```
@@ -95,7 +151,7 @@ src/
 ├── config.py              # SimulationConfig, YAML loading, mode resolution
 ├── orchestrator.py        # Central coordinator
 ├── models/                # Immutable value objects (Quantity, ImagingMode, enums)
-├── modes/                 # DicomMode, CtdiMode (strategy pattern)
+├── modes/                 # DicomMode, CtdiMode, PhantomMode (strategy pattern)
 ├── gui/                   # FreeSimpleGUI interface (MVC)
 ├── services/              # CTDI calculator, calibration, benchmark
 ├── boilerplates/          # Jinja2 TOPAS parameter templates

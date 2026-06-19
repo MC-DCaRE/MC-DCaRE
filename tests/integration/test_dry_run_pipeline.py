@@ -14,6 +14,7 @@ from src.config import (
     DicomConfig,
     GeneralConfig,
     ImagingConfig,
+    PhantomConfig,
     SimulationConfig,
 )
 from src.orchestrator import Orchestrator
@@ -53,6 +54,7 @@ def fake_project(tmp_path: Any) -> Any:
         "{% if simulation_type == 'DICOM' %}includeFile = patientDICOM.txt\n{% endif %}"
         "{% if simulation_type == 'CTDI' %}sv:Ph/Default/LayeredMassGeometryWorlds = 5"
         ' "ChamberPlugCentre" "ChamberPlugTop" "ChamberPlugBottom" "ChamberPlugLeft" "ChamberPlugRight"\n{% endif %}'
+        "{% if simulation_type == 'ICRP145' %}includeFile = phantomICRP145.txt\n{% endif %}"
         "i:Ts/Seed = {{ seed }}\n"
         "i:Ts/NumberOfThreads = {{ threads }}\n"
         's:Ts/G4DataDirectory = "{{ g4_data_directory }}"\n'
@@ -115,6 +117,25 @@ def fake_project(tmp_path: Any) -> Any:
 
     with open(os.path.join(include_dir, "CTDIphantom_32.j2"), "w") as f:
         f.write(ctdi_16_template)
+
+    phantom_template: str = (
+        's:Ge/phantomcouchgroup/Type="Group"\n'
+        's:Ge/phantomcouchgroup/Parent="World"\n'
+        "{% if couch_enabled %}"
+        's:Ge/phantomcouch/Type="TsBox"\n'
+        "d:Ge/phantomcouch/HLX = {{ couch_width }}\n"
+        "d:Ge/phantomcouch/HLY = {{ couch_thickness }}\n"
+        "d:Ge/phantomcouch/HLZ = {{ couch_length }}\n"
+        "{% endif %}"
+        's:Ge/Phantom/Type="TsTetGeom"\n'
+        's:Ge/Phantom/Parent="World"\n'
+        's:Ge/Phantom/NodeFile = "{{ phantom_data_directory }}/MRCP_{{ phantom_sex }}/MRCP_{{ phantom_sex }}.node"\n'
+        's:Ge/Phantom/EleFile = "{{ phantom_data_directory }}/MRCP_{{ phantom_sex }}/MRCP_{{ phantom_sex }}.ele"\n'
+        's:Sc/PhantomDose/Quantity = "TsTetGeomScorer"\n'
+        's:Sc/PhantomDose/OutputFile = "{{ output_filename }}"\n'
+    )
+    with open(os.path.join(include_dir, "phantomICRP145.j2"), "w") as f:
+        f.write(phantom_template)
 
     for name in [
         "fullfan.txt",
@@ -328,3 +349,78 @@ class TestCtdiDryRunPipeline:
         assert not os.path.isfile(os.path.join(rundir, "headsourcecode.txt"))
         assert not os.path.isfile(os.path.join(rundir, "halffan.txt"))
         assert not os.path.isfile(os.path.join(rundir, "patientDICOM.txt"))
+
+
+class TestICRP145DryRunPipeline:
+    def test_full_phantom_pipeline(self, fake_project: Any) -> None:
+        project_root: str = str(fake_project)
+        config: SimulationConfig = SimulationConfig(
+            general=GeneralConfig(
+                g4_data_directory="/test/g4data",
+                topas_directory="/test/topas",
+                seed="42",
+                threads="4",
+                histories="100000",
+            ),
+            imaging=ImagingConfig(
+                simulation_type="ICRP145",
+                start_angle="0 deg",
+                rotation_direction="CBCT Clockwise",
+                anode_voltage="80 kV",
+                exposure="100 mAs",
+                fan_mode="Full Fan",
+                imaging_mode="Image Gently",
+                rotation_rate="0.4 deg/s",
+                timeline_end="501.0 s",
+                sequential_times="1000",
+                blade_x1="6.175536078965273 cm",
+                blade_x2="-6.175536078965273 cm",
+                blade_y1="5.814471115800571 cm",
+                blade_y2="-5.814471115800571 cm",
+            ),
+            dicom=DicomConfig(),
+            ctdi=CtdiConfig(),
+            phantom=PhantomConfig(
+                phantom_data_directory="/test/phantom_data",
+                phantom_sex="AM",
+                trans_x="0.0 cm",
+                rot_x="90.0 deg",
+                couch_enabled=True,
+                graphics_enabled=False,
+            ),
+        )
+
+        with patch(
+            "src.orchestrator.SpectrumGenerator.generate", side_effect=_mock_generate
+        ):
+            rundir: str = Orchestrator(project_root).run(config, dry_run=True)
+
+        assert os.path.isdir(rundir)
+
+        head_in_tmp: str = os.path.join(project_root, "tmp", "headsourcecode.txt")
+        with open(head_in_tmp) as f:
+            head_content: str = f.read()
+        assert "includeFile = phantomICRP145.txt" in head_content
+        assert "includeFile = patientDICOM.txt" not in head_content
+        assert "sv:Ph/Default/LayeredMassGeometryWorlds" not in head_content
+
+        sub_in_tmp: str = os.path.join(project_root, "tmp", "phantomICRP145.txt")
+        with open(sub_in_tmp) as f:
+            sub_content: str = f.read()
+        assert 'Type="TsTetGeom"' in sub_content
+        assert "MRCP_AM.node" in sub_content
+        assert 'Quantity = "TsTetGeomScorer"' in sub_content
+
+        for fname in [
+            "headsourcecode.txt",
+            "phantomICRP145.txt",
+            "Muen.dat",
+            "ConvertedTopasFile.txt",
+            "head_calibration_factor.txt",
+            "simulation_metadata.yaml",
+            "fullfan.txt",
+        ]:
+            assert os.path.isfile(os.path.join(rundir, fname)), "Missing: " + fname
+
+        assert not os.path.isfile(os.path.join(rundir, "patientDICOM.txt"))
+        assert not os.path.isfile(os.path.join(rundir, "HUtoMaterialSchneider.txt"))

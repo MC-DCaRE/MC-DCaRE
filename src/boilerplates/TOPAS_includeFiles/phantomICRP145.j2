@@ -1,0 +1,46 @@
+####################################
+# ICRP 145 Reference Phantom       #
+# Tetrahedral mesh (MRCP-AM/AF)    #
+####################################
+
+# Couch group (parented to World, same pattern as CTDI couchgroup)
+s:Ge/phantomcouchgroup/Type = "Group"
+s:Ge/phantomcouchgroup/Parent = "World"
+{% if couch_enabled %}
+s:Ge/phantomcouch/Type = "TsBox"
+s:Ge/phantomcouch/Material = "Aluminum"
+# Real TrueBeam couch is carbon fiber composite; Aluminum is a conservative approximation
+s:Ge/phantomcouch/Parent = "phantomcouchgroup"
+d:Ge/phantomcouch/HLX = {{ couch_width }}
+d:Ge/phantomcouch/HLY = {{ couch_thickness }}
+d:Ge/phantomcouch/HLZ = {{ couch_length }}
+d:Ge/phantomcouch/TransX = 0.0 mm
+# Position couch top just below phantom posterior surface (non-overlapping gap)
+d:Ge/phantomcouch/TransY = {{ couch_trans_y }}
+d:Ge/phantomcouch/TransZ = 0.0 mm
+s:Ge/phantomcouch/Color = "red"
+{% endif %}
+
+# Phantom: tetrahedral mesh, parented to World (stationary while gantry rotates)
+# Native mesh axes (cm): Z = body height, X = left/right, Y = anterior/posterior
+# Supine head-first placement: rotation maps body-height to scanner long axis
+s:Ge/Phantom/Type = "TsTetGeom"
+s:Ge/Phantom/Parent = "World"
+s:Ge/Phantom/NodeFile = "{{ phantom_data_directory }}/MRCP_{{ phantom_sex }}/MRCP_{{ phantom_sex }}.node"
+s:Ge/Phantom/EleFile = "{{ phantom_data_directory }}/MRCP_{{ phantom_sex }}/MRCP_{{ phantom_sex }}.ele"
+s:Ge/Phantom/MaterialFile = "{{ phantom_data_directory }}/MRCP_{{ phantom_sex }}/MRCP_{{ phantom_sex }}.material"
+d:Ge/Phantom/TransX = {{ trans_x }}
+d:Ge/Phantom/TransY = {{ trans_y }}
+d:Ge/Phantom/TransZ = {{ trans_z }}
+d:Ge/Phantom/RotX = {{ rot_x }}
+d:Ge/Phantom/RotY = {{ rot_y }}
+d:Ge/Phantom/RotZ = {{ rot_z }}
+
+#####################
+# Organ dose scoring#
+##################################################
+s:Sc/PhantomDose/Quantity = "TsTetGeomScorer"
+s:Sc/PhantomDose/Component = "Phantom"
+s:Sc/PhantomDose/IfOutputFileAlreadyExists = "Overwrite"
+s:Sc/PhantomDose/OutputType = "CSV"
+s:Sc/PhantomDose/OutputFile = "{{ output_filename }}"

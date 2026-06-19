@@ -32,6 +32,7 @@ from src.models.keys import (
     ISO_Y,
     ISO_Z,
     PATIENT_ID,
+    PHANTOM_TAB,
     ROTATION_RATE,
     TIMELINE_END,
     TUBE_VOLTAGE,
@@ -138,10 +139,10 @@ class TestUpdateImagingModeFields:
 
 
 class TestSetTabVisibility:
-    def test_dicom_type_shows_dicom_hides_ctdi(
+    def test_dicom_type_shows_dicom_hides_others(
         self, view: MainView, mock_window: MagicMock
     ) -> None:
-        keys = [DICOM_TAB, CTDI_TAB]
+        keys = [DICOM_TAB, CTDI_TAB, PHANTOM_TAB]
         elements = _make_element_dict(keys)
         mock_window.__getitem__ = MagicMock(side_effect=lambda k: elements[k])
 
@@ -149,11 +150,12 @@ class TestSetTabVisibility:
 
         elements[DICOM_TAB].update.assert_called_with(visible=True)
         elements[CTDI_TAB].update.assert_called_with(visible=False)
+        elements[PHANTOM_TAB].update.assert_called_with(visible=False)
 
-    def test_ctdi_type_shows_ctdi_hides_dicom(
+    def test_ctdi_type_shows_ctdi_hides_others(
         self, view: MainView, mock_window: MagicMock
     ) -> None:
-        keys = [DICOM_TAB, CTDI_TAB]
+        keys = [DICOM_TAB, CTDI_TAB, PHANTOM_TAB]
         elements = _make_element_dict(keys)
         mock_window.__getitem__ = MagicMock(side_effect=lambda k: elements[k])
 
@@ -161,13 +163,27 @@ class TestSetTabVisibility:
 
         elements[CTDI_TAB].update.assert_called_with(visible=True)
         elements[DICOM_TAB].update.assert_called_with(visible=False)
+        elements[PHANTOM_TAB].update.assert_called_with(visible=False)
+
+    def test_icrp145_type_shows_phantom_hides_others(
+        self, view: MainView, mock_window: MagicMock
+    ) -> None:
+        keys = [DICOM_TAB, CTDI_TAB, PHANTOM_TAB]
+        elements = _make_element_dict(keys)
+        mock_window.__getitem__ = MagicMock(side_effect=lambda k: elements[k])
+
+        view.set_tab_visibility("ICRP145")
+
+        elements[PHANTOM_TAB].update.assert_called_with(visible=True)
+        elements[DICOM_TAB].update.assert_called_with(visible=False)
+        elements[CTDI_TAB].update.assert_called_with(visible=False)
 
 
 class TestResetAll:
     def test_updates_all_keys_and_hides_tabs(
         self, view: MainView, mock_window: MagicMock
     ) -> None:
-        all_keys = ["key1", "key2", DICOM_TAB, CTDI_TAB]
+        all_keys = ["key1", "key2", DICOM_TAB, CTDI_TAB, PHANTOM_TAB]
         elements = _make_element_dict(all_keys)
         mock_window.__getitem__ = MagicMock(side_effect=lambda k: elements[k])
 
@@ -178,6 +194,7 @@ class TestResetAll:
         elements["key2"].update.assert_called_with("val2")
         elements[DICOM_TAB].update.assert_called_with(visible=False)
         elements[CTDI_TAB].update.assert_called_with(visible=False)
+        elements[PHANTOM_TAB].update.assert_called_with(visible=False)
 
 
 class TestUpdatePatientId:

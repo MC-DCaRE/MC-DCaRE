@@ -15,6 +15,7 @@ class SimulationType(str, Enum):
 
     DICOM = "DICOM"
     CTDI = "CTDI"
+    ICRP145 = "ICRP145"
 
 
 class FanMode(str, Enum):

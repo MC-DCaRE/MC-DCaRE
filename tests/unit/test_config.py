@@ -805,3 +805,63 @@ class TestMinimalYamlIntegration:
         config = SimulationConfig.from_yaml(str(config_file))
         assert config.ctdi.phantom_size == "32 cm"
         assert config.imaging.rotation_rate.value == -0.4
+
+
+class TestPhantomConfig:
+    def test_defaults_are_valid(self) -> None:
+        from src.config import PhantomConfig
+
+        cfg = PhantomConfig()
+        assert cfg.phantom_data_directory == "data/P145/Phantom_data"
+        assert cfg.phantom_sex == "AM"
+        assert cfg.trans_x == Quantity(0.0, "cm")
+        assert cfg.trans_y == Quantity(0.0, "cm")
+        assert cfg.trans_z == Quantity(0.0, "cm")
+        assert cfg.rot_x == Quantity(90.0, "deg")
+        assert cfg.couch_enabled is True
+        assert cfg.graphics_enabled is False
+
+    def test_quantity_coercion(self) -> None:
+        from src.config import PhantomConfig
+
+        cfg = PhantomConfig(
+            trans_x="1.5 cm",
+            trans_y="2.0 cm",
+            trans_z="3.0 cm",
+            rot_x="45 deg",
+            rot_y="5 deg",
+            rot_z="10 deg",
+            couch_width="300 mm",
+            couch_thickness="0.5 mm",
+            couch_length="1200 mm",
+        )
+        assert cfg.trans_x == Quantity(1.5, "cm")
+        assert cfg.trans_y == Quantity(2.0, "cm")
+        assert cfg.trans_z == Quantity(3.0, "cm")
+        assert cfg.rot_x == Quantity(45.0, "deg")
+        assert cfg.rot_y == Quantity(5.0, "deg")
+        assert cfg.rot_z == Quantity(10.0, "deg")
+        assert cfg.couch_width == Quantity(300.0, "mm")
+        assert cfg.couch_thickness == Quantity(0.5, "mm")
+        assert cfg.couch_length == Quantity(1200.0, "mm")
+
+    def test_yaml_roundtrip_preserves_phantom(self, tmp_path: Any) -> None:
+        from src.config import PhantomConfig
+
+        config = SimulationConfig(
+            phantom=PhantomConfig(
+                phantom_data_directory="/custom/data",
+                phantom_sex="AF",
+                trans_x="5.0 cm",
+                rot_x="45 deg",
+                couch_enabled=False,
+            ),
+        )
+        path = str(tmp_path / "phantom_roundtrip.yaml")
+        config.to_yaml(path)
+        loaded = SimulationConfig.from_yaml(path)
+        assert loaded.phantom.phantom_data_directory == "/custom/data"
+        assert loaded.phantom.phantom_sex == "AF"
+        assert loaded.phantom.trans_x == Quantity(5.0, "cm")
+        assert loaded.phantom.rot_x == Quantity(45.0, "deg")
+        assert loaded.phantom.couch_enabled is False

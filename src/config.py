@@ -157,6 +157,7 @@ class DicomConfig:
     patient_pitch: Quantity = _q(0.0, "deg")
     patient_roll: Quantity = _q(0.0, "deg")
     graphics_enabled: bool = False
+    calibration_path: str = "calibration.yaml"
 
     def __post_init__(self) -> None:
         _coerce_quantities(self, _DICOM_Q_FIELDS)
@@ -208,6 +209,7 @@ class PhantomConfig:
     couch_length: Quantity = _q(1000.0, "mm")
     graphics_enabled: bool = False
     organ_scoring_ids: str = ""
+    calibration_path: str = "calibration.yaml"
 
     def __post_init__(self) -> None:
         _coerce_quantities(self, _PHANTOM_Q_FIELDS)

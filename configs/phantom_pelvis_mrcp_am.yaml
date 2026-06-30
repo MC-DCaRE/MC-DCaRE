@@ -1,4 +1,6 @@
-# MC-DCaRE Phantom mode: 125 kV Half Fan (Pelvis) with MRCP-AM voxelized
+# MC-DCaRE Phantom Protocol: Pelvis CBCT (125 kV Half Fan)
+# Calibrated against CTDIw = 15.9 mGy (calibration.example.yaml)
+# Reference effective dose: 4.2 mSv (PCXMC, 80kg/180cm person)
 general:
   g4_data_directory: /opt/topas/GEANT4/G4DATA
   topas_directory: /opt/topas/TOPAS/OpenTOPAS-install/bin/topas

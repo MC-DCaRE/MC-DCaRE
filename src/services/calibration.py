@@ -2,20 +2,35 @@
 
 Computes, persists, and applies dose calibration factors (DCF) keyed by
 ``(kV, fan_mode)``.  Wraps :class:`CTDICalculator` to produce calibrated
-CTDI-w results with optional mAs scaling.
+CTDI-w results with optional mAs scaling. Also provides geometry-agnostic
+:meth:`normalize_dose` for phantom and DICOM dose calibration.
 """
 
 from __future__ import annotations
 
 import logging
 import math
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from src.models.calibration import CalibrationEntry, MachineCalibration
 from src.services.ctdi_calculator import CTDICalculator, PRIMARY_SCORER
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class NormalizedDose:
+    """Result of applying DCF normalization to a raw dose value."""
+
+    raw_Gy: float
+    calibrated_Gy: Optional[float]
+    dcf: Optional[float]
+    dcf_source: str
+    photons_per_mAs: float
+    mAs_used: float
+    mAs_simulated: float
 
 
 class CalibrationService:
@@ -109,6 +124,117 @@ class CalibrationService:
         if entry is None:
             return None
         return entry.dcf
+
+    @staticmethod
+    def read_metadata(runfolder: Path) -> Dict[str, Any]:
+        """Read simulation_metadata.yaml from a runfolder.
+
+        Returns a dict with keys: total_histories, exposure_mAs,
+        spectrum_fluence_photons_per_mAs, kV (from spekpy.kvp),
+        fan_mode.
+        """
+        import yaml
+
+        meta_path = runfolder / "simulation_metadata.yaml"
+        if not meta_path.exists():
+            raise FileNotFoundError(
+                "simulation_metadata.yaml not found in %s" % runfolder
+            )
+        with open(meta_path) as f:
+            metadata: Dict[str, Any] = dict(yaml.safe_load(f))
+
+        # Flatten spekpy sub-dict for convenience
+        spekpy = metadata.get("spekpy", {})
+        metadata.setdefault("kV", int(spekpy.get("kvp", 0)))
+        return metadata
+
+    def normalize_dose(
+        self,
+        raw_dose_Gy: float,
+        metadata: Dict[str, Any],
+        kV: Optional[int] = None,
+        fan_mode: Optional[str] = None,
+        target_mAs: Optional[float] = None,
+        dcf_override: Optional[float] = None,
+    ) -> NormalizedDose:
+        """Apply photons_per_mAs x mAs x DCF to any raw dose value.
+
+        Geometry-agnostic normalization. Works for CTDI, phantom, or
+        DICOM dose. The same DCF from calibration.yaml is applied
+        regardless of phantom geometry.
+
+        Normalization formula::
+
+            photons_per_mAs = spectrum_fluence * total_histories / exposure_mAs
+            raw_absolute_Gy = raw_dose_Gy * photons_per_mAs * mAs_used
+            calibrated_Gy = raw_absolute_Gy * DCF
+
+        Args:
+            raw_dose_Gy: Per-history dose in Gy from TOPAS.
+            metadata: Dict from :meth:`read_metadata` or
+                ``CTDICalculator.calculate`` result.
+            kV: Tube voltage. If None, read from metadata.
+            fan_mode: Fan mode string. If None, read from metadata.
+            target_mAs: Scan mAs to scale to. If None, uses simulated mAs.
+            dcf_override: DCF to use instead of calibration.yaml lookup.
+
+        Returns:
+            :class:`NormalizedDose` with full provenance.
+
+        Raises:
+            ValueError: If metadata is missing required fields.
+        """
+        total_histories = metadata.get("total_histories", 0)
+        exposure_mAs = metadata.get("exposure_mAs", 0.0)
+
+        if total_histories <= 0 or exposure_mAs <= 0:
+            raise ValueError(
+                "Cannot normalize: invalid metadata "
+                "(total_histories=%s, exposure_mAs=%s)"
+                % (total_histories, exposure_mAs)
+            )
+
+        spectrum_fluence = metadata.get("spectrum_fluence_photons_per_mAs")
+        if spectrum_fluence is not None and spectrum_fluence > 0:
+            photons_per_mAs = spectrum_fluence * total_histories / exposure_mAs
+        elif metadata.get("norm_factor"):
+            photons_per_mAs = metadata["norm_factor"] * total_histories
+        else:
+            raise ValueError(
+                "Cannot compute photons_per_mAs: need either "
+                "spectrum_fluence_photons_per_mAs or norm_factor in metadata"
+            )
+
+        mAs_simulated = exposure_mAs
+        mAs_used = target_mAs if target_mAs is not None else mAs_simulated
+
+        raw_absolute_Gy = raw_dose_Gy * photons_per_mAs * mAs_used
+
+        # DCF lookup
+        resolved_kV = kV or metadata.get("kV", 0)
+        resolved_fan = fan_mode or metadata.get("fan_mode", "")
+        dcf: Optional[float] = dcf_override
+        dcf_source = "none"
+
+        if dcf_override is not None:
+            dcf_source = "override"
+        else:
+            dcf_candidate = self.lookup_dcf(resolved_kV, resolved_fan)
+            if dcf_candidate is not None:
+                dcf = dcf_candidate
+                dcf_source = "calibration.yaml"
+
+        calibrated_Gy = raw_absolute_Gy * dcf if dcf is not None else None
+
+        return NormalizedDose(
+            raw_Gy=raw_absolute_Gy,
+            calibrated_Gy=calibrated_Gy,
+            dcf=dcf,
+            dcf_source=dcf_source,
+            photons_per_mAs=photons_per_mAs,
+            mAs_used=mAs_used,
+            mAs_simulated=mAs_simulated,
+        )
 
     def normalize(
         self,

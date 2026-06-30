@@ -1,16 +1,24 @@
 #!/usr/bin/env python3
 """CLI for computing organ and effective dose from phantom mode simulations.
 
+Automatically applies DCF normalization from calibration.yaml (the same
+calibration database used for CTDI mode). Supports partial scan dose
+estimation via --target-mAs.
+
 Usage:
     uv run python calculate_phantom_dose.py <runfolder> [options]
 
 Examples:
-    # Compute with CTDIw anchoring
-    uv run python calculate_phantom_dose.py runfolder/2026-06-30_13-04-13/ \\
-        --ctdiw 15.9
-
-    # Without absolute calibration (raw doses only)
+    # Fully automatic (reads calibration.yaml + simulation_metadata.yaml)
     uv run python calculate_phantom_dose.py runfolder/2026-06-30_13-04-13/
+
+    # Scale to a partial scan (500 mAs instead of simulated 1074)
+    uv run python calculate_phantom_dose.py runfolder/2026-06-30_13-04-13/ \\
+        --target-mAs 500
+
+    # Manual DCF override
+    uv run python calculate_phantom_dose.py runfolder/2026-06-30_13-04-13/ \\
+        --dcf 1.078e-11
 """
 
 from __future__ import annotations
@@ -19,6 +27,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from src.services.calibration import CalibrationService
 from src.services.phantom_dose_calculator import PhantomDoseCalculator
 
 
@@ -31,10 +40,21 @@ def main() -> None:
         help="Path to the simulation runfolder containing phantom_dose.csv",
     )
     parser.add_argument(
-        "--ctdiw",
+        "--calibration",
+        default="calibration.yaml",
+        help="Path to calibration.yaml (default: calibration.yaml)",
+    )
+    parser.add_argument(
+        "--target-mAs",
         type=float,
         default=None,
-        help="Measured CTDIw in mGy for absolute dose anchoring",
+        help="Scale dose to this mAs (for partial scans)",
+    )
+    parser.add_argument(
+        "--dcf",
+        type=float,
+        default=None,
+        help="DCF override (skips calibration.yaml lookup)",
     )
     parser.add_argument(
         "--voxel-grid",
@@ -61,7 +81,6 @@ def main() -> None:
         print(f"ERROR: {dose_csv} not found", file=sys.stderr)
         sys.exit(1)
 
-    # Try to find voxel grid and material file
     project_root = Path(__file__).parent
     voxel_grid = (
         Path(args.voxel_grid)
@@ -79,16 +98,39 @@ def main() -> None:
         / "MRCP_AM.material"
     )
 
-    if not voxel_grid.exists():
-        print(f"ERROR: Voxel grid not found: {voxel_grid}", file=sys.stderr)
-        sys.exit(1)
-    if not material_file.exists():
-        print(f"ERROR: Material file not found: {material_file}", file=sys.stderr)
-        sys.exit(1)
+    for p, desc in [(voxel_grid, "voxel grid"), (material_file, "material file")]:
+        if not p.exists():
+            print(f"ERROR: {desc} not found: {p}", file=sys.stderr)
+            sys.exit(1)
+
+    # Set up calibration service
+    cal_service: CalibrationService | None = None
+    metadata: dict | None = None
+    cal_path = Path(args.calibration)
+
+    if cal_path.exists():
+        try:
+            cal_service = CalibrationService(cal_path)
+            metadata = CalibrationService.read_metadata(runfolder)
+            print(f"Calibration: {cal_path}")
+            print(f"  kV={metadata.get('kV')}, fan_mode={metadata.get('fan_mode')}")
+        except Exception as e:
+            print(f"WARNING: Could not load calibration: {e}", file=sys.stderr)
+            cal_service = None
+    else:
+        print(
+            f"WARNING: {cal_path} not found, returning uncalibrated doses",
+            file=sys.stderr,
+        )
 
     # Calculate
     calc = PhantomDoseCalculator(dose_csv, voxel_grid, material_file)
-    result = calc.calculate(ctdiw_mGy=args.ctdiw)
+    result = calc.calculate(
+        calibration_service=cal_service,
+        metadata=metadata,
+        target_mAs=args.target_mAs,
+        dcf_override=args.dcf,
+    )
 
     # Print report
     print(calc.format_report(result))

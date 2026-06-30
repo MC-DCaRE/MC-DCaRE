@@ -5,8 +5,9 @@ phantom into per-organ dose and ICRP 103 effective dose.
 
 The calculator reads the 3D voxel dose grid, maps each voxel to an organ
 using the voxelization material grid, computes mean organ doses, and
-applies CTDIw-anchored absolute calibration followed by ICRP 103 tissue
-weighting.
+applies DCF normalization from :class:`CalibrationService` (the same
+calibration database used for CTDI mode). ICRP 103 tissue weighting
+factors are then applied for effective dose.
 """
 
 from __future__ import annotations
@@ -23,6 +24,7 @@ from src.models.icrp103 import (
     TISSUE_WEIGHTING_FACTORS,
     map_organ_to_tissue,
 )
+from src.services.calibration import CalibrationService, NormalizedDose
 
 logger = logging.getLogger(__name__)
 
@@ -57,22 +59,25 @@ class EffectiveDoseResult:
     effective_dose_mSv: float
     tissue_results: List[TissueDoseResult]
     organ_results: List[OrganDoseResult]
-    ctdiw_mGy: Optional[float]
-    scale_factor: float
-    anchor_organs: List[str]
+    normalization: Optional[NormalizedDose]
 
 
 class PhantomDoseCalculator:
     """Post-processes voxelized phantom dose output into organ and effective dose.
 
-    The calculator implements a three-step normalization pipeline:
+    The calculator implements a three-step pipeline:
 
     1. **Voxel-to-organ mapping**: Each voxel in the dose grid is matched to
        an organ using the material ID grid from the voxelization step.
-    2. **CTDIw anchoring**: The mean dose to isocenter-region organs (pelvic
-       bones, bladder, etc.) is anchored to the measured CTDIw, providing
-       absolute dose calibration that accounts for the source model and
-       scatter conditions.
+    2. **DCF normalization**: Per-history organ doses are converted to
+       absolute dose using the same :class:`CalibrationService` DCF as CTDI
+       mode. The formula is::
+
+           photons_per_mAs = spectrum_fluence * total_histories / exposure_mAs
+           absolute_Gy = raw_Gy * photons_per_mAs * mAs * DCF
+
+       This is geometry-agnostic: the same DCF applies to CTDI, phantom,
+       and DICOM simulations.
     3. **ICRP 103 effective dose**: Organ doses are mapped to ICRP 103 tissue
        categories, mean tissue doses are computed, and tissue weighting
        factors are applied.
@@ -83,18 +88,6 @@ class PhantomDoseCalculator:
             voxelization (see :mod:`scripts.voxelize_mrcp_am_fast`).
         material_file_path: Path to the ICRP 145 ``.material`` file.
     """
-
-    # Organs used for CTDIw anchoring (isocenter-region pelvic organs)
-    DEFAULT_ANCHOR_ORGANS = [
-        "Pelvis_spongiosa",
-        "Pelvis_cortical",
-        "Sacrum_spongiosa",
-        "Sacrum_cortical",
-        "Urinary_bladder_wall_insensitive",
-        "Urinary_bladder_content",
-        "Rectum_wall",
-        "Prostate",
-    ]
 
     def __init__(
         self,
@@ -198,44 +191,54 @@ class PhantomDoseCalculator:
 
     def calculate(
         self,
-        ctdiw_mGy: Optional[float] = None,
-        anchor_organs: Optional[List[str]] = None,
+        calibration_service: Optional[CalibrationService] = None,
+        metadata: Optional[Dict] = None,
+        target_mAs: Optional[float] = None,
+        dcf_override: Optional[float] = None,
     ) -> EffectiveDoseResult:
-        """Compute organ doses and ICRP 103 effective dose.
+        """Compute organ doses and ICRP 103 effective dose with DCF normalization.
 
         Args:
-            ctdiw_mGy: Measured CTDIw in mGy for absolute dose anchoring.
-                If ``None``, raw per-history doses are returned without
-                absolute calibration.
-            anchor_organs: Organ names to use as the isocenter anchor.
-                Defaults to :attr:`DEFAULT_ANCHOR_ORGANS`.
+            calibration_service: :class:`CalibrationService` for DCF lookup.
+                If None, raw per-history doses are returned uncalibrated.
+            metadata: Simulation metadata dict (from
+                :meth:`CalibrationService.read_metadata`). Required if
+                calibration_service is provided.
+            target_mAs: Scan mAs to scale to (for partial scans). If None,
+                uses the simulated mAs from metadata.
+            dcf_override: DCF to use instead of calibration.yaml lookup.
 
         Returns:
             :class:`EffectiveDoseResult` with full provenance.
         """
-        if anchor_organs is None:
-            anchor_organs = self.DEFAULT_ANCHOR_ORGANS
+        # Compute normalization factor
+        norm: Optional[NormalizedDose] = None
+        scale_to_mGy = 1.0  # default: raw Gy -> raw mGy (no calibration)
 
-        # Compute anchor scale factor
-        if ctdiw_mGy is not None:
-            anchor_raw = []
-            for organ in anchor_organs:
-                if organ in self.organ_doses:
-                    anchor_raw.append(np.mean(self.organ_doses[organ]))
-            if not anchor_raw:
-                raise ValueError(
-                    "None of the anchor organs found in dose data: %s" % anchor_organs
-                )
-            anchor_mean_Gy = float(np.mean(anchor_raw))
-            scale = ctdiw_mGy / anchor_mean_Gy  # mGy per Gy of raw dose
-        else:
-            scale = 1.0
+        if calibration_service is not None and metadata is not None:
+            # Use a representative organ dose to get the normalization constants
+            # (the scale factor is the same for all organs since it's per-history)
+            first_organ = next(iter(self.organ_doses.values()))
+            representative_dose = float(np.mean(first_organ))
+            norm = calibration_service.normalize_dose(
+                representative_dose,
+                metadata,
+                target_mAs=target_mAs,
+                dcf_override=dcf_override,
+            )
+            # scale_to_mGy converts raw per-history Gy to calibrated mGy
+            if norm.calibrated_Gy is not None:
+                scale_to_mGy = (
+                    norm.calibrated_Gy / representative_dose * 1000
+                )  # Gy -> mGy
+            else:
+                scale_to_mGy = norm.raw_Gy / representative_dose * 1000
 
         # Compute organ doses
         organ_results: List[OrganDoseResult] = []
         for organ, doses in self.organ_doses.items():
             n = len(doses)
-            scaled_mGy = [d * scale for d in doses]
+            scaled_mGy = [d * scale_to_mGy for d in doses]
             mean_mGy = float(np.mean(scaled_mGy))
             std_mGy = float(np.std(scaled_mGy))
             sem_pct = (std_mGy / np.sqrt(n) / mean_mGy * 100) if mean_mGy > 0 else 0.0
@@ -257,7 +260,6 @@ class PhantomDoseCalculator:
             tissue = result.icrp103_tissue
             tissue_doses.setdefault(tissue, []).append(result.mean_dose_mGy)
 
-        # Remainder: arithmetic mean of all remainder organ doses
         remainder_organs = [
             r.organ_name for r in organ_results if r.icrp103_tissue == "remainder"
         ]
@@ -299,9 +301,7 @@ class PhantomDoseCalculator:
             effective_dose_mSv=effective_dose,
             tissue_results=tissue_results,
             organ_results=organ_results,
-            ctdiw_mGy=ctdiw_mGy,
-            scale_factor=scale,
-            anchor_organs=anchor_organs,
+            normalization=norm,
         )
 
     # ------------------------------------------------------------------
@@ -314,14 +314,14 @@ class PhantomDoseCalculator:
         lines: List[str] = []
         lines.append("=" * 75)
         lines.append("ICRP 145 Phantom Dose Report")
-        if result.ctdiw_mGy is not None:
-            lines.append(
-                f"Absolute calibration: CTDIw-anchored ({result.ctdiw_mGy} mGy)"
-            )
-            lines.append(f"Anchor organs: {', '.join(result.anchor_organs[:4])}...")
-            lines.append(f"Scale factor: {result.scale_factor:.4e}")
+        if result.normalization is not None:
+            n = result.normalization
+            lines.append(f"Normalization: DCF from {n.dcf_source}")
+            lines.append(f"  DCF: {n.dcf}")
+            lines.append(f"  photons_per_mAs: {n.photons_per_mAs:.4e}")
+            lines.append(f"  mAs: {n.mAs_used:.1f} (simulated: {n.mAs_simulated:.1f})")
         else:
-            lines.append("Absolute calibration: none (raw per-history doses)")
+            lines.append("Normalization: none (raw per-history doses)")
         lines.append("=" * 75)
 
         # Tissue table

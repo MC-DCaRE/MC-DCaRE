@@ -174,18 +174,25 @@ cd runfolder/<timestamp>/ && topas headsourcecode.txt
 
 ```bash
 uv run python calculate_phantom_dose.py runfolder/<timestamp>/ \
-    --ctdiw 15.9 \
     --output organ_doses.csv
 ```
+
+DCF normalization is applied automatically from `calibration.yaml` (same database as CTDI mode). Supports `--target-mAs` for partial scan dose estimation.
 
 This produces:
 - Per-organ dose table (mGy) with voxel counts and standard error
 - ICRP 103 tissue doses and effective dose (mSv)
-- CTDIw-anchored absolute calibration
+- Full DCF provenance (DCF value, source, photons_per_mAs, mAs)
 
 ### Dose normalization
 
-Absolute dose calibration uses CTDIw anchoring: the mean dose to isocenter-region organs (pelvic bones, bladder, etc.) is matched to the measured CTDIw, then ICRP 103 tissue weighting factors are applied for effective dose. See `docs/workflow.md` Phase 3 for the full pipeline description.
+All simulation modes use the same DCF from `calibration.yaml`:
+
+```
+absolute_dose = raw_per_history_dose * photons_per_mAs * target_mAs * DCF
+```
+
+The DCF is computed from a CTDI calibration run and applied to all geometries (CTDI, phantom, DICOM). See `docs/workflow.md` for the full normalization pipeline.
 
 ## Project Structure
 

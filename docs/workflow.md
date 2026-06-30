@@ -286,18 +286,29 @@ Output:
 
 ### Dose normalization pipeline
 
-Absolute dose calibration for phantom mode uses a three-step pipeline:
-
-1. **MC simulation**: TOPAS transports particles through the beam line and voxelized phantom, producing per-voxel DoseToMedium in Gy per history
-2. **CTDIw anchoring**: The mean dose to isocenter-region organs (pelvic bones, bladder) is anchored to the measured CTDIw, providing absolute calibration
-3. **ICRP 103 effective dose**: Organ doses are mapped to 15 tissue categories, mean tissue doses computed, and tissue weighting factors applied
+All simulation modes (CTDI, ICRP145, DICOM) use the **same DCF normalization** from `calibration.yaml`:
 
 ```
-E = Sigma(wT x HT)
+photons_per_mAs = spectrum_fluence * total_histories / exposure_mAs
+absolute_dose_Gy = raw_per_history_dose * photons_per_mAs * target_mAs * DCF
+```
+
+- `photons_per_mAs` is a kV-dependent constant (histories cancel algebraically)
+- `DCF` is looked up from `calibration.yaml` by (kV, fan_mode)
+- `target_mAs` supports partial scans (defaults to simulated mAs)
+
+The DCF is computed once from a CTDI calibration run (Phase 1) and applied to all subsequent simulations regardless of geometry. For phantom and DICOM modes, the DCF transfers the absolute calibration from the CTDI phantom to other geometries.
+
+### ICRP 103 effective dose
+
+Organ doses are mapped to 15 ICRP 103 tissue categories:
+
+```
+E = Sigma(wT * HT)
 
 where:
   wT = ICRP 103 tissue weighting factor
-  HT = mean absorbed dose to tissue T (Gy), anchored to CTDIw
+  HT = mean absorbed dose to tissue T (mGy), DCF-normalized
 ```
 
 ### Organ-to-tissue mapping
@@ -493,12 +504,24 @@ uv run python calculate_ctdiw.py benchmark <runfolder> \
 ### Phantom Dose CLI (`calculate_phantom_dose.py`)
 
 ```bash
-# Compute organ and effective dose with CTDIw anchoring
-uv run python calculate_phantom_dose.py <runfolder> \
-  --ctdiw <mGy> [--output organ_doses.csv]
+# Fully automatic (reads calibration.yaml + simulation_metadata.yaml)
+uv run python calculate_phantom_dose.py <runfolder> [--output organ_doses.csv]
 
-# Without absolute calibration (raw per-history doses)
-uv run python calculate_phantom_dose.py <runfolder>
+# Scale to partial scan mAs
+uv run python calculate_phantom_dose.py <runfolder> --target-mAs 500
+
+# Manual DCF override
+uv run python calculate_phantom_dose.py <runfolder> --dcf 1.078e-11
+```
+
+### DICOM Dose CLI (`calculate_dicom_dose.py`)
+
+```bash
+# Fully automatic DCF normalization
+uv run python calculate_dicom_dose.py <runfolder>
+
+# Scale to partial scan mAs
+uv run python calculate_dicom_dose.py <runfolder> --target-mAs 500
 ```
 
 ---

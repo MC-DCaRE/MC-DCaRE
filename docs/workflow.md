@@ -23,14 +23,16 @@ MC-DCaRE simulates kV imaging dose from the Varian TrueBeam system. Three simula
 | Type | Geometry | Use Case |
 |---|---|---|
 | **CTDI** | Standard PMMA phantom (16 cm or 32 cm) | Beam model validation, calibration |
+| **ICRP145** | ICRP 145 voxelized reference phantom | Standardized organ and effective dose |
 | **DICOM** | Patient CT images | Patient-specific dose estimation |
 | **kV-kV** | CTDI phantom with 2D pair geometry | kV-kV imaging dose |
 
-The typical workflow has three phases:
+The typical workflow has four phases:
 
 1. **Calibrate** the beam model against measured CTDI data
 2. **Validate** CTDI dose against reference specifications
-3. **Estimate** patient dose using DICOM geometry
+3. **Estimate** organ dose using ICRP 145 reference phantoms
+4. **Estimate** patient dose using DICOM geometry
 
 ---
 
@@ -199,7 +201,140 @@ CTDI_w = (2/3) x peripheral_avg + (1/3) x center_dose
 
 ---
 
-## Phase 3: DICOM Patient Dose Estimation
+## Phase 3: ICRP 145 Phantom Organ Dose
+
+Estimate organ and effective dose for standardized reference phantoms (MRCP-AM adult male, MRCP-AF adult female) using the ICRP 145 tetrahedral mesh. The phantom is voxelized at a configurable resolution and simulated with the full beam line.
+
+### Prerequisites
+
+- Voxelized phantom data (run `scripts/voxelize_mrcp_am_fast.py` once per phantom/resolution)
+- CTDIw calibration from Phase 1 for the matching kV/fan-mode
+
+### Step 3.1: Voxelize the phantom
+
+Convert the ICRP 145 tetrahedral mesh to a voxel grid with real tissue material definitions:
+
+```bash
+uv run python scripts/voxelize_mrcp_am_fast.py \
+    data/P145/Phantom_data/MRCP_AM \
+    test_voxel_output/mrcp_am \
+    1.0  # voxel size in cm (10 mm)
+```
+
+This produces:
+- `mrcp_am_voxels.npy` -- material ID grid
+- `phantomVoxel.txt` -- TOPAS parameter file with VoxelMaterials and ICRP tissue definitions
+- `icrp_materials.txt` -- 187 TOPAS material definitions (elemental compositions and densities)
+
+### Step 3.2: Create a phantom config
+
+```yaml
+# phantom_pelvis.yaml
+general:
+  g4_data_directory: /path/to/G4Data
+  topas_directory: /path/to/topas/bin/topas
+  histories: "1000000"      # per time step; total = histories x sequential_times
+  threads: "20"
+  dose_calibration_factor: "1.0"
+
+imaging:
+  simulation_type: "ICRP145"
+  rotation_direction: "CBCT Anticlockwise"
+  imaging_mode: "Pelvis"     # 125 kV, Half Fan
+  sequential_times: "150"    # full rotation
+
+phantom:
+  phantom_data_directory: data/P145/Phantom_data
+  phantom_sex: "AM"          # AM = adult male, AF = adult female
+  organ_scoring_ids: "Blood" # comma-separated organ names for TsTetGeomScorer filter
+```
+
+### Step 3.3: Swap in voxelized phantom and run
+
+The pipeline generates a tetrahedral phantom template by default. For voxelized mode, swap the include file:
+
+```bash
+# Dry run to generate beam line files
+uv run python scripts/run_pelvis_mrcp_am.py
+
+# Or manually: copy phantomVoxel.txt into the runfolder and edit headsourcecode.txt
+# to use: includeFile = phantomVoxel.txt
+```
+
+Run with the standard TOPAS binary (no MeshGeom extension needed for voxelized phantoms):
+
+```bash
+cd runfolder/<timestamp>/
+topas headsourcecode.txt
+```
+
+### Step 3.4: Compute organ and effective dose
+
+```bash
+uv run python calculate_phantom_dose.py runfolder/<timestamp>/ \
+    --ctdiw 15.9 \
+    --output organ_doses.csv
+```
+
+Arguments:
+- `--ctdiw`: Measured CTDIw in mGy for absolute dose calibration (from Phase 1)
+- `--output`: Optional CSV path for the organ dose table
+
+Output:
+- ICRP 103 tissue doses and effective dose (mSv)
+- Per-organ dose table with voxel counts and standard error
+
+### Dose normalization pipeline
+
+Absolute dose calibration for phantom mode uses a three-step pipeline:
+
+1. **MC simulation**: TOPAS transports particles through the beam line and voxelized phantom, producing per-voxel DoseToMedium in Gy per history
+2. **CTDIw anchoring**: The mean dose to isocenter-region organs (pelvic bones, bladder) is anchored to the measured CTDIw, providing absolute calibration
+3. **ICRP 103 effective dose**: Organ doses are mapped to 15 tissue categories, mean tissue doses computed, and tissue weighting factors applied
+
+```
+E = Sigma(wT x HT)
+
+where:
+  wT = ICRP 103 tissue weighting factor
+  HT = mean absorbed dose to tissue T (Gy), anchored to CTDIw
+```
+
+### Organ-to-tissue mapping
+
+ICRP 145 organ names are mapped to ICRP 103 tissue categories automatically:
+
+| ICRP 103 Tissue | wT | Example ICRP 145 Organs |
+|---|---|---|
+| Bone marrow | 0.12 | RST_trunk, RST_legs, RST_arms |
+| Colon | 0.12 | Ascending/descending/transverse/sigmoid colon walls |
+| Lung | 0.12 | Lung(AI)_left, Lung(AI)_right |
+| Bladder | 0.04 | Urinary_bladder_wall, Urinary_bladder_content |
+| Bone surface | 0.01 | Pelvis_cortical, Femora_cortical, *_cortical |
+| Skin | 0.01 | Skin_trunk, Skin_legs, Skin_arms |
+| Remainder | 0.12 | Muscle, small intestine, lymph nodes, heart, kidneys, ... |
+
+### Expected results
+
+| Protocol | kV | Effective Dose (mSv) | Reference |
+|---|---|---|---|
+| Pelvis | 125 | ~3.0 (sim) vs 4.2 (PCXMC) | 0.71 ratio |
+| Pelvis Spotlight | 125 | ~2.2 | PCXMC |
+| Thorax | 125 | ~1.3 | PCXMC |
+| Head | 100 | ~0.5 | PCXMC |
+
+Differences from PCXMC reference values arise from: voxel resolution (10 mm default), limited organ coverage for small organs, and differences between the ICRP 145 mesh phantom and the PCXMC mathematical phantom.
+
+### Voxelization scripts
+
+| Script | Purpose |
+|---|---|
+| `scripts/voxelize_mrcp_am_fast.py` | Convert tetrahedral mesh to voxels (pandas-accelerated loading) |
+| `scripts/regenerate_voxel_phantom.py` | Regenerate TOPAS files with real ICRP tissue materials |
+
+---
+
+## Phase 4: DICOM Patient Dose Estimation
 
 With a validated beam model, estimate patient-specific imaging dose using CT DICOM datasets.
 
@@ -355,6 +490,17 @@ uv run python calculate_ctdiw.py benchmark <runfolder> \
   --reference <mSv> [--tolerance 10.0] [--output benchmark.csv]
 ```
 
+### Phantom Dose CLI (`calculate_phantom_dose.py`)
+
+```bash
+# Compute organ and effective dose with CTDIw anchoring
+uv run python calculate_phantom_dose.py <runfolder> \
+  --ctdiw <mGy> [--output organ_doses.csv]
+
+# Without absolute calibration (raw per-history doses)
+uv run python calculate_phantom_dose.py <runfolder>
+```
+
 ---
 
 ## Runfolder Structure
@@ -386,6 +532,13 @@ runfolder/2026-06-12_14-30-00/
 ├── HUtoMaterialSchneider.txt         # HU-to-material conversion
 ├── topas_dicom.log                   # TOPAS stdout/stderr
 └── PT001_CBCT Clockwise_Head_0 deg_DOSE_PTV.*  # 3D dose output
+│
+│── # ICRP145 mode (voxelized):
+├── headsourcecode.txt                # TOPAS beam line parameter file
+├── phantomVoxel.txt                  # Voxelized phantom geometry
+├── icrp_materials.txt                # 187 ICRP tissue material definitions
+├── phantom_dose.csv                  # 3D voxel dose grid output
+└── organ_doses.csv                   # Per-organ dose summary (from calculate_phantom_dose.py)
 ```
 
 ---
@@ -425,6 +578,26 @@ imaging:
 dicom:
   dicom_directory: /path/to/patient/dicom
   patient_id: "PT001"
+```
+
+### Minimal ICRP145 Phantom Config
+
+```yaml
+general:
+  g4_data_directory: /path/to/G4Data
+  topas_directory: /path/to/topas/bin/topas
+  histories: "1000000"
+
+imaging:
+  simulation_type: "ICRP145"
+  rotation_direction: "CBCT Anticlockwise"
+  imaging_mode: "Pelvis"
+  sequential_times: "150"
+
+phantom:
+  phantom_data_directory: data/P145/Phantom_data
+  phantom_sex: "AM"
+  organ_scoring_ids: "Blood"
 ```
 
 ### kV-kV Config

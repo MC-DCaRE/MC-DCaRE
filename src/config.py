@@ -195,6 +195,7 @@ class PhantomConfig:
 
     phantom_data_directory: str = "data/P145/Phantom_data"
     phantom_sex: str = "AM"
+    phantom_name: str = ""
     trans_x: Quantity = _q(0.0, "cm")
     trans_y: Quantity = _q(0.0, "cm")
     trans_z: Quantity = _q(0.0, "cm")

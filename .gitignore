@@ -351,3 +351,15 @@ calibration.yaml
 .dolt/
 *.db
 .beads-credential-key
+
+# Phantom simulation scratch outputs
+/test_*.topas
+/test_*.txt
+/test_*.yaml
+/test_voxel_output/
+/test_voxel_visualizations/
+/MRCP_AM_DoseByTet*.csv
+/MRCP_AM_DoseByTet*.csv
+/OmedMeshScorer*.csv
+/phantom_dose.csv
+/liver_dose_test.csv

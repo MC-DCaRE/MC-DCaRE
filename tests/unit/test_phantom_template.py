@@ -44,8 +44,8 @@ _MAIN_CTX = {
 
 # Minimal sub context for phantomICRP145.j2
 _PHANTOM_SUB_CTX_AM = {
-    "phantom_data_directory": "data/P145/Phantom_data",
-    "phantom_sex": "AM",
+    "phantom_directory": "data/P145/Phantom_data",
+    "phantom_name": "MRCP_AM",
     "trans_x": "0.0 cm",
     "trans_y": "0.0 cm",
     "trans_z": "0.0 cm",
@@ -94,7 +94,7 @@ class TestPhantomIncludeTemplate:
         assert "MRCP_AM.material" in content
 
     def test_af_sex_selection(self, tmp_path: Any) -> None:
-        ctx = dict(_PHANTOM_SUB_CTX_AM, phantom_sex="AF")
+        ctx = dict(_PHANTOM_SUB_CTX_AM, phantom_name="MRCP_AF")
         renderer = _make_renderer(tmp_path)
         result = renderer.render("phantomICRP145.j2", ctx, "phantom.txt")
         with open(result) as f:

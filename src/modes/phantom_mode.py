@@ -56,8 +56,11 @@ class PhantomMode(SimulationMode):
         }
 
     def build_sub_context(self, config: SimulationConfig) -> Dict[str, object]:
+        phantom_name = config.phantom.phantom_name or "MRCP_{}".format(
+            config.phantom.phantom_sex
+        )
         output_filename = "{}_{}_{}_{}_PHANTOM_DOSE".format(
-            "MRCP_{}".format(config.phantom.phantom_sex),
+            phantom_name,
             config.imaging.rotation_direction,
             config.imaging.imaging_mode,
             str(config.imaging.start_angle),
@@ -83,8 +86,10 @@ class PhantomMode(SimulationMode):
             icrp_materials = ""
 
         return {
-            "phantom_data_directory": config.phantom.phantom_data_directory,
-            "phantom_sex": config.phantom.phantom_sex,
+            "phantom_directory": os.path.abspath(
+                os.path.join(config.phantom.phantom_data_directory, phantom_name)
+            ),
+            "phantom_name": phantom_name,
             "trans_x": str(config.phantom.trans_x),
             "trans_y": str(config.phantom.trans_y),
             "trans_z": str(config.phantom.trans_z),

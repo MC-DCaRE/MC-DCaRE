@@ -53,23 +53,23 @@ class TestBuildMainContext:
 
 
 class TestBuildSubContext:
-    def test_phantom_data_directory(self, make_config: Any) -> None:
+    def test_phantom_directory(self, make_config: Any) -> None:
         mode = PhantomMode()
         config = make_config(phantom_data_directory="/data/P145/Phantom_data")
         ctx = mode.build_sub_context(config)
-        assert ctx["phantom_data_directory"] == "/data/P145/Phantom_data"
+        assert ctx["phantom_directory"].endswith("/data/P145/Phantom_data/MRCP_AM")
 
-    def test_phantom_sex_am(self, make_config: Any) -> None:
+    def test_phantom_name_defaults_to_mrcp_sex(self, make_config: Any) -> None:
         mode = PhantomMode()
         config = make_config(phantom_sex="AM")
         ctx = mode.build_sub_context(config)
-        assert ctx["phantom_sex"] == "AM"
+        assert ctx["phantom_name"] == "MRCP_AM"
 
-    def test_phantom_sex_af(self, make_config: Any) -> None:
+    def test_phantom_name_override(self, make_config: Any) -> None:
         mode = PhantomMode()
-        config = make_config(phantom_sex="AF")
+        config = make_config(phantom_name="Omed")
         ctx = mode.build_sub_context(config)
-        assert ctx["phantom_sex"] == "AF"
+        assert ctx["phantom_name"] == "Omed"
 
     def test_trans_offsets(self, make_config: Any) -> None:
         mode = PhantomMode()
@@ -112,7 +112,7 @@ class TestBuildSubContext:
     def test_builds_output_filename(self, make_config: Any) -> None:
         mode = PhantomMode()
         config = make_config(
-            phantom_sex="AM",
+            phantom_name="MRCP_AM",
             rotation_direction="CW",
             imaging_mode="Head",
             start_angle="90 deg",

@@ -88,18 +88,18 @@ class TestComputeDCF:
         reloaded = MachineCalibration.from_yaml(cal_file)
         entry = reloaded.find_entry(80, "Full Fan")
         assert entry is not None
-        assert entry.dcf is not None
-        assert abs(entry.dcf - expected) < 1e-10
+        assert entry.dcf_tle is not None
+        assert abs(entry.dcf_tle - expected) < 1e-10
         assert entry.measured_ctdi_w_mGy == 45.0
 
         # Verify sibling entry unchanged
         sibling = reloaded.find_entry(120, "Full Fan")
         assert sibling is not None
-        assert sibling.dcf == 1.034
+        assert sibling.dcf_tle == 1.034
 
     def test_compute_dcf_raises_on_existing_without_force(self, cal_file: Path) -> None:
         svc = CalibrationService(cal_file)
-        with pytest.raises(ValueError, match="already has DCF"):
+        with pytest.raises(ValueError, match="already has"):
             svc.compute_dcf(120, "Full Fan", 0.0437, 46.0)
 
     def test_compute_dcf_overwrites_with_force(self, cal_file: Path) -> None:
@@ -169,7 +169,7 @@ class TestNormalize:
         result = svc.normalize(raw_result, 120, "Full Fan")
 
         photons_per_mAs = 2.34e8 * 1e6 / 100.0
-        expected_raw = 1.0e-15 * photons_per_mAs * 100.0
+        expected_raw = (1.0e-15 / 1e6) * photons_per_mAs * 100.0
         expected_calibrated = expected_raw * 1.034
 
         assert result["ctdi_w_raw_Gy"] == pytest.approx(expected_raw)
@@ -189,7 +189,7 @@ class TestNormalize:
         result = svc.normalize(raw_result, 120, "Full Fan", dcf_override=0.85)
 
         photons_per_mAs = 2.34e8 * 1e6 / 100.0
-        expected_raw = 1.0e-15 * photons_per_mAs * 100.0
+        expected_raw = (1.0e-15 / 1e6) * photons_per_mAs * 100.0
         expected_calibrated = expected_raw * 0.85
 
         assert result["ctdi_w_calibrated_Gy"] == pytest.approx(expected_calibrated)
@@ -201,7 +201,7 @@ class TestNormalize:
         result = svc.normalize(raw_result, 120, "Full Fan", target_mAs=50.0)
 
         photons_per_mAs = 2.34e8 * 1e6 / 100.0
-        expected_raw = 1.0e-15 * photons_per_mAs * 50.0
+        expected_raw = (1.0e-15 / 1e6) * photons_per_mAs * 50.0
 
         assert result["ctdi_w_raw_Gy"] == pytest.approx(expected_raw)
         assert result["mAs_used"] == 50.0
@@ -246,7 +246,7 @@ class TestNormalize:
         result = svc.normalize(old_result, 120, "Full Fan")
         photons_per_mAs = (2.34e8 / 1e6) * 1e6
         assert result["ctdi_w_raw_Gy"] == pytest.approx(
-            1.0e-15 * photons_per_mAs * 100.0
+            (1.0e-15 / 1e6) * photons_per_mAs * 100.0
         )
 
 

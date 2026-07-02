@@ -57,9 +57,15 @@ def main() -> None:
         help="DCF override (skips calibration.yaml lookup)",
     )
     parser.add_argument(
-        "--voxel-grid",
+        "--scorer-type",
+        default="tle",
+        choices=["tle", "dtw", "dtm"],
+        help="Scorer type for DCF lookup (default: tle)",
+    )
+    parser.add_argument(
+        "--dose-file",
         default=None,
-        help="Path to the .npy material ID grid (default: auto-detect)",
+        help="Override dose CSV filename (default: auto-detect from scorer-type)",
     )
     parser.add_argument(
         "--material-file",
@@ -75,8 +81,17 @@ def main() -> None:
 
     runfolder = Path(args.runfolder)
 
-    # Auto-detect file paths
-    dose_csv = runfolder / "phantom_dose.csv"
+    # Auto-detect dose CSV based on scorer type
+    dose_filenames = {
+        "tle": "phantom_tle.csv",
+        "dtw": "phantom_dtw.csv",
+        "dtm": "phantom_dtm.csv",
+    }
+    dose_name = args.dose_file or dose_filenames.get(args.scorer_type, "phantom_tle.csv")
+    dose_csv = runfolder / dose_name
+    if not dose_csv.exists():
+        # Fallback to legacy phantom_dose.csv
+        dose_csv = runfolder / "phantom_dose.csv"
     if not dose_csv.exists():
         print(f"ERROR: {dose_csv} not found", file=sys.stderr)
         sys.exit(1)
@@ -130,6 +145,7 @@ def main() -> None:
         metadata=metadata,
         target_mAs=args.target_mAs,
         dcf_override=args.dcf,
+        scorer_type=args.scorer_type,
     )
 
     # Print report

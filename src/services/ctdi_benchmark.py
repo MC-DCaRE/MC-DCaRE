@@ -94,7 +94,14 @@ class BenchmarkCalculator:
                 continue
 
             raw_sum = calc_result.get("raw_sum", 0.0)
-            simulated_Gy = raw_sum * photons_per_mAs * exposure_mAs
+            # raw_sum is TOPAS Sum (total accumulated), divide by total_histories
+            # to get per-history mean before scaling to absolute Gy.
+            if total_histories > 0:
+                simulated_Gy = (
+                    (raw_sum / total_histories) * photons_per_mAs * exposure_mAs
+                )
+            else:
+                simulated_Gy = raw_sum * photons_per_mAs * exposure_mAs
 
             deviation = (simulated_Gy - reference_Gy) / reference_Gy * 100
             status = "PASS" if abs(deviation) <= tolerance_pct else "FAIL"

@@ -34,7 +34,19 @@ class NormalizedDose:
 
 
 class CalibrationService:
-    """Compute, lookup, and apply dose calibration factors."""
+    """Compute, lookup, and apply dose calibration factors.
+
+    Supports per-scorer DCFs (tle, dtw, dtm). The ``scorer_type``
+    parameter on lookup and normalization methods selects which DCF
+    to use, defaulting to ``"tle"`` (Track Length Estimator).
+    """
+
+    # Map scorer_type strings to CalibrationEntry field names
+    _DCF_FIELDS = {
+        "tle": "dcf_tle",
+        "dtw": "dcf_dtw",
+        "dtm": "dcf_dtm",
+    }
 
     def __init__(self, calibration_path: Path) -> None:
         self.calibration_path = Path(calibration_path)
@@ -47,6 +59,7 @@ class CalibrationService:
         simulated_ctdi_w_Gy: float,
         measured_ctdi_w_mGy: float,
         force: bool = False,
+        scorer_type: str = "tle",
     ) -> float:
         """Compute DCF and write back to calibration.yaml.
 
@@ -56,6 +69,8 @@ class CalibrationService:
             simulated_ctdi_w_Gy: CTDI-w from simulation in Gray.
             measured_ctdi_w_mGy: Reference CTDI-w from measurement in mGy.
             force: Allow overwriting an existing DCF.
+            scorer_type: Which scorer's DCF to compute (``"tle"``,
+                ``"dtw"``, or ``"dtm"``).
 
         Returns:
             The computed DCF value.
@@ -64,13 +79,16 @@ class CalibrationService:
             ValueError: No matching entry, or entry already has a DCF
                 and *force* is False.
         """
+        dcf_field = self._DCF_FIELDS.get(scorer_type, "dcf_tle")
+
         entry = self._calibration.find_entry(kV, fan_mode)
         if entry is None:
             raise ValueError("No calibration entry for (%d, %s)" % (kV, fan_mode))
-        if entry.dcf is not None and not force:
+        existing_dcf = getattr(entry, dcf_field)
+        if existing_dcf is not None and not force:
             raise ValueError(
-                "Entry (%d, %s) already has DCF=%.6f; use force=True to overwrite"
-                % (kV, fan_mode, entry.dcf)
+                "Entry (%d, %s) already has %s=%.6f; use force=True to overwrite"
+                % (kV, fan_mode, dcf_field, existing_dcf)
             )
 
         if not math.isfinite(simulated_ctdi_w_Gy) or simulated_ctdi_w_Gy <= 0:
@@ -91,19 +109,21 @@ class CalibrationService:
         updated_entries = []
         for e in self._calibration.calibrations:
             if e.kV == kV and e.fan_mode == fan_mode:
-                updated_entries.append(
-                    CalibrationEntry(
-                        kV=e.kV,
-                        fan_mode=e.fan_mode,
-                        reference_mAs=e.reference_mAs,
-                        measured_ctdi_w_mGy=measured_ctdi_w_mGy,
-                        dcf=dcf,
-                        reference_protocol=e.reference_protocol,
-                        reference_ctdi_w_mGy=e.reference_ctdi_w_mGy,
-                        date=e.date,
-                        note=e.note,
-                    )
-                )
+                kwargs = {
+                    "kV": e.kV,
+                    "fan_mode": e.fan_mode,
+                    "reference_mAs": e.reference_mAs,
+                    "measured_ctdi_w_mGy": measured_ctdi_w_mGy,
+                    "dcf_tle": e.dcf_tle,
+                    "dcf_dtw": e.dcf_dtw,
+                    "dcf_dtm": e.dcf_dtm,
+                    "reference_protocol": e.reference_protocol,
+                    "reference_ctdi_w_mGy": e.reference_ctdi_w_mGy,
+                    "date": e.date,
+                    "note": e.note,
+                }
+                kwargs[dcf_field] = dcf
+                updated_entries.append(CalibrationEntry(**kwargs))
             else:
                 updated_entries.append(e)
 
@@ -118,12 +138,15 @@ class CalibrationService:
         logger.info("DCF computed for (%d, %s): %.6e", kV, fan_mode, dcf)
         return dcf
 
-    def lookup_dcf(self, kV: int, fan_mode: str) -> Optional[float]:
-        """Return DCF for (kV, fan_mode), or None if not calibrated."""
+    def lookup_dcf(
+        self, kV: int, fan_mode: str, scorer_type: str = "tle"
+    ) -> Optional[float]:
+        """Return DCF for (kV, fan_mode, scorer_type), or None if not calibrated."""
         entry = self._calibration.find_entry(kV, fan_mode)
         if entry is None:
             return None
-        return entry.dcf
+        dcf_field = self._DCF_FIELDS.get(scorer_type, "dcf_tle")
+        return getattr(entry, dcf_field, None)
 
     @staticmethod
     def read_metadata(runfolder: Path) -> Dict[str, Any]:
@@ -156,6 +179,7 @@ class CalibrationService:
         fan_mode: Optional[str] = None,
         target_mAs: Optional[float] = None,
         dcf_override: Optional[float] = None,
+        scorer_type: str = "tle",
     ) -> NormalizedDose:
         """Apply photons_per_mAs x mAs x DCF to any raw dose value.
 
@@ -166,11 +190,12 @@ class CalibrationService:
         Normalization formula::
 
             photons_per_mAs = spectrum_fluence * total_histories / exposure_mAs
-            raw_absolute_Gy = raw_dose_Gy * photons_per_mAs * mAs_used
+            raw_absolute_Gy = (raw_dose / total_histories) * photons_per_mAs * mAs
             calibrated_Gy = raw_absolute_Gy * DCF
 
         Args:
-            raw_dose_Gy: Per-history dose in Gy from TOPAS.
+            raw_dose_Gy: TOPAS Sum (total accumulated dose across all
+                histories) in Gy.
             metadata: Dict from :meth:`read_metadata` or
                 ``CTDICalculator.calculate`` result.
             kV: Tube voltage. If None, read from metadata.
@@ -208,7 +233,9 @@ class CalibrationService:
         mAs_simulated = exposure_mAs
         mAs_used = target_mAs if target_mAs is not None else mAs_simulated
 
-        raw_absolute_Gy = raw_dose_Gy * photons_per_mAs * mAs_used
+        # Convert TOPAS Sum (total accumulated) to per-history mean,
+        # then scale to absolute Gy via photons_per_mAs x mAs.
+        raw_absolute_Gy = (raw_dose_Gy / total_histories) * photons_per_mAs * mAs_used
 
         # DCF lookup
         resolved_kV = kV or metadata.get("kV", 0)
@@ -219,7 +246,7 @@ class CalibrationService:
         if dcf_override is not None:
             dcf_source = "override"
         else:
-            dcf_candidate = self.lookup_dcf(resolved_kV, resolved_fan)
+            dcf_candidate = self.lookup_dcf(resolved_kV, resolved_fan, scorer_type)
             if dcf_candidate is not None:
                 dcf = dcf_candidate
                 dcf_source = "calibration.yaml"
@@ -243,6 +270,7 @@ class CalibrationService:
         fan_mode: str,
         target_mAs: Optional[float] = None,
         dcf_override: Optional[float] = None,
+        scorer_type: str = "tle",
     ) -> Dict:
         """Apply full normalization pipeline to a single raw result.
 
@@ -322,7 +350,9 @@ class CalibrationService:
             raise ValueError("raw_sum is not finite: %s" % raw_ctdi_w)
 
         # raw Gy: per_history_dose x photons_per_mAs x mAs (no DCF)
-        ctdi_w_raw_Gy = raw_ctdi_w * photons_per_mAs * mAs_used
+        # Sum is total accumulated across all histories, so divide by
+        # total_histories to get per-history mean dose before scaling.
+        ctdi_w_raw_Gy = (raw_ctdi_w / total_histories) * photons_per_mAs * mAs_used
 
         # DCF lookup
         dcf: Optional[float] = dcf_override
@@ -330,7 +360,7 @@ class CalibrationService:
         if dcf_override is not None:
             dcf_source = "override"
         else:
-            dcf_candidate = self.lookup_dcf(kV, fan_mode)
+            dcf_candidate = self.lookup_dcf(kV, fan_mode, scorer_type)
             if dcf_candidate is not None:
                 dcf = dcf_candidate
                 dcf_source = "calibration.yaml"

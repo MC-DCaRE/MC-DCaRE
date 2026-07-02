@@ -180,7 +180,7 @@ class PhantomDoseCalculator:
 
     @property
     def organ_doses(self) -> Dict[str, List[float]]:
-        """Raw per-voxel dose lists keyed by organ name (Gy per history)."""
+        """Raw per-voxel TOPAS Sum values keyed by organ name (total accumulated Gy)."""
         if self._organ_doses is None:
             self._organ_doses = self._load_dose_data()
         return self._organ_doses
@@ -195,6 +195,7 @@ class PhantomDoseCalculator:
         metadata: Optional[Dict] = None,
         target_mAs: Optional[float] = None,
         dcf_override: Optional[float] = None,
+        scorer_type: str = "tle",
     ) -> EffectiveDoseResult:
         """Compute organ doses and ICRP 103 effective dose with DCF normalization.
 
@@ -225,6 +226,7 @@ class PhantomDoseCalculator:
                 metadata,
                 target_mAs=target_mAs,
                 dcf_override=dcf_override,
+                scorer_type=scorer_type,
             )
             # scale_to_mGy converts raw per-history Gy to calibrated mGy
             if norm.calibrated_Gy is not None:

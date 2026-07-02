@@ -326,6 +326,9 @@ cython_debug/
 /generate_allproc.py
 /tmp/*
 /runfolder/*
+/calibration_runs/*
+/verification_runs/*
+/phantom_runs/*
 
 
 # Personal test file 

@@ -26,12 +26,12 @@ _SAMPLE_ENTRIES = (
     "    fan_mode: 'Full Fan'\n"
     "    reference_mAs: 100.0\n"
     "    measured_ctdi_w_mGy: 45.2\n"
-    "    dcf: 1.034\n"
+    "    dcf_tle: 1.034\n"
     "  - kV: 80\n"
     "    fan_mode: 'Full Fan'\n"
     "    reference_mAs: 100.0\n"
     "    measured_ctdi_w_mGy: null\n"
-    "    dcf: null\n"
+    "    dcf_tle: null\n"
 )
 
 
@@ -42,7 +42,7 @@ class TestCalibrationEntry:
         assert e.fan_mode == "Full Fan"
         assert e.reference_mAs == 100.0
         assert e.measured_ctdi_w_mGy is None
-        assert e.dcf is None
+        assert e.dcf_tle is None
 
     def test_frozen(self) -> None:
         e = CalibrationEntry(kV=120, fan_mode="Full Fan", reference_mAs=100.0)
@@ -55,10 +55,10 @@ class TestCalibrationEntry:
             fan_mode="Full Fan",
             reference_mAs=100.0,
             measured_ctdi_w_mGy=45.2,
-            dcf=1.034,
+            dcf_tle=1.034,
         )
         assert e.measured_ctdi_w_mGy == 45.2
-        assert e.dcf == 1.034
+        assert e.dcf_tle == 1.034
 
     def test_rejects_non_numeric_measured(self) -> None:
         with pytest.raises(TypeError, match="measured_ctdi_w_mGy must be numeric"):
@@ -70,12 +70,12 @@ class TestCalibrationEntry:
             )
 
     def test_rejects_non_numeric_dcf(self) -> None:
-        with pytest.raises(TypeError, match="dcf must be numeric"):
+        with pytest.raises(TypeError, match="dcf_tle must be numeric"):
             CalibrationEntry(
                 kV=120,
                 fan_mode="Full Fan",
                 reference_mAs=100.0,
-                dcf="bad",
+                dcf_tle="bad",
             )
 
 
@@ -90,8 +90,8 @@ class TestFromYaml:
         assert mc.date_calibrated == "2026-06-10"
         assert len(mc.calibrations) == 2
         assert mc.calibrations[0].kV == 120
-        assert mc.calibrations[0].dcf == 1.034
-        assert mc.calibrations[1].dcf is None
+        assert mc.calibrations[0].dcf_tle == 1.034
+        assert mc.calibrations[1].dcf_tle is None
 
     def test_duplicate_keys_raises(self, tmp_path: object) -> None:
         import pathlib
@@ -165,7 +165,7 @@ class TestToYaml:
         mc.to_yaml(p)
         loaded = MachineCalibration.from_yaml(p)
         assert loaded.calibrations[0].measured_ctdi_w_mGy is None
-        assert loaded.calibrations[0].dcf is None
+        assert loaded.calibrations[0].dcf_tle is None
 
 
 class TestFindEntry:

@@ -10,7 +10,7 @@ Subdirectories:
 - **models/** — Immutable dataclasses: `Quantity`, `ImagingMode` (21 fields, 47 protocols), enums (`SimulationType` with DICOM/CTDI/ICRP145, `FanMode`), UI keys, `icrp103` (ICRP 103 tissue weighting factors and organ-to-tissue mapping)
 - **modes/** — Strategy pattern: `SimulationMode` ABC with `DicomMode`, `CtdiMode`, and `PhantomMode` implementations
 - **gui/** — FreeSimpleGUI MVC: `MainView` (layout with DICOM/CTDI/ICRP145 tabs) + `controller.py` (event handling)
-- **services/** — Post-simulation services: `CTDICalculator` (scorer-aware CTDI metrics with TLE as primary), `CalibrationService` (DCF applied to TLE only), `BenchmarkCalculator` (benchmarks TLE only), `PhantomDoseCalculator` (voxelized phantom organ dose + ICRP 103 effective dose with CTDIw anchoring)
+- **services/** — Post-simulation services: `CTDICalculator` (scorer-aware CTDI metrics with TLE as primary), `CalibrationService` (per-scorer DCFs: `dcf_tle`/`dcf_dtw`/`dcf_dtm` selected via `scorer_type` parameter), `BenchmarkCalculator` (benchmarks TLE only), `PhantomDoseCalculator` (voxelized phantom organ dose + ICRP 103 effective dose with DCF normalization)
 - **boilerplates/** — Jinja2 TOPAS parameter file templates and include file directories
 
 ## Key Files

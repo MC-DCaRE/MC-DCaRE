@@ -208,6 +208,8 @@ class PhantomDoseCalculator:
             target_mAs: Scan mAs to scale to (for partial scans). If None,
                 uses the simulated mAs from metadata.
             dcf_override: DCF to use instead of calibration.yaml lookup.
+            scorer_type: Which scorer's DCF to use (``"tle"``, ``"dtw"``,
+                or ``"dtm"``). Defaults to ``"tle"``.
 
         Returns:
             :class:`EffectiveDoseResult` with full provenance.

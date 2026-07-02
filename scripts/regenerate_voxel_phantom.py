@@ -200,6 +200,7 @@ def regenerate_voxel_phantom(
         # Scorers: TLE (primary), DoseToWater, DoseToMedium
         f.write("# TLE scorer (primary -- same as CTDI calibration)\n")
         f.write('s:Sc/PhantomTLE/Quantity = "TrackLengthEstimator"\n')
+        f.write('s:Sc/PhantomTLE/InputFile = "Muen.dat"\n')
         f.write('s:Sc/PhantomTLE/Component = "Phantom"\n')
         f.write('s:Sc/PhantomTLE/OutputFile = "phantom_tle"\n')
         f.write('s:Sc/PhantomTLE/IfOutputFileAlreadyExists = "Overwrite"\n\n')

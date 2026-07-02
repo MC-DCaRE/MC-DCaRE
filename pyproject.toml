@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mc-dcare"
-version = "0.3.0"
+version = "0.3.1"
 description = "Monte Carlo Dose Calculation and Radiation Evaluation"
 authors = [
     {name = "MC-DCaRE Team"}
@@ -38,6 +38,9 @@ dev = [
     "black",
     "ruff",
     "mypy",
+    "sphinx",
+    "sphinx-rtd-theme",
+    "myst-parser",
 ]
 
 [tool.hatch.build.targets.wheel]

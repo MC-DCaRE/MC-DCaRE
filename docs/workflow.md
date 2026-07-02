@@ -100,7 +100,7 @@ calibrations:
     fan_mode: "Full Fan"
     reference_mAs: 150
     measured_ctdi_w_mGy: 5.72
-    dcf: 0.94    # computed in Step 1.2
+    dcf_tle: 0.94    # TLE DCF, computed in Step 1.2
 ```
 
 Option B: Set `dose_calibration_factor` directly in your simulation config:
@@ -272,17 +272,38 @@ topas headsourcecode.txt
 
 ```bash
 uv run python calculate_phantom_dose.py runfolder/<timestamp>/ \
-    --ctdiw 15.9 \
     --output organ_doses.csv
 ```
 
+DCF normalization is applied automatically from `calibration.yaml` (same database as CTDI mode). The `--scorer-type` flag selects which scorer's DCF to use (default: `tle`).
+
 Arguments:
-- `--ctdiw`: Measured CTDIw in mGy for absolute dose calibration (from Phase 1)
-- `--output`: Optional CSV path for the organ dose table
+- `--scorer-type` : Scorer for DCF lookup: `tle` (default), `dtw`, or `dtm`. Also auto-detects the matching CSV file (`phantom_tle.csv`, `phantom_dtw.csv`, `phantom_dtm.csv`).
+- `--target-mAs` : Scale dose to a different mAs value (for partial scans)
+- `--dcf` : Manual DCF override (skips calibration.yaml lookup)
+- `--calibration` : Path to calibration.yaml (default: `calibration.yaml`)
+- `--output` : CSV path for the organ dose table
 
 Output:
 - ICRP 103 tissue doses and effective dose (mSv)
 - Per-organ dose table with voxel counts and standard error
+
+### Per-scorer DCFs
+
+Each (kV, fan_mode) entry in `calibration.yaml` stores three DCFs -- one per scorer type:
+
+```yaml
+- kV: 125
+  fan_mode: Half Fan
+  reference_mAs: 1080.0
+  measured_ctdi_w_mGy: 15.9
+  dcf_tle: 1.633637e-03    # Track Length Estimator (primary)
+  dcf_dtw: 1.505360e-03    # Dose To Water
+  dcf_dtm: 1.755722e-03    # Dose To Medium
+  reference_protocol: Pelvis
+```
+
+Backward compat: old YAML files with `dcf:` are automatically mapped to `dcf_tle` on load.
 
 ### Dose normalization pipeline
 
@@ -290,14 +311,15 @@ All simulation modes (CTDI, ICRP145, DICOM) use the **same DCF normalization** f
 
 ```
 photons_per_mAs = spectrum_fluence * total_histories / exposure_mAs
-absolute_dose_Gy = raw_per_history_dose * photons_per_mAs * target_mAs * DCF
+absolute_dose_Gy = (TOPAS_Sum / total_histories) * photons_per_mAs * target_mAs * DCF
 ```
 
 - `photons_per_mAs` is a kV-dependent constant (histories cancel algebraically)
-- `DCF` is looked up from `calibration.yaml` by (kV, fan_mode)
+- `DCF` is looked up from `calibration.yaml` by (kV, fan_mode, scorer_type)
 - `target_mAs` supports partial scans (defaults to simulated mAs)
+- `TOPAS_Sum` is divided by `total_histories` to convert from total accumulated dose to per-history mean
 
-The DCF is computed once from a CTDI calibration run (Phase 1) and applied to all subsequent simulations regardless of geometry. For phantom and DICOM modes, the DCF transfers the absolute calibration from the CTDI phantom to other geometries.
+The DCF is computed once from a CTDI calibration run (Phase 1) and applied to all subsequent simulations regardless of geometry. Three scorer-specific DCFs are stored per (kV, fan_mode): TLE (primary), DoseToWater, and DoseToMedium.
 
 ### ICRP 103 effective dose
 
@@ -504,14 +526,17 @@ uv run python calculate_ctdiw.py benchmark <runfolder> \
 ### Phantom Dose CLI (`calculate_phantom_dose.py`)
 
 ```bash
-# Fully automatic (reads calibration.yaml + simulation_metadata.yaml)
+# TLE scorer (default, best statistics)
 uv run python calculate_phantom_dose.py <runfolder> [--output organ_doses.csv]
+
+# DoseToWater or DoseToMedium scorer
+uv run python calculate_phantom_dose.py <runfolder> --scorer-type dtw
 
 # Scale to partial scan mAs
 uv run python calculate_phantom_dose.py <runfolder> --target-mAs 500
 
 # Manual DCF override
-uv run python calculate_phantom_dose.py <runfolder> --dcf 1.078e-11
+uv run python calculate_phantom_dose.py <runfolder> --dcf 1.634e-03
 ```
 
 ### DICOM Dose CLI (`calculate_dicom_dose.py`)
@@ -560,7 +585,10 @@ runfolder/2026-06-12_14-30-00/
 ├── headsourcecode.txt                # TOPAS beam line parameter file
 ├── phantomVoxel.txt                  # Voxelized phantom geometry
 ├── icrp_materials.txt                # 187 ICRP tissue material definitions
-├── phantom_dose.csv                  # 3D voxel dose grid output
+├── phantom_tle.csv                   # TLE scorer output (primary)
+├── phantom_dtw.csv                   # DoseToWater scorer output
+├── phantom_dtm.csv                   # DoseToMedium scorer output
+├── Muen.dat                          # Mass energy absorption data (for TLE)
 └── organ_doses.csv                   # Per-organ dose summary (from calculate_phantom_dose.py)
 ```
 

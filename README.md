@@ -186,13 +186,13 @@ This produces:
 
 ### Dose normalization
 
-All simulation modes use the same DCF from `calibration.yaml`:
+All simulation modes use the same DCF from `calibration.yaml`. Per-scorer DCFs (`dcf_tle`, `dcf_dtw`, `dcf_dtm`) are stored for each (kV, fan_mode) and selected via `--scorer-type`:
 
 ```
-absolute_dose = raw_per_history_dose * photons_per_mAs * target_mAs * DCF
+absolute_dose = (TOPAS_Sum / total_histories) * photons_per_mAs * target_mAs * DCF
 ```
 
-The DCF is computed from a CTDI calibration run and applied to all geometries (CTDI, phantom, DICOM). See `docs/workflow.md` for the full normalization pipeline.
+The DCF is computed from a CTDI calibration run and applied to all geometries (CTDI, phantom, DICOM). Three scorer-specific DCFs allow flexibility: TLE (primary, best statistics), DoseToWater, and DoseToMedium. See `docs/workflow.md` for the full normalization pipeline.
 
 ## Project Structure
 

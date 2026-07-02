@@ -2,23 +2,28 @@
 """CLI for computing organ and effective dose from phantom mode simulations.
 
 Automatically applies DCF normalization from calibration.yaml (the same
-calibration database used for CTDI mode). Supports partial scan dose
-estimation via --target-mAs.
+calibration database used for CTDI mode). Supports three scorer types
+(TLE, DoseToWater, DoseToMedium) via ``--scorer-type``, and partial scan
+dose estimation via ``--target-mAs``.
 
 Usage:
     uv run python calculate_phantom_dose.py <runfolder> [options]
 
 Examples:
-    # Fully automatic (reads calibration.yaml + simulation_metadata.yaml)
-    uv run python calculate_phantom_dose.py runfolder/2026-06-30_13-04-13/
+    # TLE scorer (default, best statistics)
+    uv run python calculate_phantom_dose.py runfolder/2026-07-02_05-19-13/
+
+    # DoseToWater scorer
+    uv run python calculate_phantom_dose.py runfolder/2026-07-02_05-19-13/ \\
+        --scorer-type dtw
 
     # Scale to a partial scan (500 mAs instead of simulated 1074)
-    uv run python calculate_phantom_dose.py runfolder/2026-06-30_13-04-13/ \\
+    uv run python calculate_phantom_dose.py runfolder/2026-07-02_05-19-13/ \\
         --target-mAs 500
 
     # Manual DCF override
-    uv run python calculate_phantom_dose.py runfolder/2026-06-30_13-04-13/ \\
-        --dcf 1.078e-11
+    uv run python calculate_phantom_dose.py runfolder/2026-07-02_05-19-13/ \\
+        --dcf 1.634e-03
 """
 
 from __future__ import annotations
@@ -68,6 +73,11 @@ def main() -> None:
         help="Override dose CSV filename (default: auto-detect from scorer-type)",
     )
     parser.add_argument(
+        "--voxel-grid",
+        default=None,
+        help="Path to the .npy material ID grid (default: auto-detect)",
+    )
+    parser.add_argument(
         "--material-file",
         default=None,
         help="Path to the ICRP 145 .material file (default: auto-detect)",
@@ -87,7 +97,9 @@ def main() -> None:
         "dtw": "phantom_dtw.csv",
         "dtm": "phantom_dtm.csv",
     }
-    dose_name = args.dose_file or dose_filenames.get(args.scorer_type, "phantom_tle.csv")
+    dose_name = args.dose_file or dose_filenames.get(
+        args.scorer_type, "phantom_tle.csv"
+    )
     dose_csv = runfolder / dose_name
     if not dose_csv.exists():
         # Fallback to legacy phantom_dose.csv

@@ -22,7 +22,20 @@ logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class NormalizedDose:
-    """Result of applying DCF normalization to a raw dose value."""
+    """Result of applying DCF normalization to a raw dose value.
+
+    Attributes:
+        raw_Gy: Dose scaled by photons_per_mAs x mAs (no DCF applied).
+        calibrated_Gy: Dose after DCF multiplication, or None if no DCF found.
+        dcf: The DCF value applied, or None.
+        dcf_source: Where the DCF came from: ``"calibration.yaml"``,
+            ``"override"``, or ``"none"``.
+        photons_per_mAs: kV-dependent constant (spectrum_fluence x
+            total_histories / exposure_mAs).
+        mAs_used: The mAs value used for scaling (target_mAs or
+            mAs_simulated).
+        mAs_simulated: The mAs used in the original simulation.
+    """
 
     raw_Gy: float
     calibrated_Gy: Optional[float]
@@ -202,6 +215,8 @@ class CalibrationService:
             fan_mode: Fan mode string. If None, read from metadata.
             target_mAs: Scan mAs to scale to. If None, uses simulated mAs.
             dcf_override: DCF to use instead of calibration.yaml lookup.
+            scorer_type: Which scorer's DCF to use (``"tle"``, ``"dtw"``,
+                or ``"dtm"``). Defaults to ``"tle"``.
 
         Returns:
             :class:`NormalizedDose` with full provenance.

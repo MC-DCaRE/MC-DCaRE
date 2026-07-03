@@ -2,7 +2,7 @@
 set -euo pipefail
 
 #
-# Run all 6 MC-DCaRE calibrations sequentially (150M histories each)
+# Run all 6 MC-DCaRE calibrations sequentially (500M histories each)
 #
 # Usage:
 #   bash configs/run_all_calibrations.sh

@@ -35,7 +35,7 @@ Note: 140 kV FF has no reference CTDI-w — benchmark will be skipped for this e
 
 ## Decisions
 
-1. **150 sequential runs of 1M each**: Configs set `sequential_times: 150` with `histories: 1,000,000` — matches existing pattern, just scaled up.
+1. **100 sequential runs of 5M each**: Configs set `sequential_times: 100` with `histories: 5,000,000` (= 500M total) — scales up the existing pattern for better statistics.
 2. **125 kV FF uses Pelvis Spotlight config**: The existing `cal_125kv_ff_pelvis-spotlight.yaml` uses Pelvis Spotlight imaging mode. The calibration entry references Short Thorax with 750 mAs reference. This config already exists and was used for prior calibration — reuse it.
 3. **125 kV HF Pelvis config**: Based on `cal_140kv_hf_pelvis-large.yaml` pattern but with Pelvis imaging mode, 1080 mAs exposure.
 4. **140 kV FF config**: No reference protocol/mAs available — run a scan with a reasonable default (e.g., Head or Pelvis mode) for measurement only. DCF will remain null in calibration.yaml.
@@ -44,7 +44,7 @@ Note: 140 kV FF has no reference CTDI-w — benchmark will be skipped for this e
 
 ## Risks / Trade-offs
 
-- [Long runtime] 6 calibrations x 150M histories at 20 threads each → ~XX hours total. Each calibration takes approximately the same time as 150 individual TOPAS runs.
+- [Long runtime] 6 calibrations x 500M histories at 20 threads each → ~2h per calibration (~12h total). Each calibration takes approximately the same time as 100 sequential TOPAS runs of 5M histories.
 - [Disk space] Each runfolder with 150M histories will be large. Ensure adequate storage.
 - [140 kV FF no reference] This calibration cannot produce a DCF (no reference CTDI-w). Runs for completeness / future use only.
 - [125 kV FF config mismatch] The Pelvis Spotlight config may use different blade settings than Short Thorax. Verify consistency or document the difference.

@@ -4,7 +4,7 @@ general:
   topas_directory: /home/bchcphysics/Applications/TOPAS/OpenTOPAS-build/topas
   seed: '9'
   threads: '20'
-  histories: '1000000'
+  histories: '5000000'
   dose_calibration_factor: '1.0'
   log_filename: simulation.log
 imaging:
@@ -12,7 +12,7 @@ imaging:
   rotation_direction: CBCT Anticlockwise
   imaging_mode: Pelvis
   exposure: '1080.0 mAs'
-  sequential_times: '150'
+  sequential_times: '100'
   time_verbosity: '0'
 ctdi:
   dose_to_medium_zbins: '100'

@@ -60,4 +60,4 @@
 ## 9. Finalize
 
 - [x] 9.1 Verify all 6 DCFs in calibration.example.yaml updated with new values and dates — 5 DCFs populated (80/100/125FF/125HF/140HF), 140FF null by design; all dated 2026-07-03; validated via MachineCalibration.from_yaml
-- [ ] 9.2 Commit and push all config changes and updated calibration.example.yaml
+- [x] 9.2 Commit and push all config changes and updated calibration.example.yaml — commit 027accb (500M DCFs) + 34ed380 (icrp145 archive) pushed to origin/main

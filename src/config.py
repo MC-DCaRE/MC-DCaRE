@@ -60,6 +60,17 @@ _CTDI_Q_FIELDS = (
     "user_field_y1",
     "user_field_y2",
 )
+_PHANTOM_Q_FIELDS = (
+    "trans_x",
+    "trans_y",
+    "trans_z",
+    "rot_x",
+    "rot_y",
+    "rot_z",
+    "couch_width",
+    "couch_thickness",
+    "couch_length",
+)
 
 
 def _q(val: float, unit: str) -> Any:
@@ -178,6 +189,30 @@ class CtdiConfig:
         _coerce_quantities(self, _CTDI_Q_FIELDS)
 
 
+@dataclass(frozen=True)
+class PhantomConfig:
+    """ICRP 145 reference phantom placement, couch, and organ-scoring parameters."""
+
+    phantom_data_directory: str = "data/P145/Phantom_data"
+    phantom_sex: str = "AM"
+    phantom_name: str = ""
+    trans_x: Quantity = _q(0.0, "cm")
+    trans_y: Quantity = _q(0.0, "cm")
+    trans_z: Quantity = _q(0.0, "cm")
+    rot_x: Quantity = _q(90.0, "deg")
+    rot_y: Quantity = _q(0.0, "deg")
+    rot_z: Quantity = _q(0.0, "deg")
+    couch_enabled: bool = True
+    couch_width: Quantity = _q(260.0, "mm")
+    couch_thickness: Quantity = _q(0.4, "mm")
+    couch_length: Quantity = _q(1000.0, "mm")
+    graphics_enabled: bool = False
+    organ_scoring_ids: str = ""
+
+    def __post_init__(self) -> None:
+        _coerce_quantities(self, _PHANTOM_Q_FIELDS)
+
+
 # Mode field → config dict key mapping for _resolve_imaging_mode().
 # (ImagingMode attribute, target dict key, target dict: "imaging" or "ctdi")
 # dose_factor, fan_detail, no_projections, proj_increment, acquisition_time,
@@ -263,12 +298,13 @@ def _resolve_imaging_mode(
 
 @dataclass(frozen=True)
 class SimulationConfig:
-    """Top-level configuration composing general, imaging, DICOM, and CTDI sections."""
+    """Top-level configuration composing general, imaging, DICOM, CTDI, and phantom sections."""
 
     general: GeneralConfig = field(default_factory=GeneralConfig)
     imaging: ImagingConfig = field(default_factory=ImagingConfig)
     dicom: DicomConfig = field(default_factory=DicomConfig)
     ctdi: CtdiConfig = field(default_factory=CtdiConfig)
+    phantom: PhantomConfig = field(default_factory=PhantomConfig)
     config_yaml_path: str | None = field(default=None, repr=False)
 
     def validate(self) -> None:
@@ -377,7 +413,7 @@ class SimulationConfig:
     def to_yaml(self, path: str) -> None:
         """Serialise the full configuration to a YAML file."""
         data: Dict[str, Any] = {}
-        for section_name in ("general", "imaging", "dicom", "ctdi"):
+        for section_name in ("general", "imaging", "dicom", "ctdi", "phantom"):
             section = getattr(self, section_name)
             section_data: Dict[str, Any] = {}
             for f_name in section.__dataclass_fields__:
@@ -414,6 +450,7 @@ class SimulationConfig:
             imaging=ImagingConfig(**imaging_data),
             dicom=DicomConfig(**data.get("dicom", {})),
             ctdi=CtdiConfig(**ctdi_data),
+            phantom=PhantomConfig(**data.get("phantom", {})),
             config_yaml_path=os.path.abspath(path),
         )
         config.validate()
@@ -448,6 +485,7 @@ class SimulationConfig:
             imaging=ImagingConfig(),
             dicom=DicomConfig(),
             ctdi=CtdiConfig(),
+            phantom=PhantomConfig(),
         )
 
 

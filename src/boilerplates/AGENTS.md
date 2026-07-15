@@ -27,6 +27,7 @@ CTDI mode additionally concatenates the rendered headsource with per-plug phanto
 | `TOPAS_includeFiles/CTDIphantom_16.j2` | 16cm CTDI phantom template: PMMA cylinder (80mm radius), 5 chamber plugs, couch, 3 scorers |
 | `TOPAS_includeFiles/CTDIphantom_32.j2` | 32cm CTDI phantom template: PMMA cylinder (160mm radius), same plug/scorer structure |
 | `TOPAS_includeFiles/patientDICOM.j2` | DICOM patient template: TsDicomPatient component, isocenter translation, Schneider HU conversion, DoseToMedium scorer |
+| `TOPAS_includeFiles/phantomICRP145.j2` | ICRP 145 phantom template: TsTetGeom component (MRCP-AM/AF), supine placement offsets, configurable couch, TsTetGeomScorer CSV output |
 | `TOPAS_includeFiles/fullfan.txt` | Full-fan bowtie filter geometry: aluminum trapezoid wedges (static, not templated) |
 | `TOPAS_includeFiles/halffan.txt` | Half-fan bowtie filter geometry: offset aluminum wedges (static, not templated) |
 | `TOPAS_includeFiles/HUtoMaterialSchneider.txt` | HU-to-material conversion tables (Schneider method) |
@@ -68,6 +69,19 @@ CTDI mode additionally concatenates the rendered headsource with per-plug phanto
 | `isocenter_x/y/z` | `config.dicom` | Isocenter translation |
 | `patient_shift_x/y/z` | `config.dicom` | Patient position shifts |
 | `output_filename` | DicomMode | Formatted output file name |
+
+### phantomICRP145.j2
+| Variable | Source | Description |
+|---|---|---|
+| `phantom_data_directory` | `config.phantom` | Path to ICRP 145 phantom data root |
+| `phantom_sex` | `config.phantom` | "AM" or "AF" (selects MRCP mesh) |
+| `trans_x/y/z` | `config.phantom` | Supine placement translations (cm) |
+| `rot_x/y/z` | `config.phantom` | Supine placement rotations (deg) |
+| `couch_enabled` | `config.phantom` | Toggle couch geometry |
+| `couch_width/thickness/length` | `config.phantom` | Couch dimensions |
+| `couch_trans_y` | PhantomMode | Computed couch top Y position |
+| `output_filename` | PhantomMode | Formatted organ-dose output file name |
+| `icrp_materials` | PhantomMode | Formatted TsTetGeomScorer organ vector (e.g. `2 "Liver" "Brain"`); empty string omits `ICRPMaterials` line |
 
 ## TOPAS Parameter Conventions
 

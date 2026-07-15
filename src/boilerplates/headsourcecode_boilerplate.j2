@@ -11,6 +11,9 @@ includeFile=ConvertedTopasFile.txt
 {% endif %}
 {% if simulation_type == 'CTDI' %}sv:Ph/Default/LayeredMassGeometryWorlds = 5 "ChamberPlugCentre" "ChamberPlugTop" "ChamberPlugBottom" "ChamberPlugLeft" "ChamberPlugRight"
 {% endif %}
+{% if simulation_type == 'ICRP145' %}includeFile = phantomICRP145.txt
+i:Ts/ParameterizationErrorMaxReports = 5
+{% endif %}
 
 ## Some Control Parameters ####################
 i:Ts/Seed = {{ seed }}

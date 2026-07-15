@@ -179,6 +179,18 @@ class SimulationRunner:
         SimulationRunner.run_topas(command, rundatadir, log_path, detach=detach)
 
     @staticmethod
+    def run_phantom(topas_path: str, rundatadir: str, detach: bool = False) -> None:
+        """Run a single ICRP 145 phantom simulation."""
+        SimulationRunner.validate_topas_binary(topas_path)
+        command: List[str] = [
+            topas_path,
+            os.path.join(rundatadir, "headsourcecode.txt"),
+        ]
+        log_path = os.path.join(rundatadir, "topas_phantom.log")
+        logger.info("Starting ICRP 145 phantom simulation")
+        SimulationRunner.run_topas(command, rundatadir, log_path, detach=detach)
+
+    @staticmethod
     def run_ctdi(
         topas_path: str,
         rundatadir: str,

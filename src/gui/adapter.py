@@ -14,6 +14,7 @@ from src.config import (
     DicomConfig,
     GeneralConfig,
     ImagingConfig,
+    PhantomConfig,
     SimulationConfig,
 )
 from src.models.keys import (
@@ -53,6 +54,19 @@ from src.models.keys import (
     PATIENT_PITCH,
     PATIENT_ROLL,
     PATIENT_YAW,
+    PHANTOM_COUCH_ENABLED,
+    PHANTOM_COUCH_LENGTH,
+    PHANTOM_COUCH_THICKNESS,
+    PHANTOM_COUCH_WIDTH,
+    PHANTOM_DATA_DIR,
+    PHANTOM_GRAPHICS,
+    PHANTOM_ROT_X,
+    PHANTOM_ROT_Y,
+    PHANTOM_ROT_Z,
+    PHANTOM_SEX,
+    PHANTOM_TRANS_X,
+    PHANTOM_TRANS_Y,
+    PHANTOM_TRANS_Z,
     ROTATION_RATE,
     SCAN_TYPE,
     SEED,
@@ -134,6 +148,19 @@ _PLACEHOLDER_MAP: List[Tuple[str, str, str, Any]] = [
     ("ctdi", "user_field_y1", CTDI_FIELD_Y1, "10.7 cm"),
     ("ctdi", "user_field_y2", CTDI_FIELD_Y2, "10.7 cm"),
     ("ctdi", "graphics_enabled", CTDI_GRAPHICS, False),
+    ("phantom", "phantom_data_directory", PHANTOM_DATA_DIR, "data/P145/Phantom_data"),
+    ("phantom", "phantom_sex", PHANTOM_SEX, "AM"),
+    ("phantom", "trans_x", PHANTOM_TRANS_X, "0.0 cm"),
+    ("phantom", "trans_y", PHANTOM_TRANS_Y, "0.0 cm"),
+    ("phantom", "trans_z", PHANTOM_TRANS_Z, "0.0 cm"),
+    ("phantom", "rot_x", PHANTOM_ROT_X, "90.0 deg"),
+    ("phantom", "rot_y", PHANTOM_ROT_Y, "0.0 deg"),
+    ("phantom", "rot_z", PHANTOM_ROT_Z, "0.0 deg"),
+    ("phantom", "couch_enabled", PHANTOM_COUCH_ENABLED, True),
+    ("phantom", "couch_width", PHANTOM_COUCH_WIDTH, "260 mm"),
+    ("phantom", "couch_thickness", PHANTOM_COUCH_THICKNESS, "0.4 mm"),
+    ("phantom", "couch_length", PHANTOM_COUCH_LENGTH, "1000 mm"),
+    ("phantom", "graphics_enabled", PHANTOM_GRAPHICS, False),
 ]
 
 _BOOL_FIELDS: Dict[str, str] = {}
@@ -153,6 +180,7 @@ def gui_to_config(values: Dict[str, Any]) -> SimulationConfig:
         "imaging": {},
         "dicom": {},
         "ctdi": {},
+        "phantom": {},
     }
     for section_name, field_name, key, default in _PLACEHOLDER_MAP:
         raw: Any = values.get(key, default)
@@ -166,6 +194,7 @@ def gui_to_config(values: Dict[str, Any]) -> SimulationConfig:
         imaging=ImagingConfig(**sections["imaging"]),
         dicom=DicomConfig(**sections["dicom"]),
         ctdi=CtdiConfig(**sections["ctdi"]),
+        phantom=PhantomConfig(**sections["phantom"]),
     )
 
 

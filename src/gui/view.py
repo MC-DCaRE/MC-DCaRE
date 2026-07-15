@@ -54,6 +54,21 @@ from src.models.keys import (
     PATIENT_PITCH,
     PATIENT_ROLL,
     PATIENT_YAW,
+    PHANTOM_COUCH_ENABLED,
+    PHANTOM_COUCH_LENGTH,
+    PHANTOM_COUCH_THICKNESS,
+    PHANTOM_COUCH_WIDTH,
+    PHANTOM_DATA_DIR,
+    PHANTOM_GRAPHICS,
+    PHANTOM_ROT_X,
+    PHANTOM_ROT_Y,
+    PHANTOM_ROT_Z,
+    PHANTOM_RUN,
+    PHANTOM_SEX,
+    PHANTOM_TAB,
+    PHANTOM_TRANS_X,
+    PHANTOM_TRANS_Y,
+    PHANTOM_TRANS_Z,
     RESET,
     ROTATION_RATE,
     SCAN_TYPE,
@@ -115,6 +130,16 @@ class MainView:
                 self._build_dicom_graphics_layer(),
             ],
         ]
+        phantom_layout = [
+            [self._build_phantom_information()],
+            [self._build_phantom_data_layer()],
+            [sg.Text("")],
+            [
+                self._build_phantom_placement_layer(),
+                self._build_phantom_couch_layer(),
+            ],
+            [self._build_phantom_run_layer()],
+        ]
         others_layout = [
             [self._build_settings_information()],
             [
@@ -149,6 +174,12 @@ class MainView:
                                 "CTDI phantom menu",
                                 chamber_layout,
                                 key=CTDI_TAB,
+                                visible=False,
+                            ),
+                            sg.Tab(
+                                "ICRP 145 phantom menu",
+                                phantom_layout,
+                                key=PHANTOM_TAB,
                                 visible=False,
                             ),
                         ]
@@ -229,14 +260,14 @@ class MainView:
         )
 
     def _build_function_layer(self) -> sg.Frame:
-        """Simulation-type selector (DICOM or CTDI)."""
+        """Simulation-type selector (DICOM, CTDI, or ICRP145)."""
         return sg.Frame(
             "Choose your function",
             [
                 [
                     sg.Text("Simulation Type", size=(20, 1), text_color="black"),
                     sg.Combo(
-                        ["DICOM", "CTDI"],
+                        ["DICOM", "CTDI", "ICRP145"],
                         default_value=None,
                         key=SIM_TYPE,
                         readonly=True,
@@ -972,6 +1003,181 @@ class MainView:
             ],
         )
 
+    def _build_phantom_information(self) -> sg.Frame:
+        """Instructional text for the ICRP 145 phantom tab."""
+        return sg.Frame(
+            "ICRP 145 phantom information",
+            [
+                [
+                    sg.Text(
+                        "Configure an ICRP 145 adult reference phantom (MRCP-AM/AF) "
+                        "for standardized CT dose simulation."
+                    )
+                ],
+                [sg.Text("Requires OpenTOPAS with the TsTetGeom extension.")],
+            ],
+        )
+
+    def _build_phantom_data_layer(self) -> sg.Frame:
+        """Phantom data directory and sex selection."""
+        d = self._defaults.phantom
+        return sg.Frame(
+            "Phantom data",
+            [
+                [
+                    sg.Text("Phantom data directory", size=(22, 1), text_color="black"),
+                    sg.InputText(
+                        default_text=d.phantom_data_directory,
+                        key=PHANTOM_DATA_DIR,
+                        size=(40, 1),
+                        text_color="black",
+                    ),
+                ],
+                [
+                    sg.Text("Phantom sex", size=(22, 1), text_color="black"),
+                    sg.Combo(
+                        ["AM", "AF"],
+                        default_value=d.phantom_sex,
+                        key=PHANTOM_SEX,
+                        readonly=True,
+                        size=10,
+                    ),
+                ],
+            ],
+        )
+
+    def _build_phantom_placement_layer(self) -> sg.Frame:
+        """Supine placement offsets (translation and rotation)."""
+        d = self._defaults.phantom
+        return sg.Frame(
+            "Placement offsets",
+            [
+                [
+                    sg.Text("Trans X (cm)", size=(15, 1), text_color="black"),
+                    sg.InputText(
+                        default_text=str(d.trans_x),
+                        key=PHANTOM_TRANS_X,
+                        size=(15, 1),
+                        text_color="black",
+                    ),
+                ],
+                [
+                    sg.Text("Trans Y (cm)", size=(15, 1), text_color="black"),
+                    sg.InputText(
+                        default_text=str(d.trans_y),
+                        key=PHANTOM_TRANS_Y,
+                        size=(15, 1),
+                        text_color="black",
+                    ),
+                ],
+                [
+                    sg.Text("Trans Z (cm)", size=(15, 1), text_color="black"),
+                    sg.InputText(
+                        default_text=str(d.trans_z),
+                        key=PHANTOM_TRANS_Z,
+                        size=(15, 1),
+                        text_color="black",
+                    ),
+                ],
+                [
+                    sg.Text("Rot X (deg)", size=(15, 1), text_color="black"),
+                    sg.InputText(
+                        default_text=str(d.rot_x),
+                        key=PHANTOM_ROT_X,
+                        size=(15, 1),
+                        text_color="black",
+                    ),
+                ],
+                [
+                    sg.Text("Rot Y (deg)", size=(15, 1), text_color="black"),
+                    sg.InputText(
+                        default_text=str(d.rot_y),
+                        key=PHANTOM_ROT_Y,
+                        size=(15, 1),
+                        text_color="black",
+                    ),
+                ],
+                [
+                    sg.Text("Rot Z (deg)", size=(15, 1), text_color="black"),
+                    sg.InputText(
+                        default_text=str(d.rot_z),
+                        key=PHANTOM_ROT_Z,
+                        size=(15, 1),
+                        text_color="black",
+                    ),
+                ],
+            ],
+        )
+
+    def _build_phantom_couch_layer(self) -> sg.Frame:
+        """Couch parameters for the phantom simulation."""
+        d = self._defaults.phantom
+        return sg.Frame(
+            "Couch settings",
+            [
+                [
+                    sg.Checkbox(
+                        "Enable couch",
+                        enable_events=True,
+                        key=PHANTOM_COUCH_ENABLED,
+                        default=d.couch_enabled,
+                    )
+                ],
+                [
+                    sg.Text("Couch width (mm)", size=(20, 1), text_color="black"),
+                    sg.InputText(
+                        default_text=str(d.couch_width),
+                        key=PHANTOM_COUCH_WIDTH,
+                        size=(15, 1),
+                        text_color="black",
+                    ),
+                ],
+                [
+                    sg.Text("Couch thickness (mm)", size=(20, 1), text_color="black"),
+                    sg.InputText(
+                        default_text=str(d.couch_thickness),
+                        key=PHANTOM_COUCH_THICKNESS,
+                        size=(15, 1),
+                        text_color="black",
+                    ),
+                ],
+                [
+                    sg.Text("Couch length (mm)", size=(20, 1), text_color="black"),
+                    sg.InputText(
+                        default_text=str(d.couch_length),
+                        key=PHANTOM_COUCH_LENGTH,
+                        size=(15, 1),
+                        text_color="black",
+                    ),
+                ],
+            ],
+        )
+
+    def _build_phantom_run_layer(self) -> sg.Frame:
+        """Phantom graphics toggle and simulation run button."""
+        return sg.Frame(
+            "Activate ICRP 145 phantom simulation",
+            [
+                [
+                    sg.Checkbox(
+                        "Phantom Graphics Toggle",
+                        enable_events=True,
+                        key=PHANTOM_GRAPHICS,
+                        default=False,
+                    )
+                ],
+                [
+                    sg.Button(
+                        "Run ICRP 145 Phantom Simulation",
+                        enable_events=True,
+                        key=PHANTOM_RUN,
+                        disabled=False,
+                        disabled_button_color="grey",
+                    )
+                ],
+            ],
+        )
+
     def read(self) -> Tuple[str, Dict[str, Any]]:
         """Block until the next GUI event, returning ``(event, values)``."""
         return self.window.read()  # type: ignore[no-any-return]
@@ -995,17 +1201,18 @@ class MainView:
         self.window[CTDI_PHANTOM].update(mode.ctdi_phantom)
 
     def set_tab_visibility(self, sim_type: str) -> None:
-        """Show the tab for *sim_type* (``"DICOM"`` or ``"CTDI"``) and hide the other."""
-        show_dicom = sim_type == "DICOM"
-        self.window[DICOM_TAB].update(visible=show_dicom)
-        self.window[CTDI_TAB].update(visible=not show_dicom)
+        """Show the tab for *sim_type* and hide the others."""
+        self.window[DICOM_TAB].update(visible=sim_type == "DICOM")
+        self.window[CTDI_TAB].update(visible=sim_type == "CTDI")
+        self.window[PHANTOM_TAB].update(visible=sim_type == "ICRP145")
 
     def reset_all(self, defaults: Dict[str, Any]) -> None:
         """Restore every element to *defaults* and hide simulation-specific tabs."""
         for key in defaults:
             self.window[key].update(defaults[key])
-        self.window[CTDI_TAB].update(visible=False)
         self.window[DICOM_TAB].update(visible=False)
+        self.window[CTDI_TAB].update(visible=False)
+        self.window[PHANTOM_TAB].update(visible=False)
 
     def update_patient_id(self, patient_id: str) -> None:
         """Display the loaded *patient_id* in the read-only patient-ID field."""

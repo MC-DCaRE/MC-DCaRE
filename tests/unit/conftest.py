@@ -13,6 +13,7 @@ from src.config import (
     DicomConfig,
     GeneralConfig,
     ImagingConfig,
+    PhantomConfig,
     SimulationConfig,
 )
 
@@ -22,6 +23,7 @@ def _make_config(**overrides: Any) -> SimulationConfig:
     imaging_kw: dict = {}
     dicom_kw: dict = {}
     ctdi_kw: dict = {}
+    phantom_kw: dict = {}
     top_level_kw: dict = {}
     for k, v in overrides.items():
         if k in GeneralConfig.__dataclass_fields__:
@@ -32,6 +34,8 @@ def _make_config(**overrides: Any) -> SimulationConfig:
             dicom_kw[k] = v
         elif k in CtdiConfig.__dataclass_fields__:
             ctdi_kw[k] = v
+        elif k in PhantomConfig.__dataclass_fields__:
+            phantom_kw[k] = v
         else:
             top_level_kw[k] = v
     ctdi_kw.setdefault("phase_space_mode", "off")
@@ -40,6 +44,7 @@ def _make_config(**overrides: Any) -> SimulationConfig:
         imaging=ImagingConfig(**imaging_kw),
         dicom=DicomConfig(**dicom_kw),
         ctdi=CtdiConfig(**ctdi_kw),
+        phantom=PhantomConfig(**phantom_kw),
         **top_level_kw,
     )
 

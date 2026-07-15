@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
 from src.modes.dicom_mode import DicomMode
 from src.modes.ctdi_mode import CtdiMode
+from src.modes.phantom_mode import PhantomMode
 from src.orchestrator import Orchestrator
 
 
@@ -28,6 +29,12 @@ class TestGetMode:
         orch = Orchestrator("/project")
         mode = orch._get_mode(config)
         assert isinstance(mode, CtdiMode)
+
+    def test_returns_phantom_mode_for_icrp145(self, make_config: Any) -> None:
+        config = make_config(simulation_type="ICRP145")
+        orch = Orchestrator("/project")
+        mode = orch._get_mode(config)
+        assert isinstance(mode, PhantomMode)
 
     def test_unknown_type_returns_ctdi_mode(self, make_config: Any) -> None:
         config = make_config(simulation_type="Unknown")

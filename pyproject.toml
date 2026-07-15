@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mc-dcare"
-version = "0.1.0"
+version = "0.2.0"
 description = "Monte Carlo Dose Calculation and Radiation Evaluation"
 authors = [
     {name = "MC-DCaRE Team"}

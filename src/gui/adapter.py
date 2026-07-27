@@ -78,7 +78,6 @@ from src.models.keys import (
     START_ANGLE,
     THREADS,
     TIMELINE_END,
-    TIME_VERBOSITY,
     TOPAS_DIR,
     TLE_ZBINS,
     TUBE_VOLTAGE,
@@ -112,7 +111,6 @@ _PLACEHOLDER_MAP: List[Tuple[str, str, str, Any]] = [
     ("imaging", "rotation_rate", ROTATION_RATE, "0.4 deg/s"),
     ("imaging", "timeline_end", TIMELINE_END, "501.0 s"),
     ("imaging", "sequential_times", SEQ_TIMES, "1000"),
-    ("imaging", "time_verbosity", TIME_VERBOSITY, "0"),
     ("imaging", "field_x1", FIELD_X1, "14 cm"),
     ("imaging", "field_x2", FIELD_X2, "14 cm"),
     ("imaging", "field_y1", FIELD_Y1, "10.7 cm"),
@@ -196,13 +194,3 @@ def gui_to_config(values: Dict[str, Any]) -> SimulationConfig:
         ctdi=CtdiConfig(**sections["ctdi"]),
         phantom=PhantomConfig(**sections["phantom"]),
     )
-
-
-def config_to_gui(config: SimulationConfig) -> Dict[str, str]:
-    """Flatten a :class:`SimulationConfig` into a ``{gui_key: str_value}`` dict."""
-    result: Dict[str, str] = {}
-    for section_name, field_name, key, _default in _PLACEHOLDER_MAP:
-        section = getattr(config, section_name)
-        value = getattr(section, field_name)
-        result[key] = str(value)
-    return result

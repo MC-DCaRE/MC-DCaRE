@@ -12,7 +12,6 @@ imaging:
   rotation_direction: CBCT Clockwise
   imaging_mode: Image Gently
   sequential_times: '100'
-  time_verbosity: '0'
 ctdi:
   dose_to_medium_zbins: '100'
   tle_zbins: '100'

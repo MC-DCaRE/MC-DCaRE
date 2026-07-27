@@ -8,7 +8,7 @@ import shutil
 from typing import Dict
 
 from src.config import SimulationConfig
-from src.modes.base import SimulationMode
+from src.modes.base import SimulationMode, _compute_angle_values
 from src.simulation_runner import SimulationRunner
 
 logger = logging.getLogger(__name__)
@@ -26,10 +26,6 @@ class DicomMode(SimulationMode):
         return "headsourcecode.txt"
 
     def build_main_context(self, config: SimulationConfig) -> Dict[str, object]:
-        start_val = config.imaging.start_angle.value
-        second_angle = (
-            start_val + 90.0 if config.imaging.rotation_direction == "kV-kV" else 0.0
-        )
         return {
             "g4_data_directory": config.general.g4_data_directory,
             "seed": config.general.seed,
@@ -38,7 +34,6 @@ class DicomMode(SimulationMode):
             "sequential_times": config.imaging.sequential_times,
             "timeline_end": str(config.imaging.timeline_end),
             "rotation_rate": str(config.imaging.rotation_rate),
-            "start_angle": str(config.imaging.start_angle),
             "coll1_trans_y": str(config.imaging.blade_x1),
             "coll2_trans_y": str(config.imaging.blade_x2),
             "coll3_trans_x": str(config.imaging.blade_y1),
@@ -50,9 +45,9 @@ class DicomMode(SimulationMode):
             "patient_yaw": str(config.dicom.patient_yaw),
             "patient_pitch": str(config.dicom.patient_pitch),
             "patient_roll_value": config.dicom.patient_roll.value,
-            "rotation_direction": config.imaging.rotation_direction,
-            "start_angle_value": start_val,
-            "second_angle_value": second_angle,
+            **_compute_angle_values(
+                config.imaging.rotation_direction, config.imaging.start_angle
+            ),
         }
 
     def build_sub_context(self, config: SimulationConfig) -> Dict[str, object]:

@@ -19,7 +19,6 @@ imaging:
   rotation_direction: CBCT Clockwise
   imaging_mode: Image Gently
   sequential_times: '1000'
-  time_verbosity: '0'
 dicom:
   dicom_directory: /sampledicom/setA
   dicom_rp_file: /sampledicom/RP.sample.dcm

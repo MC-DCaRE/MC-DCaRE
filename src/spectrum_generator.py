@@ -22,7 +22,6 @@ class SpectrumGenerator:
         exposure: float,
         histories: str,
         project_root: str,
-        dose_calibration_factor: float = 1.0,
         fan_mode: str = "",
         seed: int = 9,
         threads: int = 1,
@@ -34,8 +33,6 @@ class SpectrumGenerator:
             exposure: Tube current-time product in mAs.
             histories: Number of primary histories as a string.
             project_root: Root directory of the MC-DCaRE project (output goes to tmp/).
-            dose_calibration_factor: Deprecated — written as ``dcf_hint`` only.
-                Post-hoc calibration is handled by ``CalibrationService``.
             fan_mode: Fan mode string ("Full Fan" or "Half Fan").
             seed: Random seed for reproducibility.
             threads: Number of simulation threads.
@@ -66,7 +63,7 @@ class SpectrumGenerator:
             raise ValueError("histories must be positive, got %s" % histories)
 
         spectrum_fluence_photons_per_mAs: float = no_particles / int(histories)
-        calib_factor: float = no_particles / int(histories) * dose_calibration_factor
+        calib_factor: float = no_particles / int(histories)
 
         # Write structured simulation metadata (new schema).
         metadata: dict = {
@@ -86,8 +83,6 @@ class SpectrumGenerator:
             "threads": threads,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
-        if dose_calibration_factor != 1.0:
-            metadata["dcf_hint"] = dose_calibration_factor
 
         metadata_path = os.path.join(project_root, "tmp", "simulation_metadata.yaml")
         with open(metadata_path, "w", encoding="utf-8") as f:

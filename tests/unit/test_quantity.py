@@ -44,10 +44,6 @@ class TestQuantityParse:
         assert q.value == 9.0
         assert q.unit == ""
 
-    def test_to_tuple(self) -> None:
-        q: Quantity = Quantity.parse("100 kV")
-        assert q.to_tuple() == (100.0, "kV")
-
 
 class TestQuantityStr:
     def test_str_roundtrip(self) -> None:
@@ -81,19 +77,3 @@ class TestQuantityStr:
             assert False, "Should have raised FrozenInstanceError"
         except AttributeError:
             pass
-
-
-class TestQuantityBackwardCompat:
-    def test_matches_old_quantity_unit_stripper(self) -> None:
-        from src.config import quantity_unit_stripper
-
-        for input_str in [
-            "100 kV",
-            "0.4 deg/s",
-            "-5 mm",
-            "9",
-            "100",
-        ]:
-            old_result = quantity_unit_stripper(input_str)
-            new_result = Quantity.parse(input_str).to_tuple()
-            assert old_result == new_result, "Mismatch for " + input_str

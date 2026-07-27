@@ -10,7 +10,7 @@ from rich.console import Console
 
 from src.services.ctdi_benchmark import BenchmarkCalculator
 from src.services.ctdi_calculator import CTDICalculator
-from src.services.calibration import CalibrationService
+from src.services.calibration import CalibrationService, compute_photons_per_mAs
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -32,19 +32,8 @@ def _compute_raw_Gy(result: dict) -> float:
     simplifies to no_particles / mAs, a kV-dependent constant.
     """
     metadata = result.get("metadata", {})
-    total_histories = metadata.get("total_histories", 0)
     exposure_mAs = metadata.get("exposure_mAs", 0.0)
-    spectrum_fluence = metadata.get("spectrum_fluence_photons_per_mAs")
-
-    if spectrum_fluence and spectrum_fluence > 0 and exposure_mAs > 0:
-        photons_per_mAs = spectrum_fluence * total_histories / exposure_mAs
-    elif metadata.get("norm_factor"):
-        photons_per_mAs = metadata["norm_factor"] * total_histories
-    else:
-        raise ValueError(
-            "Cannot compute photons_per_mAs: need either "
-            "spectrum_fluence_photons_per_mAs or norm_factor in metadata"
-        )
+    photons_per_mAs = compute_photons_per_mAs(metadata)
 
     raw_sum = result.get("raw_sum", 0.0)
     return raw_sum * photons_per_mAs * exposure_mAs

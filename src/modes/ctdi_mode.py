@@ -9,8 +9,7 @@ from typing import Dict
 
 from src.config import SimulationConfig
 from src.fieldtobladeopening import fieldtobladeopening
-from src.modes.base import SimulationMode
-from src.models.quantity import Quantity
+from src.modes.base import SimulationMode, _compute_angle_values
 from src.simulation_runner import SimulationRunner
 from src.template_renderer import TemplateRenderer
 
@@ -23,22 +22,6 @@ _PLUG_POSITIONS = [
     "ChamberPlugLeft",
     "ChamberPlugRight",
 ]
-
-
-def _compute_angle_values(
-    rotation_direction: str, start_angle: Quantity
-) -> Dict[str, object]:
-    start_val = start_angle.value
-    result: Dict[str, object] = {
-        "rotation_direction": rotation_direction,
-        "start_angle": str(start_angle),
-        "start_angle_value": start_val,
-    }
-    if rotation_direction == "kV-kV":
-        result["second_angle_value"] = start_val + 90.0
-    else:
-        result["second_angle_value"] = 0.0
-    return result
 
 
 class CtdiMode(SimulationMode):

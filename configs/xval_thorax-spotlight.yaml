@@ -14,7 +14,6 @@ imaging:
   imaging_mode: Thorax Spotlight
   exposure: '150.3 mAs'
   sequential_times: '150'
-  time_verbosity: '0'
 ctdi:
   dose_to_medium_zbins: '100'
   tle_zbins: '100'

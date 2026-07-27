@@ -22,7 +22,7 @@ import yaml
 from rich.console import Console
 from rich.table import Table
 
-from src.services.calibration import CalibrationService
+from src.services.calibration import CalibrationService, compute_photons_per_mAs
 from src.services.ctdi_calculator import CTDICalculator, PRIMARY_SCORER
 
 logging.basicConfig(
@@ -165,18 +165,10 @@ def cross_validate(
 
         raw_sum = tle_result.get("raw_sum", 0.0)
 
-        # Compute photons_per_mAs: no_particles / mAs (kV-dependent constant)
-        # Derived from spectrum_fluence (= no_particles / total_histories)
         result_metadata = tle_result.get("metadata", {})
-        th = result_metadata.get("total_histories", 0)
-        spectrum_fluence = result_metadata.get("spectrum_fluence_photons_per_mAs")
-        old_norm = result_metadata.get("norm_factor")
-
-        if spectrum_fluence and spectrum_fluence > 0 and exposure_mAs > 0:
-            photons_per_mAs = spectrum_fluence * th / exposure_mAs
-        elif old_norm:
-            photons_per_mAs = old_norm * th
-        else:
+        try:
+            photons_per_mAs = compute_photons_per_mAs(result_metadata)
+        except ValueError:
             logger.warning("Cannot compute photons_per_mAs for %s", rf.name)
             continue
 

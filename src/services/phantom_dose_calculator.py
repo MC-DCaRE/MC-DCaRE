@@ -195,7 +195,7 @@ class PhantomDoseCalculator:
         metadata: Optional[Dict] = None,
         target_mAs: Optional[float] = None,
         dcf_override: Optional[float] = None,
-        scorer_type: str = "tle",
+        scorer_type: str = "dtm",
     ) -> EffectiveDoseResult:
         """Compute organ doses and ICRP 103 effective dose with DCF normalization.
 
@@ -209,7 +209,8 @@ class PhantomDoseCalculator:
                 uses the simulated mAs from metadata.
             dcf_override: DCF to use instead of calibration.yaml lookup.
             scorer_type: Which scorer's DCF to use (``"tle"``, ``"dtw"``,
-                or ``"dtm"``). Defaults to ``"tle"``.
+                or ``"dtm"``). Defaults to ``"dtm"`` (the phantom's
+                TsTetGeomScorer scores DoseToMedium).
 
         Returns:
             :class:`EffectiveDoseResult` with full provenance.

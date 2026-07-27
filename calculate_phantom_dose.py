@@ -10,7 +10,7 @@ Usage:
     uv run python calculate_phantom_dose.py <runfolder> [options]
 
 Examples:
-    # TLE scorer (default, best statistics)
+    # Default scorer type is dtm (matches TsTetGeomScorer/DoseToMedium output)
     uv run python calculate_phantom_dose.py runfolder/2026-07-02_05-19-13/
 
     # DoseToWater scorer
@@ -29,6 +29,7 @@ Examples:
 from __future__ import annotations
 
 import argparse
+import csv
 import sys
 from pathlib import Path
 
@@ -63,9 +64,10 @@ def main() -> None:
     )
     parser.add_argument(
         "--scorer-type",
-        default="tle",
+        default="dtm",
         choices=["tle", "dtw", "dtm"],
-        help="Scorer type for DCF lookup (default: tle)",
+        help="Scorer type for DCF lookup (default: dtm, matching the "
+        "phantom TsTetGeomScorer/DoseToMedium output)",
     )
     parser.add_argument(
         "--dose-file",
@@ -91,19 +93,9 @@ def main() -> None:
 
     runfolder = Path(args.runfolder)
 
-    # Auto-detect dose CSV based on scorer type
-    dose_filenames = {
-        "tle": "phantom_tle.csv",
-        "dtw": "phantom_dtw.csv",
-        "dtm": "phantom_dtm.csv",
-    }
-    dose_name = args.dose_file or dose_filenames.get(
-        args.scorer_type, "phantom_tle.csv"
-    )
-    dose_csv = runfolder / dose_name
-    if not dose_csv.exists():
-        # Fallback to legacy phantom_dose.csv
-        dose_csv = runfolder / "phantom_dose.csv"
+    # Phantom mode emits a single TsTetGeomScorer/DoseToMedium file
+    # (phantom_dose.csv); --dose-file overrides the filename if needed.
+    dose_csv = runfolder / (args.dose_file or "phantom_dose.csv")
     if not dose_csv.exists():
         print(f"ERROR: {dose_csv} not found", file=sys.stderr)
         sys.exit(1)
@@ -163,10 +155,11 @@ def main() -> None:
     # Print report
     print(calc.format_report(result))
 
-    # Optionally save organ dose CSV
+    # Optionally save organ dose CSV with DCF provenance columns
     if args.output:
-        import csv
-
+        norm = result.normalization
+        dcf_val = norm.dcf if norm is not None else None
+        dcf_source = norm.dcf_source if norm is not None else "none"
         with open(args.output, "w", newline="") as f:
             writer = csv.writer(f)
             writer.writerow(
@@ -177,6 +170,8 @@ def main() -> None:
                     "mean_mGy",
                     "std_mGy",
                     "sem_pct",
+                    "dcf",
+                    "dcf_source",
                 ]
             )
             for r in result.organ_results:
@@ -188,6 +183,8 @@ def main() -> None:
                         f"{r.mean_dose_mGy:.6f}",
                         f"{r.std_dose_mGy:.6f}",
                         f"{r.sem_percent:.1f}",
+                        dcf_val,
+                        dcf_source,
                     ]
                 )
         print(f"\nOrgan dose table saved to: {args.output}")

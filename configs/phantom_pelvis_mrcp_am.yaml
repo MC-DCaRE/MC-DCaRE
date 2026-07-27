@@ -15,7 +15,6 @@ imaging:
   imaging_mode: Pelvis
   exposure: '1074 mAs'
   sequential_times: '150'
-  time_verbosity: '0'
 phantom:
   phantom_data_directory: data/P145/Phantom_data
   phantom_sex: AM

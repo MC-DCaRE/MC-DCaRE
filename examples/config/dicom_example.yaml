@@ -18,7 +18,6 @@ imaging:
   rotation_direction: CBCT Clockwise
   imaging_mode: Head
   sequential_times: '1000'
-  time_verbosity: '0'
 dicom:
   dicom_directory: /path/to/dicom/folder
   dicom_rp_file: /path/to/RTPlan.dcm

@@ -13,7 +13,6 @@ imaging:
   imaging_mode: Pelvis Large
   exposure: '1700.5 mAs'
   sequential_times: '100'
-  time_verbosity: '0'
 ctdi:
   dose_to_medium_zbins: '100'
   tle_zbins: '100'

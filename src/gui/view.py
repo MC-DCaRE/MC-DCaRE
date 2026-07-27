@@ -82,7 +82,6 @@ from src.models.keys import (
     TAB_GROUP,
     THREADS,
     TIMELINE_END,
-    TIME_VERBOSITY,
     TLE_ZBINS,
     TOPAS_DIR,
     TUBE_VOLTAGE,
@@ -317,15 +316,6 @@ class MainView:
         return sg.Frame(
             "Time Feature and other hidden values",
             [
-                [
-                    sg.Text("TimeFeature Verbosity", size=(14, 1), text_color="black"),
-                    sg.In(
-                        default_text=d.imaging.time_verbosity,
-                        key=TIME_VERBOSITY,
-                        size=(10, 1),
-                        enable_events=True,
-                    ),
-                ],
                 [
                     sg.Text("Timeline End", size=(14, 1), text_color="black"),
                     sg.In(

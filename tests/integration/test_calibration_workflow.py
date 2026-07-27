@@ -191,7 +191,6 @@ class TestFullCalibrationFlow:
 
         svc = CalibrationService(cal_path)
         svc.compute_dcf(100, "Full Fan", 0.02, 20.0)
-        expected_dcf = (20.0 * 1e-3) / 0.02
 
         with patch.object(
             CTDICalculator, "_extract_dose_from_file", return_value=2.0e-2

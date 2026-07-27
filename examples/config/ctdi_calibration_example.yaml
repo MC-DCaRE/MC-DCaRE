@@ -40,7 +40,6 @@ imaging:
   rotation_rate: 0 deg/s
   timeline_end: 1.0 s
   sequential_times: '1'
-  time_verbosity: '0'
 ctdi:
   dose_to_medium_zbins: '100'
   tle_zbins: '100'

@@ -46,6 +46,30 @@ class NormalizedDose:
     mAs_simulated: float
 
 
+def compute_photons_per_mAs(metadata: Dict[str, Any]) -> float:
+    """Compute the kV-dependent photons-per-mAs normalization constant.
+
+    ``photons_per_mAs = spectrum_fluence * total_histories / exposure_mAs``,
+    falling back to ``norm_factor * total_histories`` for legacy metadata
+    that lacks ``spectrum_fluence_photons_per_mAs``.
+
+    Raises:
+        ValueError: If neither spectrum_fluence nor norm_factor is usable.
+    """
+    total_histories = metadata.get("total_histories", 0)
+    exposure_mAs = metadata.get("exposure_mAs", 0.0)
+    spectrum_fluence = metadata.get("spectrum_fluence_photons_per_mAs")
+    if spectrum_fluence is not None and spectrum_fluence > 0 and exposure_mAs > 0:
+        return float(spectrum_fluence) * float(total_histories) / float(exposure_mAs)
+    norm_factor = metadata.get("norm_factor")
+    if norm_factor:
+        return float(norm_factor) * float(total_histories)
+    raise ValueError(
+        "Cannot compute photons_per_mAs: need either "
+        "spectrum_fluence_photons_per_mAs or norm_factor in metadata"
+    )
+
+
 class CalibrationService:
     """Compute, lookup, and apply dose calibration factors.
 
@@ -234,16 +258,7 @@ class CalibrationService:
                 % (total_histories, exposure_mAs)
             )
 
-        spectrum_fluence = metadata.get("spectrum_fluence_photons_per_mAs")
-        if spectrum_fluence is not None and spectrum_fluence > 0:
-            photons_per_mAs = spectrum_fluence * total_histories / exposure_mAs
-        elif metadata.get("norm_factor"):
-            photons_per_mAs = metadata["norm_factor"] * total_histories
-        else:
-            raise ValueError(
-                "Cannot compute photons_per_mAs: need either "
-                "spectrum_fluence_photons_per_mAs or norm_factor in metadata"
-            )
+        photons_per_mAs = compute_photons_per_mAs(metadata)
 
         mAs_simulated = exposure_mAs
         mAs_used = target_mAs if target_mAs is not None else mAs_simulated
@@ -329,67 +344,29 @@ class CalibrationService:
         Raises:
             ValueError: If metadata is missing required fields.
         """
-        metadata = raw_result.get("metadata", {})
-        total_histories = metadata.get("total_histories", 0)
-        exposure_mAs = metadata.get("exposure_mAs", 0.0)
-
-        if total_histories <= 0 or exposure_mAs <= 0:
-            raise ValueError(
-                "Cannot normalize: invalid metadata "
-                "(total_histories=%s, exposure_mAs=%s)"
-                % (total_histories, exposure_mAs)
-            )
-
-        # Compute photons_per_mAs: a kV-dependent constant.
-        # spectrum_fluence = no_particles / total_histories (from spectrum_generator),
-        # where no_particles ∝ mAs. So:
-        #   photons_per_mAs = spectrum_fluence * total_histories / mAs
-        #                   = (no_particles / total_histories) * total_histories / mAs
-        #                   = no_particles / mAs  (kV-dependent constant)
-        spectrum_fluence = metadata.get("spectrum_fluence_photons_per_mAs")
-        if spectrum_fluence is not None and spectrum_fluence > 0:
-            photons_per_mAs = spectrum_fluence * total_histories / exposure_mAs
-        elif metadata.get("norm_factor"):
-            photons_per_mAs = metadata["norm_factor"] * total_histories
-        else:
-            raise ValueError(
-                "Cannot compute photons_per_mAs: need either "
-                "spectrum_fluence_photons_per_mAs or norm_factor in metadata"
-            )
-
-        mAs_simulated = exposure_mAs
-        mAs_used = target_mAs if target_mAs is not None else mAs_simulated
-
         raw_ctdi_w = raw_result.get("raw_sum", 0.0)
         if not math.isfinite(raw_ctdi_w):
             raise ValueError("raw_sum is not finite: %s" % raw_ctdi_w)
 
-        # raw Gy: per_history_dose x photons_per_mAs x mAs (no DCF)
-        # Sum is total accumulated across all histories, so divide by
-        # total_histories to get per-history mean dose before scaling.
-        ctdi_w_raw_Gy = (raw_ctdi_w / total_histories) * photons_per_mAs * mAs_used
-
-        # DCF lookup
-        dcf: Optional[float] = dcf_override
-        dcf_source: Optional[str] = None
-        if dcf_override is not None:
-            dcf_source = "override"
-        else:
-            dcf_candidate = self.lookup_dcf(kV, fan_mode, scorer_type)
-            if dcf_candidate is not None:
-                dcf = dcf_candidate
-                dcf_source = "calibration.yaml"
-
-        ctdi_w_calibrated_Gy = ctdi_w_raw_Gy * dcf if dcf is not None else None
+        metadata = raw_result.get("metadata", {})
+        norm = self.normalize_dose(
+            raw_ctdi_w,
+            metadata,
+            kV=kV,
+            fan_mode=fan_mode,
+            target_mAs=target_mAs,
+            dcf_override=dcf_override,
+            scorer_type=scorer_type,
+        )
 
         return {
-            "ctdi_w_calibrated_Gy": ctdi_w_calibrated_Gy,
-            "ctdi_w_raw_Gy": ctdi_w_raw_Gy,
-            "dcf_applied": dcf,
-            "dcf_source": dcf_source,
-            "mAs_used": mAs_used,
-            "mAs_simulated": mAs_simulated,
-            "photons_per_mAs": photons_per_mAs,
+            "ctdi_w_calibrated_Gy": norm.calibrated_Gy,
+            "ctdi_w_raw_Gy": norm.raw_Gy,
+            "dcf_applied": norm.dcf,
+            "dcf_source": norm.dcf_source if norm.dcf_source != "none" else None,
+            "mAs_used": norm.mAs_used,
+            "mAs_simulated": norm.mAs_simulated,
+            "photons_per_mAs": norm.photons_per_mAs,
             "scorer_type": raw_result.get("scorer_type"),
             "is_primary": raw_result.get("is_primary", False),
         }

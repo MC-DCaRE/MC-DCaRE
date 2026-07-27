@@ -10,7 +10,6 @@ from src.config import (
     ImagingConfig,
     DicomConfig,
     CtdiConfig,
-    quantity_unit_stripper,
 )
 
 
@@ -22,7 +21,6 @@ def test_imports_config_module() -> None:
     assert hasattr(config_module, "ImagingConfig")
     assert hasattr(config_module, "DicomConfig")
     assert hasattr(config_module, "CtdiConfig")
-    assert hasattr(config_module, "quantity_unit_stripper")
 
 
 def test_simulation_config_can_be_instantiated() -> None:
@@ -53,11 +51,3 @@ def test_all_dataclass_fields_have_defaults() -> None:
                 or f.default is not None
                 or f.default_factory is not None
             )
-
-
-def test_quantity_unit_stripper_function_exists() -> None:
-    result = quantity_unit_stripper("100 kV")
-    assert isinstance(result, tuple)
-    assert len(result) == 2
-    assert result[0] == 100.0
-    assert result[1] == "kV"

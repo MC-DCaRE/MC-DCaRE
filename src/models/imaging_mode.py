@@ -12,7 +12,7 @@ between two discrete static exposures, not an actual rotation speed.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 from typing import Dict
 
 
@@ -41,10 +41,6 @@ class ImagingMode:
     proj_increment: str
     acquisition_time: str
     ctdiw_reference: str
-
-    def as_tuple(self) -> tuple:
-        """Return all fields as a plain tuple for backward-compatible lookups."""
-        return tuple(getattr(self, f.name) for f in fields(self))
 
 
 # Full Fan blade openings (small field)
@@ -1112,33 +1108,3 @@ _IMAGING_MODES_DATA: Dict[str, tuple] = {
 IMAGING_MODES: Dict[str, ImagingMode] = {
     key: ImagingMode(*data) for key, data in _IMAGING_MODES_DATA.items()
 }
-
-IMAGING_MODE_SELECTION_LABELS = [
-    "Rotation Rate",
-    "kVp",
-    "exposure",
-    "Fan",
-    "timeend",
-    "FIELD_X1",
-    "FIELD_X2",
-    "FIELD_Y1",
-    "FIELD_Y2",
-    "BLADE_X1",
-    "BLADE_X2",
-    "BLADE_Y1",
-    "BLADE_Y2",
-    "Phantom",
-    "Dose Factor",
-    "Start Angle",
-    "Fan Detail",
-    "Projections",
-    "Proj Increment",
-    "Acq Time",
-    "CTDIw Ref",
-]
-
-BACKWARD_COMPAT_LOOKUP: Dict[str, list] = {
-    "selection": IMAGING_MODE_SELECTION_LABELS,
-}
-for key, mode in IMAGING_MODES.items():
-    BACKWARD_COMPAT_LOOKUP[key] = list(mode.as_tuple())

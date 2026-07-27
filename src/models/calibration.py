@@ -145,8 +145,9 @@ class MachineCalibration:
             with os.fdopen(fd, "w", encoding="utf-8") as f:
                 f.write(content)
             os.replace(tmp_path, str(dest))
-        except BaseException:
-            os.unlink(tmp_path) if os.path.exists(tmp_path) else None
+        except Exception:
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
             raise
         logger.info("Calibration data written to %s", path)
 

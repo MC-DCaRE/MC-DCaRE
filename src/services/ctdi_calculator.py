@@ -267,7 +267,7 @@ class CTDICalculator:
         except FileNotFoundError:
             logger.error("File not found: %s", file_path)
             return None
-        except Exception as e:
+        except (OSError, UnicodeDecodeError) as e:
             logger.error("Error reading file %s: %s", file_path, e)
             return None
 
@@ -468,15 +468,13 @@ class CTDICalculator:
         if not self.runfolder.is_dir():
             raise ValueError("Path is not a directory: {}".format(self.runfolder))
 
-        chamber_files_found = False
-        for file_type in ALL_FILE_TYPES:
-            for position in PERIPHERAL_POSITIONS + [CENTER_POSITION]:
-                pattern = "ChamberPlug{}_{}.csv".format(position, file_type)
-                if (self.runfolder / pattern).exists():
-                    chamber_files_found = True
-                    break
-            if chamber_files_found:
-                break
+        chamber_files_found = any(
+            (
+                self.runfolder / "ChamberPlug{}_{}.csv".format(position, file_type)
+            ).exists()
+            for file_type in ALL_FILE_TYPES
+            for position in PERIPHERAL_POSITIONS + [CENTER_POSITION]
+        )
 
         if not chamber_files_found:
             raise ValueError(

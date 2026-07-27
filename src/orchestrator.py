@@ -170,13 +170,11 @@ class Orchestrator:
         voltage: float = config.imaging.anode_voltage.value
         exposure: float = config.imaging.exposure.value
         histories: str = mode.compute_histories(config)
-        dose_calibration_factor: float = float(config.general.dose_calibration_factor)
         SpectrumGenerator.generate(
             voltage,
             exposure,
             histories,
             self.project_root,
-            dose_calibration_factor,
             fan_mode=config.imaging.fan_mode,
             seed=int(config.general.seed),
             threads=int(config.general.threads),
@@ -206,13 +204,11 @@ class Orchestrator:
         voltage: float = config.imaging.anode_voltage.value
         exposure: float = config.imaging.exposure.value
         histories: str = ctdi_mode.compute_histories(config)
-        dose_calibration_factor: float = float(config.general.dose_calibration_factor)
         SpectrumGenerator.generate(
             voltage,
             exposure,
             histories,
             self.project_root,
-            dose_calibration_factor,
             fan_mode=config.imaging.fan_mode,
             seed=int(config.general.seed),
             threads=int(config.general.threads),
@@ -299,12 +295,6 @@ class Orchestrator:
 
         if not dry_run:
             ctdi_mode.execute(config, rundir, self.project_root, detach=detach)
-
-    def run_dicom_simulation(self, config: SimulationConfig) -> str:
-        return self.run(config, dry_run=False)
-
-    def run_ctdi_simulation(self, config: SimulationConfig) -> str:
-        return self.run(config, dry_run=False)
 
     def prepare_only(self, config: SimulationConfig) -> str:
         return self.run(config, dry_run=True)

@@ -28,6 +28,9 @@ from src.models.keys import (
     CTDI_FIELD_Y2,
     CTDI_GRAPHICS,
     CTDI_PHANTOM,
+    CTDI_PHSP_FILE,
+    CTDI_PHSP_MODE,
+    CTDI_PHSP_MULTIPLE_USE,
     CTDI_RUN,
     CTDI_TAB,
     CTDI_USER_BLADE,
@@ -116,6 +119,7 @@ class MainView:
                 self._build_ctdi_layer(),
                 self._build_couch_layer(),
                 self._build_ctdi_blade_layer(),
+                self._build_ctdi_phase_space_layer(),
             ],
             [self._build_ctdi_run_layer()],
         ]
@@ -966,6 +970,54 @@ class MainView:
             ),
             shrink=False,
             vertical_alignment="top",
+        )
+
+    def _build_ctdi_phase_space_layer(self) -> sg.Frame:
+        """Phase-space score/replay controls (CTDI advanced)."""
+        d = self._defaults.ctdi
+        return sg.Frame(
+            "Phase space (optional)",
+            [
+                [
+                    sg.Text("Mode", size=(22, 1), text_color="black"),
+                    sg.Combo(
+                        values=["off", "score", "replay"],
+                        default_value=d.phase_space_mode,
+                        key=CTDI_PHSP_MODE,
+                        size=(12, 1),
+                        readonly=True,
+                        text_color="black",
+                    ),
+                    sg.Text(
+                        "score = write .phsp; replay = reuse a scored .phsp",
+                        text_color="gray",
+                    ),
+                ],
+                [
+                    sg.Text(
+                        "Phase space file (.phsp)", size=(22, 1), text_color="black"
+                    ),
+                    sg.InputText(
+                        default_text=d.phase_space_file,
+                        key=CTDI_PHSP_FILE,
+                        size=(40, 1),
+                        text_color="black",
+                    ),
+                ],
+                [
+                    sg.Text("Multiple use (M)", size=(22, 1), text_color="black"),
+                    sg.InputText(
+                        default_text=str(d.phase_space_multiple_use),
+                        key=CTDI_PHSP_MULTIPLE_USE,
+                        size=(12, 1),
+                        text_color="black",
+                    ),
+                    sg.Text(
+                        "replay only: reuse each particle M times",
+                        text_color="gray",
+                    ),
+                ],
+            ],
         )
 
     def _build_ctdi_run_layer(self) -> sg.Frame:

@@ -507,7 +507,7 @@ class TestResolveImagingMode:
             {},
         )
         assert img["anode_voltage"] == "100 kV"
-        assert img["exposure"] == "150 mAs"
+        assert img["exposure"] == "150.3 mAs"
         assert img["rotation_rate"] == "0.4 deg/s"
         assert ctdi["phantom_size"] == "16 cm"
 
@@ -623,7 +623,7 @@ class TestResolveImagingMode:
             },
             {},
         )
-        assert img["exposure"] == "150 mAs"
+        assert img["exposure"] == "150.3 mAs"
 
     def test_empty_string_falls_back(self) -> None:
         img, ctdi = _resolve_imaging_mode(
@@ -634,7 +634,7 @@ class TestResolveImagingMode:
             },
             {},
         )
-        assert img["exposure"] == "150 mAs"
+        assert img["exposure"] == "150.3 mAs"
 
     def test_dose_factor_not_in_output(self) -> None:
         img, ctdi = _resolve_imaging_mode(
@@ -687,7 +687,7 @@ class TestMinimalYamlIntegration:
         config = SimulationConfig.from_yaml(str(config_file))
         # Verify beam params auto-populated from mode
         assert config.imaging.anode_voltage.value == 100.0
-        assert config.imaging.exposure.value == 150.0
+        assert config.imaging.exposure.value == 150.3
         assert config.imaging.rotation_rate.value == 0.4
         assert config.imaging.fan_mode == "Full Fan"
         assert config.ctdi.phantom_size == "16 cm"

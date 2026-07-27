@@ -129,8 +129,9 @@ def fake_project(tmp_path: Any) -> Any:
         "{% endif %}"
         's:Ge/Phantom/Type="TsTetGeom"\n'
         's:Ge/Phantom/Parent="World"\n'
-        's:Ge/Phantom/NodeFile = "{{ phantom_data_directory }}/MRCP_{{ phantom_sex }}/MRCP_{{ phantom_sex }}.node"\n'
-        's:Ge/Phantom/EleFile = "{{ phantom_data_directory }}/MRCP_{{ phantom_sex }}/MRCP_{{ phantom_sex }}.ele"\n'
+        's:Ge/Phantom/PhantomDirectory = "{{ phantom_directory }}/"\n'
+        's:Ge/Phantom/NodeFile = "{{ phantom_name }}.node"\n'
+        's:Ge/Phantom/EleFile = "{{ phantom_name }}.ele"\n'
         's:Sc/PhantomDose/Quantity = "TsTetGeomScorer"\n'
         's:Sc/PhantomDose/OutputFile = "{{ output_filename }}"\n'
     )

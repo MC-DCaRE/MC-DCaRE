@@ -25,7 +25,7 @@ class TestImagingModeDataclass:
     def test_field_access(self) -> None:
         mode: ImagingMode = IMAGING_MODES["CBCT Clockwise_Image Gently"]
         assert mode.voltage == "80 kV"
-        assert mode.exposure == "100 mAs"
+        assert mode.exposure == "100.2 mAs"
         assert mode.fan_mode == "Full Fan"
         assert mode.timeline_end == "501 s"
 

@@ -569,6 +569,32 @@ class TestResolveImagingMode:
             "test_all_15_fields_resolved".format(len(_RESOLVE_FIELD_MAP))
         )
 
+    def test_resolve_field_map_specific_mappings(self) -> None:
+        """V2: assert the specific (mode_attr -> config key) mappings, not just
+        the count -- catches a renamed/removed field that preserves len==15."""
+        from src.config import _RESOLVE_FIELD_MAP
+
+        # (mode_attr, target_key, target_dict) tuples
+        actual = {(m, k, d) for m, k, d in _RESOLVE_FIELD_MAP}
+        expected = {
+            ("voltage", "anode_voltage", "imaging"),
+            ("ctdi_phantom", "phantom_size", "ctdi"),
+            ("start_angle", "start_angle", "imaging"),
+            ("rotation_rate", "rotation_rate", "imaging"),
+            ("timeline_end", "timeline_end", "imaging"),
+            ("fan_mode", "fan_mode", "imaging"),
+            ("field_x1", "field_x1", "imaging"),
+            ("field_x2", "field_x2", "imaging"),
+            ("field_y1", "field_y1", "imaging"),
+            ("field_y2", "field_y2", "imaging"),
+            ("blade_x1", "blade_x1", "imaging"),
+            ("blade_x2", "blade_x2", "imaging"),
+            ("blade_y1", "blade_y1", "imaging"),
+            ("blade_y2", "blade_y2", "imaging"),
+            ("exposure", "exposure", "imaging"),
+        }
+        assert actual == expected
+
     def test_all_15_fields_resolved(self) -> None:
         from src.models.imaging_mode import IMAGING_MODES as MODES
 

@@ -29,6 +29,12 @@ sv:Ph/Default/Modules=1 "g4em-standard_opt4"
 d:Ph/Default/EMRangeMin=100. eV
 d:Ph/Default/EMRangeMax=1.0 MeV
 
+# Register the 5 chamber-plug parallel worlds as mass-geometry worlds.
+# Required by TOPAS whenever the CTDI phantom template creates the parallel
+# worlds (one per plug position); without this the run errors with
+# "Parallel world ChamberPlugX has material, but this world not specified".
+sv:Ph/Default/LayeredMassGeometryWorlds = 5 "ChamberPlugCentre" "ChamberPlugTop" "ChamberPlugBottom" "ChamberPlugLeft" "ChamberPlugRight"
+
 # Rotation Group with time feature
 s:Ge/Rotation/Type="Group"
 s:Ge/Rotation/Parent="World"

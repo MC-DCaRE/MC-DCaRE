@@ -212,6 +212,15 @@ class TestReplayPipelineDryRun:
         # Phantom include should be present (CTDIphantom_16).
         assert "ChamberPlug" in content
 
+        # Regression: the replay template must register the 5 chamber-plug
+        # parallel worlds as mass-geometry worlds. Without this line TOPAS
+        # errors at physics setup ("Parallel world ChamberPlugX has material,
+        # but this world not specified in Ph/Default/LayeredMassGeometryWorlds")
+        # and the run dies before scoring.
+        assert "LayeredMassGeometryWorlds" in content
+        for plug in ("Centre", "Top", "Bottom", "Left", "Right"):
+            assert '"ChamberPlug%s"' % plug in content
+
 
 class TestReplayMetadataAdjustment:
     """Verify replay metadata has norm_factor = original_norm_factor / M."""

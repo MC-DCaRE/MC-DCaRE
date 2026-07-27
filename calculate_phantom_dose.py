@@ -72,7 +72,7 @@ def main() -> None:
     parser.add_argument(
         "--dose-file",
         default=None,
-        help="Override dose CSV filename (default: auto-detect from scorer-type)",
+        help="Override dose CSV filename (default: phantom_dose.csv)",
     )
     parser.add_argument(
         "--voxel-grid",

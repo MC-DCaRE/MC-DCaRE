@@ -11,7 +11,6 @@ general:
   seed: '9'
   threads: '4'
   histories: '10000'
-  dose_calibration_factor: '1.0'
   log_filename: simulation.log
 imaging:
   simulation_type: CTDI

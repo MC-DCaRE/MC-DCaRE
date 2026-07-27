@@ -99,14 +99,13 @@ The calibration factor is written to `head_calibration_factor.txt` in the runfol
 In [`SpectrumGenerator.generate()`](../src/spectrum_generator.py:48), the calibration factor is computed as:
 
 ```
-calibration_factor = (no_particles / total_histories) × dose_calibration_factor
+calibration_factor = no_particles / total_histories
 ```
 
 Where:
 
 - **`no_particles`**: The expected number of photons computed from the SpekPy fluence: `4π × (0.1 m)² × fluence`. This represents the physical number of photons at 100 cm from the source for the given tube voltage and exposure.
 - **`total_histories`**: `sequential_times × histories` — the total number of simulated primary particles across all angular steps.
-- **`dose_calibration_factor`**: An optional multiplicative correction factor (default `1.0`) from `general.dose_calibration_factor` in the YAML config, used for measurement-to-simulation normalisation.
 
 ### Interpretation
 
@@ -147,7 +146,7 @@ flowchart TD
     B --> F["compute_histories()<br/>total = sequential_times × histories"]
     C --> F
     F --> G["SpectrumGenerator.generate()"]
-    G --> H["calibration_factor =<br/>no_particles / total_histories<br/>× dose_calibration_factor"]
+    G --> H["calibration_factor =<br/>no_particles / total_histories"]
     H --> I["head_calibration_factor.txt"]
     E --> J["TOPAS rotates gantry through<br/>N discrete angles"]
     D --> J

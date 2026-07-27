@@ -1,8 +1,7 @@
 """Varian TrueBeam kV imaging-mode parameter lookup tables.
 
-Exports :class:`ImagingMode`, the :data:`IMAGING_MODES` dictionary keyed by
-``"<direction>_<protocol>"`` strings, :data:`IMAGING_MODE_SELECTION_LABELS`,
-and :data:`BACKWARD_COMPAT_LOOKUP` for legacy GUI compatibility.
+Exports :class:`ImagingMode` and the :data:`IMAGING_MODES` dictionary keyed by
+``"<direction>_<protocol>"`` strings.
 
 Note: CBCT ``rotation_rate`` values (0.4 deg/s) are simulation-specific sampling
 parameters, not clinical rotation speeds. Clinical TrueBeam CBCT uses 1.5-6.0 deg/s

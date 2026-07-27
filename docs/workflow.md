@@ -42,7 +42,7 @@ Calibration aligns simulated dose with physical measurements on your specific Tr
 
 ### Step 1.1: Run a calibration simulation
 
-Create a CTDI config with `dose_calibration_factor: "1.0"` (uncalibrated):
+Create a CTDI config (the run is uncalibrated; the DCF is applied during post-processing via `calibration.yaml`):
 
 ```yaml
 # calibration_config.yaml
@@ -51,7 +51,6 @@ general:
   topas_directory: /path/to/topas/bin/topas
   histories: "1000000"
   threads: "4"
-  dose_calibration_factor: "1.0"    # uncalibrated
 
 imaging:
   simulation_type: "CTDI"
@@ -86,11 +85,11 @@ Arguments:
 
 Output:
 - PASS/FAIL verdict with deviation percentage
-- Recommended `dose_calibration_factor` value
+- Recommended DCF (also written to `calibration.yaml` by the `--kV`/`--fan-mode` options)
 
 ### Step 1.3: Store the calibration factor
 
-Option A: Update `calibration.yaml` (machine calibration database):
+Update `calibration.yaml` (the machine calibration database consumed by `CalibrationService` during post-processing):
 
 ```yaml
 machine: "TrueBeam-SN1234"
@@ -101,13 +100,6 @@ calibrations:
     reference_mAs: 150
     measured_ctdi_w_mGy: 5.72
     dcf_tle: 0.94    # TLE DCF, computed in Step 1.2
-```
-
-Option B: Set `dose_calibration_factor` directly in your simulation config:
-
-```yaml
-general:
-  dose_calibration_factor: "0.94"
 ```
 
 ### Calibration scope
@@ -122,7 +114,7 @@ Once calibrated, validate that your beam model reproduces CTDI reference values 
 
 ### Step 2.1: Run a validated simulation
 
-Use the calibrated factor in your config:
+Use a standard protocol config (calibration is applied in post-processing, so no factor is needed in the config):
 
 ```yaml
 # ctdi_validation.yaml
@@ -131,7 +123,6 @@ general:
   topas_directory: /path/to/topas/bin/topas
   histories: "5000000"
   threads: "8"
-  dose_calibration_factor: "0.94"
 
 imaging:
   simulation_type: "CTDI"
@@ -235,7 +226,6 @@ general:
   topas_directory: /path/to/topas/bin/topas
   histories: "1000000"      # per time step; total = histories x sequential_times
   threads: "20"
-  dose_calibration_factor: "1.0"
 
 imaging:
   simulation_type: "ICRP145"
@@ -392,7 +382,6 @@ general:
   topas_directory: /path/to/topas/bin/topas
   histories: "5000000"
   threads: "8"
-  dose_calibration_factor: "0.94"
 
 imaging:
   simulation_type: "DICOM"

@@ -36,8 +36,7 @@ def _filter_known_fields(dataclass_cls: type, data: Dict[str, Any]) -> Dict[str,
     unknown = [k for k in data if k not in known]
     if unknown:
         logger.warning(
-            "Ignoring unknown %s keys in %s section: %s",
-            dataclass_cls.__name__,
+            "Ignoring unknown %s keys: %s",
             dataclass_cls.__name__,
             ", ".join(unknown),
         )

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Phase-space analyzer rewritten to be header-driven.** The previous `PhaseSpaceAnalyzer` assumed a fixed 56-byte / 7×float64 record layout, labeled energy in keV though TOPAS writes MeV, and hardcoded all particles as gammas. It crashed on real TOPAS files (`35054/8 = 4381` float64s, not divisible by 7). The real TOPAS Binary format is 34 bytes/record (7×f4 + i4 PDG + 2 flag bytes), self-describing via a `.header` sibling. The analyzer now parses the `.header` to build a structured numpy dtype, converts MeV→keV, and decodes PDG particle codes (gamma/electron/positron/neutron/proton). The orchestrator and CTDI replay path now propagate the `.header` alongside the `.phsp` (TOPAS's PhaseSpace source requires both). A real TOPAS fixture (`tests/fixtures/topas_writebinary_example.{phsp,header}`) anchors ground-truth regression tests.
+- **Canonical CTDI-w raw-dose normalization.** `calculate_ctdiw.py main`, `cross_validate_calibrations.py`, and `ctdi_benchmark.py` had each reimplemented the dose formula *without* the required `/total_histories` division, so their raw CTDI-w was off by ~1e8× (the archived log recorded `4.193768e+08` Gy for an 80 kV run whose true value is ~0.84 Gy). A single canonical helper `raw_absolute_dose_Gy()` now implements `(raw_sum / total_histories) × photons_per_mAs × mAs` in `src/services/calibration.py`, and all four call sites (`CalibrationService.normalize_dose`, `_compute_raw_Gy`, `cross_validate`, `BenchmarkCalculator.compare`) route through it. `compute_photons_per_mAs` now raises on `total_histories ≤ 0` instead of silently returning 0.0, and `ctdi_benchmark` no longer falls back to `norm_factor = 1.0`. Committed DCFs were already correct (the `benchmark` path always divided); only the `main` raw display and the cross-validation report were wrong. Verified across all 6 protocols: `main` raw_Gy now in the mGy-to-Gy range, recomputed DCFs reproduce `calibration.yaml` within MC noise (≤0.85%), and `cross_validate` reports 14/14 PASS at sub-1% errors.
+
 ### Added
 
 - Dose Calibration Factor (DCF) for all beam-quality groups:
@@ -17,9 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **140 kV Half Fan** (Pelvis Large, 1700.5 mAs): DCF = 0.001798
 - 4 calibration run configs (`configs/cal_*.yaml`) and 1 cross-validation config (`configs/xval_125kv_ff_short-thorax.yaml`)
 - `calibration.example.yaml` populated with all computed DCFs and measured CTDI_w values
-- Cross-validation confirms DCF transfer within (kV, fan) group:
-  - 125 kV FF: Pelvis (750 mAs) → Short Thorax (210 mAs): +0.00% error
-  - 125 kV HF: Pelvis (1080 mAs) → Thorax (268.5 mAs): −0.62% error
+- Cross-validation confirms DCF transfer within (kV, fan) group (figures revised by the canonical-normalization fix above; cross_validate now reports real MC-noise-level errors of ~0.3–0.8% rather than the stale circular `+0.00%`):
+  - 125 kV FF: Pelvis (750 mAs) → Short Thorax (210 mAs): now ~0.3–0.8% error
+  - 125 kV HF: Pelvis (1080 mAs) → Thorax (268.5 mAs): ~0.3–0.8% error
 - Arc-dependence test confirms DCF is independent of arc length at same (kV, fan_mode):
   - 125 kV HF Pelvis half-arc (timeline_end=450 s, 80 seq, 80M histories, 1074 mAs): raw CTDI_w=9.583 Gy, DCF-applied=16.02 mGy vs 15.9 mGy ref (+0.75%), PASS
   - Raw CTDI_w does NOT halve with arc length — same head_cal_factor (same mAs + same total_histories) keeps dose-per-particle normalization constant; only angular distribution changes

@@ -10,7 +10,7 @@ Subdirectories:
 - **models/** — Immutable dataclasses: `Quantity`, `ImagingMode` (21 fields, 47 protocols), enums (`SimulationType` with DICOM/CTDI/ICRP145, `FanMode`), UI keys, `icrp103` (ICRP 103 tissue weighting factors and organ-to-tissue mapping)
 - **modes/** — Strategy pattern: `SimulationMode` ABC with `DicomMode`, `CtdiMode`, and `PhantomMode` implementations
 - **gui/** — FreeSimpleGUI MVC: `MainView` (layout with DICOM/CTDI/ICRP145 tabs) + `controller.py` (event handling)
-- **services/** — Post-simulation services: `CTDICalculator` (scorer-aware CTDI metrics with TLE as primary), `CalibrationService` (per-scorer DCFs: `dcf_tle`/`dcf_dtw`/`dcf_dtm` selected via `scorer_type` parameter), `BenchmarkCalculator` (benchmarks TLE only), `PhantomDoseCalculator` (voxelized phantom organ dose + ICRP 103 effective dose with DCF normalization)
+- **services/** — Post-simulation services: `CTDICalculator` (scorer-aware CTDI metrics with TLE as primary), `CalibrationService` (per-scorer DCFs: `dcf_tle`/`dcf_dtw`/`dcf_dtm` selected via `scorer_type` parameter; raw-dose normalization centralized in the module-level `raw_absolute_dose_Gy()` helper so every CLI/service applies the same `(raw_sum / total_histories) × photons_per_mAs × mAs` formula), `BenchmarkCalculator` (benchmarks TLE only), `PhantomDoseCalculator` (voxelized phantom organ dose + ICRP 103 effective dose with DCF normalization), `PhaseSpaceAnalyzer` (header-driven TOPAS Binary `.phsp` reader — parses the self-describing `.header` sibling, 34-byte records of 7×f4 + i4 PDG + 2 flags; converts MeV→keV; decodes PDG codes)
 - **boilerplates/** — Jinja2 TOPAS parameter file templates and include file directories
 
 ## Key Files

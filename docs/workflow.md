@@ -309,6 +309,8 @@ absolute_dose_Gy = (TOPAS_Sum / total_histories) * photons_per_mAs * target_mAs 
 - `target_mAs` supports partial scans (defaults to simulated mAs)
 - `TOPAS_Sum` is divided by `total_histories` to convert from total accumulated dose to per-history mean
 
+This formula lives in the single canonical helper `raw_absolute_dose_Gy()` in `src/services/calibration.py`. `CalibrationService.normalize_dose()`, the `calculate_ctdiw.py main` / `cross_validate_calibrations.py` / `BenchmarkCalculator.compare` entry points all route through it, so the division is applied consistently everywhere.
+
 The DCF is computed once from a CTDI calibration run (Phase 1) and applied to all subsequent simulations regardless of geometry. Three scorer-specific DCFs are stored per (kV, fan_mode): TLE (primary), DoseToWater, and DoseToMedium.
 
 ### ICRP 103 effective dose
@@ -439,7 +441,7 @@ ctdi:
   phase_space_mode: "score"
 ```
 
-Produces `beam_exit_phsp.phsp` + beam statistics in the `phase_space/` subdirectory.
+Produces `beam_exit_phsp.phsp` **and its self-describing sibling `beam_exit_phsp.header`** plus beam statistics in the `phase_space/` subdirectory. TOPAS writes both files; the orchestrator moves them together (replay needs both).
 
 **Replay mode** (uses scored phase space with phantom):
 
@@ -450,7 +452,7 @@ ctdi:
   phase_space_multiple_use: 5  # reuse each particle 5 times
 ```
 
-No spectrum generation in replay mode. The norm factor is divided by `phase_space_multiple_use` for correct normalization.
+The `.phsp` file **and its `.header` sibling must be co-located**; point `phase_space_file` at the `.phsp` and MC-DCaRE resolves and copies the `.header` automatically (via `header_path_for()`). No spectrum generation in replay mode. The norm factor is divided by `phase_space_multiple_use` for correct normalization.
 
 ### Water Chamber Volumes (CTDI only)
 
@@ -548,7 +550,7 @@ Every simulation produces a timestamped runfolder:
 runfolder/2026-06-12_14-30-00/
 ├── config.yaml                       # Copy of source config (provenance)
 ├── simulation.log                    # Python application log
-├── simulation_metadata.yaml          # norm_factor, mAs, dcf_used, SpekPy params
+├── simulation_metadata.yaml          # total_histories, exposure_mAs, spectrum_fluence_photons_per_mAs, SpekPy params
 ├── head_calibration_factor.txt       # Legacy combined calibration factor
 ├── ConvertedTopasFile.txt            # TOPAS energy spectrum
 ├── Muen.dat                          # Mass-energy absorption coefficients

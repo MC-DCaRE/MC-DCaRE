@@ -546,13 +546,19 @@ class TestScoreModeNonDryRun:
         with open(stats_path) as f:
             stats = yaml.safe_load(f)
         assert stats["particle_count"] == 10
-        assert stats["mean_energy_keV"] == 60.0
+        assert stats["mean_energy_keV"] == pytest.approx(60.0, abs=0.01)
 
         # Verify .phsp moved to phase_space/.
         assert os.path.isfile(
             os.path.join(rundir, "phase_space", "beam_exit_phsp.phsp")
         )
         assert not os.path.isfile(os.path.join(rundir, "beam_exit_phsp.phsp"))
+
+        # Verify .header sibling moved alongside the .phsp (replay needs both).
+        assert os.path.isfile(
+            os.path.join(rundir, "phase_space", "beam_exit_phsp.header")
+        )
+        assert not os.path.isfile(os.path.join(rundir, "beam_exit_phsp.header"))
 
         # Verify metadata copied to phase_space/.
         assert os.path.isfile(

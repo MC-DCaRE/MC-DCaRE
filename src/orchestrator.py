@@ -220,7 +220,10 @@ class Orchestrator:
             ctdi_mode.execute(config, rundir, self.project_root, detach=detach)
 
             # Post-process: run PhaseSpaceAnalyzer on output.
-            from src.services.phase_space_analyzer import PhaseSpaceAnalyzer
+            from src.services.phase_space_analyzer import (
+                PhaseSpaceAnalyzer,
+                header_path_for,
+            )
 
             phsp_file = os.path.join(rundir, "beam_exit_phsp.phsp")
             metadata_path = os.path.join(
@@ -243,6 +246,20 @@ class Orchestrator:
                 dest = os.path.join(rundir, "phase_space", "beam_exit_phsp.phsp")
                 shutil.move(phsp_file, dest)
                 logger.info("Moved phase space file to %s", dest)
+
+                # Move the .header sibling too — TOPAS Binary format is
+                # self-describing via the header, and the PhaseSpace source
+                # used by replay needs both files together.
+                header_file = header_path_for(phsp_file)
+                if os.path.isfile(header_file):
+                    header_dest = header_path_for(dest)
+                    shutil.move(header_file, header_dest)
+                    logger.info("Moved phase space header to %s", header_dest)
+                else:
+                    logger.warning(
+                        "Phase space header not found at %s; replay may fail",
+                        header_file,
+                    )
 
                 # Copy metadata to phase_space/ so replay can find it.
                 if os.path.isfile(metadata_path):

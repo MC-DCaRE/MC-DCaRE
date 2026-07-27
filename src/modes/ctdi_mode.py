@@ -10,6 +10,7 @@ from typing import Dict
 from src.config import SimulationConfig
 from src.fieldtobladeopening import fieldtobladeopening
 from src.modes.base import SimulationMode, _compute_angle_values
+from src.services.phase_space_analyzer import header_path_for
 from src.simulation_runner import SimulationRunner
 from src.template_renderer import TemplateRenderer
 
@@ -194,9 +195,20 @@ class CtdiMode(SimulationMode):
                 project_root, "src", "boilerplates", "TOPAS_includeFiles"
             )
             shutil.copy(os.path.join(include_dir, "Muen.dat"), rundir)
-            # Copy phase space file to runfolder.
+            # Copy phase space file to runfolder, plus its .header sibling.
+            # TOPAS Binary format is self-describing via the header; the
+            # PhaseSpace source requires both files together.
             phsp_src = config.ctdi.phase_space_file
             shutil.copy(phsp_src, rundir)
+            header_src = header_path_for(phsp_src)
+            if os.path.isfile(header_src):
+                shutil.copy(header_src, rundir)
+            else:
+                logger.warning(
+                    "Phase space header not found alongside %s; TOPAS replay "
+                    "may fail to read the file",
+                    phsp_src,
+                )
             logger.info("Prepared replay run in %s", rundir)
         else:
             self.copy_common_files(rundir, config, project_root)

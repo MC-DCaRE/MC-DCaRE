@@ -679,5 +679,41 @@ class TestCompareScorersGuards:
             calc.compare_scorers(results)
 
 
+class TestComputeRawGy:
+    """Regression tests for calculate_ctdiw._compute_raw_Gy.
+
+    The stale formula omitted the /total_histories division; this guard
+    ensures the canonical (history-normalized) value is produced.
+    """
+
+    def test_divides_by_total_histories(self) -> None:
+        from calculate_ctdiw import _compute_raw_Gy
+        from src.services.calibration import compute_photons_per_mAs
+
+        result = {
+            "raw_sum": 1.0e-10,
+            "metadata": {
+                "total_histories": 1_000_000,
+                "exposure_mAs": 100.0,
+                "spectrum_fluence_photons_per_mAs": 2.34e8,
+            },
+        }
+        raw_gy = _compute_raw_Gy(result)
+
+        # ppm is derived from spectrum_fluence (= no_particles/histories) as
+        # spectrum_fluence * total_histories / exposure_mAs.
+        meta = result["metadata"]
+        ppm = compute_photons_per_mAs(meta)
+        expected = (1.0e-10 / 1_000_000) * ppm * 100.0
+        assert raw_gy == pytest.approx(expected)
+
+        # Regression guard: the stale formula omitted /total_histories, so it
+        # would have been ~1e6x larger. Confirm the corrected value is the
+        # stale value divided by total_histories.
+        stale = 1.0e-10 * ppm * 100.0
+        assert raw_gy == pytest.approx(stale / 1_000_000)
+        assert raw_gy < 1.0
+
+
 if __name__ == "__main__":
     pytest.main([__file__])

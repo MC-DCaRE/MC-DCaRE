@@ -382,5 +382,46 @@ class TestReplayCalibration:
         assert calc.exposure_mAs == 100.0
 
 
+class TestCanonicalNormalizationHelpers:
+    """Tests for the single-source raw-dose normalization helpers."""
+
+    def test_raw_absolute_dose_Gy_divides_by_histories(self) -> None:
+        from src.services.calibration import raw_absolute_dose_Gy
+
+        # raw_sum=1e-10 over 1e6 histories, ppm=2.34e8, mAs=100
+        # = (1e-10/1e6) * 2.34e8 * 100 = 2.34e-6
+        val = raw_absolute_dose_Gy(1.0e-10, 2.34e8, 1_000_000, 100.0)
+        assert val == pytest.approx((1.0e-10 / 1_000_000) * 2.34e8 * 100.0)
+        # Regression guard: the stale formula omitted /total_histories,
+        # producing a value ~1e6x larger (~2.34). Must be well under 1 Gy.
+        assert abs(val) < 1.0
+
+    def test_raw_absolute_dose_Gy_raises_on_zero_histories(self) -> None:
+        from src.services.calibration import raw_absolute_dose_Gy
+
+        with pytest.raises(ValueError, match="total_histories"):
+            raw_absolute_dose_Gy(1.0e-10, 2.34e8, 0, 100.0)
+
+    def test_compute_photons_per_mAs_raises_on_missing_histories(self) -> None:
+        from src.services.calibration import compute_photons_per_mAs
+
+        with pytest.raises(ValueError, match="total_histories"):
+            compute_photons_per_mAs(
+                {"exposure_mAs": 100.0, "spectrum_fluence_photons_per_mAs": 2.34e8}
+            )
+
+    def test_compute_photons_per_mAs_raises_on_zero_histories(self) -> None:
+        from src.services.calibration import compute_photons_per_mAs
+
+        with pytest.raises(ValueError, match="total_histories"):
+            compute_photons_per_mAs(
+                {
+                    "total_histories": 0,
+                    "exposure_mAs": 100.0,
+                    "spectrum_fluence_photons_per_mAs": 2.34e8,
+                }
+            )
+
+
 if __name__ == "__main__":
     pytest.main([__file__])

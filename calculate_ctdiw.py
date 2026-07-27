@@ -10,7 +10,11 @@ from rich.console import Console
 
 from src.services.ctdi_benchmark import BenchmarkCalculator
 from src.services.ctdi_calculator import CTDICalculator
-from src.services.calibration import CalibrationService, compute_photons_per_mAs
+from src.services.calibration import (
+    CalibrationService,
+    compute_photons_per_mAs,
+    raw_absolute_dose_Gy,
+)
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -26,17 +30,20 @@ DEFAULT_CALIBRATION_PATH = "calibration.yaml"
 def _compute_raw_Gy(result: dict) -> float:
     """Compute raw Gy (photons_per_mAs x mAs, no DCF) from a raw result dict.
 
-    The physical dose is: per_history_dose (TOPAS Sum) x total_real_photons.
-    total_real_photons = photons_per_mAs x mAs, where photons_per_mAs is
-    derived from spectrum_fluence (= no_particles / total_histories) and
-    simplifies to no_particles / mAs, a kV-dependent constant.
+    The physical dose is: per_history_dose (TOPAS Sum / total_histories) x
+    total_real_photons.  total_real_photons = photons_per_mAs x mAs, where
+    photons_per_mAs is derived from spectrum_fluence
+    (= no_particles / total_histories) and simplifies to no_particles / mAs,
+    a kV-dependent constant.  Routes through :func:`raw_absolute_dose_Gy`
+    so the division by total_histories is shared with every other caller.
     """
     metadata = result.get("metadata", {})
     exposure_mAs = metadata.get("exposure_mAs", 0.0)
+    total_histories = metadata.get("total_histories", 0)
     photons_per_mAs = compute_photons_per_mAs(metadata)
 
     raw_sum = result.get("raw_sum", 0.0)
-    return raw_sum * photons_per_mAs * exposure_mAs
+    return raw_absolute_dose_Gy(raw_sum, photons_per_mAs, total_histories, exposure_mAs)
 
 
 @app.command()

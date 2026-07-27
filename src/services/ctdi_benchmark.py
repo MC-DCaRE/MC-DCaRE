@@ -9,6 +9,7 @@ from typing import List
 
 import pandas as pd
 
+from src.services.calibration import compute_photons_per_mAs, raw_absolute_dose_Gy
 from src.services.ctdi_calculator import CTDICalculator, PRIMARY_SCORER
 
 logger = logging.getLogger(__name__)
@@ -72,17 +73,9 @@ class BenchmarkCalculator:
         metadata = calc_results[0].get("metadata", {}) if calc_results else {}
         total_histories = metadata.get("total_histories", 0)
         exposure_mAs = metadata.get("exposure_mAs", 0.0)
-        spectrum_fluence = metadata.get("spectrum_fluence_photons_per_mAs")
-
-        if spectrum_fluence and spectrum_fluence > 0 and exposure_mAs > 0:
-            photons_per_mAs = spectrum_fluence * total_histories / exposure_mAs
-        else:
-            old_nf = (
-                self.calculator.simulation_metadata.get("norm_factor", 1.0)
-                if self.calculator.simulation_metadata
-                else 1.0
-            )
-            photons_per_mAs = old_nf * total_histories
+        # Single canonical normalization constant; raises if metadata lacks
+        # a usable source (no silent norm_factor=1.0 fallback).
+        photons_per_mAs = compute_photons_per_mAs(metadata)
 
         benchmark_results: List[BenchmarkResult] = []
         for calc_result in calc_results:
@@ -94,14 +87,11 @@ class BenchmarkCalculator:
                 continue
 
             raw_sum = calc_result.get("raw_sum", 0.0)
-            # raw_sum is TOPAS Sum (total accumulated), divide by total_histories
-            # to get per-history mean before scaling to absolute Gy.
-            if total_histories > 0:
-                simulated_Gy = (
-                    (raw_sum / total_histories) * photons_per_mAs * exposure_mAs
-                )
-            else:
-                simulated_Gy = raw_sum * photons_per_mAs * exposure_mAs
+            # TOPAS Sum (total accumulated) -> per-history mean -> absolute Gy,
+            # via the shared canonical helper.
+            simulated_Gy = raw_absolute_dose_Gy(
+                raw_sum, photons_per_mAs, total_histories, exposure_mAs
+            )
 
             deviation = (simulated_Gy - reference_Gy) / reference_Gy * 100
             status = "PASS" if abs(deviation) <= tolerance_pct else "FAIL"

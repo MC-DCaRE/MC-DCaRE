@@ -22,7 +22,11 @@ import yaml
 from rich.console import Console
 from rich.table import Table
 
-from src.services.calibration import CalibrationService, compute_photons_per_mAs
+from src.services.calibration import (
+    CalibrationService,
+    compute_photons_per_mAs,
+    raw_absolute_dose_Gy,
+)
 from src.services.ctdi_calculator import CTDICalculator, PRIMARY_SCORER
 
 logging.basicConfig(
@@ -172,7 +176,11 @@ def cross_validate(
             logger.warning("Cannot compute photons_per_mAs for %s", rf.name)
             continue
 
-        raw_Gy = raw_sum * photons_per_mAs * exposure_mAs
+        # Divide TOPAS Sum by total_histories to get per-history mean before
+        # scaling to absolute Gy (canonical formula, shared with normalize_dose).
+        raw_Gy = raw_absolute_dose_Gy(
+            raw_sum, photons_per_mAs, total_histories, exposure_mAs
+        )
         calibrated_Gy = raw_Gy * dcf
         calibrated_mGy = calibrated_Gy * 1000.0  # DCF converts Gy→Gy
 

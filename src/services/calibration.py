@@ -54,11 +54,17 @@ def compute_photons_per_mAs(metadata: Dict[str, Any]) -> float:
     that lacks ``spectrum_fluence_photons_per_mAs``.
 
     Raises:
-        ValueError: If neither spectrum_fluence nor norm_factor is usable.
+        ValueError: If ``total_histories`` is missing/non-positive, or if
+            neither ``spectrum_fluence`` nor ``norm_factor`` is usable.
     """
     total_histories = metadata.get("total_histories", 0)
     exposure_mAs = metadata.get("exposure_mAs", 0.0)
     spectrum_fluence = metadata.get("spectrum_fluence_photons_per_mAs")
+    if total_histories <= 0:
+        raise ValueError(
+            "Cannot compute photons_per_mAs: total_histories must be positive, "
+            "got %s" % total_histories
+        )
     if spectrum_fluence is not None and spectrum_fluence > 0 and exposure_mAs > 0:
         return float(spectrum_fluence) * float(total_histories) / float(exposure_mAs)
     norm_factor = metadata.get("norm_factor")
@@ -68,6 +74,32 @@ def compute_photons_per_mAs(metadata: Dict[str, Any]) -> float:
         "Cannot compute photons_per_mAs: need either "
         "spectrum_fluence_photons_per_mAs or norm_factor in metadata"
     )
+
+
+def raw_absolute_dose_Gy(
+    raw_sum: float,
+    photons_per_mAs: float,
+    total_histories: float,
+    mAs_used: float,
+) -> float:
+    """Convert a TOPAS Sum (total accumulated) dose to absolute Gy (no DCF).
+
+    Canonical normalization formula::
+
+        raw_absolute_Gy = (raw_sum / total_histories) * photons_per_mAs * mAs_used
+
+    ``raw_sum`` is the TOPAS Sum accumulated across all histories; dividing
+    by ``total_histories`` yields the per-history mean, which is then scaled
+    to absolute dose via the kV-dependent ``photons_per_mAs`` and the scan
+    ``mAs_used``. This is the single source of truth for raw-dose scaling;
+    ``normalize_dose`` and every post-processing CLI route through it.
+
+    Raises:
+        ValueError: If ``total_histories`` is not positive.
+    """
+    if total_histories <= 0:
+        raise ValueError("total_histories must be positive, got %s" % total_histories)
+    return (raw_sum / total_histories) * photons_per_mAs * mAs_used
 
 
 class CalibrationService:
@@ -264,8 +296,12 @@ class CalibrationService:
         mAs_used = target_mAs if target_mAs is not None else mAs_simulated
 
         # Convert TOPAS Sum (total accumulated) to per-history mean,
-        # then scale to absolute Gy via photons_per_mAs x mAs.
-        raw_absolute_Gy = (raw_dose_Gy / total_histories) * photons_per_mAs * mAs_used
+        # then scale to absolute Gy via photons_per_mAs x mAs. Routes
+        # through the canonical helper so there is one normalization
+        # formula shared with the CLI post-processing scripts.
+        raw_absolute_Gy = raw_absolute_dose_Gy(
+            raw_dose_Gy, photons_per_mAs, total_histories, mAs_used
+        )
 
         # DCF lookup
         resolved_kV = kV or metadata.get("kV", 0)

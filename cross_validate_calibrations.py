@@ -97,14 +97,30 @@ def cross_validate(
     calibration_path: Path,
     runfolder_dir: Path,
     tolerance_pct: float = 10.0,
+    exclude_globs: Optional[List[str]] = None,
 ) -> List[CrossValidationResult]:
-    """Run cross-validation across all run-folders."""
+    """Run cross-validation across all run-folders.
+
+    Args:
+        exclude_globs: Optional list of glob patterns; run-folders whose name
+            matches any pattern are skipped. Use this to exclude the
+            calibration run-folders themselves, since validating a DCF against
+            the same run that derived it is tautological (calibrated dose
+            algebraically equals the reference).
+    """
     calib_svc = CalibrationService(calibration_path)
     results: List[CrossValidationResult] = []
 
     runfolders = sorted([d for d in runfolder_dir.iterdir() if d.is_dir()])
 
     for rf in runfolders:
+        if exclude_globs:
+            import fnmatch
+
+            if any(fnmatch.fnmatch(rf.name, pat) for pat in exclude_globs):
+                logger.debug("Skipping %s: matched exclude glob", rf.name)
+                continue
+
         meta = extract_runfolder_metadata(rf)
         if meta is None:
             logger.debug("Skipping %s: no usable metadata", rf.name)
@@ -147,6 +163,22 @@ def cross_validate(
                 fan_mode,
             )
             continue
+
+        # Warn when this run is the calibration run itself: validating the DCF
+        # against the same run that derived it is tautological (calibrated
+        # dose algebraically equals the reference). The result is only
+        # meaningful for an independent run-folder.
+        is_calibration_run = abs(exposure_mAs - reference_mAs) < 1e-6
+        if is_calibration_run:
+            logger.warning(
+                "%s is the calibration run for (%d kV, %s) at %.1f mAs: its "
+                "PASS is tautological (DCF was derived from this run). Use "
+                "--exclude-glob to drop it for a real linearity check.",
+                rf.name,
+                kV,
+                fan_mode,
+                exposure_mAs,
+            )
 
         # Compute raw CTDI-w (TLE scorer)
         try:
@@ -344,6 +376,14 @@ def main() -> None:
         default=10.0,
         help="Tolerance in percent (default: 10.0)",
     )
+    parser.add_argument(
+        "--exclude-glob",
+        "-x",
+        action="append",
+        default=None,
+        help="Glob pattern of run-folders to skip (repeatable). Use this to "
+        "exclude calibration run-folders so validation is not tautological.",
+    )
     args = parser.parse_args()
 
     calibration_path = Path(args.calibration)
@@ -370,7 +410,9 @@ def main() -> None:
         )
     )
 
-    results = cross_validate(calibration_path, runfolder_dir, args.tolerance)
+    results = cross_validate(
+        calibration_path, runfolder_dir, args.tolerance, exclude_globs=args.exclude_glob
+    )
 
     if not results:
         console.print(

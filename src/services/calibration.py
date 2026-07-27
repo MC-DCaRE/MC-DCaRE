@@ -174,6 +174,16 @@ class CalibrationService:
         reference_Gy = measured_ctdi_w_mGy * 1e-3
         dcf = reference_Gy / simulated_ctdi_w_Gy
 
+        if existing_dcf is not None:
+            logger.info(
+                "Overwriting %s for (%d, %s): %.6e -> %.6e",
+                dcf_field,
+                kV,
+                fan_mode,
+                existing_dcf,
+                dcf,
+            )
+
         # Rebuild calibration with updated entry (frozen dataclass).
         updated_entries = []
         for e in self._calibration.calibrations:

@@ -135,6 +135,11 @@ class TestSpectrumGenerator:
         SpectrumGenerator.generate(100.0, 10.0, "100000", str(tmp_path))
         calib_path = os.path.join(str(tmp_path), "tmp", "head_calibration_factor.txt")
 
+        # Physical oracle (independent of the source's own arithmetic):
+        # upstream MC-DCaRE/MC-DCaRE defines the head calibration factor as
+        # no_particles / histories, where no_particles = 4*pi*(0.1 m)^2 * flu
+        # = 4*pi*0.01*flu (SpekPy flu over the 0.1 m reference sphere).
+        # MockSpek.get_flu() returns 1000, histories=100000.
         expected = 4.0 * math.pi * 0.01 * 1000.0 / 100000
         with open(calib_path, "r") as f:
             actual = float(f.readline().strip())

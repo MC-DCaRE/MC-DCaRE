@@ -1,3 +1,15 @@
+# Machine calibration file.
+#
+# measured_ctdi_w_mGy : the ion-chamber measurement used to derive the DCF
+#                     (DCF = measured_Gy / simulated_Gy).
+# reference_ctdi_w_mGy: the value cross_validate checks the calibrated dose
+#                     against. With only one measurement per (kV, fan) this
+#                     equals measured_ctdi_w_mGy, so validating the DCF on the
+#                     *calibration* run is tautological (calibrated dose
+#                     algebraically returns measured). cross_validate is only
+#                     meaningful for an independent run-folder at the same
+#                     (kV, fan) -- different mAs exercises dose linearity.
+#                     See cross_validate_calibrations.py --exclude-glob.
 machine: TrueBeam-SN1234
 date_calibrated: '2026-07-03'
 calibrations:

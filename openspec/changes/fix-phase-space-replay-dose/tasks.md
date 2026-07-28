@@ -1,34 +1,25 @@
-## 1. Diagnose Bug B root cause -- INVESTIGATION COMPLETE, root cause NOT found
+## 0. Status (2026-07-28)
 
-- [x] 1.1 Component="World" vs "Rotation": identical dose -- frame DISPROVED.
-- [x] 1.2 M=1 vs M=5: M-independent -- M-reuse DISPROVED.
-- [x] 1.3 /M compensation: applied (metadata ratio exactly 5) -- DISPROVED.
-- [x] 1.4 Phase-space energy, beam-line parity, particle types/weights,
-      secondary bookkeeping (all gammas are first-in-history), direction
-      cosines (U^2+V^2 <= 1): all physical -- DISPROVED.
-- [ ] 1.5 **OPEN**: track-level stepping diagnostic (TOPAS /tracking or a
-      custom stepping-action scorer) -- print trajectories of a few
-      phase-space particles in replay vs the same particles continuing in
-      the direct run, to find where their paths diverge. This is the next
-      step; it requires custom TOPAS scoring beyond the current templates.
+- [x] Phase 0a: replay source `Component = "World"` (documented default). Done (commit 2520897).
+- [x] Phase 0b (Bug A): normalize replay by `(M x sequential_times)`. Done (commit 2520897) + R-invariance unit test.
+- [x] Bug B localization: injection + air transport faithful; over-deposit is inside the LayeredMassGeometry parallel-world scorer for PhaseSpace-source particles. Confirmed (commit 7f377ab).
+- [~] Phase 1 (custom stepping scorer): **BLOCKED in this environment** -- the opencode permission guard denies writes to `/opt/topas`, so a TOPAS extension cannot be built and TOPAS source cannot be modified/rebuilt here. The diagnostic source is staged at `diagnostics/TsTrackDumper.cc` for deployment where `/opt/topas` is writable.
 
-## 2. Bug A -- normalize replay by (M x sequential_times) -- NOT YET DONE
+## 1. Diagnose Bug B root cause -- investigation COMPLETE, root cause localized
 
-Deferred: the fix is clear but replay is not usable until Bug B resolves,
-and the exact R-delivery model is entangled with the Bug-B investigation.
-Do once Bug B is understood, so the fix is validated against a working replay.
+- [x] 1.1..1.4 nine suspects ruled out empirically (see design.md).
+- [x] 1.5 injection proven byte-faithful (InjectCheck at Y=-85.9 cm).
+- [ ] 1.6 **OPEN (needs /opt/topas write access)**: deploy `TsTrackDumper.cc`, rebuild TOPAS extensions, run Beam-source vs PhaseSpace-source, diff per-step ntuples to pinpoint the divergence step.
 
-- [ ] 2.1 `_write_replay_metadata`: divide `spectrum_fluence` by
-      `(M x sequential_times)`; unit-test R-invariance.
+## 2. Bug A -- DONE
+- [x] 2.1 `_write_replay_metadata` divides by `(M x sequential_times)`.
 
-## 3. Bug B -- fix -- BLOCKED on task 1.5
+## 3. Bug B fix -- BLOCKED on 1.6
+- [ ] 3.1 Apply the fix indicated by the track dump (expected: a TOPAS LayeredMassGeometry/PhaseSpace-source patch, or an application-level workaround if one exists).
 
-- [ ] 3.1 Implement the fix indicated by the track-level diagnostic.
-
-## 4. Convergence validation -- BLOCKED on Bug B fix
-
+## 4. Convergence validation -- BLOCKED on 3.1
 - [ ] 4.1 replay raw_Gy lands on direct ~0.92 (single-angle) / ~0.84 (arc).
 
 ## 5. Quality gates + docs
-
-- [ ] 5.1 ruff/mypy/pytest; docs; commit; push.
+- [x] 5.1 AGENTS.md (root + src/) now reference OpenTOPAS docs.
+- [ ] 5.2 final commit/push once Bug B is fixed.

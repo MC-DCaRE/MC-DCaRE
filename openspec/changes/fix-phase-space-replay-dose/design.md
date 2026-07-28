@@ -29,8 +29,7 @@ no_particles.
 
 ### Ruled out (each verified empirically)
 1. **Rotation frame** -- DISPROVED. `Component="World"` gives statistically
-   identical chamber Sums to `Component="Rotation"` (Centre 1.14e-9 vs
-   1.39e-9, Top 1.32e-8 vs 1.35e-8).
+   identical chamber Sums to `Component="Rotation"`.
 2. **PhaseSpaceMultipleUse** -- DISPROVED. M=1 gives raw_Gy 14.23 vs M=5
    13.14 (M-independent; the `/M` compensation works).
 3. **`/M` not applied** -- DISPROVED. Replay `spectrum_fluence` = score/5
@@ -41,38 +40,36 @@ no_particles.
    headsourcecode templates have identical source + collimators + BHF.
 6. **Particle types/weights** -- DISPROVED. 99.97% gammas, weight 1.0,
    positions Y=-86 cm traveling +Y, energies 1-79 keV.
+7. **PhspSurface size / scatter** -- DISPROVED. A 20 cm surface (11 758
+   particles, primary-dominated) gives the same replay over-deposit as the
+   1 m surface (100 981 particles). BeamHardeningFilter is upstream of
+   PhspSurface, so the score captures the post-filter beam.
+8. **Air transport** -- DISPROVED. Re-injecting into empty space, 3668 of
+   100 979 particles cross the phantom-entry plane Y=-8 cm, matching the
+   analytic ~4% aimed at the 16 cm phantom. Directions preserved (the
+   near-axial subset that reaches Y=-8 has U std 0.149, V mean 0.968 -- the
+   divergent particles simply miss the plane).
+9. **Chamber / phantom geometry** -- DISPROVED. The ChamberPlug definitions
+   (Type, Parent, Material=Air, RMax, HL, isParallel, ParallelWorldName)
+   and `LayeredMassGeometryWorlds` are byte-identical between the direct
+   and replay parameter files.
 
 ### The anomaly
-Per transport, a replayed phase-space particle hits the Top (beam-entry)
-chamber ~6x more often than a direct survivor; per-hit TLE deposit is
-faithful (~1x). So replayed particles cross the chambers more despite
-recorded positions/directions/energies that look correct and a Component
-frame that does not matter. Algebraically the per-primary dose should match
-the direct exactly; empirically it is ~14x too high in raw_Gy.
+Among particles that ENTER the phantom, replayed ones cross the Top
+(beam-entry) chamber ~6x more often than direct survivors, with an
+entry-to-exit gradient (Top per-count TLE 3.83x; Centre 1.27x; Bottom
+1.19x). The gradient is the signature of longer tracks (grazing crossings)
+on the beam-entry side. Yet the air transport to the phantom is faithful
+and the chamber geometry is identical.
 
-### Why it is hard
-The recorded particles ARE the direct beam at PhspSurface. Re-injecting them
-(even M=1, Component=World) should reproduce the direct's phantom dose. It
-does not. The divergence is not visible in the parameter files or .phsp
-contents.
-
-### Next investigation (not completed this session)
-Track-level debugging -- print step-by-step trajectories of a few
-phase-space particles in replay vs the same particles continuing in the
-direct run, to find where their paths diverge. Suspects that remain:
-- TOPAS PhaseSpace-source direction reconstruction (W-sign flag, V>>0 case)
-  placing particles on subtly different trajectories.
-- Secondary bookkeeping (phase space captures beam-line secondaries; direct
-  generates phantom secondaries -- which "counts" toward chamber dose may
-  differ).
-- PhaseSpace-source x LayeredMassGeometry interaction (a whole-CTDI
-  DoseToMedium scorer returned 0 in replay, hinting the mass geometry is
-  set up non-obviously under PhaseSpace replay).
-
-### Decision
-Bug B is not safely fixable without the track-level diagnostic; a blind fix
-risks false convergence. Bug A is independent and clear, but replay is not
-production-usable until Bug B is resolved.
+### Conclusion
+The divergence is inside TOPAS: how PhaseSpace-source particles transport
+into the LayeredMassGeometry (parallel-world) phantom differs from how the
+same particles continue in a Beam-source history. It is not visible in any
+parameter file or .phsp content. Pinning it requires G4 track-level
+stepping output (custom Ts stepping action or `/tracking/verbose`) to
+compare per-step trajectories of individual phase-space particles in replay
+vs the direct run.
 
 ## Risks
 - The diagnostic may reveal the frame is NOT the cause (e.g., a TOPAS

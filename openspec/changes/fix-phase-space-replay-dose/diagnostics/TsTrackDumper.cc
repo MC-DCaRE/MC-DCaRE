@@ -1,87 +1,90 @@
 // Scorer for TrackDumper
 //
-// Diagnostic scorer for the phase-space-replay dose bug (see
-// openspec/changes/fix-phase-space-replay-dose/design.md).
+// Diagnostic volume scorer: dumps one ntuple row per step in the scoring
+// component. Use to trace where Beam-source vs PhaseSpace-source particle
+// tracks diverge inside a LayeredMassGeometry (parallel-world) phantom.
+// See openspec/changes/fix-phase-space-replay-dose/design.md (Bug B).
 //
-// Dumps one ntuple row per step in the scoring component:
-//   x,y,z (cm), direction cosines dx,dy,dz, energy (MeV), weight, eventID,
-//   volume name, material name.
+// Columns: Position X/Y/Z (cm), Direction Cosine X/Y/Z, Energy (MeV),
+// Weight, Event ID, Volume Name, Material Name.
 //
-// Deploy: copy this file into
-//   /opt/topas/TOPAS/OpenTOPAS/extensions/scoring/
-// then rebuild the extensions target:
-//   cd /opt/topas/TOPAS/OpenTOPAS-build && make -j8
-// Use:
+// Deploy: copy into the TOPAS scoring source dir (next to TsVScorer.cc) and
+// rebuild -- see topas_extensions/deploy.sh. Use:
 //   s:Sc/Track/Quantity  = "TrackDumper"
-//   s:Sc/Track/Component = "<a chamber plug>"   # e.g. ChamberPlugCentre
+//   s:Sc/Track/Component = "<chamber plug>"   # e.g. ChamberPlugCentre
 //
-// Run twice -- once with the Beam source (direct) and once with the
-// PhaseSpace source (replay of the scored .phsp) -- and diff the ntuple
-// output to find the exact step where the two transports diverge inside the
-// LayeredMassGeometry. ProcessHits is the standard TOPAS hook; it is called
-// once per step in the scoring component, so attach to a chamber volume.
-//
-// NOTE: Authored from the OpenTOPAS "Custom Scorers" doc API without local
-// header read access. If the build complains, the likely adjustments are:
-//   - The base-class constructor argument list (TsVNtupleScorer takes the
-//     standard 8 scorer args; verify against TsVScorer.hh).
-//   - RegisterColumnD signature: (name, unit) -- unit may need to be a
-//     G4String; columns without units use RegisterColumnF/RegisterColumnI/
-//     RegisterColumnS (no unit arg).
-//   - fNtuple->Fill takes the columns in registration order.
-//   - GetEventID() is provided by TsVScorer.
+// Authored against the installed OpenTOPAS 4.2 API (mirrors TsScorePhaseSpace:
+// 9-arg TsVNtupleScorer ctor, fNtuple->RegisterColumnF(&member,name,unit),
+// fNtuple->Fill() with no args).
 
 #include "TsVNtupleScorer.hh"
+
 #include "G4Step.hh"
 #include "G4StepPoint.hh"
 #include "G4ThreeVector.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4VPhysicalVolume.hh"
 #include "G4Material.hh"
+#include "G4TouchableHistory.hh"
+#include "G4RunManager.hh"
+#include "G4Event.hh"
 
 class TrackDumper : public TsVNtupleScorer
 {
   public:
     TrackDumper(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM,
-                TsScoringManager* sM, G4VScorableVolume* v, G4String scorerName,
-                G4String fileName, G4bool isParticleSpecific)
-        : TsVNtupleScorer(pM, mM, gM, sM, v, scorerName, fileName, isParticleSpecific)
+                TsScoringManager* scM, TsExtensionManager* eM,
+                G4String scorerName, G4String quantity, G4String outFileName,
+                G4bool isSubScorer)
+        : TsVNtupleScorer(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer),
+          fX(0.), fY(0.), fZ(0.), fDX(0.), fDY(0.), fDZ(0.),
+          fEnergy(0.), fWeight(0.), fEventID(0), fVolume(""), fMaterial("")
     {
-        RegisterColumnD("x_cm", "cm");
-        RegisterColumnD("y_cm", "cm");
-        RegisterColumnD("z_cm", "cm");
-        RegisterColumnD("dir_x", "");
-        RegisterColumnD("dir_y", "");
-        RegisterColumnD("dir_z", "");
-        RegisterColumnD("energy_MeV", "MeV");
-        RegisterColumnD("weight", "");
-        RegisterColumnI("eventID");
-        RegisterColumnS("volume");
-        RegisterColumnS("material");
+        // Register columns in output order. Pass the G4-internal value to
+        // each member (TOPAS converts to the registered unit on output, as
+        // in TsScorePhaseSpace).
+        fNtuple->RegisterColumnF(&fX, "Position X", "cm");
+        fNtuple->RegisterColumnF(&fY, "Position Y", "cm");
+        fNtuple->RegisterColumnF(&fZ, "Position Z", "cm");
+        fNtuple->RegisterColumnF(&fDX, "Direction Cosine X", "");
+        fNtuple->RegisterColumnF(&fDY, "Direction Cosine Y", "");
+        fNtuple->RegisterColumnF(&fDZ, "Direction Cosine Z", "");
+        fNtuple->RegisterColumnF(&fEnergy, "Energy", "MeV");
+        fNtuple->RegisterColumnF(&fWeight, "Weight", "");
+        fNtuple->RegisterColumnI(&fEventID, "Event ID");
+        fNtuple->RegisterColumnS(&fVolume, "Volume Name");
+        fNtuple->RegisterColumnS(&fMaterial, "Material Name");
     }
 
     ~TrackDumper() {}
 
-    G4bool ProcessHits(G4Step* aStep, G4TouchableHistory* /*ROhist*/) override
+    G4bool ProcessHits(G4Step* aStep, G4TouchableHistory*)
     {
+        if (!fIsActive)
+            return false;
+
         G4StepPoint* pre = aStep->GetPreStepPoint();
         G4ThreeVector pos = pre->GetPosition();
-        G4ThreeVector dir = pre->GetMomentumDirection();
-        G4String vol = pre->GetPhysicalVolume()->GetName();
-        G4String mat = pre->GetMaterial()->GetName();
+        G4ThreeVector mom = pre->GetMomentumDirection();
 
-        fNtuple->Fill(
-            pos.x() / cm,
-            pos.y() / cm,
-            pos.z() / cm,
-            dir.x(),
-            dir.y(),
-            dir.z(),
-            pre->GetKineticEnergy() / MeV,
-            pre->GetWeight(),
-            GetEventID(),
-            vol,
-            mat);
+        fX = pos.x();
+        fY = pos.y();
+        fZ = pos.z();
+        fDX = mom.x();
+        fDY = mom.y();
+        fDZ = mom.z();
+        fEnergy = pre->GetKineticEnergy();
+        fWeight = pre->GetWeight();
+        fEventID = G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID();
+        fVolume = pre->GetPhysicalVolume() ? pre->GetPhysicalVolume()->GetName() : G4String("none");
+        fMaterial = pre->GetMaterial() ? pre->GetMaterial()->GetName() : G4String("none");
+
+        fNtuple->Fill();
         return false;
     }
+
+  private:
+    G4float fX, fY, fZ, fDX, fDY, fDZ, fEnergy, fWeight;
+    G4int fEventID;
+    G4String fVolume, fMaterial;
 };

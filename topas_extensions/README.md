@@ -23,7 +23,7 @@ artifacts are staged for you to build/install from a shell that has full
 | File | Purpose |
 |---|---|
 | `TsTrackDumper.cc` | `TsVNtupleScorer` subclass. Dumps one ntuple row per step: `x,y,z (cm)`, direction cosines, `energy (MeV)`, weight, eventID, volume, material. Authored from the [Custom Scorers](https://opentopas.readthedocs.io/en/latest/extension-docs/scoring.html) doc API. |
-| `deploy.sh` | Copies the source into the TOPAS extensions tree, rebuilds the `extensions` target, runs `make install`, and smoke-tests on a water box. Run from your own shell. |
+| `deploy.sh` | Auto-detects the TOPAS scoring source dir (locates `TsVScorer.cc`), copies the source there, re-runs cmake, rebuilds + installs, and smoke-tests on a water box. Run from your own shell. |
 | `test_TrackDumper.txt` | Minimal TOPAS param file (10 gammas into a water box with the TrackDumper scorer) for the smoke test. |
 
 ## Build & install (do this in your terminal, not the sandbox)

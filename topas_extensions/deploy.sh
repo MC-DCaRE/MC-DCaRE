@@ -13,6 +13,7 @@ set -euo pipefail
 
 TOPAS_SRC="${TOPAS_SRC:-/opt/topas/TOPAS/OpenTOPAS}"
 TOPAS_BUILD="${TOPAS_BUILD:-/opt/topas/TOPAS/OpenTOPAS-build}"
+TOPAS_BIN="${TOPAS_BIN:-/opt/topas/TOPAS/OpenTOPAS-install/bin/topas}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "==> 1/5  Locating the TOPAS scoring source directory"
@@ -40,7 +41,8 @@ make install
 echo "==> 5/5  Smoke test: TrackDumper on a water box"
 cd "$HERE"
 rm -f track_dump.csv track_dump.txt
-topas test_TrackDumper.txt > smoke.log 2>&1 || { echo "SMOKE TEST FAILED:"; tail -20 smoke.log; exit 1; }
+# Use the absolute TOPAS binary path (sudo drops PATH, so `topas` isn't found).
+"$TOPAS_BIN" test_TrackDumper.txt > smoke.log 2>&1 || { echo "SMOKE TEST FAILED:"; tail -20 smoke.log; exit 1; }
 if [ -f track_dump.csv ] || [ -f track_dump.txt ]; then
     echo "OK: TrackDumper produced output:"
     ls -la track_dump.*

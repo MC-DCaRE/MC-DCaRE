@@ -72,14 +72,18 @@ class Orchestrator:
         rundir: str,
         scoring_metadata_path: str,
         phase_space_multiple_use: int,
+        sequential_times: int = 1,
     ) -> None:
         """Copy scoring metadata to replay runfolder with adjusted normalization.
 
-        Divides ``spectrum_fluence_photons_per_mAs`` (or legacy ``norm_factor``)
-        by ``phase_space_multiple_use`` and writes the result to the replay
-        runfolder. Each replayed phase-space particle represents M fewer real
-        photons, so the per-history photon weight is reduced by M.
+        The replay re-delivers the scored phase space once per sequential time
+        step (the arc rotation), so the total transported count scales as
+        ``N_particles x M x R`` (M = ``phase_space_multiple_use``,
+        R = ``sequential_times``). To keep the per-primary dose intensive
+        (independent of M and R), divide ``spectrum_fluence_photons_per_mAs``
+        (or legacy ``norm_factor``) by ``M x R``.
         """
+        divisor = phase_space_multiple_use * max(1, sequential_times)
         with open(scoring_metadata_path, "r", encoding="utf-8") as f:
             metadata = yaml.safe_load(f)
         if not isinstance(metadata, dict):
@@ -87,11 +91,9 @@ class Orchestrator:
 
         spectrum_fluence = metadata.get("spectrum_fluence_photons_per_mAs")
         if spectrum_fluence is not None and spectrum_fluence > 0:
-            metadata["spectrum_fluence_photons_per_mAs"] = (
-                spectrum_fluence / phase_space_multiple_use
-            )
+            metadata["spectrum_fluence_photons_per_mAs"] = spectrum_fluence / divisor
         elif "norm_factor" in metadata:
-            metadata["norm_factor"] = metadata["norm_factor"] / phase_space_multiple_use
+            metadata["norm_factor"] = metadata["norm_factor"] / divisor
         else:
             raise ValueError(
                 "Scoring metadata missing both 'spectrum_fluence_photons_per_mAs' "
@@ -99,6 +101,7 @@ class Orchestrator:
             )
 
         metadata["phase_space_multiple_use"] = phase_space_multiple_use
+        metadata["phase_space_sequential_times"] = sequential_times
         metadata["phase_space_source"] = scoring_metadata_path
         if "total_histories" not in metadata:
             metadata["total_histories"] = 0
@@ -106,8 +109,10 @@ class Orchestrator:
         with open(dest_path, "w", encoding="utf-8") as f:
             yaml.dump(metadata, f, default_flow_style=False, sort_keys=False)
         logger.info(
-            "Wrote replay metadata (M=%d): %s",
+            "Wrote replay metadata (M=%d, R=%d, divisor=%d): %s",
             phase_space_multiple_use,
+            sequential_times,
+            divisor,
             scoring_metadata_path,
         )
 
@@ -303,6 +308,7 @@ class Orchestrator:
                 rundir,
                 scoring_metadata,
                 config.ctdi.phase_space_multiple_use,
+                int(config.imaging.sequential_times),
             )
         else:
             logger.warning(

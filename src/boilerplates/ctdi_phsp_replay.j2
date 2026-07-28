@@ -46,10 +46,13 @@ d:Ge/Rotation/TransX=0.0 mm
 d:Ge/Rotation/TransY=0.0 mm
 d:Ge/Rotation/TransZ=0.0 mm
 
-# Phase Space Source — attached to Rotation group
+# Phase Space Source — Component "World" is the documented default for
+# TOPAS-scored phase space (positions are stored relative to World). The arc
+# rotation is applied to the phantom via the Rotation group; the source itself
+# must NOT inherit the Rotation transform, or particles are double-transformed.
 s:So/beam/Type                  = "PhaseSpace"
 s:So/beam/PhaseSpaceFileName    = "{{ phase_space_file }}"
-s:So/beam/Component             = "Rotation"
+s:So/beam/Component             = "World"
 i:So/beam/PhaseSpaceMultipleUse = {{ phase_space_multiple_use }}
 
 # Time Feature ####################################

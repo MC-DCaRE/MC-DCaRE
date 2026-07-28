@@ -447,6 +447,41 @@ class TestOrchestratorPhaseSpace:
         assert "norm_factor" not in result
         assert result["phase_space_multiple_use"] == 10
 
+    def test_write_replay_metadata_divides_by_M_times_sequential_times(
+        self, tmp_path: Any
+    ) -> None:
+        """Bug A: replay normalization must be divided by M x sequential_times
+        (the replay re-delivers the phase space once per arc time step, so the
+        transported count scales as N x M x R)."""
+        base = {
+            "total_histories": 1000000,
+            "exposure_mAs": 100.0,
+            "spectrum_fluence_photons_per_mAs": 2.34e8,
+        }
+
+        def run(meta: dict, m: int, r: int) -> float:
+            meta_path = tmp_path / ("meta_%d_%d.yaml" % (m, r))
+            with open(meta_path, "w") as f:
+                yaml.dump(meta, f)
+            rundir = str(tmp_path / ("run_%d_%d" % (m, r)))
+            os.makedirs(rundir)
+            Orchestrator._write_replay_metadata(rundir, str(meta_path), m, r)
+            with open(os.path.join(rundir, "simulation_metadata.yaml")) as f:
+                return yaml.safe_load(f)["spectrum_fluence_photons_per_mAs"]
+
+        # raw_Gy invariance: the per-primary photon weight (spectrum_fluence x
+        # divisor) must be the same regardless of M and R.
+        m5r1 = run(dict(base), 5, 1)
+        m5r10 = run(dict(base), 5, 10)
+        m1r1 = run(dict(base), 1, 1)
+        # spectrum_fluence divided by M*R:
+        assert abs(m5r1 - 2.34e8 / 5) < 1.0
+        assert abs(m5r10 - 2.34e8 / (5 * 10)) < 1.0
+        assert abs(m1r1 - 2.34e8) < 1.0
+        # The product (spectrum_fluence x M x R) is the invariant:
+        for val, m, r in [(m5r1, 5, 1), (m5r10, 5, 10), (m1r1, 1, 1)]:
+            assert abs(val * m * r - 2.34e8) < 10.0
+
     def test_write_replay_metadata_rejects_invalid_file(self, tmp_path: Any) -> None:
         bad_path = tmp_path / "bad.yaml"
         bad_path.write_text("not a dict")

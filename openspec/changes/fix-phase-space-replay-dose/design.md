@@ -62,14 +62,40 @@ entry-to-exit gradient (Top per-count TLE 3.83x; Centre 1.27x; Bottom
 on the beam-entry side. Yet the air transport to the phantom is faithful
 and the chamber geometry is identical.
 
-### Conclusion
-The divergence is inside TOPAS: how PhaseSpace-source particles transport
-into the LayeredMassGeometry (parallel-world) phantom differs from how the
-same particles continue in a Beam-source history. It is not visible in any
-parameter file or .phsp content. Pinning it requires G4 track-level
-stepping output (custom Ts stepping action or `/tracking/verbose`) to
-compare per-step trajectories of individual phase-space particles in replay
-vs the direct run.
+### Conclusion -- BUG LOCALIZED to in-phantom LayeredMassGeometry scoring
+A PhaseSpace scorer placed 0.1 mm downstream of the injection point
+(InjectCheck at Y=-85.9 cm, replay WITH the phantom present) shows the
+re-injected particles are byte-identical to the input file: X std 15.218 vs
+15.361, U std 0.5540 vs 0.5535, V 0.6104 vs 0.6040, E 0.0223 vs 0.0223
+(506 665 crossings = 100 951 x M=5). **Injection is faithful.** Combined
+with the faithful air transport to Y=-8 cm, the particle stream entering the
+phantom is correct.
+
+Therefore the ~14x over-deposit is generated *inside the phantom*, in the
+LayeredMassGeometry (parallel-world) chamber scoring. Corroborating signs:
+- A whole-CTDI `DoseToMedium` scorer returns 0 in replay (the base PMMA mass
+  geometry is not being scored the same way under PhaseSpace).
+- An embedded (non-parallel) Centre chamber also returns 0, while the
+  parallel-world Centre returns non-zero -- the parallel-world scorer is
+  crediting tracks that do not physically enter the chamber, and it credits
+  them differently for PhaseSpace-source vs Beam-source particles.
+
+This is a TOPAS-internal interaction between the PhaseSpace source and the
+LayeredMassGeometry parallel-world navigator/scorer. It cannot be reached
+from a parameter file. Two viable fix directions:
+
+1. **TOPAS-level**: G4 stepping diagnostic (custom `TsVNtupleScorer` or
+   stepping action) to compare per-step tracks in the parallel worlds for
+   Beam-source vs PhaseSpace-source, then either a TOPAS patch or a bug
+   report upstream. Requires TOPAS dev-header access to write the extension
+   (this environment can list `/opt/topas` but not read header contents, so
+   the extension must be authored against the published API and built where
+   the headers are readable).
+2. **Application-level workaround**: drop LayeredMassGeometry for replay and
+   score one plug position per run (the pre-2026-05-22 approach). This
+   avoids the parallel-world navigator entirely. Cost: 5x the replay runs,
+   but each is correct. Needs validation that single-plug replay converges
+   to the direct dose.
 
 ## Risks
 - The diagnostic may reveal the frame is NOT the cause (e.g., a TOPAS

@@ -48,9 +48,21 @@ echo "==> 3/6  Removing any stale copy from the core scoring dir"
 # compiles but is never registered. Remove it so there's no confusion.
 rm -f "$TOPAS_SRC/scoring/TsTrackDumper.cc"
 
-echo "==> 4/6  Reconfiguring cmake (re-scans extensions for 'Scorer for' comments)"
+echo "==> 4/6  Reconfiguring cmake (force re-scan of extensions for 'Scorer for' comments)"
 cd "$TOPAS_BUILD"
-cmake . 2>&1 | grep -Ei 'TrackDumper|extensions in directory|Scorer for|error' || true
+# CMake's file(GLOB ...) does not detect newly added source files on an
+# incremental `cmake .`. Touch the top-level CMakeLists to force a full
+# re-glob of the extensions tree.
+touch "$TOPAS_SRC/CMakeLists.txt" 2>/dev/null || true
+cmake . > cmake_reconfig.log 2>&1 || { cat cmake_reconfig.log; exit 1; }
+echo "    --- cmake extension scan (look for 'TrackDumper' below) ---"
+grep -Ei 'TrackDumper|extensions in directory|is a Scorer for' cmake_reconfig.log || echo "    (no scorer scan output found)"
+echo "    ----------------------------------------------------------"
+if ! grep -q 'TrackDumper.cc is a Scorer for TrackDumper' cmake_reconfig.log; then
+    echo "WARNING: cmake did not register TsTrackDumper as a Scorer." >&2
+    echo "         The extension dir may need a fresh configure. Try:" >&2
+    echo "           cd $TOPAS_BUILD && rm -f CMakeCache.txt && cmake -DTOPAS_EXT_DIR=$TOPAS_EXT ." >&2
+fi
 
 echo "==> 5/6  Rebuilding + installing (incremental)"
 make -j"$(nproc)"

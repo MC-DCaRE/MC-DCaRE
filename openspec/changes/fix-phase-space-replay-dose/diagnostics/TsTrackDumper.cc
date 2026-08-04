@@ -12,6 +12,9 @@
 // scorers dir and rebuild -- see topas_extensions/deploy.sh. Use:
 //   s:Sc/Track/Quantity  = "TrackDumper"
 //   s:Sc/Track/Component = "<chamber plug>"   # e.g. ChamberPlugCentre
+//
+// NOTE: TOPAS requires the class name to match the file name (TsTrackDumper).
+// The user-facing scorer Quantity is "TrackDumper" (from the comment above).
 
 #include "TsTrackDumper.hh"
 
@@ -25,17 +28,14 @@
 #include "G4RunManager.hh"
 #include "G4Event.hh"
 
-TrackDumper::TrackDumper(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM,
-                         TsScoringManager* scM, TsExtensionManager* eM,
-                         G4String scorerName, G4String quantity, G4String outFileName,
-                         G4bool isSubScorer)
+TsTrackDumper::TsTrackDumper(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM,
+                             TsScoringManager* scM, TsExtensionManager* eM,
+                             G4String scorerName, G4String quantity, G4String outFileName,
+                             G4bool isSubScorer)
     : TsVNtupleScorer(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer),
       fX(0.), fY(0.), fZ(0.), fDX(0.), fDY(0.), fDZ(0.),
       fEnergy(0.), fWeight(0.), fEventID(0), fVolume(""), fMaterial("")
 {
-    // Register columns in output order. Pass the G4-internal value to each
-    // member; TOPAS converts to the registered unit on output (as in
-    // TsScorePhaseSpace).
     fNtuple->RegisterColumnF(&fX, "Position X", "cm");
     fNtuple->RegisterColumnF(&fY, "Position Y", "cm");
     fNtuple->RegisterColumnF(&fZ, "Position Z", "cm");
@@ -49,9 +49,9 @@ TrackDumper::TrackDumper(TsParameterManager* pM, TsMaterialManager* mM, TsGeomet
     fNtuple->RegisterColumnS(&fMaterial, "Material Name");
 }
 
-TrackDumper::~TrackDumper() {}
+TsTrackDumper::~TsTrackDumper() {}
 
-G4bool TrackDumper::ProcessHits(G4Step* aStep, G4TouchableHistory*)
+G4bool TsTrackDumper::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 {
     if (!fIsActive)
         return false;

@@ -8,14 +8,14 @@
 #include "TsVNtupleScorer.hh"
 #include "globals.hh"
 
-class TrackDumper : public TsVNtupleScorer
+class TsTrackDumper : public TsVNtupleScorer
 {
   public:
-    TrackDumper(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM,
-                TsScoringManager* scM, TsExtensionManager* eM,
-                G4String scorerName, G4String quantity, G4String outFileName,
-                G4bool isSubScorer);
-    ~TrackDumper();
+    TsTrackDumper(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM,
+                  TsScoringManager* scM, TsExtensionManager* eM,
+                  G4String scorerName, G4String quantity, G4String outFileName,
+                  G4bool isSubScorer);
+    ~TsTrackDumper();
 
     G4bool ProcessHits(G4Step* aStep, G4TouchableHistory*);
 

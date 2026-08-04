@@ -22,33 +22,27 @@ TOPAS_BUILD="${TOPAS_BUILD:-/opt/topas/TOPAS/OpenTOPAS-build}"
 TOPAS_BIN="${TOPAS_BIN:-/opt/topas/TOPAS/OpenTOPAS-install/bin/topas}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-echo "==> 1/6  Locating the TOPAS extensions directory"
-# TOPAS scans the extensions dir (configured at the original cmake) recursively.
-# Find it from a known extension (TOPAS-nBio), default to /opt/topas/extensions.
+echo "==> 1/5  Locating the scanned TOPAS extensions scorers directory"
+# The build's cmake scans a configured extensions dir. From the scan output it
+# finds /opt/topas/extensions/TOPAS-nBio (so the configured dir is nBio, not
+# the parent -- a sibling MC-DCaRE/ dir is NOT scanned). The reliable spot is
+# nBio's own scorers dir, which the scan confirms it globs recursively.
 NBIODIR="$(find /opt/topas/extensions -maxdepth 1 -type d -name 'TOPAS-nBio' 2>/dev/null | head -1)"
-if [ -n "$NBIODIR" ]; then
-    TOPAS_EXT="$(dirname "$NBIODIR")"
-elif [ -d /opt/topas/extensions ]; then
-    TOPAS_EXT="/opt/topas/extensions"
-else
-    echo "ERROR: could not find TOPAS extensions dir (expected /opt/topas/extensions)." >&2
-    echo "       Set TOPAS_EXT to your extensions root." >&2
+if [ -z "$NBIODIR" ] || [ ! -d "$NBIODIR/scorers" ]; then
+    echo "ERROR: could not find /opt/topas/extensions/TOPAS-nBio/scorers." >&2
+    echo "       Set TOPAS_EXT to your scanned extensions dir and adjust." >&2
     exit 1
 fi
-MY_EXT_DIR="$TOPAS_EXT/MC-DCaRE"
-echo "    Extensions root: $TOPAS_EXT"
-echo "    This scorer dir: $MY_EXT_DIR"
+MY_EXT_DIR="$NBIODIR/scorers"
+echo "    Staging scorer in: $MY_EXT_DIR"
 
-echo "==> 2/6  Staging TsTrackDumper.cc in $MY_EXT_DIR"
-mkdir -p "$MY_EXT_DIR"
+echo "==> 2/5  Staging TsTrackDumper.cc (and cleaning up prior attempts)"
 install -m 0644 "$HERE/TsTrackDumper.cc" "$MY_EXT_DIR/"
-
-echo "==> 3/6  Removing any stale copy from the core scoring dir"
-# A previous (broken) deploy may have put it in OpenTOPAS/scoring/, where it
-# compiles but is never registered. Remove it so there's no confusion.
+# Clean up an earlier deploy's stale copies.
 rm -f "$TOPAS_SRC/scoring/TsTrackDumper.cc"
+rm -rf /opt/topas/extensions/MC-DCaRE
 
-echo "==> 4/6  Reconfiguring cmake (force re-scan of extensions for 'Scorer for' comments)"
+echo "==> 3/5  Reconfiguring cmake (force re-scan of extensions for 'Scorer for' comments)"
 cd "$TOPAS_BUILD"
 # CMake's file(GLOB ...) does not detect newly added source files on an
 # incremental `cmake .`. Touch the top-level CMakeLists to force a full
@@ -64,11 +58,11 @@ if ! grep -q 'TrackDumper.cc is a Scorer for TrackDumper' cmake_reconfig.log; th
     echo "           cd $TOPAS_BUILD && rm -f CMakeCache.txt && cmake -DTOPAS_EXT_DIR=$TOPAS_EXT ." >&2
 fi
 
-echo "==> 5/6  Rebuilding + installing (incremental)"
+echo "==> 4/5  Rebuilding + installing (incremental)"
 make -j"$(nproc)"
 make install
 
-echo "==> 6/6  Smoke test: TrackDumper on a water box"
+echo "==> 5/5  Smoke test: TrackDumper on a water box"
 cd "$HERE"
 rm -f track_dump.csv track_dump.txt
 # sudo drops the user's LD_LIBRARY_PATH, so the TOPAS/Geant4 shared libs

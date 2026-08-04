@@ -21,13 +21,14 @@ s:So/Beam/Type = "Beam"
 s:So/Beam/Component = "World"
 s:So/Beam/BeamParticle = "gamma"
 d:So/Beam/BeamEnergy = 60 keV
-s:So/Beam/BeamPositionDistribution = "Point"
-s:So/Beam/BeamAngularDistribution = "Forward"
+s:So/Beam/BeamPositionDistribution = "None"
+s:So/Beam/BeamAngularDistribution = "None"
 i:So/Beam/NumberOfHistoriesInRun = 10
 
 # The custom track-dumper scorer (registers as Quantity "TrackDumper")
 s:Sc/Track/Quantity = "TrackDumper"
 s:Sc/Track/Component = "Box"
+s:Sc/Track/OutputType = "ASCII"
 s:Sc/Track/OutputFile = "track_dump"
 s:Sc/Track/IfOutputFileAlreadyExists = "Overwrite"
 

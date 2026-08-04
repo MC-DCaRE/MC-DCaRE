@@ -36,8 +36,9 @@ fi
 MY_EXT_DIR="$NBIODIR/scorers"
 echo "    Staging scorer in: $MY_EXT_DIR"
 
-echo "==> 2/5  Staging TsTrackDumper.cc (and cleaning up prior attempts)"
+echo "==> 2/5  Staging TsTrackDumper.cc/.hh (and cleaning up prior attempts)"
 install -m 0644 "$HERE/TsTrackDumper.cc" "$MY_EXT_DIR/"
+install -m 0644 "$HERE/TsTrackDumper.hh" "$MY_EXT_DIR/"
 # Clean up an earlier deploy's stale copies.
 rm -f "$TOPAS_SRC/scoring/TsTrackDumper.cc"
 rm -rf /opt/topas/extensions/MC-DCaRE

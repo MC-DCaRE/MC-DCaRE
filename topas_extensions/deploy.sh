@@ -59,7 +59,12 @@ make install
 echo "==> 6/6  Smoke test: TrackDumper on a water box"
 cd "$HERE"
 rm -f track_dump.csv track_dump.txt
-# Use the absolute TOPAS binary path (sudo drops PATH).
+# sudo drops the user's LD_LIBRARY_PATH, so the TOPAS/Geant4 shared libs
+# (libG4Tree.so etc.) won't be found. Locate the Geant4 lib dir and set it.
+G4LIB="$(dirname "$(find /opt/topas/GEANT4 -name libG4Tree.so 2>/dev/null | head -1)")"
+TOPASLIB="$(dirname "$(find /opt/topas/TOPAS/OpenTOPAS-install -name 'libTOPAS*.so' 2>/dev/null | head -1)")"
+export LD_LIBRARY_PATH="${G4LIB:+$G4LIB:}${TOPASLIB:+$TOPASLIB:}${LD_LIBRARY_PATH:-}"
+echo "    LD_LIBRARY_PATH includes: ${G4LIB:-<g4 not found>} ${TOPASLIB:-}"
 "$TOPAS_BIN" test_TrackDumper.txt > smoke.log 2>&1 || { echo "SMOKE TEST FAILED:"; tail -25 smoke.log; exit 1; }
 if [ -f track_dump.csv ] || [ -f track_dump.txt ]; then
     echo "OK: TrackDumper produced output:"

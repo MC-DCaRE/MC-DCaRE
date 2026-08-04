@@ -355,6 +355,12 @@ calibration.yaml
 *.db
 .beads-credential-key
 
+# TOPAS scorer output artifacts
+*.phsp
+*.header
+!tests/fixtures/
+!tests/fixtures/**
+
 # Phantom simulation scratch outputs
 /test_*.topas
 /test_*.txt

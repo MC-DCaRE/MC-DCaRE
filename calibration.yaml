@@ -1,0 +1,70 @@
+machine: TrueBeam
+date_calibrated: '2026-07-02'
+
+# Reference effective doses (mSv) for the generic 80 kg reference phantom.
+# These are whole-body effective doses (ICRP 103) measured by the manufacturer.
+# They are distinct from CTDIw values, which quantify dose to the CTDI
+# ionization chamber phantom only (not the human body).
+effective_dose_references:
+  "4D Spotlight": 1.6
+  "4D Thorax": 3.3
+  "Abdo Spotlight": 1.2
+  "Abdomen": 2.8
+  "Breast 360": 0.2
+  "Extremity Spotlight": 0.5
+  "Head": 0.5
+  "Head and Shoulders": 0.3
+  "Head SRS": 1.8
+  "Pelvis": 4.2
+  "Pelvis Large": null
+  "Pelvis Spotlight": 2.2
+  "SBRT Spine": 1.7
+  "Thorax": 1.3
+  "Thorax Spotlight": 0.7
+
+calibrations:
+- kV: 80
+  fan_mode: Full Fan
+  reference_mAs: 100.2
+  measured_ctdi_w_mGy: 0.9
+  reference_protocol: Image Gently
+  dcf_tle: 0.0010730208453092686
+  dcf_dtw: 0.0013282093529150953
+  dcf_dtm: 0.0015582980494786203
+- kV: 100
+  fan_mode: Full Fan
+  reference_mAs: 150.3
+  measured_ctdi_w_mGy: 3.2
+  reference_protocol: Head
+  dcf_tle: 0.00119635829487604
+  dcf_dtw: 0.0010859363154633345
+  dcf_dtm: 0.0012695525989934473
+- kV: 125
+  fan_mode: Full Fan
+  reference_mAs: 751.5
+  measured_ctdi_w_mGy: 12.3
+  reference_protocol: Pelvis Spotlight
+  dcf_tle: 0.0012339857764903637
+  dcf_dtw: 0.001196223128808018
+  dcf_dtm: 0.0014050788961486643
+- kV: 125
+  fan_mode: Half Fan
+  reference_mAs: 1080.0
+  measured_ctdi_w_mGy: 15.9
+  reference_protocol: Pelvis
+  dcf_tle: 0.0016336372711787761
+  dcf_dtw: 0.0015053603163254496
+  dcf_dtm: 0.0017557220274570854
+- kV: 140
+  fan_mode: Full Fan
+  reference_mAs: 150.3
+  measured_ctdi_w_mGy: 0
+  reference_protocol: Head
+- kV: 140
+  fan_mode: Half Fan
+  reference_mAs: 1700.5
+  measured_ctdi_w_mGy: 37.1
+  reference_protocol: Pelvis Large
+  dcf_tle: 0.0017969787067322628
+  dcf_dtw: 0.0024677316394162443
+  dcf_dtm: 0.0028916449499057336

@@ -266,6 +266,11 @@ def write_imagecube(
     logger.info("Writing ImageCube binary to %s", bin_path)
     hu_values.T.flatten("C").astype("<i2").tofile(bin_path)
 
+    # Also save material ID grid for organ-level post-processing
+    mat_path = os.path.join(output_dir, "material_ids.bin")
+    voxel_grid.T.flatten("C").astype("<i4").tofile(mat_path)
+    logger.info("Wrote material ID grid to %s", mat_path)
+
     header_path = os.path.join(output_dir, "phantom.imagecube")
     with open(header_path, "w") as f:
         f.write("# ImageCube voxelized phantom\n")

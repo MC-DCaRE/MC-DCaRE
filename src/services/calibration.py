@@ -314,7 +314,12 @@ class CalibrationService:
         )
 
         # DCF lookup
-        resolved_kV = kV or metadata.get("kV", 0)
+        resolved_kV = (
+            kV or metadata.get("kV") or metadata.get("spekpy", {}).get("kvp", 0)
+            if isinstance(metadata.get("spekpy"), dict)
+            else kV or metadata.get("kV", 0)
+        )
+        resolved_kV = int(resolved_kV) if resolved_kV else 0
         resolved_fan = fan_mode or metadata.get("fan_mode", "")
         dcf: Optional[float] = dcf_override
         dcf_source = "none"

@@ -218,6 +218,11 @@ class PhantomConfig:
     couch_length: Quantity = _q(1000.0, "mm")
     graphics_enabled: bool = False
     organ_scoring_ids: str = ""
+    phase_space_mode: str = "off"
+    phase_space_file: str = ""
+    phase_space_multiple_use: int = 1
+    phase_space_component: str = "Rotation"
+    phase_space_filter_z: float = 0.0
 
     def __post_init__(self) -> None:
         _coerce_quantities(self, _PHANTOM_Q_FIELDS)

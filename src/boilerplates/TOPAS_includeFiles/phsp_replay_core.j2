@@ -1,0 +1,55 @@
+{# Shared phase-space replay core: World, Physics, Rotation, Source, Time Features.
+   Included by ctdi_phsp_replay.j2 and phantom main templates.
+   Variables expected:
+     - phase_space_file: basename of .phsp/.header (no extension)
+     - phase_space_multiple_use: integer M
+     - phase_space_component: "World" (stationary) or "Rotation" (CBCT rotation)
+     - sequential_times, timeline_end, rotation_rate, rotation_direction
+     - start_angle, patient_roll_value, g4_data_directory, seed, threads
+     - world_hlx, world_hly, world_hlz (optional, default 1.2 m)
+     - em_range_min, em_range_max (optional, default 100 eV / 10 MeV)
+#}
+i:Ts/Seed = {{ seed }}
+i:Ts/NumberOfThreads = {{ threads }}
+s:Ts/G4DataDirectory = "{{ g4_data_directory }}"
+
+d:Ge/World/HLX = {{ world_hlx | default('1.2 m') }}
+d:Ge/World/HLY = {{ world_hly | default('1.2 m') }}
+d:Ge/World/HLZ = {{ world_hlz | default('2.0 m') }}
+
+s:Ph/ListName = "Default"
+s:Ph/Default/Type = "Geant4_Modular"
+sv:Ph/Default/Modules = 1 "g4em-standard_opt4"
+d:Ph/Default/EMRangeMin = {{ em_range_min | default('100. eV') }}
+d:Ph/Default/EMRangeMax = {{ em_range_max | default('10.0 MeV') }}
+
+# Rotation group — RotZ wired to time feature for beam rotation
+s:Ge/Rotation/Type = "Group"
+s:Ge/Rotation/Parent = "World"
+d:Ge/Rotation/TransX = 0.0 mm
+d:Ge/Rotation/TransY = 0.0 mm
+d:Ge/Rotation/TransZ = 0.0 mm
+dc:Ge/Rotation/RotX = 0 deg
+d:Ge/patrotation/yaw= 0 deg
+dc:Ge/Rotation/RotY= 180. deg
+dc:Ge/Rotation/RotZ= Tf/Rotate/Value + {{ patient_roll_value }} deg
+
+# PhaseSpace Source
+s:So/beam/Type = "PhaseSpace"
+s:So/beam/PhaseSpaceFileName = "{{ phase_space_file }}"
+s:So/beam/Component = "{{ phase_space_component }}"
+i:So/beam/PhaseSpaceMultipleUse = {{ phase_space_multiple_use }}
+
+# Time Features
+i:Tf/NumberOfSequentialTimes = {{ sequential_times }}
+d:Tf/TimelineEnd = {{ timeline_end }} s
+{% if rotation_direction == 'kV-kV' %}
+s:Tf/Rotate/Function = "Step"
+dv:Tf/Rotate/Times = 2 1 2 s
+dv:Tf/Rotate/Values = 2 {{ start_angle_value }} {{ second_angle_value }} deg
+{% else %}
+s:Tf/Rotate/Function = "Linear deg"
+d:Tf/Rotate/Rate = {{ rotation_rate }}
+d:Tf/Rotate/StartValue = {{ start_angle }}
+{% endif %}
+b:Ts/IncludeGrass = "False"

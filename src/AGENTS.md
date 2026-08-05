@@ -41,3 +41,26 @@ Also see `calculate_phantom_dose.py` (project root): CLI entry point for phantom
 - **Installed version/paths (this host):** OpenTOPAS 4.2.p3 on Geant4.11. Binary `topas` (on `PATH`) at `/opt/topas/TOPAS/OpenTOPAS-install/bin/topas`; headers at `/opt/topas/TOPAS/OpenTOPAS-install/include/`; Geant4 data via `TOPAS_G4_DATA_DIR=/opt/topas/GEANT4/G4DATA`. Run TOPAS with the runfolder as CWD (the PhaseSpace source resolves `PhaseSpaceFileName` and `.header` relative to CWD).
 - **TOPAS Binary phase-space format:** 34 bytes/particle (7×f4 + i4 PDG + 2 flag bytes), self-describing via the `.header` sibling (energy in MeV). See `src/services/phase_space_analyzer.py`.
 - **Phase-space scoring plane placement:** the PhspSurface at Y=-86cm sits inside the collimator jaw geometry (the complex 4-level nested rotation makes the jaw extent analytically invisible). This causes the direct (Beam-source) sim to lose ~94% of phantom-directed particles between Y=-86 and Y=-80cm. The PhaseSpace replay is correct (confirmed by geometric ray-tracing). Fix: move PhspSurface to Y ≤ -75cm. Tracked in `openspec/changes/fix-phase-space-replay-dose/`.
+
+## Phase-Space Replay Gotchas
+
+### Component choice controls rotation
+- `Component = "World"` (default in `ctdi_phsp_replay.j2`): PhaseSpace particles are placed at their absolute World positions. The beam does NOT rotate. Correct for stationary CTDI scoring where all chamber positions are scored simultaneously via LayeredMassGeometry.
+- `Component = "Rotation"`: particles inherit the Rotation group's time-dependent transform (`RotZ = Tf/Rotate/Value`). Required for CBCT 360° rotational dose into voxelized phantoms (TsDicomPatient). Without this, all dose comes from a single anterior angle regardless of time-feature settings.
+
+### Rotation wiring
+- `dc:Ge/Rotation/RotZ = Tf/Rotate/Value deg` is the required wiring. A static `RotZ = 0 deg` produces no rotation — the beam stays at a single angle.
+- `Function = "Linear deg"` with `NumberOfSequentialTimes = N`: divides [0°, Rate×TimelineEnd] into N equal steps. N=36 (10° steps) gives good 360° coverage with 20 threads. Each sequential time is a separate TOPAS sub-run; the DoseToMedium scorer accumulates across all sub-runs.
+- `Tf/RandomizeTimeDistribution = "True"` exists but requires `NumberOfThreads = 1` (TOPAS hard error otherwise). Impractically slow for production. Use sequential mode instead.
+- kV-kV planar imaging: `rotation_direction = "kV-kV"` triggers a Step function with 2 angles (`start_angle` and `start_angle + 90°`). Only those 2 angles contribute dose.
+
+### Phase-space Z-filtering for phantom replay
+The PhspSurface is 100cm × 100cm and captures scattered photons out to ±42cm in Z. For phantom replay, filter the `.phsp` file to the primary beam field (e.g., `|Z| < 8cm` for pelvis) before replaying into the voxelized phantom. Without filtering, scattered particles deposit spurious dose in non-target anatomy (chest, head).
+
+### TsTetGeom is broken
+The `TsTetGeom` extension (tetrahedral mesh phantom) has parameterization navigation errors in the available `topas_meshgeom_fixed` binary (~16k unscored hits, empty CSV output). Use the voxelized `TsDicomPatient` path instead. Convert mesh to voxels via `tools/voxelize_phantom.py` (5mm resolution, KDTree-accelerated point-in-tetrahedron lookup, outputs DICOM CT slices with Schneider HU-to-material conversion).
+
+### DCF normalization
+- The CTDI DCF (`dcf_dtm` from `calibration.yaml`) is the only absolute dose correction. It converts raw MC dose to physical dose using the measured-vs-simulated CTDI_w ratio.
+- The DCF is calibrated for DTM scorer in air-filled chamber cavities (LayeredMassGeometry). When applied to organ DoseToMedium in body tissue (TsDicomPatient), the absolute values may differ. Report E/CTDI_w ratio alongside the DCF-corrected effective dose.
+- kV lookup in `_normalize_dose`: falls back to `metadata["spekpy"]["kvp"]` when `metadata["kV"]` is absent (fixed commit e6aa255).

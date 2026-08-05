@@ -46,13 +46,14 @@ d:Ge/Rotation/TransX=0.0 mm
 d:Ge/Rotation/TransY=0.0 mm
 d:Ge/Rotation/TransZ=0.0 mm
 
-# Phase Space Source — Component "World" is the documented default for
-# TOPAS-scored phase space (positions are stored relative to World). The arc
-# rotation is applied to the phantom via the Rotation group; the source itself
-# must NOT inherit the Rotation transform, or particles are double-transformed.
+# Phase Space Source — Component controls whether particles rotate:
+#   "World" (default): particles at fixed World positions, beam does NOT rotate.
+#     Correct for stationary CTDI scoring (all chambers via LayeredMassGeometry).
+#   "Rotation": particles inherit Rotation transform (RotZ=Tf/Rotate/Value).
+#     Required for CBCT 360° rotational dose.
 s:So/beam/Type                  = "PhaseSpace"
 s:So/beam/PhaseSpaceFileName    = "{{ phase_space_file }}"
-s:So/beam/Component             = "World"
+s:So/beam/Component             = "{{ phase_space_component | default('World') }}"
 i:So/beam/PhaseSpaceMultipleUse = {{ phase_space_multiple_use }}
 
 # Time Feature ####################################

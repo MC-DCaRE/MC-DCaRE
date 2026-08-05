@@ -107,7 +107,70 @@ class PhantomMode(SimulationMode):
         return "phantomICRP145.j2"
 
     def compute_histories(self, config: SimulationConfig) -> str:
+        if config.phantom.phase_space_mode == "replay":
+            return str(int(config.phantom.phase_space_multiple_use) * 1000000)
         return str(int(config.imaging.sequential_times) * int(config.general.histories))
+
+    def _get_phase_space_mode(self, config: SimulationConfig) -> str:
+        return config.phantom.phase_space_mode
+
+    def _generate_replay_parameter_file(
+        self, config: SimulationConfig, rundir: str, project_root: str
+    ) -> str:
+        """Generate a PhaseSpace replay parameter file for the phantom mode.
+
+        Uses the shared ``phsp_replay_core.j2`` include for World/Physics/
+        Rotation/Source/TimeFeatures, then appends the phantom geometry and
+        DoseToMedium scorer.
+        """
+        import os
+
+        from src.template_renderer import TemplateRenderer
+
+        renderer = TemplateRenderer(
+            os.path.join(project_root, "src", "boilerplates"),
+            os.path.join(project_root, "tmp"),
+        )
+
+        ctx = {
+            "phase_space_file": config.phantom.phase_space_file,
+            "phase_space_multiple_use": config.phantom.phase_space_multiple_use,
+            "phase_space_component": config.phantom.phase_space_component,
+            "seed": config.general.seed,
+            "threads": config.general.threads,
+            "g4_data_directory": config.general.g4_data_directory,
+            "sequential_times": config.imaging.sequential_times,
+            "timeline_end": str(config.imaging.timeline_end),
+            "rotation_rate": str(config.imaging.rotation_rate),
+            "rotation_direction": config.imaging.rotation_direction,
+            "start_angle": str(config.imaging.start_angle),
+            "patient_roll_value": config.dicom.patient_roll.value,
+            "world_hlz": "2.0 m",
+            **_compute_angle_values(
+                config.imaging.rotation_direction, config.imaging.start_angle
+            ),
+        }
+
+        output_file = os.path.join(rundir, "phantom_replay.txt")
+        renderer.render("phsp_replay_core.j2", ctx, "phantom_replay_core.txt")
+
+        core_path = os.path.join(project_root, "tmp", "phantom_replay_core.txt")
+
+        sub_ctx = self.build_sub_context(config)
+        sub_template = self.get_sub_template_name(config)
+        sub_output = self.get_sub_file_name(config)
+        renderer.render(sub_template, sub_ctx, sub_output)
+        sub_path = os.path.join(project_root, "tmp", sub_output)
+
+        with open(output_file, "w") as out:
+            with open(core_path) as f:
+                out.write(f.read())
+            out.write("\n# Phantom geometry and scoring\n")
+            with open(sub_path) as f:
+                out.write(f.read())
+
+        logger.info("Generated phantom replay parameter file: %s", output_file)
+        return output_file
 
     def prepare_run(
         self,
@@ -115,13 +178,31 @@ class PhantomMode(SimulationMode):
         rundir: str,
         project_root: str,
     ) -> None:
-        shutil.copy(os.path.join(project_root, "tmp", "headsourcecode.txt"), rundir)
-        self.copy_common_files(rundir, config, project_root)
-        shutil.copy(
-            os.path.join(project_root, "tmp", self.get_sub_file_name(config)),
-            rundir,
-        )
-        logger.info("Prepared ICRP 145 phantom run files in %s", rundir)
+        mode = self._get_phase_space_mode(config)
+        if mode == "replay":
+            phsp_file = config.phantom.phase_space_file
+            if phsp_file:
+                base = os.path.splitext(phsp_file)[0]
+                for ext in (".phsp", ".header"):
+                    src = base + ext
+                    if os.path.exists(src):
+                        shutil.copy(src, rundir)
+                        logger.info("Copied %s to %s", src, rundir)
+                    else:
+                        logger.warning("Phase space file %s not found", src)
+            self.copy_common_files(rundir, config, project_root)
+            sub_path = os.path.join(project_root, "tmp", self.get_sub_file_name(config))
+            if os.path.exists(sub_path):
+                shutil.copy(sub_path, rundir)
+            logger.info("Prepared phantom phase-space replay in %s", rundir)
+        else:
+            shutil.copy(os.path.join(project_root, "tmp", "headsourcecode.txt"), rundir)
+            self.copy_common_files(rundir, config, project_root)
+            shutil.copy(
+                os.path.join(project_root, "tmp", self.get_sub_file_name(config)),
+                rundir,
+            )
+            logger.info("Prepared ICRP 145 phantom run files in %s", rundir)
 
     def execute(
         self,

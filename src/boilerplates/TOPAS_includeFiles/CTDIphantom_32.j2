@@ -121,7 +121,7 @@ s:Ge/ChamberPlugRight/color="Brown"
 #ChamberPlugs — Water-filled, each in its own parallel world for sensitivity studies
 s:Ge/ChamberPlugCentre_water/Type="TsCylinder"
 s:Ge/ChamberPlugCentre_water/Parent="couchgroup"
-s:Ge/ChamberPlugCentre_water/Material="Water"
+s:Ge/ChamberPlugCentre_water/Material="G4_WATER"
 d:Ge/ChamberPlugCentre_water/RMin=0.0 mm
 d:Ge/ChamberPlugCentre_water/RMax=6.55 mm
 d:Ge/ChamberPlugCentre_water/HL=50.0 mm
@@ -136,7 +136,7 @@ s:Ge/ChamberPlugCentre_water/color="Blue"
 
 s:Ge/ChamberPlugTop_water/Type="TsCylinder"
 s:Ge/ChamberPlugTop_water/Parent="couchgroup"
-s:Ge/ChamberPlugTop_water/Material="Water"
+s:Ge/ChamberPlugTop_water/Material="G4_WATER"
 d:Ge/ChamberPlugTop_water/RMin=0.0 mm
 d:Ge/ChamberPlugTop_water/RMax=6.55 mm
 d:Ge/ChamberPlugTop_water/HL=50.0 mm
@@ -151,7 +151,7 @@ s:Ge/ChamberPlugTop_water/color="Cyan"
 
 s:Ge/ChamberPlugBottom_water/Type="TsCylinder"
 s:Ge/ChamberPlugBottom_water/Parent="couchgroup"
-s:Ge/ChamberPlugBottom_water/Material="Water"
+s:Ge/ChamberPlugBottom_water/Material="G4_WATER"
 d:Ge/ChamberPlugBottom_water/RMin=0.0 mm
 d:Ge/ChamberPlugBottom_water/RMax=6.55 mm
 d:Ge/ChamberPlugBottom_water/HL=50.0 mm
@@ -166,7 +166,7 @@ s:Ge/ChamberPlugBottom_water/color="Teal"
 
 s:Ge/ChamberPlugLeft_water/Type="TsCylinder"
 s:Ge/ChamberPlugLeft_water/Parent="couchgroup"
-s:Ge/ChamberPlugLeft_water/Material="Water"
+s:Ge/ChamberPlugLeft_water/Material="G4_WATER"
 d:Ge/ChamberPlugLeft_water/RMin=0.0 mm
 d:Ge/ChamberPlugLeft_water/RMax=6.55 mm
 d:Ge/ChamberPlugLeft_water/HL=50.0 mm
@@ -181,7 +181,7 @@ s:Ge/ChamberPlugLeft_water/color="Aquamarine"
 
 s:Ge/ChamberPlugRight_water/Type="TsCylinder"
 s:Ge/ChamberPlugRight_water/Parent="couchgroup"
-s:Ge/ChamberPlugRight_water/Material="Water"
+s:Ge/ChamberPlugRight_water/Material="G4_WATER"
 d:Ge/ChamberPlugRight_water/RMin=0.0 mm
 d:Ge/ChamberPlugRight_water/RMax=6.55 mm
 d:Ge/ChamberPlugRight_water/HL=50.0 mm
@@ -233,7 +233,7 @@ s:Sc/{{ position }}_water_dtm/Quantity="DoseToMaterial"
 s:Sc/{{ position }}_water_dtm/Component="{{ position }}_water"
 s:Sc/{{ position }}_water_dtm/IfOutputFileAlreadyExists="Overwrite"
 i:Sc/{{ position }}_water_dtm/ZBins={{ dose_to_medium_zbins }}
-s:Sc/{{ position }}_water_dtm/Material="Water"
+s:Sc/{{ position }}_water_dtm/Material="G4_WATER"
 b:Sc/{{ position }}_water_dtm/PreCalculateStoppingPowerRatios="True"
 sv:Sc/{{ position }}_water_dtm/Report = 4 "Sum" "Histories" "Count_In_Bin" "Standard_Deviation"
 s:Sc/{{ position }}_water_dtm/OutputFile="{{ position }}_water_dtm"

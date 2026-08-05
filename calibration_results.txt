@@ -1,0 +1,17 @@
+CTDI Calibration Results (5M primaries)
+=========================================
+
+Running: runfolder/2026-08-05_15-46-24 ()
+             Total: User=1583.35s Real=90.3387s Sys=2.3s
+
+Running: runfolder/2026-08-05_15-46-30 ()
+             Total: User=1581.22s Real=88.2717s Sys=2.23s
+
+Running: runfolder/2026-08-05_15-46-37 ()
+             Total: User=1494.77s Real=85.1026s Sys=2.16s
+
+Running: runfolder/2026-08-05_15-46-46 ()
+             Total: User=1540.37s Real=86.2576s Sys=2.06s
+
+Running: runfolder/2026-08-05_15-46-55 ()
+             Total: User=1523.2s Real=85.8904s Sys=2.19s

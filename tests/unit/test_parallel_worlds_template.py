@@ -252,7 +252,7 @@ class TestWaterChamberEnabled:
             boilerplates_dir, "CTDIphantom_16.j2", self._water_context()
         )
         for position in _PLUG_POSITIONS:
-            assert f'Ge/{position}_water/Material="Water"' in rendered, (
+            assert f'Ge/{position}_water/Material="G4_WATER"' in rendered, (
                 f"{position}_water should have Water material"
             )
 
@@ -290,7 +290,7 @@ class TestWaterChamberEnabled:
             boilerplates_dir, "CTDIphantom_32.j2", self._water_context()
         )
         for position in _PLUG_POSITIONS:
-            assert f'Ge/{position}_water/Material="Water"' in rendered, (
+            assert f'Ge/{position}_water/Material="G4_WATER"' in rendered, (
                 f"{position}_water should have Water material"
             )
 

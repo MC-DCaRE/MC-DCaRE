@@ -71,8 +71,13 @@ class BenchmarkCalculator:
             return []
 
         metadata = calc_results[0].get("metadata", {}) if calc_results else {}
-        total_histories = metadata.get("total_histories", 0)
         exposure_mAs = metadata.get("exposure_mAs", 0.0)
+        # The scorer-active history count (from the CSV
+        # Histories_with_Scorer_Active column, populated by CTDICalculator).
+        # Falls back to metadata total_histories for legacy scorers/runs.
+        n_scorer_active = metadata.get("n_scorer_active_histories") or metadata.get(
+            "total_histories", 0
+        )
         # Single canonical normalization constant; raises if metadata lacks
         # a usable source (no silent norm_factor=1.0 fallback).
         photons_per_mAs = compute_photons_per_mAs(metadata)
@@ -87,10 +92,11 @@ class BenchmarkCalculator:
                 continue
 
             raw_sum = calc_result.get("raw_sum", 0.0)
-            # TOPAS Sum (total accumulated) -> per-history mean -> absolute Gy,
-            # via the shared canonical helper.
+            # TOPAS Sum (total accumulated) -> per-history mean using the
+            # actual scorer-active history count, then absolute Gy via the
+            # shared canonical helper.
             simulated_Gy = raw_absolute_dose_Gy(
-                raw_sum, photons_per_mAs, total_histories, exposure_mAs
+                raw_sum, photons_per_mAs, n_scorer_active, exposure_mAs
             )
 
             deviation = (simulated_Gy - reference_Gy) / reference_Gy * 100

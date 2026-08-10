@@ -30,20 +30,25 @@ DEFAULT_CALIBRATION_PATH = "calibration.yaml"
 def _compute_raw_Gy(result: dict) -> float:
     """Compute raw Gy (photons_per_mAs x mAs, no DCF) from a raw result dict.
 
-    The physical dose is: per_history_dose (TOPAS Sum / total_histories) x
+    The physical dose is: per_history_dose (TOPAS Sum / N_scorer_active) x
     total_real_photons.  total_real_photons = photons_per_mAs x mAs, where
-    photons_per_mAs is derived from spectrum_fluence
-    (= no_particles / total_histories) and simplifies to no_particles / mAs,
-    a kV-dependent constant.  Routes through :func:`raw_absolute_dose_Gy`
-    so the division by total_histories is shared with every other caller.
+    photons_per_mAs is the beam constant ``no_particles / mAs`` (the
+    ``N_scoring`` inside ``spectrum_fluence`` cancels the multiply by
+    ``N_scoring``).  ``N_scorer_active`` is the scorer-active history count
+    read from the CSV ``Histories_with_Scorer_Active`` column (falls back to
+    ``total_histories`` when absent, e.g. legacy runs).  Routes through
+    :func:`raw_absolute_dose_Gy` so the division by N_scorer_active is shared
+    with every other caller.
     """
     metadata = result.get("metadata", {})
     exposure_mAs = metadata.get("exposure_mAs", 0.0)
-    total_histories = metadata.get("total_histories", 0)
+    n_scorer_active = metadata.get("n_scorer_active_histories") or metadata.get(
+        "total_histories", 0
+    )
     photons_per_mAs = compute_photons_per_mAs(metadata)
 
     raw_sum = result.get("raw_sum", 0.0)
-    return raw_absolute_dose_Gy(raw_sum, photons_per_mAs, total_histories, exposure_mAs)
+    return raw_absolute_dose_Gy(raw_sum, photons_per_mAs, n_scorer_active, exposure_mAs)
 
 
 @app.command()

@@ -47,29 +47,42 @@ class NormalizedDose:
 
 
 def compute_photons_per_mAs(metadata: Dict[str, Any]) -> float:
-    """Compute the kV-dependent photons-per-mAs normalization constant.
+    """Compute the kV-dependent photons-per-mAs beam constant.
 
-    ``photons_per_mAs = spectrum_fluence * total_histories / exposure_mAs``,
-    falling back to ``norm_factor * total_histories`` for legacy metadata
-    that lacks ``spectrum_fluence_photons_per_mAs``.
+    ``photons_per_mAs = spectrum_fluence * N_scoring / exposure_mAs``,
+    falling back to ``norm_factor * N_scoring`` for legacy metadata that
+    lacks ``spectrum_fluence_photons_per_mAs``.
+
+    ``N_scoring`` is read from ``metadata["total_histories"]``. This is the
+    number of histories the scoring run used to calibrate
+    ``spectrum_fluence`` (= ``no_particles / N_scoring``), so it is a fixed
+    property of the beam model, not of the current run. Because
+    ``spectrum_fluence`` carries ``1 / N_scoring`` and this function
+    multiplies by ``N_scoring``, the result collapses to
+    ``no_particles / exposure_mAs`` -- the real photon count per mAs for
+    the beam -- regardless of source type (direct beam or phase-space
+    replay). Replay metadata must therefore keep
+    ``spectrum_fluence_photons_per_mAs`` at the scoring-run value (the
+    ``M x R`` scaling is handled by :func:`raw_absolute_dose_Gy` via
+    ``N_scorer_active_histories``).
 
     Raises:
-        ValueError: If ``total_histories`` is missing/non-positive, or if
-            neither ``spectrum_fluence`` nor ``norm_factor`` is usable.
+        ValueError: If ``total_histories`` (N_scoring) is missing/non-positive,
+            or if neither ``spectrum_fluence`` nor ``norm_factor`` is usable.
     """
-    total_histories = metadata.get("total_histories", 0)
+    n_scoring = metadata.get("total_histories", 0)
     exposure_mAs = metadata.get("exposure_mAs", 0.0)
     spectrum_fluence = metadata.get("spectrum_fluence_photons_per_mAs")
-    if total_histories <= 0:
+    if n_scoring <= 0:
         raise ValueError(
-            "Cannot compute photons_per_mAs: total_histories must be positive, "
-            "got %s" % total_histories
+            "Cannot compute photons_per_mAs: total_histories (N_scoring) "
+            "must be positive, got %s" % n_scoring
         )
     if spectrum_fluence is not None and spectrum_fluence > 0 and exposure_mAs > 0:
-        return float(spectrum_fluence) * float(total_histories) / float(exposure_mAs)
+        return float(spectrum_fluence) * float(n_scoring) / float(exposure_mAs)
     norm_factor = metadata.get("norm_factor")
     if norm_factor:
-        return float(norm_factor) * float(total_histories)
+        return float(norm_factor) * float(n_scoring)
     raise ValueError(
         "Cannot compute photons_per_mAs: need either "
         "spectrum_fluence_photons_per_mAs or norm_factor in metadata"
@@ -79,27 +92,37 @@ def compute_photons_per_mAs(metadata: Dict[str, Any]) -> float:
 def raw_absolute_dose_Gy(
     raw_sum: float,
     photons_per_mAs: float,
-    total_histories: float,
+    n_scorer_active_histories: float,
     mAs_used: float,
 ) -> float:
     """Convert a TOPAS Sum (total accumulated) dose to absolute Gy (no DCF).
 
     Canonical normalization formula::
 
-        raw_absolute_Gy = (raw_sum / total_histories) * photons_per_mAs * mAs_used
+        raw_absolute_Gy
+            = (raw_sum / n_scorer_active_histories) * photons_per_mAs * mAs_used
 
     ``raw_sum`` is the TOPAS Sum accumulated across all histories; dividing
-    by ``total_histories`` yields the per-history mean, which is then scaled
-    to absolute dose via the kV-dependent ``photons_per_mAs`` and the scan
-    ``mAs_used``. This is the single source of truth for raw-dose scaling;
-    ``normalize_dose`` and every post-processing CLI route through it.
+    by ``n_scorer_active_histories`` (the actual number of histories the
+    scorer accumulated over, as reported in the CSV
+    ``Histories_with_Scorer_Active`` column) yields the per-history mean,
+    which is then scaled to absolute dose via the kV-dependent
+    ``photons_per_mAs`` and the scan ``mAs_used``. Using the CSV value
+    (rather than ``total_histories`` from metadata) auto-scales for every
+    source type: direct beam (``R x histories_per_run``), phase-space
+    replay (``N_phsp x M x R``), and any combination. This is the single
+    source of truth for raw-dose scaling; ``normalize_dose`` and every
+    post-processing CLI routes through it.
 
     Raises:
-        ValueError: If ``total_histories`` is not positive.
+        ValueError: If ``n_scorer_active_histories`` is not positive.
     """
-    if total_histories <= 0:
-        raise ValueError("total_histories must be positive, got %s" % total_histories)
-    return (raw_sum / total_histories) * photons_per_mAs * mAs_used
+    if n_scorer_active_histories <= 0:
+        raise ValueError(
+            "n_scorer_active_histories must be positive, got %s"
+            % n_scorer_active_histories
+        )
+    return (raw_sum / n_scorer_active_histories) * photons_per_mAs * mAs_used
 
 
 class CalibrationService:
@@ -268,9 +291,17 @@ class CalibrationService:
 
         Normalization formula::
 
-            photons_per_mAs = spectrum_fluence * total_histories / exposure_mAs
-            raw_absolute_Gy = (raw_dose / total_histories) * photons_per_mAs * mAs
+            photons_per_mAs = spectrum_fluence * N_scoring / exposure_mAs
+            raw_absolute_Gy
+                = (raw_dose / n_scorer_active_histories) * photons_per_mAs * mAs
             calibrated_Gy = raw_absolute_Gy * DCF
+
+        ``n_scorer_active_histories`` is the actual scorer-active history
+        count (from the TOPAS CSV ``Histories_with_Scorer_Active`` column),
+        read from ``metadata["n_scorer_active_histories"]``. When absent
+        (e.g. legacy metadata or scorers that do not emit the column), it
+        falls back to ``metadata["total_histories"]`` so direct-beam
+        simulations -- where the two are equal -- keep working.
 
         Args:
             raw_dose_Gy: TOPAS Sum (total accumulated dose across all
@@ -290,14 +321,19 @@ class CalibrationService:
         Raises:
             ValueError: If metadata is missing required fields.
         """
-        total_histories = metadata.get("total_histories", 0)
+        n_scoring = metadata.get("total_histories", 0)
         exposure_mAs = metadata.get("exposure_mAs", 0.0)
+        n_scorer_active = metadata.get("n_scorer_active_histories") or n_scoring
 
-        if total_histories <= 0 or exposure_mAs <= 0:
+        if n_scoring <= 0 or exposure_mAs <= 0:
             raise ValueError(
                 "Cannot normalize: invalid metadata "
-                "(total_histories=%s, exposure_mAs=%s)"
-                % (total_histories, exposure_mAs)
+                "(total_histories=%s, exposure_mAs=%s)" % (n_scoring, exposure_mAs)
+            )
+        if n_scorer_active <= 0:
+            raise ValueError(
+                "Cannot normalize: n_scorer_active_histories must be positive, "
+                "got %s" % n_scorer_active
             )
 
         photons_per_mAs = compute_photons_per_mAs(metadata)
@@ -305,12 +341,13 @@ class CalibrationService:
         mAs_simulated = exposure_mAs
         mAs_used = target_mAs if target_mAs is not None else mAs_simulated
 
-        # Convert TOPAS Sum (total accumulated) to per-history mean,
-        # then scale to absolute Gy via photons_per_mAs x mAs. Routes
-        # through the canonical helper so there is one normalization
-        # formula shared with the CLI post-processing scripts.
+        # Convert TOPAS Sum (total accumulated) to per-history mean using the
+        # actual scorer-active history count from the CSV, then scale to
+        # absolute Gy via photons_per_mAs x mAs. Routes through the canonical
+        # helper so there is one normalization formula shared with the CLI
+        # post-processing scripts.
         raw_absolute_Gy = raw_absolute_dose_Gy(
-            raw_dose_Gy, photons_per_mAs, total_histories, mAs_used
+            raw_dose_Gy, photons_per_mAs, n_scorer_active, mAs_used
         )
 
         # DCF lookup
@@ -360,15 +397,17 @@ class CalibrationService:
         dict with full provenance of all normalization steps.
 
         Normalization formula:
-            photons_per_mAs = spectrum_fluence * total_histories / mAs_simulated
-            CTDI_w_raw_Gy = raw_ctdi_w * photons_per_mAs * mAs_used
+            photons_per_mAs = spectrum_fluence * N_scoring / mAs_simulated
+            CTDI_w_raw_Gy
+                = (raw_ctdi_w / n_scorer_active_histories) * photons_per_mAs * mAs_used
             CTDI_w_calibrated_Gy = CTDI_w_raw_Gy * DCF
 
-        photons_per_mAs is a constant for the given kV: spectrum_fluence
-        (from SpekPy via spectrum_generator) already encodes the mAs and
-        total_histories used at simulation time, so the division and
-        multiplication algebraically cancel, leaving a value that depends
-        only on kV and tube geometry.
+        photons_per_mAs is the beam constant ``no_particles / mAs`` (the
+        ``N_scoring`` in ``spectrum_fluence`` cancels the multiply), so it
+        depends only on kV and tube geometry. ``n_scorer_active_histories``
+        (read from the result metadata, populated by CTDICalculator from
+        the CSV ``Histories_with_Scorer_Active`` column) auto-scales the
+        per-history mean for direct-beam and phase-space-replay sources.
 
         Args:
             raw_result: A single result dict from

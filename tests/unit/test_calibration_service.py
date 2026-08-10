@@ -385,10 +385,10 @@ class TestReplayCalibration:
 class TestCanonicalNormalizationHelpers:
     """Tests for the single-source raw-dose normalization helpers."""
 
-    def test_raw_absolute_dose_Gy_divides_by_histories(self) -> None:
+    def test_raw_absolute_dose_Gy_divides_by_scorer_active_histories(self) -> None:
         from src.services.calibration import raw_absolute_dose_Gy
 
-        # raw_sum=1e-10 over 1e6 histories, ppm=2.34e8, mAs=100
+        # raw_sum=1e-10 over 1e6 scorer-active histories, ppm=2.34e8, mAs=100
         # = (1e-10/1e6) * 2.34e8 * 100 = 2.34e-6
         val = raw_absolute_dose_Gy(1.0e-10, 2.34e8, 1_000_000, 100.0)
         assert val == pytest.approx((1.0e-10 / 1_000_000) * 2.34e8 * 100.0)
@@ -399,8 +399,44 @@ class TestCanonicalNormalizationHelpers:
     def test_raw_absolute_dose_Gy_raises_on_zero_histories(self) -> None:
         from src.services.calibration import raw_absolute_dose_Gy
 
-        with pytest.raises(ValueError, match="total_histories"):
+        with pytest.raises(ValueError, match="n_scorer_active_histories"):
             raw_absolute_dose_Gy(1.0e-10, 2.34e8, 0, 100.0)
+
+    def test_raw_absolute_dose_Gy_raises_on_negative_histories(self) -> None:
+        from src.services.calibration import raw_absolute_dose_Gy
+
+        with pytest.raises(ValueError, match="n_scorer_active_histories"):
+            raw_absolute_dose_Gy(1.0e-10, 2.34e8, -5, 100.0)
+
+    def test_compute_photons_per_mAs_yields_beam_constant(self) -> None:
+        """photons_per_mAs collapses to no_particles/mAs (a beam constant)
+        because the N_scoring inside spectrum_fluence cancels the multiply."""
+        from src.services.calibration import compute_photons_per_mAs
+
+        # sf = no_particles / N_scoring; ppm = sf * N_scoring / mAs
+        #                                    = no_particles / mAs.
+        no_particles = 2.34e16
+        n_scoring = 1_000_000
+        mAs = 100.0
+        sf = no_particles / n_scoring
+        ppm = compute_photons_per_mAs(
+            {
+                "total_histories": n_scoring,
+                "exposure_mAs": mAs,
+                "spectrum_fluence_photons_per_mAs": sf,
+            }
+        )
+        assert ppm == pytest.approx(no_particles / mAs)
+        # Independent of N_scoring: a different scoring run of the same beam
+        # yields the same beam constant.
+        ppm2 = compute_photons_per_mAs(
+            {
+                "total_histories": 10 * n_scoring,
+                "exposure_mAs": mAs,
+                "spectrum_fluence_photons_per_mAs": no_particles / (10 * n_scoring),
+            }
+        )
+        assert ppm2 == pytest.approx(ppm)
 
     def test_compute_photons_per_mAs_raises_on_missing_histories(self) -> None:
         from src.services.calibration import compute_photons_per_mAs
@@ -421,6 +457,112 @@ class TestCanonicalNormalizationHelpers:
                     "spectrum_fluence_photons_per_mAs": 2.34e8,
                 }
             )
+
+    def test_ctdi_direct_beam_sequential_times_36(self) -> None:
+        """CTDI direct beam: sequential_times=36 inflates both raw_sum and
+        N_scorer_active by 36x, so the absolute dose is independent of R.
+
+        For direct beam, metadata total_histories = R x histories_per_run
+        (the value sf was calibrated with), and the CSV
+        Histories_with_Scorer_Active = R x histories_per_run as well.
+        """
+        from src.services.calibration import (
+            compute_photons_per_mAs,
+            raw_absolute_dose_Gy,
+        )
+
+        no_particles = 2.34e16
+        histories_per_run = 5_000_000
+        mAs = 100.0
+
+        def dose_for_R(R: int) -> float:
+            n_scoring = R * histories_per_run  # what compute_histories returns
+            sf = no_particles / n_scoring
+            metadata = {
+                "total_histories": n_scoring,
+                "exposure_mAs": mAs,
+                "spectrum_fluence_photons_per_mAs": sf,
+            }
+            ppm = compute_photons_per_mAs(metadata)
+            # raw_sum scales with R (more histories -> more accumulated dose);
+            # N_scorer_active = R x histories_per_run (from CSV).
+            per_history_dose = 1.0e-12
+            raw_sum = per_history_dose * R * histories_per_run
+            n_scorer_active = R * histories_per_run
+            return raw_absolute_dose_Gy(raw_sum, ppm, n_scorer_active, mAs)
+
+        d1 = dose_for_R(1)
+        d36 = dose_for_R(36)
+        # Dose independent of R (cancels):
+        assert d36 == pytest.approx(d1, rel=1e-12)
+        # And equals per_history_dose x no_particles:
+        assert d36 == pytest.approx(1.0e-12 * no_particles)
+
+    def test_phase_space_replay_M5(self) -> None:
+        """Phase-space replay: M reuse inflates raw_sum and N_scorer_active
+        by M, so absolute dose is independent of M. N_scoring (metadata
+        total_histories) stays at the scoring-run value."""
+        from src.services.calibration import (
+            compute_photons_per_mAs,
+            raw_absolute_dose_Gy,
+        )
+
+        no_particles = 2.34e16
+        n_scoring = 400_000  # scoring-run histories (metadata total_histories)
+        n_phsp = 100_000  # particles that reached the phase-space plane
+        mAs = 100.0
+        sf = no_particles / n_scoring  # undivided (post-fix replay metadata)
+
+        def dose_for_M(M: int) -> float:
+            metadata = {
+                "total_histories": n_scoring,
+                "exposure_mAs": mAs,
+                "spectrum_fluence_photons_per_mAs": sf,
+            }
+            ppm = compute_photons_per_mAs(metadata)
+            per_event_dose = 1.0e-12
+            raw_sum = per_event_dose * n_phsp * M  # scales with M
+            n_scorer_active = n_phsp * M  # CSV Histories_with_Scorer_Active
+            return raw_absolute_dose_Gy(raw_sum, ppm, n_scorer_active, mAs)
+
+        d1 = dose_for_M(1)
+        d5 = dose_for_M(5)
+        assert d5 == pytest.approx(d1, rel=1e-12)
+        # equals per_event_dose x no_particles (the real photon count)
+        assert d5 == pytest.approx(1.0e-12 * no_particles)
+
+    def test_M_and_R_cancel_for_replay(self) -> None:
+        """For replay, absolute dose is invariant in both M (reuse) and R
+        (sequential times): raw_sum / N_scorer_active is constant because
+        both scale as M x R."""
+        from src.services.calibration import (
+            compute_photons_per_mAs,
+            raw_absolute_dose_Gy,
+        )
+
+        no_particles = 2.34e16
+        n_scoring = 400_000
+        n_phsp = 100_000
+        mAs = 100.0
+        sf = no_particles / n_scoring
+
+        def dose(M: int, R: int) -> float:
+            metadata = {
+                "total_histories": n_scoring,
+                "exposure_mAs": mAs,
+                "spectrum_fluence_photons_per_mAs": sf,
+            }
+            ppm = compute_photons_per_mAs(metadata)
+            per_event = 1.0e-12
+            raw_sum = per_event * n_phsp * M * R
+            n_scorer_active = n_phsp * M * R
+            return raw_absolute_dose_Gy(raw_sum, ppm, n_scorer_active, mAs)
+
+        base = dose(1, 1)
+        assert dose(5, 1) == pytest.approx(base, rel=1e-12)
+        assert dose(1, 36) == pytest.approx(base, rel=1e-12)
+        assert dose(5, 36) == pytest.approx(base, rel=1e-12)
+        assert base == pytest.approx(1.0e-12 * no_particles)
 
 
 if __name__ == "__main__":

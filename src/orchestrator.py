@@ -74,27 +74,30 @@ class Orchestrator:
         phase_space_multiple_use: int,
         sequential_times: int = 1,
     ) -> None:
-        """Copy scoring metadata to replay runfolder with adjusted normalization.
+        """Copy scoring metadata to replay runfolder unchanged.
 
-        The replay re-delivers the scored phase space once per sequential time
-        step (the arc rotation), so the total transported count scales as
-        ``N_particles x M x R`` (M = ``phase_space_multiple_use``,
-        R = ``sequential_times``). To keep the per-primary dose intensive
-        (independent of M and R), divide ``spectrum_fluence_photons_per_mAs``
-        (or legacy ``norm_factor``) by ``M x R``.
+        The replay re-delivers the scored phase space once per sequential
+        time step (the arc rotation), so the total transported count scales
+        as ``N_particles x M x R`` (M = ``phase_space_multiple_use``,
+        R = ``sequential_times``). Historically this function divided
+        ``spectrum_fluence_photons_per_mAs`` (or legacy ``norm_factor``) by
+        ``M x R`` to keep the per-primary dose intensive, but that produced
+        a different absolute scale from the CTDI calibration. The
+        ``M x R`` scaling is now handled naturally by
+        :func:`raw_absolute_dose_Gy`, which divides by the scorer-active
+        history count (``N_phsp x M x R``) read from the TOPAS CSV. So the
+        scoring metadata is copied through unchanged; M and R are still
+        recorded for reference.
         """
-        divisor = phase_space_multiple_use * max(1, sequential_times)
         with open(scoring_metadata_path, "r", encoding="utf-8") as f:
             metadata = yaml.safe_load(f)
         if not isinstance(metadata, dict):
             raise ValueError("Invalid metadata file: %s" % scoring_metadata_path)
 
-        spectrum_fluence = metadata.get("spectrum_fluence_photons_per_mAs")
-        if spectrum_fluence is not None and spectrum_fluence > 0:
-            metadata["spectrum_fluence_photons_per_mAs"] = spectrum_fluence / divisor
-        elif "norm_factor" in metadata:
-            metadata["norm_factor"] = metadata["norm_factor"] / divisor
-        else:
+        if (
+            "spectrum_fluence_photons_per_mAs" not in metadata
+            and "norm_factor" not in metadata
+        ):
             raise ValueError(
                 "Scoring metadata missing both 'spectrum_fluence_photons_per_mAs' "
                 "and 'norm_factor': %s" % scoring_metadata_path
@@ -109,10 +112,9 @@ class Orchestrator:
         with open(dest_path, "w", encoding="utf-8") as f:
             yaml.dump(metadata, f, default_flow_style=False, sort_keys=False)
         logger.info(
-            "Wrote replay metadata (M=%d, R=%d, divisor=%d): %s",
+            "Wrote replay metadata unchanged (M=%d, R=%d): %s",
             phase_space_multiple_use,
             sequential_times,
-            divisor,
             scoring_metadata_path,
         )
 

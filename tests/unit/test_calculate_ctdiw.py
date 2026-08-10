@@ -686,7 +686,31 @@ class TestComputeRawGy:
     ensures the canonical (history-normalized) value is produced.
     """
 
-    def test_divides_by_total_histories(self) -> None:
+    def test_divides_by_scorer_active_histories(self) -> None:
+        from calculate_ctdiw import _compute_raw_Gy
+        from src.services.calibration import compute_photons_per_mAs
+
+        result = {
+            "raw_sum": 1.0e-10,
+            "metadata": {
+                "total_histories": 1_000_000,
+                "exposure_mAs": 100.0,
+                "spectrum_fluence_photons_per_mAs": 2.34e8,
+                "n_scorer_active_histories": 1_500_000,
+            },
+        }
+        raw_gy = _compute_raw_Gy(result)
+
+        meta = result["metadata"]
+        ppm = compute_photons_per_mAs(meta)
+        # Divides by n_scorer_active_histories (1.5M), not total_histories.
+        expected = (1.0e-10 / 1_500_000) * ppm * 100.0
+        assert raw_gy == pytest.approx(expected)
+        assert raw_gy < 1.0
+
+    def test_falls_back_to_total_histories_when_scorer_active_absent(
+        self, tmp_path: Path
+    ) -> None:
         from calculate_ctdiw import _compute_raw_Gy
         from src.services.calibration import compute_photons_per_mAs
 
@@ -699,20 +723,102 @@ class TestComputeRawGy:
             },
         }
         raw_gy = _compute_raw_Gy(result)
+        # Falls back to total_histories (1M).
+        assert raw_gy == pytest.approx(
+            (1.0e-10 / 1_000_000) * compute_photons_per_mAs(result["metadata"]) * 100.0
+        )
 
-        # ppm is derived from spectrum_fluence (= no_particles/histories) as
-        # spectrum_fluence * total_histories / exposure_mAs.
-        meta = result["metadata"]
-        ppm = compute_photons_per_mAs(meta)
-        expected = (1.0e-10 / 1_000_000) * ppm * 100.0
-        assert raw_gy == pytest.approx(expected)
 
-        # Regression guard: the stale formula omitted /total_histories, so it
-        # would have been ~1e6x larger. Confirm the corrected value is the
-        # stale value divided by total_histories.
-        stale = 1.0e-10 * ppm * 100.0
-        assert raw_gy == pytest.approx(stale / 1_000_000)
-        assert raw_gy < 1.0
+class TestExtractScorerHistories:
+    """Tests for the extract_scorer_histories CSV helper."""
+
+    def test_reads_histories_from_ctdi_style_csv(self, tmp_path: Path) -> None:
+        from src.services.ctdi_calculator import extract_scorer_histories
+
+        # CTDI TLE format: R, Phi, Z bins + Sum + Histories + Count + StdDev
+        csv_text = (
+            "# TOPAS Version: 4.2.p3\n"
+            "# Parameter File: /x/CTDI.txt\n"
+            "# Results for scorer: ChamberPlugCentre_tle\n"
+            "# Scored in component: ChamberPlugCentre\n"
+            "# R in 1 bin  of 0.655 cm\n"
+            "# Phi in 1 bin  of 360 deg\n"
+            "# Z in 100 bins of 0.1 cm\n"
+            "# TrackLengthEstimator ( Gy ) : Sum   "
+            "Histories_with_Scorer_Active   Count_in_Bin   "
+            "Standard_Deviation   \n"
+            "0, 0, 0, 1.557191008083603e-11, 504895, 16, "
+            "7.280510807436814e-15\n"
+            "0, 0, 1, 1.187634539323579e-11, 504895, 18, "
+            "4.826153359096788e-15\n"
+        )
+        csv_path = tmp_path / "ChamberPlugCentre_tle.csv"
+        csv_path.write_text(csv_text)
+
+        assert extract_scorer_histories(csv_path) == 504895
+
+    def test_returns_none_for_phantom_style_csv(self, tmp_path: Path) -> None:
+        from src.services.ctdi_calculator import extract_scorer_histories
+
+        # Phantom DoseToMedium format: X, Y, Z bins + Sum only (no Histories)
+        csv_text = (
+            "# TOPAS Version: 4.2.p3\n"
+            "# Parameter File: headsourcecode.txt\n"
+            "# Results for scorer: PhantomDTM\n"
+            "# Scored in component: Phantom\n"
+            "# X in 58 bins of 1 cm\n"
+            "# Y in 32 bins of 1 cm\n"
+            "# Z in 179 bins of 1 cm\n"
+            "# DoseToMedium ( Gy ) : Sum   \n"
+            "0, 0, 0, 1.09630815536832e-09\n"
+            "1, 0, 0, 3.024761552339328e-09\n"
+        )
+        csv_path = tmp_path / "phantom_dtm.csv"
+        csv_path.write_text(csv_text)
+
+        assert extract_scorer_histories(csv_path) is None
+
+    def test_returns_none_for_missing_file(self, tmp_path: Path) -> None:
+        from src.services.ctdi_calculator import extract_scorer_histories
+
+        assert extract_scorer_histories(tmp_path / "nonexistent.csv") is None
+
+    def test_returns_none_when_no_header_with_colon(self, tmp_path: Path) -> None:
+        from src.services.ctdi_calculator import extract_scorer_histories
+
+        # No "#" header line containing ":" before data.
+        csv_path = tmp_path / "bare.csv"
+        csv_path.write_text("1.0e-10\n2.0e-10\n")
+        assert extract_scorer_histories(csv_path) is None
+
+    def test_handles_single_value_legacy_format(self, tmp_path: Path) -> None:
+        from src.services.ctdi_calculator import extract_scorer_histories
+
+        # Legacy single-dose-value file (no bin indices, no Histories col).
+        csv_text = (
+            "# TOPAS Version: 4.0\n"
+            "# Results for scorer: ChamberPlugDose_dtm\n"
+            "# DoseToWater ( Gy ) : Sum   \n"
+            "5.109993539420543e-10\n"
+        )
+        csv_path = tmp_path / "legacy.csv"
+        csv_path.write_text(csv_text)
+        assert extract_scorer_histories(csv_path) is None
+
+    def test_column_position_independent_of_bin_count(self, tmp_path: Path) -> None:
+        """The Histories column index is resolved from the header, so it
+        works regardless of how many bin-index columns precede it."""
+        from src.services.ctdi_calculator import extract_scorer_histories
+
+        # 2 bin indices (X, Y) + Sum + Histories + StdDev
+        csv_text = (
+            "# Foo ( Gy ) : Sum   Histories_with_Scorer_Active   "
+            "Standard_Deviation   \n"
+            "0, 0, 3.3e-11, 999, 1.0e-15\n"
+        )
+        csv_path = tmp_path / "two_bins.csv"
+        csv_path.write_text(csv_text)
+        assert extract_scorer_histories(csv_path) == 999
 
 
 if __name__ == "__main__":

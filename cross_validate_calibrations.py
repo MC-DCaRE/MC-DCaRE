@@ -208,10 +208,15 @@ def cross_validate(
             logger.warning("Cannot compute photons_per_mAs for %s", rf.name)
             continue
 
-        # Divide TOPAS Sum by total_histories to get per-history mean before
-        # scaling to absolute Gy (canonical formula, shared with normalize_dose).
+        # Divide TOPAS Sum by the scorer-active history count (from the CSV
+        # Histories_with_Scorer_Active column, populated by CTDICalculator)
+        # to get the per-history mean before scaling to absolute Gy. Falls
+        # back to metadata total_histories when the CSV lacks the column.
+        n_scorer_active = (
+            result_metadata.get("n_scorer_active_histories") or total_histories
+        )
         raw_Gy = raw_absolute_dose_Gy(
-            raw_sum, photons_per_mAs, total_histories, exposure_mAs
+            raw_sum, photons_per_mAs, n_scorer_active, exposure_mAs
         )
         calibrated_Gy = raw_Gy * dcf
         calibrated_mGy = calibrated_Gy * 1000.0  # DCF converts Gy→Gy

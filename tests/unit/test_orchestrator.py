@@ -407,7 +407,13 @@ class TestOrchestratorPhaseSpace:
         mode = CtdiMode()
         assert mode._get_main_template(config) == "ctdi_phsp_replay.j2"
 
-    def test_write_replay_metadata_adjusts_norm_factor(self, tmp_path: Any) -> None:
+    def test_write_replay_metadata_preserves_norm_factor(self, tmp_path: Any) -> None:
+        """Replay metadata must NOT divide norm_factor by M.
+
+        The M x R scaling is now handled by raw_absolute_dose_Gy dividing by
+        the scorer-active history count read from the CSV, so the scoring
+        metadata is copied through unchanged.
+        """
         metadata = {
             "norm_factor": 1.0e-10,
             "mAs": 100.0,
@@ -423,13 +429,13 @@ class TestOrchestratorPhaseSpace:
         Orchestrator._write_replay_metadata(rundir, str(meta_path), 10)
         with open(os.path.join(rundir, "simulation_metadata.yaml")) as f:
             result = yaml.safe_load(f)
-        assert abs(result["norm_factor"] - 1.0e-11) < 1e-20
+        assert abs(result["norm_factor"] - 1.0e-10) < 1e-20
         assert result["phase_space_multiple_use"] == 10
 
-    def test_write_replay_metadata_adjusts_spectrum_fluence(
+    def test_write_replay_metadata_preserves_spectrum_fluence(
         self, tmp_path: Any
     ) -> None:
-        """New-format metadata: spectrum_fluence is divided by M."""
+        """New-format metadata: spectrum_fluence is preserved (NOT divided by M)."""
         metadata = {
             "total_histories": 1000000,
             "exposure_mAs": 100.0,
@@ -443,16 +449,18 @@ class TestOrchestratorPhaseSpace:
         Orchestrator._write_replay_metadata(rundir, str(meta_path), 10)
         with open(os.path.join(rundir, "simulation_metadata.yaml")) as f:
             result = yaml.safe_load(f)
-        assert abs(result["spectrum_fluence_photons_per_mAs"] - 2.34e7) < 1.0
+        assert abs(result["spectrum_fluence_photons_per_mAs"] - 2.34e8) < 1.0
         assert "norm_factor" not in result
         assert result["phase_space_multiple_use"] == 10
 
-    def test_write_replay_metadata_divides_by_M_times_sequential_times(
-        self, tmp_path: Any
-    ) -> None:
-        """Bug A: replay normalization must be divided by M x sequential_times
-        (the replay re-delivers the phase space once per arc time step, so the
-        transported count scales as N x M x R)."""
+    def test_write_replay_metadata_independent_of_M_and_R(self, tmp_path: Any) -> None:
+        """spectrum_fluence must be identical regardless of M and R.
+
+        The M x R scaling is absorbed by the scorer-active history count in
+        raw_absolute_dose_Gy, so the replay metadata no longer divides
+        spectrum_fluence. The value must be the scoring-run constant for
+        every (M, R).
+        """
         base = {
             "total_histories": 1000000,
             "exposure_mAs": 100.0,
@@ -467,20 +475,16 @@ class TestOrchestratorPhaseSpace:
             os.makedirs(rundir)
             Orchestrator._write_replay_metadata(rundir, str(meta_path), m, r)
             with open(os.path.join(rundir, "simulation_metadata.yaml")) as f:
-                return yaml.safe_load(f)["spectrum_fluence_photons_per_mAs"]
+                out = yaml.safe_load(f)
+            assert out["phase_space_sequential_times"] == r
+            return out["spectrum_fluence_photons_per_mAs"]
 
-        # raw_Gy invariance: the per-primary photon weight (spectrum_fluence x
-        # divisor) must be the same regardless of M and R.
         m5r1 = run(dict(base), 5, 1)
         m5r10 = run(dict(base), 5, 10)
         m1r1 = run(dict(base), 1, 1)
-        # spectrum_fluence divided by M*R:
-        assert abs(m5r1 - 2.34e8 / 5) < 1.0
-        assert abs(m5r10 - 2.34e8 / (5 * 10)) < 1.0
-        assert abs(m1r1 - 2.34e8) < 1.0
-        # The product (spectrum_fluence x M x R) is the invariant:
-        for val, m, r in [(m5r1, 5, 1), (m5r10, 5, 10), (m1r1, 1, 1)]:
-            assert abs(val * m * r - 2.34e8) < 10.0
+        # spectrum_fluence unchanged for all (M, R):
+        for val in (m5r1, m5r10, m1r1):
+            assert abs(val - 2.34e8) < 1.0
 
     def test_write_replay_metadata_rejects_invalid_file(self, tmp_path: Any) -> None:
         bad_path = tmp_path / "bad.yaml"
@@ -521,7 +525,9 @@ class TestOrchestratorPhaseSpace:
         Orchestrator._write_replay_metadata(rundir, scoring_metadata, 5)
         with open(os.path.join(rundir, "simulation_metadata.yaml")) as f:
             result = yaml.safe_load(f)
-        assert abs(result["norm_factor"] - 4.0e-11) < 1e-20
+        # norm_factor is preserved unchanged (M x R scaling now handled by
+        # the scorer-active history count in raw_absolute_dose_Gy).
+        assert abs(result["norm_factor"] - 2.0e-10) < 1e-20
 
 
 class TestScoreModeNonDryRun:

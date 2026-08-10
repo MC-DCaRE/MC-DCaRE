@@ -20,6 +20,69 @@ ALL_FILE_TYPES = FILE_TYPES + WATER_FILE_TYPES
 PRIMARY_SCORER = "tle"
 
 
+def extract_scorer_histories(csv_path: Path) -> Optional[int]:
+    """Read ``Histories_with_Scorer_Active`` from a TOPAS CSV output file.
+
+    TOPAS CSVs that include the column carry a header line such as::
+
+        # TrackLengthEstimator ( Gy ) : Sum   Histories_with_Scorer_Active \
+            Count_in_Bin   Standard_Deviation
+
+    followed by comma-separated data rows whose trailing columns align with
+    the post-``:`` header columns (the leading columns are bin indices:
+    R/Phi/Z or X/Y/Z). This helper locates the column by name in the last
+    ``#``-prefixed line before the first data row and returns the integer
+    value from that first data row.
+
+    Returns:
+        The scorer-active history count, or ``None`` if the column is absent
+        (e.g. older DoseToMedium scorers that only emit ``Sum``) or the file
+        cannot be parsed.
+    """
+    try:
+        with open(csv_path, "r", encoding="utf-8") as f:
+            header_line: Optional[str] = None
+            first_data_line: Optional[str] = None
+            for raw in f:
+                line = raw.rstrip("\n")
+                if not line.strip():
+                    continue
+                if line.lstrip().startswith("#"):
+                    header_line = line
+                    continue
+                first_data_line = line
+                break
+    except OSError as exc:
+        logger.warning("Cannot read scorer histories from %s: %s", csv_path, exc)
+        return None
+
+    if header_line is None or first_data_line is None or ":" not in header_line:
+        return None
+
+    after_colon = header_line.split(":", 1)[1].strip()
+    cols = after_colon.split()
+    try:
+        hist_idx = cols.index("Histories_with_Scorer_Active")
+    except ValueError:
+        return None
+
+    parts = [p.strip() for p in first_data_line.split(",")]
+    n_bins = len(parts) - len(cols)
+    data_idx = n_bins + hist_idx
+    if data_idx < 0 or data_idx >= len(parts):
+        return None
+    try:
+        return int(float(parts[data_idx]))
+    except ValueError:
+        logger.warning(
+            "Could not parse Histories_with_Scorer_Active from %s (col %d = %r)",
+            csv_path,
+            data_idx,
+            parts[data_idx] if data_idx < len(parts) else "?",
+        )
+        return None
+
+
 class CTDICalculator:
     """Post-processes TOPAS chamber plug CSV outputs into CTDI-w metrics."""
 
@@ -28,6 +91,7 @@ class CTDICalculator:
         self.total_histories: int = 0
         self.exposure_mAs: float = 0.0
         self.simulation_metadata: Optional[Dict] = None
+        self.n_scorer_active_histories: Optional[int] = None
         self._read_metadata()
 
     def calculate(self) -> List[Dict]:
@@ -39,10 +103,14 @@ class CTDICalculator:
         ``"is_primary"`` (``True`` for TLE),
         ``"raw_sum"`` (un-normalized CTDI-w from raw Sum values),
         per-position raw sums, and ``"metadata"`` with
-        ``total_histories`` and ``exposure_mAs``.
-        No calibration factor, norm_factor, or DCF is applied.
+        ``total_histories``, ``exposure_mAs``, and
+        ``n_scorer_active_histories`` (the scorer-active history count read
+        from the CSV ``Histories_with_Scorer_Active`` column; ``None`` when
+        the scorer does not emit it). No calibration factor, norm_factor,
+        or DCF is applied.
         """
         chamber_files = self._find_chamber_files()
+        self._read_scorer_active_histories(chamber_files)
         results: List[Dict] = []
         for file_type in ALL_FILE_TYPES:
             if chamber_files[file_type]:
@@ -52,6 +120,7 @@ class CTDICalculator:
                     result["metadata"] = {
                         "total_histories": self.total_histories,
                         "exposure_mAs": self.exposure_mAs,
+                        "n_scorer_active_histories": self.n_scorer_active_histories,
                     }
                     if self.simulation_metadata:
                         if (
@@ -71,6 +140,42 @@ class CTDICalculator:
             else:
                 logger.info("No files found for %s", file_type)
         return results
+
+    def _read_scorer_active_histories(
+        self, chamber_files: Dict[str, Dict[str, Path]]
+    ) -> None:
+        """Extract ``Histories_with_Scorer_Active`` from the first available CSV.
+
+        The value is a property of the run (the same for every position and
+        scorer type), so a single CSV suffices. Sets
+        ``self.n_scorer_active_histories`` (``None`` when the column is absent
+        or no files are found).
+        """
+        for file_type in ALL_FILE_TYPES:
+            for position in PERIPHERAL_POSITIONS + [CENTER_POSITION]:
+                path = chamber_files.get(file_type, {}).get(position)
+                if path is None:
+                    continue
+                count = extract_scorer_histories(path)
+                if count is not None:
+                    self.n_scorer_active_histories = count
+                    logger.info(
+                        "Scorer-active histories from %s (%s %s): %d",
+                        path.name,
+                        position,
+                        file_type,
+                        count,
+                    )
+                    return
+                # Column absent on this file; try the next. Fall back to the
+                # legacy total_histories if no CSV in the runfolder emits it.
+        if self.n_scorer_active_histories is None:
+            logger.warning(
+                "No CSV in %s reports Histories_with_Scorer_Active; "
+                "falling back to metadata total_histories=%d for normalization",
+                self.runfolder,
+                self.total_histories,
+            )
 
     def save_results(self, results: List[Dict], output_path: Path) -> None:
         """Save calculation results to a CSV file.

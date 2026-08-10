@@ -25,6 +25,7 @@ from src.models.icrp103 import (
     map_organ_to_tissue,
 )
 from src.services.calibration import CalibrationService, NormalizedDose
+from src.services.ctdi_calculator import extract_scorer_histories
 
 logger = logging.getLogger(__name__)
 
@@ -73,11 +74,14 @@ class PhantomDoseCalculator:
        absolute dose using the same :class:`CalibrationService` DCF as CTDI
        mode. The formula is::
 
-           photons_per_mAs = spectrum_fluence * total_histories / exposure_mAs
-           absolute_Gy = raw_Gy * photons_per_mAs * mAs * DCF
+           photons_per_mAs = spectrum_fluence * N_scoring / exposure_mAs
+           absolute_Gy
+               = (raw_Gy / n_scorer_active_histories) * photons_per_mAs * mAs * DCF
 
-       This is geometry-agnostic: the same DCF applies to CTDI, phantom,
-       and DICOM simulations.
+       ``n_scorer_active_histories`` is read from the dose CSV's
+       ``Histories_with_Scorer_Active`` column (falling back to
+       ``total_histories`` when absent), so the same DCF applies to CTDI,
+       phantom, and DICOM simulations.
     3. **ICRP 103 effective dose**: Organ doses are mapped to ICRP 103 tissue
        categories, mean tissue doses are computed, and tissue weighting
        factors are applied.
@@ -220,13 +224,38 @@ class PhantomDoseCalculator:
         scale_to_mGy = 1.0  # default: raw Gy -> raw mGy (no calibration)
 
         if calibration_service is not None and metadata is not None:
+            # Inject the scorer-active history count (from the TOPAS CSV
+            # Histories_with_Scorer_Active column) so normalize_dose divides
+            # by the actual accumulated histories rather than metadata
+            # total_histories. This auto-scales for phase-space replay
+            # (N_phsp x M x R) and direct-beam (R x histories_per_run)
+            # sources. NOTE: phantom DoseToMedium CSVs emitted by the current
+            # TsTetGeomScorer/TsDicomPatient scorers only output Sum (no
+            # Histories column), so this returns None for those runs and
+            # normalize_dose falls back to total_histories -- correct for
+            # direct-beam phantom sims but NOT for phase-space replay
+            # (where total_histories != N_phsp x M x R). A warning is logged
+            # in that case.
+            n_scorer_active = extract_scorer_histories(self.dose_csv_path)
+            norm_metadata: Dict = dict(metadata)
+            if n_scorer_active is not None:
+                norm_metadata["n_scorer_active_histories"] = n_scorer_active
+            elif "n_scorer_active_histories" not in metadata:
+                logger.warning(
+                    "Phantom dose CSV %s has no Histories_with_Scorer_Active "
+                    "column; falling back to metadata total_histories=%s for "
+                    "normalization. This is correct for direct-beam phantom "
+                    "sims but NOT for phase-space replay.",
+                    self.dose_csv_path,
+                    metadata.get("total_histories"),
+                )
             # Use a representative organ dose to get the normalization constants
             # (the scale factor is the same for all organs since it's per-history)
             first_organ = next(iter(self.organ_doses.values()))
             representative_dose = float(np.mean(first_organ))
             norm = calibration_service.normalize_dose(
                 representative_dose,
-                metadata,
+                norm_metadata,
                 target_mAs=target_mAs,
                 dcf_override=dcf_override,
                 scorer_type=scorer_type,

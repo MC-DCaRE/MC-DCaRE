@@ -1,5 +1,5 @@
-# DCF_dtm for 125kV Half Fan derived from reference E=4.2 mSv
-# (CTDI LMG chambers cannot calibrate DTM; see src/AGENTS.md)
+# DCFs computed with mean of per-bin doses (matches pencil chamber physics)
+# DCF_dtm for 125kV Half Fan from rotational water-hole CTDI (36 angles)
 machine: TrueBeam
 date_calibrated: '2026-08-05'
 effective_dose_references:
@@ -50,7 +50,8 @@ calibrations:
   reference_protocol: Pelvis
   dcf_tle: 0.0008387910108726306
   dcf_dtw: 0
-  dcf_dtm: 0.008991843113746817
+  dcf_dtm: 0.0010354776114401404
+  dcf_dtm_source: rotational_water_holes_36angles_mean
 - kV: 140
   fan_mode: Half Fan
   reference_mAs: 1700.5

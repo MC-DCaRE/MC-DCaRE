@@ -67,3 +67,17 @@ The `TsTetGeom` extension (tetrahedral mesh phantom) has parameterization naviga
 - **DCF for TLE** is calibrated from CTDI phantom measurements: `DCF = measured_CTDIw / raw_absolute_CTDIw`. This works because TLE is fluence-based (every photon contributes regardless of interaction).
 - **DCF for DTM (body tissue)** cannot be derived from CTDI measurements. The TLE/DTM ratio depends on geometry: ~0.87 in the CTDI phantom (small chambers in PMMA) vs ~10.7 in body tissue (5mm voxels where ~10% of photons interact). The only self-contained calibration for body-tissue DTM is the reference effective dose: `DCF_dtm = E_reference / E_raw_MC`. For Pelvis (125kV Half Fan): `DCF_dtm = 4.2 / 467.09 = 0.00899`.
 - kV lookup in `_normalize_dose`: falls back to `metadata["spekpy"]["kvp"]` when `metadata["kV"]` is absent (fixed commit e6aa255).
+
+### CTDI Calculator Normalization Fix
+The CTDICalculator uses MEAN of per-bin doses (not SUM) to match pencil chamber physics:
+- Pencil chamber measures: E_total / m_total = mean dose over 100mm volume
+- TOPAS Z-binned scorer outputs: per-bin Sum = E_bin / m_bin (dose at each 1mm position)
+- SUM of per-bin values = N_bins × mean_dose (inflated by 100×)
+- MEAN of per-bin values = mean_dose (correct, matches chamber reading)
+- Without this fix, the DCF absorbs the 100× factor and cannot transfer to organ dose
+
+### Sequential Times for Rotational CTDI
+CTDI measurements are rotational (the tube rotates 360° around the phantom). With
+`NumberOfSequentialTimes = 1`, all histories fire at a single angle — no rotation.
+Use `NumberOfSequentialTimes >= 36` (10° steps) for correct rotational CTDI_w.
+This also equalizes Top/Bottom/Left/Right statistics (from 12:1 imbalance to ~1:1).

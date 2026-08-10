@@ -252,14 +252,14 @@ class CTDICalculator:
                         continue
 
             if dose_values:
-                total_dose = sum(dose_values)
+                mean_dose = sum(dose_values) / len(dose_values)
                 logger.info(
-                    "Extracted %d dose values from %s, total: %.6e",
+                    "Extracted %d dose values from %s, mean: %.6e",
                     len(dose_values),
                     file_path,
-                    total_dose,
+                    mean_dose,
                 )
-                return total_dose
+                return mean_dose
             else:
                 logger.warning("No dose values found in file: %s", file_path)
                 return None

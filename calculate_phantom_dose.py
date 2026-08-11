@@ -10,7 +10,7 @@ Usage:
     uv run python calculate_phantom_dose.py <runfolder> [options]
 
 Examples:
-    # Default scorer type is dtm (matches TsTetGeomScorer/DoseToMedium output)
+    # Default scorer type is tle (CTDI-derived, transferable to the phantom)
     uv run python calculate_phantom_dose.py runfolder/2026-07-02_05-19-13/
 
     # DoseToWater scorer
@@ -64,10 +64,14 @@ def main() -> None:
     )
     parser.add_argument(
         "--scorer-type",
-        default="dtm",
+        default="tle",
         choices=["tle", "dtw", "dtm"],
-        help="Scorer type for DCF lookup (default: dtm, matching the "
-        "phantom TsTetGeomScorer/DoseToMedium output)",
+        help="Scorer type for DCF lookup (default: tle). TLE is fluence-based "
+        "and the only CTDI-derived DCF that transfers to the phantom "
+        "(dcf_tle, ~+37% vs reference). DTM is collision-based and has no "
+        "non-circular CTDI-derived DCF (the water-chamber dcf_water_dtm does "
+        "not transfer to body tissue, +500%; the prior body dcf_dtm was "
+        "circular, derived from the reference effective dose).",
     )
     parser.add_argument(
         "--dose-file",

@@ -199,7 +199,7 @@ class PhantomDoseCalculator:
         metadata: Optional[Dict] = None,
         target_mAs: Optional[float] = None,
         dcf_override: Optional[float] = None,
-        scorer_type: str = "dtm",
+        scorer_type: str = "tle",
     ) -> EffectiveDoseResult:
         """Compute organ doses and ICRP 103 effective dose with DCF normalization.
 

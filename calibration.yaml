@@ -16,11 +16,14 @@
 # dcf_water_dtm (DoseToMaterial in the water-filled CTDI chamber plug):
 # CTDI-phantom-specific. Cross-validates dcf_tle (within 4% across all 5
 # protocols). Does NOT transfer to phantom body tissue (DTM is collision-based;
-# interaction rate differs between the chamber and body voxels).
+# interaction rate differs between the chamber and body voxels -- applying it
+# to the phantom DTM gives +500% error).
 #
-# dcf_dtm (DoseToMedium body tissue, phantom organ dose): derived from the
-# reference effective dose (DCF_dtm = E_ref / E_raw_MC), NOT from the CTDI
-# water chamber. Only populated for 125 HF (Pelvis) where phantom data exists.
+# dcf_dtm (body tissue): REMOVED. The prior value (0.02761 for 125 HF) was
+# circular -- derived from the reference effective dose (E_ref / E_raw_MC) and
+# thus reproduced that reference by construction. The phantom effective dose
+# now comes from the TLE path (dcf_tle, CTDI-derived, transferable, ~+37% vs
+# reference), which is the only non-circular CTDI-derived route.
 machine: TrueBeam
 date_calibrated: '2026-08-11'
 
@@ -70,9 +73,6 @@ calibrations:
   reference_protocol: Pelvis
   dcf_tle: 0.16070247613705832
   dcf_water_dtm: 0.16720285885953350
-  # Body-tissue DTM DCF from reference effective dose (4.2 / 152.13), for
-  # phantom organ dose. NOT the CTDI water-chamber value above.
-  dcf_dtm: 0.027607966870439756
 - kV: 140
   fan_mode: Half Fan
   reference_mAs: 1700.5

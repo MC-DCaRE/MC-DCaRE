@@ -343,11 +343,19 @@ class CTDICalculator:
                             and parts[1] == "0"
                             and parts[2].isdigit()
                         ):
+                            # Binned format: R, Phi, Z, Sum, Histories, ...
                             dose = float(parts[3])
                             dose_values.append(dose)
                             logger.debug(
                                 "Found Z-bin dose at bin %s: %s", parts[2], dose
                             )
+                        elif len(parts) >= 4:
+                            # Unbinned format (e.g. water_dtm): Sum, Histories,
+                            # Count, StdDev -- the Sum is parts[0] and is the
+                            # mean dose over the scored volume.
+                            dose = float(parts[0])
+                            dose_values.append(dose)
+                            logger.debug("Found unbinned dose: %s", dose)
                         else:
                             dose = float(line)
                             dose_values.append(dose)

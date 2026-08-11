@@ -44,6 +44,8 @@ def cal_file(tmp_path: Path) -> Path:
                 "reference_mAs": 100,
                 "measured_ctdi_w_mGy": 45.2,
                 "dcf": 1.034,
+                "dcf_dtm": 1.5,
+                "dcf_water_dtm": 1.07,
             },
             {
                 "kV": 80,
@@ -269,7 +271,7 @@ class TestApply:
             yaml.dump(metadata, default_flow_style=False)
         )
         for position in ["Bottom", "Top", "Left", "Right", "Centre"]:
-            for ftype in ["dtm", "tle", "dtw"]:
+            for ftype in ["dtm", "tle", "dtw", "water_dtm"]:
                 (rf / "ChamberPlug{}_{}.csv".format(position, ftype)).write_text(
                     "2.5e-20"
                 )
@@ -284,14 +286,14 @@ class TestApply:
         ):
             results = svc.apply(rf, 120, "Full Fan")
 
-        assert len(results) == 3
+        assert len(results) == 4
         tle_results = [r for r in results if r["scorer_type"] == "tle"]
         assert len(tle_results) == 1
         assert tle_results[0]["dcf_applied"] == 1.034
         assert tle_results[0]["mAs_ratio"] == 1.0
 
         non_tle = [r for r in results if r["scorer_type"] != "tle"]
-        assert len(non_tle) == 2
+        assert len(non_tle) == 3
         for r in non_tle:
             assert r["dcf_applied"] is None
             assert r["CTDI_w_calibrated"] is None
@@ -336,7 +338,8 @@ class TestApply:
             assert r["dcf_applied"] is None
 
     def test_apply_with_dtm_scorer_type(self, cal_file: Path, tmp_path: Path) -> None:
-        """When scorer_type='dtm', DTM gets calibrated and TLE is uncalibrated."""
+        """When scorer_type='dtm', DTM gets its own DCF (1.5, not the TLE 1.034)
+        and TLE is returned uncalibrated as a secondary comparison."""
         svc = CalibrationService(cal_file)
         rf = self._make_runfolder(tmp_path, mAs=100.0)
 
@@ -347,7 +350,9 @@ class TestApply:
 
         dtm_results = [r for r in results if r["scorer_type"] == "dtm"]
         assert len(dtm_results) == 1
-        assert dtm_results[0]["dcf_applied"] == 1.034
+        # apply must forward scorer_type to normalize so DTM uses dcf_dtm (1.5),
+        # NOT the TLE DCF (1.034).
+        assert dtm_results[0]["dcf_applied"] == 1.5
         assert dtm_results[0]["CTDI_w_calibrated"] is not None
 
         tle_results = [r for r in results if r["scorer_type"] == "tle"]
@@ -355,6 +360,23 @@ class TestApply:
         assert tle_results[0]["dcf_applied"] is None
         assert tle_results[0]["CTDI_w_calibrated"] is None
         assert tle_results[0]["note"] == "uncalibrated — secondary comparison"
+
+    def test_apply_with_water_dtm_scorer_type(
+        self, cal_file: Path, tmp_path: Path
+    ) -> None:
+        """When scorer_type='water_dtm', the water_dtm result uses dcf_water_dtm."""
+        svc = CalibrationService(cal_file)
+        rf = self._make_runfolder(tmp_path, mAs=100.0)
+
+        with patch.object(
+            CTDICalculator, "_extract_dose_from_file", return_value=self._MOCK_DOSE
+        ):
+            results = svc.apply(rf, 120, "Full Fan", scorer_type="water_dtm")
+
+        wdtm = [r for r in results if r["scorer_type"] == "water_dtm"]
+        assert len(wdtm) == 1
+        assert wdtm[0]["dcf_applied"] == 1.07
+        assert wdtm[0]["CTDI_w_calibrated"] is not None
 
 
 class TestReplayCalibration:

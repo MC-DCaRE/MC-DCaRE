@@ -128,7 +128,7 @@ def raw_absolute_dose_Gy(
 class CalibrationService:
     """Compute, lookup, and apply dose calibration factors.
 
-    Supports per-scorer DCFs (tle, dtw, dtm). The ``scorer_type``
+    Supports per-scorer DCFs (tle, dtw, dtm, water_dtm). The ``scorer_type``
     parameter on lookup and normalization methods selects which DCF
     to use, defaulting to ``"tle"`` (Track Length Estimator).
     """
@@ -138,6 +138,7 @@ class CalibrationService:
         "tle": "dcf_tle",
         "dtw": "dcf_dtw",
         "dtm": "dcf_dtm",
+        "water_dtm": "dcf_water_dtm",
     }
 
     def __init__(self, calibration_path: Path) -> None:
@@ -219,6 +220,7 @@ class CalibrationService:
                     "dcf_tle": e.dcf_tle,
                     "dcf_dtw": e.dcf_dtw,
                     "dcf_dtm": e.dcf_dtm,
+                    "dcf_water_dtm": e.dcf_water_dtm,
                     "reference_protocol": e.reference_protocol,
                     "reference_ctdi_w_mGy": e.reference_ctdi_w_mGy,
                     "date": e.date,
@@ -499,7 +501,11 @@ class CalibrationService:
         for result in results:
             if result.get("scorer_type") == scorer_type:
                 norm_result = self.normalize(
-                    result, kV, fan_mode, target_mAs=target_mAs
+                    result,
+                    kV,
+                    fan_mode,
+                    target_mAs=target_mAs,
+                    scorer_type=scorer_type,
                 )
                 calibrated.append(
                     {

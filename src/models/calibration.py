@@ -27,9 +27,17 @@ class CalibrationEntry:
     """A single (kV, fan_mode) calibration measurement entry.
 
     Stores per-scorer DCFs for flexibility: ``dcf_tle`` (Track Length
-    Estimator), ``dcf_dtw`` (Dose To Water), and ``dcf_dtm`` (Dose To
-    Medium). Only the relevant DCF needs to be populated; the others
-    default to ``None``.
+    Estimator), ``dcf_dtw`` (Dose To Water), ``dcf_dtm`` (Dose To Medium,
+    body-tissue / phantom), and ``dcf_water_dtm`` (Dose To Medium in the
+    water-filled CTDI chamber plug). Only the relevant DCF needs to be
+    populated; the others default to ``None``.
+
+    Note that ``dcf_dtm`` and ``dcf_water_dtm`` are NOT interchangeable:
+    ``dcf_dtm`` is the body-tissue DCF (from the reference effective dose,
+    for phantom organ-dose), while ``dcf_water_dtm`` is the CTDI-phantom
+    water-chamber DCF (for CTDI-mode DTM-based CTDIw). DTM is collision-based
+    so the DCF is geometry/material-specific and does not transfer between
+    the CTDI chamber and body tissue.
     """
 
     kV: int
@@ -39,6 +47,7 @@ class CalibrationEntry:
     dcf_tle: Optional[float] = None
     dcf_dtw: Optional[float] = None
     dcf_dtm: Optional[float] = None
+    dcf_water_dtm: Optional[float] = None
     reference_protocol: Optional[str] = None
     reference_ctdi_w_mGy: Optional[float] = None
     date: Optional[str] = None
@@ -50,6 +59,7 @@ class CalibrationEntry:
             "dcf_tle",
             "dcf_dtw",
             "dcf_dtm",
+            "dcf_water_dtm",
             "reference_ctdi_w_mGy",
         ):
             val = getattr(self, name)
@@ -128,6 +138,7 @@ class MachineCalibration:
                     "dcf_tle": e.dcf_tle,
                     "dcf_dtw": e.dcf_dtw,
                     "dcf_dtm": e.dcf_dtm,
+                    "dcf_water_dtm": e.dcf_water_dtm,
                     "reference_protocol": e.reference_protocol,
                     "reference_ctdi_w_mGy": e.reference_ctdi_w_mGy,
                     "date": e.date,

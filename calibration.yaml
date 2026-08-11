@@ -1,4 +1,22 @@
-# DCFs from 36-angle rotational calibration (mean of per-bin doses)
+# DCFs recomputed 2026-08-11 with unified normalization
+# (fix-normalization-unified-dcf): raw_absolute_dose_Gy divides by the
+# scorer-active history count (TOPAS CSV Histories_with_Scorer_Active) rather
+# than metadata total_histories.
+#
+# TLE DCFs are valid: TLE is fluence-based and works in the air-filled
+# LayeredMassGeometry parallel worlds. Source runfolders (direct-beam):
+#   80 FF  -> runfolder/2026-07-03_10-02-04 (500M), 100 FF -> 2026-06-18_13-59-02,
+#   125 FF -> runfolder/2026-06-18_14-38-24,        125 HF -> 2026-07-02_14-10-55,
+#   140 HF -> runfolder/2026-06-18_15-53-30
+#
+# DTW/DTM DCFs are omitted (None): collision-based scorers register ~0
+# interactions in air-filled chamber cavities (Count_in_Bin=0, see AGENTS.md
+# LMG note). A literal 0 would be treated as a valid factor and silently
+# zero out phantom dose, so the keys are omitted to make lookup_dcf return
+# None. Meaningful DTW/DTM DCFs require re-running with water-filled
+# chambers (ctdi.water_chamber_enabled=True), which is out of scope for this
+# post-processing-only change. The 125 HF dcf_dtm was previously derived
+# from rotational water-hole data that is no longer in the repo.
 machine: TrueBeam
 date_calibrated: '2026-08-11'
 
@@ -25,37 +43,38 @@ calibrations:
   reference_mAs: 100.2
   measured_ctdi_w_mGy: 0.9
   reference_protocol: Image Gently
-  dcf_tle: 0.0010730208453092686
-  dcf_dtw: 0.0013282093529150953
-  dcf_dtm: 0.0015582980494786203
+  dcf_tle: 0.10730208453092686
 - kV: 100
   fan_mode: Full Fan
   reference_mAs: 150.3
   measured_ctdi_w_mGy: 3.2
   reference_protocol: Head
-  dcf_tle: 0.00119635829487604
-  dcf_dtw: 0.0010859363154633345
-  dcf_dtm: 0.0012695525989934473
+  dcf_tle: 0.11910700100791230
 - kV: 125
   fan_mode: Full Fan
   reference_mAs: 751.5
   measured_ctdi_w_mGy: 12.3
   reference_protocol: Pelvis Spotlight
-  dcf_tle: 0.0012339857764903637
-  dcf_dtw: 0.001196223128808018
-  dcf_dtm: 0.0014050788961486643
+  dcf_tle: 0.12390529509419883
 - kV: 125
   fan_mode: Half Fan
   reference_mAs: 1080.0
   measured_ctdi_w_mGy: 15.9
   reference_protocol: Pelvis
-  dcf_tle: 0.16662061
-  dcf_dtm: 0.03727720
+  dcf_tle: 0.16287014977928360
+  # Interim body-tissue DTM DCF from the reference effective dose
+  # (E_ref=4.2 mSv / E_raw_MC=152.13 mGy), computed with the new
+  # normalization from the direct-beam phantom run
+  # phantom_runs/2026-07-02_05-19-13 (phantom_dtm.csv, target 1080 mAs).
+  # Correct for direct-beam phantom sims; NOT valid for phase-space replay
+  # until phantom CSVs emit Histories_with_Scorer_Active. A CTDI-derived DTM
+  # DCF requires real-geometry water chambers (parallel-world water chambers
+  # segfault in TOPAS and give zero under LayeredMassGeometry -- see
+  # AGENTS.md).
+  dcf_dtm: 0.027607966870439756
 - kV: 140
   fan_mode: Half Fan
   reference_mAs: 1700.5
   measured_ctdi_w_mGy: 37.1
   reference_protocol: Pelvis Large
-  dcf_tle: 0.0017969787067322628
-  dcf_dtw: 0.0024677316394162443
-  dcf_dtm: 0.0028916449499057336
+  dcf_tle: 0.18122529730598380

@@ -320,3 +320,111 @@ class TestWaterChamberEnabled:
         rendered = _render_template(boilerplates_dir, "CTDIphantom_16.j2", ctx)
         assert "ChamberPlugCentre_water" not in rendered
         assert "_water_dtm" not in rendered
+
+
+# Minimal main-template context (variables consumed by
+# headsourcecode_boilerplate.j2 / ctdi_phsp_replay.j2).
+_MAIN_CTX_BASE: dict[str, object] = {
+    "g4_data_directory": "/G4Data",
+    "seed": "9",
+    "threads": "1",
+    "histories": "100000",
+    "sequential_times": "10",
+    "timeline_end": "1 s",
+    "rotation_rate": "360 deg/s",
+    "start_angle": "0 deg",
+    "coll1_trans_y": "6.0 cm",
+    "coll2_trans_y": "-6.0 cm",
+    "coll3_trans_x": "5.8 cm",
+    "coll4_trans_x": "-5.8 cm",
+    "fan_mode": "Full Fan",
+    "graphics_enabled": False,
+    "phantom_size": "32",
+    "patient_yaw": "0 deg",
+    "patient_pitch": "0 deg",
+    "patient_roll_value": 0.0,
+    "rotation_direction": "CBCT Clockwise",
+    "start_angle_value": 0.0,
+    "second_angle_value": 0.0,
+}
+
+
+def _lmg_line(rendered: str) -> str:
+    """Extract the LayeredMassGeometryWorlds line from a rendered template."""
+    for line in rendered.splitlines():
+        if "LayeredMassGeometryWorlds" in line:
+            return line.strip()
+    raise AssertionError("No LayeredMassGeometryWorlds line in rendered output")
+
+
+class TestLayeredMassGeometryWorldsRegistration:
+    """Water parallel worlds have material (G4_WATER), so TOPAS requires them
+    in LayeredMassGeometryWorlds -- otherwise the run segfaults with
+    "Parallel world X has material, but this world not specified". This
+    guards the conditional LMG list in the main templates."""
+
+    def test_off_mode_lists_5_air_worlds_when_water_disabled(
+        self, tmp_path: Any
+    ) -> None:
+        renderer = TemplateRenderer(_boilerplates_dir(), str(tmp_path / "tmp"))
+        ctx = dict(_MAIN_CTX_BASE, simulation_type="CTDI", water_chamber_enabled=False)
+        rendered = renderer.render_string(
+            "{% include 'headsourcecode_boilerplate.j2' %}", ctx
+        )
+        line = _lmg_line(rendered)
+        assert line.startswith("sv:Ph/Default/LayeredMassGeometryWorlds = 5 ")
+        for pos in _PLUG_POSITIONS:
+            assert f'"{pos}"' in line
+        assert "_water" not in line
+
+    def test_off_mode_lists_10_worlds_when_water_enabled(self, tmp_path: Any) -> None:
+        renderer = TemplateRenderer(_boilerplates_dir(), str(tmp_path / "tmp"))
+        ctx = dict(_MAIN_CTX_BASE, simulation_type="CTDI", water_chamber_enabled=True)
+        rendered = renderer.render_string(
+            "{% include 'headsourcecode_boilerplate.j2' %}", ctx
+        )
+        line = _lmg_line(rendered)
+        assert line.startswith("sv:Ph/Default/LayeredMassGeometryWorlds = 10 ")
+        # Air worlds first, water worlds last (water takes precedence -- TOPAS
+        # resolves overlap by list order, last wins).
+        for pos in _PLUG_POSITIONS:
+            assert f'"{pos}"' in line
+            assert f'"{pos}_water"' in line
+        # Water worlds listed after air worlds (precedence: last wins).
+        air_idx = line.index('"ChamberPlugCentre"')
+        water_idx = line.index('"ChamberPlugCentre_water"')
+        assert water_idx > air_idx
+
+    def test_replay_mode_lists_10_worlds_when_water_enabled(
+        self, tmp_path: Any
+    ) -> None:
+        renderer = TemplateRenderer(_boilerplates_dir(), str(tmp_path / "tmp"))
+        ctx = dict(
+            _MAIN_CTX_BASE,
+            phase_space_file="beam_exit_phsp",
+            phase_space_multiple_use="5",
+            water_chamber_enabled=True,
+        )
+        rendered = renderer.render_string("{% include 'ctdi_phsp_replay.j2' %}", ctx)
+        line = _lmg_line(rendered)
+        assert line.startswith("sv:Ph/Default/LayeredMassGeometryWorlds = 10 ")
+        assert '"ChamberPlugCentre_water"' in line
+
+    def test_replay_mode_lists_5_worlds_when_water_disabled(
+        self, tmp_path: Any
+    ) -> None:
+        renderer = TemplateRenderer(_boilerplates_dir(), str(tmp_path / "tmp"))
+        ctx = dict(
+            _MAIN_CTX_BASE,
+            phase_space_file="beam_exit_phsp",
+            phase_space_multiple_use="5",
+            water_chamber_enabled=False,
+        )
+        rendered = renderer.render_string("{% include 'ctdi_phsp_replay.j2' %}", ctx)
+        line = _lmg_line(rendered)
+        assert line.startswith("sv:Ph/Default/LayeredMassGeometryWorlds = 5 ")
+        assert "_water" not in line
+
+
+def _boilerplates_dir() -> str:
+    return os.path.join(os.path.dirname(__file__), "..", "..", "src", "boilerplates")

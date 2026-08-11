@@ -9,7 +9,7 @@ includeFile=ConvertedTopasFile.txt
 {% endif %}
 {% if simulation_type == 'DICOM' %}includeFile = patientDICOM.txt
 {% endif %}
-{% if simulation_type == 'CTDI' %}sv:Ph/Default/LayeredMassGeometryWorlds = 5 "ChamberPlugCentre" "ChamberPlugTop" "ChamberPlugBottom" "ChamberPlugLeft" "ChamberPlugRight"
+{% if simulation_type == 'CTDI' %}sv:Ph/Default/LayeredMassGeometryWorlds = {% if water_chamber_enabled %}10 "ChamberPlugCentre" "ChamberPlugTop" "ChamberPlugBottom" "ChamberPlugLeft" "ChamberPlugRight" "ChamberPlugCentre_water" "ChamberPlugTop_water" "ChamberPlugBottom_water" "ChamberPlugLeft_water" "ChamberPlugRight_water"{% else %}5 "ChamberPlugCentre" "ChamberPlugTop" "ChamberPlugBottom" "ChamberPlugLeft" "ChamberPlugRight"{% endif %}
 {% endif %}
 {% if simulation_type == 'ICRP145' %}includeFile = phantomICRP145.txt
 i:Ts/ParameterizationErrorMaxReports = 5

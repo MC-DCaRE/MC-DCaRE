@@ -87,6 +87,10 @@ class CtdiMode(SimulationMode):
                     os.path.basename(config.ctdi.phase_space_file)
                 )[0],
                 "phase_space_multiple_use": config.ctdi.phase_space_multiple_use,
+                # Needed so the main template can add the water parallel
+                # worlds to LayeredMassGeometryWorlds when enabled (parallel
+                # worlds with material MUST be listed or TOPAS segfaults).
+                "water_chamber_enabled": config.ctdi.water_chamber_enabled,
                 **_compute_angle_values(
                     config.imaging.rotation_direction, config.imaging.start_angle
                 ),
@@ -129,6 +133,10 @@ class CtdiMode(SimulationMode):
             "patient_yaw": "0 deg",
             "patient_pitch": "0 deg",
             "patient_roll_value": 0.0,
+            # Needed so the main template can add the water parallel worlds to
+            # LayeredMassGeometryWorlds when enabled (parallel worlds with
+            # material MUST be listed or TOPAS segfaults).
+            "water_chamber_enabled": config.ctdi.water_chamber_enabled,
             **_compute_angle_values(
                 config.imaging.rotation_direction, config.imaging.start_angle
             ),

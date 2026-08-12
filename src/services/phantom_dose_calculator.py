@@ -154,7 +154,15 @@ class PhantomDoseCalculator:
         """Load dose CSV and group voxel doses by organ name.
 
         Returns a dict mapping organ name to a list of per-voxel doses
-        (in Gy, raw per-history values from TOPAS).
+        (in Gy, raw per-history values from TOPAS). Voxels with zero
+        dose are **included** so that organ means are unbiased. DTM
+        (collision-based) produces zero for voxels with no interaction;
+        excluding them inflates the mean (selection bias). Including
+        them makes DTM converge to TLE within ~4% under CPE.
+
+        Voxels whose material ID is not in the .material file (e.g. ID 0
+        for air/outside-body regions) are skipped, as are out-of-bounds
+        indices and the sentinel mat_id == -1.
         """
         grid = self.grid
         materials = self.materials
@@ -169,17 +177,15 @@ class PhantomDoseCalculator:
                     continue
                 ix, iy, iz = int(parts[0]), int(parts[1]), int(parts[2])
                 dose = float(parts[3])
-                if dose <= 0:
-                    continue
                 if ix >= grid.shape[0] or iy >= grid.shape[1] or iz >= grid.shape[2]:
                     continue
                 mat_id = int(grid[ix, iy, iz])
-                if mat_id == -1:
-                    continue  # voxel outside phantom body
-                organ = materials.get(mat_id, "Unknown")
+                if mat_id == -1 or mat_id not in materials:
+                    continue  # outside phantom body or unmapped (air)
+                organ = materials[mat_id]
                 organ_doses.setdefault(organ, []).append(dose)
 
-        logger.info("Loaded dose data: %d organs with non-zero dose", len(organ_doses))
+        logger.info("Loaded dose data: %d organs", len(organ_doses))
         return organ_doses
 
     @property
@@ -213,8 +219,9 @@ class PhantomDoseCalculator:
                 uses the simulated mAs from metadata.
             dcf_override: DCF to use instead of calibration.yaml lookup.
             scorer_type: Which scorer's DCF to use (``"tle"``, ``"dtw"``,
-                or ``"dtm"``). Defaults to ``"dtm"`` (the phantom's
-                TsTetGeomScorer scores DoseToMedium).
+                or ``"dtm"``). Defaults to ``"tle"``. Both TLE (dcf_tle)
+                and DTM (dcf_water_dtm) DCFs are CTDI-derived and
+                transferable to the phantom.
 
         Returns:
             :class:`EffectiveDoseResult` with full provenance.
@@ -250,9 +257,13 @@ class PhantomDoseCalculator:
                     metadata.get("total_histories"),
                 )
             # Use a representative organ dose to get the normalization constants
-            # (the scale factor is the same for all organs since it's per-history)
-            first_organ = next(iter(self.organ_doses.values()))
-            representative_dose = float(np.mean(first_organ))
+            # (the scale factor is the same for all organs since it's per-history).
+            # Pick the organ with the highest mean to avoid organs whose mean is
+            # zero (far-from-beam organs at low history counts may have all-zero
+            # DTM voxels, which would cause division-by-zero).
+            representative_dose = max(
+                float(np.mean(doses)) for doses in self.organ_doses.values()
+            )
             norm = calibration_service.normalize_dose(
                 representative_dose,
                 norm_metadata,

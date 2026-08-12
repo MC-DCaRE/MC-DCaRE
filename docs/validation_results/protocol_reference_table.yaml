@@ -1,0 +1,257 @@
+# TrueBeam CBCT protocol reference parameters
+# Source: manufacturer reference table
+# Trajectory: Half = 360° rotation, Full = 360° rotation (different collimator)
+# Fan: SFOV = Small Field of View (Full Fan bowtie), LFOV = Large Field of View (Half Fan bowtie)
+
+protocols:
+  - name: "4D Spotlight"
+    dose_mSv: 1.6
+    base_mode: Standard
+    trajectory: Half
+    kV: 125
+    mAs_per_frame: 0.8
+    frames_per_s: 7
+    deg_per_s: 3
+    fan: Full (SFOV)
+    num_projections: 467
+    acq_time_s: 67
+    exposure_mAs: 373.6
+    ctdi_mGy: 6.1
+
+  - name: "4D Thorax"
+    dose_mSv: 3.3
+    base_mode: Standard
+    trajectory: Full
+    kV: 125
+    mAs_per_frame: 0.8
+    frames_per_s: 7
+    deg_per_s: 3
+    fan: Half (LFOV)
+    num_projections: 840
+    acq_time_s: 120
+    exposure_mAs: 671.2
+    ctdi_mGy: 9.9
+
+  - name: "Abdo Spotlight"
+    dose_mSv: 1.2
+    base_mode: Spotlight
+    trajectory: Half
+    kV: 125
+    mAs_per_frame: 0.8
+    frames_per_s: 15
+    deg_per_s: 6
+    fan: Full (SFOV)
+    num_projections: 500
+    acq_time_s: 33
+    exposure_mAs: 400.8
+    ctdi_mGy: 6.6
+
+  - name: "Abdomen"
+    dose_mSv: 2.8
+    base_mode: Thorax
+    trajectory: Full
+    kV: 125
+    mAs_per_frame: 0.8
+    frames_per_s: 15
+    deg_per_s: 6
+    fan: Half (LFOV)
+    num_projections: 900
+    acq_time_s: 60
+    exposure_mAs: 716.0
+    ctdi_mGy: 10.6
+
+  - name: "Breast 360"
+    dose_mSv: 0.2
+    base_mode: Thorax
+    trajectory: Full
+    kV: 125
+    mAs_per_frame: 0.1
+    frames_per_s: 15
+    deg_per_s: 6
+    fan: Half (LFOV)
+    num_projections: 900
+    acq_time_s: 60
+    exposure_mAs: 89.5
+    ctdi_mGy: 1.3
+
+  - name: "Extremity Spotlight"
+    dose_mSv: 0.5
+    base_mode: Head
+    trajectory: Half
+    kV: 100
+    mAs_per_frame: 0.3
+    frames_per_s: 15
+    deg_per_s: 6
+    fan: Full (SFOV)
+    num_projections: 500
+    acq_time_s: 33
+    exposure_mAs: 150.3
+    ctdi_mGy: 3.2
+
+  - name: "Head"
+    dose_mSv: 0.5
+    base_mode: Standard
+    trajectory: Half
+    kV: 100
+    mAs_per_frame: 0.3
+    frames_per_s: 15
+    deg_per_s: 6
+    fan: Full (SFOV)
+    num_projections: 500
+    acq_time_s: 33
+    exposure_mAs: 150.3
+    ctdi_mGy: 3.2
+
+  - name: "Head and Shoulders"
+    dose_mSv: 0.3
+    base_mode: Thorax
+    trajectory: Full
+    kV: 125
+    mAs_per_frame: 0.3
+    frames_per_s: 15
+    deg_per_s: 6
+    fan: Half (LFOV)
+    num_projections: 900
+    acq_time_s: 60
+    exposure_mAs: 268.5
+    ctdi_mGy: 4.0
+
+  - name: "Head SRS"
+    dose_mSv: 1.8
+    base_mode: Head
+    trajectory: Full
+    kV: 100
+    mAs_per_frame: 0.6
+    frames_per_s: 15
+    deg_per_s: 6
+    fan: Full (SFOV)
+    num_projections: 900
+    acq_time_s: 60
+    exposure_mAs: 537.0
+    ctdi_mGy: 11.3
+
+  - name: "Image Gently"
+    dose_mSv: null
+    base_mode: Standard
+    trajectory: Half
+    kV: 80
+    mAs_per_frame: 0.2
+    frames_per_s: 15
+    deg_per_s: 6
+    fan: Full (SFOV)
+    num_projections: 500
+    acq_time_s: 33
+    exposure_mAs: 100.2
+    ctdi_mGy: 0.9
+
+  - name: "Paediatric Body"
+    dose_mSv: null
+    base_mode: Image Gently
+    trajectory: Half
+    kV: 80
+    mAs_per_frame: 0.2
+    frames_per_s: 15
+    deg_per_s: 6
+    fan: Full (SFOV)
+    num_projections: 500
+    acq_time_s: 33
+    exposure_mAs: 100.2
+    ctdi_mGy: 0.9
+
+  - name: "Paediatric Head"
+    dose_mSv: null
+    base_mode: Image Gently
+    trajectory: Half
+    kV: 80
+    mAs_per_frame: 0.1
+    frames_per_s: 15
+    deg_per_s: 6
+    fan: Full (SFOV)
+    num_projections: 500
+    acq_time_s: 33
+    exposure_mAs: 50.1
+    ctdi_mGy: 0.5
+
+  - name: "Pelvis"
+    dose_mSv: 4.2
+    base_mode: Standard
+    trajectory: Full
+    kV: 125
+    mAs_per_frame: 1.2
+    frames_per_s: 15
+    deg_per_s: 6
+    fan: Half (LFOV)
+    num_projections: 900
+    acq_time_s: 60
+    exposure_mAs: 1074.0
+    ctdi_mGy: 15.9
+
+  - name: "Pelvis Large"
+    dose_mSv: null
+    base_mode: Pelvis Obese
+    trajectory: Full
+    kV: 140
+    mAs_per_frame: 1.9
+    frames_per_s: 15
+    deg_per_s: 6
+    fan: Half (LFOV)
+    num_projections: 900
+    acq_time_s: 60
+    exposure_mAs: 1700.5
+    ctdi_mGy: 37.1
+
+  - name: "Pelvis Spotlight"
+    dose_mSv: 2.2
+    base_mode: Spotlight
+    trajectory: Half
+    kV: 125
+    mAs_per_frame: 1.5
+    frames_per_s: 15
+    deg_per_s: 6
+    fan: Full (SFOV)
+    num_projections: 500
+    acq_time_s: 33
+    exposure_mAs: 751.5
+    ctdi_mGy: 12.3
+
+  - name: "SBRT Spine"
+    dose_mSv: 1.7
+    base_mode: Thorax
+    trajectory: Full
+    kV: 125
+    mAs_per_frame: 0.4
+    frames_per_s: 15
+    deg_per_s: 6
+    fan: Half (LFOV)
+    num_projections: 900
+    acq_time_s: 60
+    exposure_mAs: 358.0
+    ctdi_mGy: 5.3
+
+  - name: "Thorax"
+    dose_mSv: 1.3
+    base_mode: Standard
+    trajectory: Full
+    kV: 125
+    mAs_per_frame: 0.3
+    frames_per_s: 15
+    deg_per_s: 6
+    fan: Half (LFOV)
+    num_projections: 900
+    acq_time_s: 60
+    exposure_mAs: 268.5
+    ctdi_mGy: 4.0
+
+  - name: "Thorax Spotlight"
+    dose_mSv: 0.7
+    base_mode: Spotlight
+    trajectory: Half
+    kV: 125
+    mAs_per_frame: 0.3
+    frames_per_s: 15
+    deg_per_s: 6
+    fan: Full (SFOV)
+    num_projections: 500
+    acq_time_s: 33
+    exposure_mAs: 150.3
+    ctdi_mGy: 2.5

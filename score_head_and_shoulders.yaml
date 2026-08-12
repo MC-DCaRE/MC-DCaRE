@@ -9,7 +9,7 @@ imaging:
   simulation_type: CTDI
   rotation_direction: CBCT Anticlockwise
   imaging_mode: Head and Shoulders
-  exposure: '150 mAs'
+  exposure: '268.5 mAs'
   sequential_times: '1'
 ctdi:
   couch_enabled: false

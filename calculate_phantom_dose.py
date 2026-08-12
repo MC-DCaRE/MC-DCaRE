@@ -66,12 +66,11 @@ def main() -> None:
         "--scorer-type",
         default="tle",
         choices=["tle", "dtw", "dtm"],
-        help="Scorer type for DCF lookup (default: tle). TLE is fluence-based "
-        "and the only CTDI-derived DCF that transfers to the phantom "
-        "(dcf_tle, ~+37% vs reference). DTM is collision-based and has no "
-        "non-circular CTDI-derived DCF (the water-chamber dcf_water_dtm does "
-        "not transfer to body tissue, +500%; the prior body dcf_dtm was "
-        "circular, derived from the reference effective dose).",
+        help="Scorer type for DCF lookup (default: tle). TLE uses dcf_tle, "
+        "DTM uses dcf_water_dtm, DTW uses dcf_dtw. Both TLE and DTM "
+        "DCFs are CTDI-derived and transfer to the phantom (they agree "
+        "within 4%: TLE 5.70 mSv, DTM 5.46 mSv on the 125 kV HF pelvis "
+        "protocol, consistent with the 5.4 mSv Hauri 2017 value).",
     )
     parser.add_argument(
         "--dose-file",

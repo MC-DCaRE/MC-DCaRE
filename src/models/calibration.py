@@ -27,17 +27,16 @@ class CalibrationEntry:
     """A single (kV, fan_mode) calibration measurement entry.
 
     Stores per-scorer DCFs for flexibility: ``dcf_tle`` (Track Length
-    Estimator), ``dcf_dtw`` (Dose To Water), ``dcf_dtm`` (Dose To Medium,
-    body-tissue / phantom), and ``dcf_water_dtm`` (Dose To Medium in the
-    water-filled CTDI chamber plug). Only the relevant DCF needs to be
-    populated; the others default to ``None``.
+    Estimator), ``dcf_dtw`` (Dose To Water), and ``dcf_water_dtm`` (Dose To
+    Medium in the water-filled CTDI chamber plug). Only the relevant DCF
+    needs to be populated; the others default to ``None``.
 
-    Note that ``dcf_dtm`` and ``dcf_water_dtm`` are NOT interchangeable:
-    ``dcf_dtm`` is the body-tissue DCF (from the reference effective dose,
-    for phantom organ-dose), while ``dcf_water_dtm`` is the CTDI-phantom
-    water-chamber DCF (for CTDI-mode DTM-based CTDIw). DTM is collision-based
-    so the DCF is geometry/material-specific and does not transfer between
-    the CTDI chamber and body tissue.
+    ``dcf_dtm`` (body-tissue Dose To Medium) is retained for backward
+    compatibility but is always ``None`` in the current calibration — the
+    prior value was circular (derived from the reference effective dose)
+    and has been removed. Both ``dcf_tle`` and ``dcf_water_dtm`` are
+    CTDI-derived, non-circular, and transfer to the voxelized phantom
+    (they agree within 4% on effective dose).
     """
 
     kV: int

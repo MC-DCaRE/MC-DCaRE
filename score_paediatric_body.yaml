@@ -9,7 +9,7 @@ imaging:
   simulation_type: CTDI
   rotation_direction: CBCT Anticlockwise
   imaging_mode: Paediatric Body
-  exposure: '150 mAs'
+  exposure: '100.2 mAs'
   sequential_times: '1'
 ctdi:
   couch_enabled: false

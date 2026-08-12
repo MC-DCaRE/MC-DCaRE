@@ -9,7 +9,7 @@ imaging:
   simulation_type: CTDI
   rotation_direction: CBCT Anticlockwise
   imaging_mode: Extremity Spotlight
-  exposure: '750 mAs'
+  exposure: '150.3 mAs'
   sequential_times: '1'
 ctdi:
   couch_enabled: false

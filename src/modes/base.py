@@ -6,7 +6,7 @@ import logging
 import os
 import shutil
 from abc import ABC, abstractmethod
-from typing import Dict
+from typing import Dict, Optional
 
 from src.config import SimulationConfig
 from src.models.quantity import Quantity
@@ -62,8 +62,12 @@ class SimulationMode(ABC):
         ...
 
     @abstractmethod
-    def get_sub_template_name(self, config: SimulationConfig) -> str:
-        """Return the Jinja2 template filename for the sub-include file."""
+    def get_sub_template_name(self, config: SimulationConfig) -> Optional[str]:
+        """Return the Jinja2 template filename for the sub-include file.
+
+        Return None when the sub-include is a static file (not rendered), so
+        the orchestrator skips the render step.
+        """
         ...
 
     @abstractmethod

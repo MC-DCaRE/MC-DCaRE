@@ -214,10 +214,21 @@ class CtdiConfig:
 
 @dataclass(frozen=True)
 class PhantomConfig:
-    """ICRP 145 reference phantom placement, couch, and organ-scoring parameters."""
+    """ICRP reference phantom placement, couch, and organ-scoring parameters.
+
+    Phantom selection resolves from ``phantom_age`` (adult | 0y | 1y | 5y | 10y
+    | 15y), ``phantom_sex`` (AM | AF), and ``phantom_size_percentile``
+    (10 | 50 | 90) via :meth:`resolve_phantom_name`. An explicit ``phantom_name``
+    overrides the resolver.
+    """
 
     phantom_data_directory: str = "data/P145/Phantom_data"
+    phantom_voxel_directory: str = "data/P145/voxelized"
     phantom_sex: str = "AM"
+    phantom_age: str = "adult"
+    phantom_size_percentile: int = 50
+    phantom_voxel_size_mm: float = 5.0
+    use_voxel_phantom: bool = True
     phantom_name: str = ""
     trans_x: Quantity = _q(0.0, "cm")
     trans_y: Quantity = _q(0.0, "cm")
@@ -239,6 +250,50 @@ class PhantomConfig:
 
     def __post_init__(self) -> None:
         _coerce_quantities(self, _PHANTOM_Q_FIELDS)
+        if self.phantom_sex not in ("AM", "AF"):
+            raise ValueError(
+                "phantom.phantom_sex must be 'AM' or 'AF', got %r" % self.phantom_sex
+            )
+        if self.phantom_age not in ("adult", "0y", "1y", "5y", "10y", "15y"):
+            raise ValueError(
+                "phantom.phantom_age must be adult/0y/1y/5y/10y/15y, got %r"
+                % self.phantom_age
+            )
+        if self.phantom_size_percentile not in (10, 50, 90):
+            raise ValueError(
+                "phantom.phantom_size_percentile must be 10/50/90, got %s"
+                % self.phantom_size_percentile
+            )
+        if self.phantom_voxel_size_mm <= 0:
+            raise ValueError(
+                "phantom.phantom_voxel_size_mm must be positive, got %s"
+                % self.phantom_voxel_size_mm
+            )
+
+    def resolve_phantom_name(self) -> str:
+        """Resolve the phantom name from age/sex/percentile.
+
+        ``phantom_name`` (if set) overrides; otherwise the name is built as
+        ``MRCP_{sex}`` (adult), ``MRCP_{sex}_{age}`` (paediatric), with a
+        ``_p{percentile}`` suffix for non-50th-percentile size-library members.
+        """
+        if self.phantom_name:
+            return self.phantom_name
+        name = "MRCP_{}".format(self.phantom_sex)
+        if self.phantom_age != "adult":
+            name += "_{}".format(self.phantom_age)
+        if self.phantom_size_percentile != 50:
+            name += "_p{}".format(self.phantom_size_percentile)
+        return name
+
+    def resolve_voxel_directory(self) -> str:
+        """Resolve the voxelized-phantom directory for the resolved name."""
+        return os.path.join(
+            self.phantom_voxel_directory,
+            "{}_{}mm".format(
+                self.resolve_phantom_name(), "%g" % self.phantom_voxel_size_mm
+            ),
+        )
 
 
 # Mode field → config dict key mapping for _resolve_imaging_mode().

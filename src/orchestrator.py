@@ -4,6 +4,7 @@ import logging
 import os
 import shutil
 from datetime import datetime
+from typing import Optional
 
 import yaml
 
@@ -169,10 +170,11 @@ class Orchestrator:
         main_context = mode.build_main_context(config)
         renderer.render(mode.main_template_name, main_context, mode.main_output_name)
 
-        sub_template_name: str = mode.get_sub_template_name(config)
-        sub_output_name: str = mode.get_sub_file_name(config)
-        sub_context = mode.build_sub_context(config)
-        renderer.render(sub_template_name, sub_context, sub_output_name)
+        sub_template_name: Optional[str] = mode.get_sub_template_name(config)
+        if sub_template_name is not None:
+            sub_output_name: str = mode.get_sub_file_name(config)
+            sub_context = mode.build_sub_context(config)
+            renderer.render(sub_template_name, sub_context, sub_output_name)
 
         voltage: float = config.imaging.anode_voltage.value
         exposure: float = config.imaging.exposure.value

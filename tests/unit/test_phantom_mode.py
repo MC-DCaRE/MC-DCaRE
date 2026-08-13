@@ -146,16 +146,26 @@ class TestBuildSubContext:
 
 
 class TestGetSubFileName:
-    def test_returns_phantom_icrp145_txt(self, make_config: Any) -> None:
+    def test_voxel_path_default(self, make_config: Any) -> None:
         mode = PhantomMode()
-        config = make_config()
+        config = make_config()  # use_voxel_phantom defaults True
+        assert mode.get_sub_file_name(config) == "phantomVoxel.txt"
+
+    def test_legacy_tet_path_when_disabled(self, make_config: Any) -> None:
+        mode = PhantomMode()
+        config = make_config(use_voxel_phantom=False)
         assert mode.get_sub_file_name(config) == "phantomICRP145.txt"
 
 
 class TestGetSubTemplateName:
-    def test_returns_phantom_icrp145_j2(self, make_config: Any) -> None:
+    def test_voxel_path_returns_none(self, make_config: Any) -> None:
         mode = PhantomMode()
-        config = make_config()
+        config = make_config()  # use_voxel_phantom defaults True
+        assert mode.get_sub_template_name(config) is None
+
+    def test_legacy_path_returns_tetmesh_template(self, make_config: Any) -> None:
+        mode = PhantomMode()
+        config = make_config(use_voxel_phantom=False)
         assert mode.get_sub_template_name(config) == "phantomICRP145.j2"
 
 
@@ -168,9 +178,9 @@ class TestComputeHistories:
 
 
 class TestPrepareRun:
-    def test_copies_required_files(self, make_config: Any) -> None:
+    def test_copies_required_files_legacy(self, make_config: Any) -> None:
         mode = PhantomMode()
-        config = make_config(fan_mode="Full Fan")
+        config = make_config(fan_mode="Full Fan", use_voxel_phantom=False)
         with patch("src.modes.phantom_mode.shutil.copy") as mock_copy:
             mode.prepare_run(config, "/rundir", "/project")
             assert mock_copy.call_count == 7
@@ -180,6 +190,25 @@ class TestPrepareRun:
                 "/project/src/boilerplates/TOPAS_includeFiles/fullfan.txt",
                 "/rundir",
             )
+
+    def test_voxel_path_copies_static_voxel_files(
+        self, make_config: Any, tmp_path: Any
+    ) -> None:
+        mode = PhantomMode()
+        # Stage a voxel directory with the two contract files.
+        voxel_dir = tmp_path / "MRCP_AM_5mm"
+        voxel_dir.mkdir()
+        (voxel_dir / "phantomVoxel.txt").write_text("# voxel phantom")
+        (voxel_dir / "icrp_materials.txt").write_text("# materials")
+        config = make_config(
+            fan_mode="Full Fan",
+            use_voxel_phantom=True,
+            phantom_voxel_directory=str(tmp_path),
+        )
+        with patch("src.modes.phantom_mode.shutil.copy") as mock_copy:
+            mode.prepare_run(config, "/rundir", "/project")
+            mock_copy.assert_any_call(str(voxel_dir / "phantomVoxel.txt"), "/rundir")
+            mock_copy.assert_any_call(str(voxel_dir / "icrp_materials.txt"), "/rundir")
 
     def test_does_not_copy_dicom_artifacts(self, make_config: Any) -> None:
         mode = PhantomMode()

@@ -54,7 +54,7 @@ def fake_project(tmp_path: Any) -> Any:
         "{% if simulation_type == 'DICOM' %}includeFile = patientDICOM.txt\n{% endif %}"
         "{% if simulation_type == 'CTDI' %}sv:Ph/Default/LayeredMassGeometryWorlds = 5"
         ' "ChamberPlugCentre" "ChamberPlugTop" "ChamberPlugBottom" "ChamberPlugLeft" "ChamberPlugRight"\n{% endif %}'
-        "{% if simulation_type == 'ICRP145' %}includeFile = phantomICRP145.txt\n{% endif %}"
+        "{% if simulation_type == 'ICRP145' %}{% if use_voxel_phantom %}includeFile = phantomVoxel.txt\n{% else %}includeFile = phantomICRP145.txt\n{% endif %}{% endif %}"
         "i:Ts/Seed = {{ seed }}\n"
         "i:Ts/NumberOfThreads = {{ threads }}\n"
         's:Ts/G4DataDirectory = "{{ g4_data_directory }}"\n'
@@ -401,20 +401,19 @@ class TestICRP145DryRunPipeline:
         head_in_tmp: str = os.path.join(project_root, "tmp", "headsourcecode.txt")
         with open(head_in_tmp) as f:
             head_content: str = f.read()
-        assert "includeFile = phantomICRP145.txt" in head_content
+        # Voxel path is the default -> head includes phantomVoxel.txt.
+        assert "includeFile = phantomVoxel.txt" in head_content
         assert "includeFile = patientDICOM.txt" not in head_content
         assert "sv:Ph/Default/LayeredMassGeometryWorlds" not in head_content
 
-        sub_in_tmp: str = os.path.join(project_root, "tmp", "phantomICRP145.txt")
-        with open(sub_in_tmp) as f:
-            sub_content: str = f.read()
-        assert 'Type="TsTetGeom"' in sub_content
-        assert "MRCP_AM.node" in sub_content
-        assert 'Quantity = "TsTetGeomScorer"' in sub_content
+        # The orchestrator must NOT render the (broken) TsTetGeom template when
+        # use_voxel_phantom is True: phantomICRP145.txt is absent from tmp/.
+        assert not os.path.isfile(
+            os.path.join(project_root, "tmp", "phantomICRP145.txt")
+        )
 
         for fname in [
             "headsourcecode.txt",
-            "phantomICRP145.txt",
             "Muen.dat",
             "ConvertedTopasFile.txt",
             "head_calibration_factor.txt",
@@ -425,3 +424,55 @@ class TestICRP145DryRunPipeline:
 
         assert not os.path.isfile(os.path.join(rundir, "patientDICOM.txt"))
         assert not os.path.isfile(os.path.join(rundir, "HUtoMaterialSchneider.txt"))
+
+    def test_legacy_tetmesh_phantom_pipeline(self, fake_project: Any) -> None:
+        """The legacy TsTetGeom path is still selectable via use_voxel_phantom=False."""
+        project_root: str = str(fake_project)
+        config: SimulationConfig = SimulationConfig(
+            general=GeneralConfig(
+                topas_directory="/test/topas",
+                histories="100",
+            ),
+            imaging=ImagingConfig(
+                simulation_type="ICRP145",
+                fan_mode="Full Fan",
+                imaging_mode="Pelvis",
+                anode_voltage="125 kV",
+                exposure="100 mAs",
+                start_angle="0 deg",
+                rotation_rate="0.4 deg/s",
+                timeline_end="501.0 s",
+                sequential_times="1000",
+                blade_x1="6.175536078965273 cm",
+                blade_x2="-6.175536078965273 cm",
+                blade_y1="5.814471115800571 cm",
+                blade_y2="-5.814471115800571 cm",
+            ),
+            dicom=DicomConfig(),
+            ctdi=CtdiConfig(),
+            phantom=PhantomConfig(
+                phantom_data_directory="/test/phantom_data",
+                phantom_sex="AM",
+                use_voxel_phantom=False,
+                trans_x="0.0 cm",
+                rot_x="90.0 deg",
+                couch_enabled=True,
+                graphics_enabled=False,
+            ),
+        )
+
+        with patch(
+            "src.orchestrator.SpectrumGenerator.generate", side_effect=_mock_generate
+        ):
+            Orchestrator(project_root).run(config, dry_run=True)
+
+        head_in_tmp = os.path.join(project_root, "tmp", "headsourcecode.txt")
+        with open(head_in_tmp) as f:
+            head_content = f.read()
+        assert "includeFile = phantomICRP145.txt" in head_content
+
+        sub_in_tmp = os.path.join(project_root, "tmp", "phantomICRP145.txt")
+        with open(sub_in_tmp) as f:
+            sub_content = f.read()
+        assert 'Type="TsTetGeom"' in sub_content
+        assert "MRCP_AM.node" in sub_content

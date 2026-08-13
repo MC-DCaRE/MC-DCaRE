@@ -13,8 +13,9 @@ includeFile=ConvertedTopasFile.txt
 {% endif %}
 {% if simulation_type == 'CTDI' %}sv:Ph/Default/LayeredMassGeometryWorlds = {% if water_chamber_enabled %}10 "ChamberPlugCentre" "ChamberPlugTop" "ChamberPlugBottom" "ChamberPlugLeft" "ChamberPlugRight" "ChamberPlugCentre_water" "ChamberPlugTop_water" "ChamberPlugBottom_water" "ChamberPlugLeft_water" "ChamberPlugRight_water"{% else %}5 "ChamberPlugCentre" "ChamberPlugTop" "ChamberPlugBottom" "ChamberPlugLeft" "ChamberPlugRight"{% endif %}
 {% endif %}
-{% if simulation_type == 'ICRP145' %}includeFile = phantomICRP145.txt
-i:Ts/ParameterizationErrorMaxReports = 5
+{% if simulation_type == 'ICRP145' %}{% if use_voxel_phantom %}includeFile = phantomVoxel.txt
+{% else %}includeFile = phantomICRP145.txt
+{% endif %}i:Ts/ParameterizationErrorMaxReports = 5
 {% endif %}
 
 ## Some Control Parameters ####################

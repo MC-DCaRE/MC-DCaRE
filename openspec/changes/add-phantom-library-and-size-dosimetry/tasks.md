@@ -6,25 +6,25 @@
 
 ## 1. Unify voxel phantom path
 
-- [ ] 1.1 `src/boilerplates/TOPAS_includeFiles/phantomVoxel.j2` (TsBox + VoxelMaterials ref)
-- [ ] 1.2 `headsourcecode_boilerplate.j2` routes ICRP145 -> phantomVoxel.j2; deprecate TsTetGeom path
-- [ ] 1.3 remove `scripts/run_full_calibration.py:swap_voxel_phantom` post-hoc patch
-- [ ] 1.4 dry-run renders the voxel form without the swap script
+- [~] 1.1 `phantomVoxel.txt` form produced directly by the voxelizer (B3 emits it; no separate .j2 needed)
+- [x] 1.2 `headsourcecode_boilerplate.j2` routes ICRP145 -> phantomVoxel.txt when `use_voxel_phantom` (default True); phantomICRP145.txt when False
+- [x] 1.3 `phantom_mode.prepare_run` copies phantomVoxel.txt + icrp_materials.txt from resolved voxel dir (no post-hoc swap)
+- [~] 1.4 `scripts/run_full_calibration.py:swap_voxel_phantom` deprecated (no longer needed when use_voxel_phantom=True; left in place for legacy)
 
 ## 2. Phantom library config
 
-- [ ] 2.1 `PhantomConfig`: add `phantom_age`, `phantom_size_percentile`, `phantom_voxel_size_mm`, `phantom_voxel_directory`
-- [ ] 2.2 `phantom_name` resolver: age + sex + percentile
-- [ ] 2.3 `phantom_mode.py:build_sub_context`: emit voxel context (dims, bins, materials include, origin)
-- [ ] 2.4 size-scaled couch posterior offset (replace hardcoded 14.0 cm)
-- [ ] 2.5 unit tests for name resolution + context build
+- [x] 2.1 `PhantomConfig`: add `phantom_age`, `phantom_size_percentile`, `phantom_voxel_size_mm`, `phantom_voxel_directory`
+- [x] 2.2 `phantom_name` resolver: age + sex + percentile (`resolve_phantom_name()` + `resolve_voxel_directory()`)
+- [x] 2.3 `phantom_mode.py:build_sub_context`: emit voxel context + age-scaled couch offset
+- [~] 2.4 size-scaled couch posterior offset (scale table added; needs per-age validation against real paediatric mesh extents)
+- [x] 2.5 unit tests for name resolution + voxel dir + validation (TestPhantomResolution, 8 tests)
 
 ## 3. One voxelizer entry point
 
-- [ ] 3.1 `tools/voxelize_phantom.py` emits `.npy` + `phantomVoxel.txt` + `icrp_materials.txt`
-- [ ] 3.2 generalize/retire `scripts/regenerate_voxel_phantom.py` + `scripts/voxelize_mrcp_am_fast.py`
-- [ ] 3.3 document the voxelized-phantom directory contract
-- [ ] 3.4 voxelize adult female -> `data/P145/voxelized/MRCP_AF_5mm/` (2-phantom baseline)
+- [x] 3.1 `tools/voxelize_phantom.py` emits `.npy` + `phantomVoxel.txt` + `icrp_materials.txt` (verified on Omed mesh)
+- [~] 3.2 generalize/retire `scripts/regenerate_voxel_phantom.py` + `scripts/voxelize_mrcp_am_fast.py` (logic ported to voxelize_phantom; old scripts left as legacy)
+- [x] 3.3 document the voxelized-phantom directory contract (icrp156_ingest.md + tool docstrings)
+- [ ] 3.4 voxelize adult female -> `data/P145/voxelized/MRCP_AF_5mm/` (needs MRCP_AF run)
 
 ## 4. Post-processing + CLI
 

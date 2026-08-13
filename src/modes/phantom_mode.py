@@ -5,13 +5,31 @@ from __future__ import annotations
 import logging
 import os
 import shutil
-from typing import Dict
+from typing import Dict, Optional
 
 from src.config import SimulationConfig
 from src.modes.base import SimulationMode, _compute_angle_values
 from src.simulation_runner import SimulationRunner
 
 logger = logging.getLogger(__name__)
+
+
+# Approximate torso-depth scale factors relative to the adult MRCP, used to scale
+# the couch posterior offset (adult = 14 cm) for paediatric/smaller phantoms.
+# Values are rough body-size fractions from ICRP 89 reference masses/heights.
+_COUCH_OFFSET_SCALE: Dict[str, float] = {
+    "adult": 1.0,
+    "15y": 0.9,
+    "10y": 0.75,
+    "5y": 0.6,
+    "1y": 0.45,
+    "0y": 0.35,
+}
+
+
+def _couch_offset_scale(age: str) -> float:
+    """Return the couch posterior-offset scale factor for a phantom age."""
+    return _COUCH_OFFSET_SCALE.get(age, 1.0)
 
 
 class PhantomMode(SimulationMode):
@@ -40,6 +58,7 @@ class PhantomMode(SimulationMode):
             "coll4_trans_x": str(config.imaging.blade_y2),
             "fan_mode": config.imaging.fan_mode,
             "legacy_bowtie": config.imaging.legacy_bowtie,
+            "use_voxel_phantom": config.phantom.use_voxel_phantom,
             "graphics_enabled": config.phantom.graphics_enabled,
             "simulation_type": "ICRP145",
             "phantom_size": "",
@@ -53,22 +72,23 @@ class PhantomMode(SimulationMode):
         }
 
     def build_sub_context(self, config: SimulationConfig) -> Dict[str, object]:
-        phantom_name = config.phantom.phantom_name or "MRCP_{}".format(
-            config.phantom.phantom_sex
-        )
+        phantom_name = config.phantom.resolve_phantom_name()
+        voxel_directory = config.phantom.resolve_voxel_directory()
         output_filename = "{}_{}_{}_{}_PHANTOM_DOSE".format(
             phantom_name,
             config.imaging.rotation_direction,
             config.imaging.imaging_mode,
             str(config.imaging.start_angle),
         )
-        # Couch top Y position: phantom posterior minus a small gap
-        # The phantom native Y range is approximately ±14 cm; after rotation
-        # the posterior surface sits near the negative-Y side. The couch top
-        # is placed just below it (TransY = posterior - couch half-thickness).
+        # Couch top Y position: phantom posterior minus a small gap.
+        # The adult MRCP posterior sits ~14 cm below isocentre; scale by phantom
+        # age so paediatric/smaller phantoms get a proportionally smaller offset.
+        couch_scale = _couch_offset_scale(config.phantom.phantom_age)
         trans_y_val = config.phantom.trans_y.value
         couch_thickness_val = config.phantom.couch_thickness.value
-        couch_trans_y = "{} cm".format(trans_y_val - 14.0 - couch_thickness_val / 10.0)
+        couch_trans_y = "{} cm".format(
+            trans_y_val - 14.0 * couch_scale - couch_thickness_val / 10.0
+        )
 
         # Parse organ_scoring_ids into TsTetGeomScorer ICRPMaterials vector format
         # Config stores comma-separated organ names; template needs: N "Organ1" "Organ2"
@@ -86,6 +106,7 @@ class PhantomMode(SimulationMode):
             "phantom_directory": os.path.abspath(
                 os.path.join(config.phantom.phantom_data_directory, phantom_name)
             ),
+            "voxel_directory": os.path.abspath(voxel_directory),
             "phantom_name": phantom_name,
             "trans_x": str(config.phantom.trans_x),
             "trans_y": str(config.phantom.trans_y),
@@ -103,9 +124,17 @@ class PhantomMode(SimulationMode):
         }
 
     def get_sub_file_name(self, config: SimulationConfig) -> str:
+        if config.phantom.use_voxel_phantom:
+            return "phantomVoxel.txt"
         return "phantomICRP145.txt"
 
-    def get_sub_template_name(self, config: SimulationConfig) -> str:
+    def get_sub_template_name(self, config: SimulationConfig) -> Optional[str]:
+        # The voxel path uses a static phantomVoxel.txt copied from the resolved
+        # voxel directory by prepare_run (no Jinja2 render); return None so the
+        # orchestrator skips rendering. phantomICRP145.j2 is the legacy TsTetGeom
+        # mesh path (rendered, but TsTetGeom is broken in this build).
+        if config.phantom.use_voxel_phantom:
+            return None
         return "phantomICRP145.j2"
 
     def compute_histories(self, config: SimulationConfig) -> str:
@@ -158,11 +187,18 @@ class PhantomMode(SimulationMode):
 
         core_path = os.path.join(project_root, "tmp", "phantom_replay_core.txt")
 
-        sub_ctx = self.build_sub_context(config)
         sub_template = self.get_sub_template_name(config)
-        sub_output = self.get_sub_file_name(config)
-        renderer.render(sub_template, sub_ctx, sub_output)
-        sub_path = os.path.join(project_root, "tmp", sub_output)
+        if sub_template is not None:
+            sub_ctx = self.build_sub_context(config)
+            sub_output = self.get_sub_file_name(config)
+            renderer.render(sub_template, sub_ctx, sub_output)
+            sub_path = os.path.join(project_root, "tmp", sub_output)
+        else:
+            # Voxel path: the phantom include is the static phantomVoxel.txt
+            # copied from the resolved voxel directory (no render).
+            sub_path = os.path.join(
+                config.phantom.resolve_voxel_directory(), "phantomVoxel.txt"
+            )
 
         with open(output_file, "w") as out:
             with open(core_path) as f:
@@ -200,10 +236,26 @@ class PhantomMode(SimulationMode):
         else:
             shutil.copy(os.path.join(project_root, "tmp", "headsourcecode.txt"), rundir)
             self.copy_common_files(rundir, config, project_root)
-            shutil.copy(
-                os.path.join(project_root, "tmp", self.get_sub_file_name(config)),
-                rundir,
-            )
+            if config.phantom.use_voxel_phantom:
+                # Voxel path: copy the static phantomVoxel.txt + icrp_materials.txt
+                # from the resolved voxel directory (no post-hoc swap needed).
+                voxel_dir = config.phantom.resolve_voxel_directory()
+                for fname in ("phantomVoxel.txt", "icrp_materials.txt"):
+                    src = os.path.join(voxel_dir, fname)
+                    if os.path.exists(src):
+                        shutil.copy(src, rundir)
+                    else:
+                        logger.warning(
+                            "Voxel phantom file %s not found in %s -- run "
+                            "tools/voxelize_phantom.py to populate it",
+                            fname,
+                            voxel_dir,
+                        )
+            else:
+                shutil.copy(
+                    os.path.join(project_root, "tmp", self.get_sub_file_name(config)),
+                    rundir,
+                )
             logger.info("Prepared ICRP 145 phantom run files in %s", rundir)
 
     def execute(

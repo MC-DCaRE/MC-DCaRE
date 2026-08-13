@@ -498,6 +498,62 @@ class TestPhaseSpaceConfig:
             os.unlink(path)
 
 
+class TestPhantomResolution:
+    """PhantomConfig age/sex/percentile name + voxel-directory resolution."""
+
+    def test_default_resolves_adult_male(self) -> None:
+        from src.config import PhantomConfig
+
+        c = PhantomConfig()
+        assert c.resolve_phantom_name() == "MRCP_AM"
+        assert c.resolve_voxel_directory() == "data/P145/voxelized/MRCP_AM_5mm"
+
+    def test_paediatric_name_includes_age(self) -> None:
+        from src.config import PhantomConfig
+
+        c = PhantomConfig(phantom_sex="AF", phantom_age="5y")
+        assert c.resolve_phantom_name() == "MRCP_AF_5y"
+
+    def test_percentile_suffix(self) -> None:
+        from src.config import PhantomConfig
+
+        c = PhantomConfig(phantom_age="10y", phantom_size_percentile=10)
+        assert c.resolve_phantom_name() == "MRCP_AM_10y_p10"
+
+    def test_explicit_name_overrides(self) -> None:
+        from src.config import PhantomConfig
+
+        c = PhantomConfig(phantom_name="Custom_Phantom", phantom_age="1y")
+        assert c.resolve_phantom_name() == "Custom_Phantom"
+
+    def test_invalid_sex_raises(self) -> None:
+        import pytest
+        from src.config import PhantomConfig
+
+        with pytest.raises(ValueError, match="phantom_sex"):
+            PhantomConfig(phantom_sex="MALE")
+
+    def test_invalid_age_raises(self) -> None:
+        import pytest
+        from src.config import PhantomConfig
+
+        with pytest.raises(ValueError, match="phantom_age"):
+            PhantomConfig(phantom_age="3y")
+
+    def test_invalid_percentile_raises(self) -> None:
+        import pytest
+        from src.config import PhantomConfig
+
+        with pytest.raises(ValueError, match="percentile"):
+            PhantomConfig(phantom_size_percentile=25)
+
+    def test_voxel_directory_reflects_size(self) -> None:
+        from src.config import PhantomConfig
+
+        c = PhantomConfig(phantom_voxel_size_mm=2.5, phantom_sex="AF")
+        assert c.resolve_voxel_directory() == "data/P145/voxelized/MRCP_AF_2.5mm"
+
+
 class TestResolveImagingMode:
     """Tests for _resolve_imaging_mode() (tasks 6.4-6.7)."""
 

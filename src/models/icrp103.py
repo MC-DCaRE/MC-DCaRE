@@ -1,4 +1,16 @@
-"""ICRP 103 tissue weighting factors and organ-to-tissue mapping."""
+"""ICRP 103 tissue weighting factors and organ-to-tissue mapping.
+
+Tissue weighting factors (wT) from ICRP Publication 103 (2007),
+Table B.2. The 14 named tissues plus "remainder" sum to 1.0.
+
+The remainder tissue category (wT = 0.12) is applied to the arithmetic
+mean dose of 14 additional tissues (adrenals, heart, kidneys, lymph
+nodes, muscle, oral mucosa, pancreas, prostate/uterus, small intestine,
+spleen, thymus, and others).
+
+:func:`map_organ_to_tissue` maps ICRP 145 organ names (from the MRCP
+phantom material files) to these 15 tissue categories.
+"""
 
 from __future__ import annotations
 

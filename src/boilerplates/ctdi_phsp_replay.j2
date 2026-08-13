@@ -29,6 +29,14 @@ sv:Ph/Default/Modules=1 "g4em-standard_opt4"
 d:Ph/Default/EMRangeMin=100. eV
 d:Ph/Default/EMRangeMax=1.0 MeV
 
+# Register the chamber-plug parallel worlds as mass-geometry worlds.
+# Required by TOPAS whenever the CTDI phantom template creates the parallel
+# worlds (one per plug position); without this the run errors with
+# "Parallel world ChamberPlugX has material, but this world not specified".
+# When water_chamber_enabled, also register the 5 water parallel worlds
+# (listed last so water takes precedence in the chamber region).
+sv:Ph/Default/LayeredMassGeometryWorlds = {% if water_chamber_enabled %}10 "ChamberPlugCentre" "ChamberPlugTop" "ChamberPlugBottom" "ChamberPlugLeft" "ChamberPlugRight" "ChamberPlugCentre_water" "ChamberPlugTop_water" "ChamberPlugBottom_water" "ChamberPlugLeft_water" "ChamberPlugRight_water"{% else %}5 "ChamberPlugCentre" "ChamberPlugTop" "ChamberPlugBottom" "ChamberPlugLeft" "ChamberPlugRight"{% endif %}
+
 # Rotation Group with time feature
 s:Ge/Rotation/Type="Group"
 s:Ge/Rotation/Parent="World"
@@ -40,10 +48,14 @@ d:Ge/Rotation/TransX=0.0 mm
 d:Ge/Rotation/TransY=0.0 mm
 d:Ge/Rotation/TransZ=0.0 mm
 
-# Phase Space Source — attached to Rotation group
+# Phase Space Source — Component controls whether particles rotate:
+#   "World" (default): particles at fixed World positions, beam does NOT rotate.
+#     Correct for stationary CTDI scoring (all chambers via LayeredMassGeometry).
+#   "Rotation": particles inherit Rotation transform (RotZ=Tf/Rotate/Value).
+#     Required for CBCT 360° rotational dose.
 s:So/beam/Type                  = "PhaseSpace"
 s:So/beam/PhaseSpaceFileName    = "{{ phase_space_file }}"
-s:So/beam/Component             = "Rotation"
+s:So/beam/Component             = "{{ phase_space_component | default('World') }}"
 i:So/beam/PhaseSpaceMultipleUse = {{ phase_space_multiple_use }}
 
 # Time Feature ####################################

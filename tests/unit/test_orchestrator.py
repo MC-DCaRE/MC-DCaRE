@@ -69,7 +69,7 @@ class TestRunDicomSimulation:
             with patch.object(orch, "_create_runfolder", return_value="/rundir"):
                 with patch.object(DicomMode, "prepare_run"):
                     with patch.object(DicomMode, "execute"):
-                        orch.run_dicom_simulation(config)
+                        orch.run(config, dry_run=False)
         mock_bm_cls.return_value.reset_tmp.assert_called_once()
 
     @patch("src.orchestrator.SpectrumGenerator")
@@ -96,13 +96,12 @@ class TestRunDicomSimulation:
             with patch.object(orch, "_create_runfolder", return_value="/rundir"):
                 with patch.object(DicomMode, "prepare_run"):
                     with patch.object(DicomMode, "execute"):
-                        orch.run_dicom_simulation(config)
+                        orch.run(config, dry_run=False)
         mock_sg_cls.generate.assert_called_once_with(
             100.0,
             200.0,
             "100000000",
             "/project",
-            1.0,
             fan_mode="Full Fan",
             seed=9,
             threads=1,
@@ -132,7 +131,7 @@ class TestRunDicomSimulation:
             with patch.object(orch, "_create_runfolder", return_value="/rundir"):
                 with patch.object(DicomMode, "prepare_run"):
                     with patch.object(DicomMode, "execute"):
-                        result = orch.run_dicom_simulation(config)
+                        result = orch.run(config, dry_run=False)
         assert result == "/rundir"
 
 
@@ -160,7 +159,7 @@ class TestRunCtdiSimulation:
             with patch.object(orch, "_create_runfolder", return_value="/rundir"):
                 with patch.object(CtdiMode, "prepare_run"):
                     with patch.object(CtdiMode, "execute"):
-                        orch.run_ctdi_simulation(config)
+                        orch.run(config, dry_run=False)
         mock_bm_cls.return_value.reset_tmp.assert_called_once()
 
     @patch("src.orchestrator.SpectrumGenerator")
@@ -187,13 +186,12 @@ class TestRunCtdiSimulation:
             with patch.object(orch, "_create_runfolder", return_value="/rundir"):
                 with patch.object(CtdiMode, "prepare_run"):
                     with patch.object(CtdiMode, "execute"):
-                        orch.run_ctdi_simulation(config)
+                        orch.run(config, dry_run=False)
         mock_sg_cls.generate.assert_called_once_with(
             80.0,
             50.0,
             "100000000",
             "/project",
-            1.0,
             fan_mode="Full Fan",
             seed=9,
             threads=1,
@@ -252,45 +250,6 @@ class TestPrepareOnly:
                 with patch.object(CtdiMode, "prepare_run"):
                     result = orch.prepare_only(config)
         assert result == "/rundir"
-
-
-class TestOrchestratorCalibrationFactor:
-    @patch("src.orchestrator.SpectrumGenerator")
-    @patch("src.orchestrator.BoilerplateManager")
-    def test_passes_calibration_factor(
-        self,
-        mock_bm_cls: MagicMock,
-        mock_sg_cls: MagicMock,
-        make_config: Any,
-    ) -> None:
-        config = make_config(
-            simulation_type="DICOM",
-            topas_directory="/topas/bin",
-            histories="100000",
-            anode_voltage="100 kV",
-            exposure="200 mAs",
-            sequential_times="1000",
-            graphics_enabled=False,
-            dose_calibration_factor="1.0523",
-        )
-        mock_renderer = MagicMock()
-        mock_bm_cls.return_value.create_renderer.return_value = mock_renderer
-        orch = Orchestrator("/project")
-        with patch.object(orch, "boilerplate_manager", mock_bm_cls.return_value):
-            with patch.object(orch, "_create_runfolder", return_value="/rundir"):
-                with patch.object(DicomMode, "prepare_run"):
-                    with patch.object(DicomMode, "execute"):
-                        orch.run(config)
-        mock_sg_cls.generate.assert_called_once_with(
-            100.0,
-            200.0,
-            "100000000",
-            "/project",
-            1.0523,
-            fan_mode="Full Fan",
-            seed=9,
-            threads=1,
-        )
 
 
 class TestCopyConfigYaml:
@@ -448,7 +407,13 @@ class TestOrchestratorPhaseSpace:
         mode = CtdiMode()
         assert mode._get_main_template(config) == "ctdi_phsp_replay.j2"
 
-    def test_write_replay_metadata_adjusts_norm_factor(self, tmp_path: Any) -> None:
+    def test_write_replay_metadata_preserves_norm_factor(self, tmp_path: Any) -> None:
+        """Replay metadata must NOT divide norm_factor by M.
+
+        The M x R scaling is now handled by raw_absolute_dose_Gy dividing by
+        the scorer-active history count read from the CSV, so the scoring
+        metadata is copied through unchanged.
+        """
         metadata = {
             "norm_factor": 1.0e-10,
             "mAs": 100.0,
@@ -464,13 +429,13 @@ class TestOrchestratorPhaseSpace:
         Orchestrator._write_replay_metadata(rundir, str(meta_path), 10)
         with open(os.path.join(rundir, "simulation_metadata.yaml")) as f:
             result = yaml.safe_load(f)
-        assert abs(result["norm_factor"] - 1.0e-11) < 1e-20
+        assert abs(result["norm_factor"] - 1.0e-10) < 1e-20
         assert result["phase_space_multiple_use"] == 10
 
-    def test_write_replay_metadata_adjusts_spectrum_fluence(
+    def test_write_replay_metadata_preserves_spectrum_fluence(
         self, tmp_path: Any
     ) -> None:
-        """New-format metadata: spectrum_fluence is divided by M."""
+        """New-format metadata: spectrum_fluence is preserved (NOT divided by M)."""
         metadata = {
             "total_histories": 1000000,
             "exposure_mAs": 100.0,
@@ -484,9 +449,42 @@ class TestOrchestratorPhaseSpace:
         Orchestrator._write_replay_metadata(rundir, str(meta_path), 10)
         with open(os.path.join(rundir, "simulation_metadata.yaml")) as f:
             result = yaml.safe_load(f)
-        assert abs(result["spectrum_fluence_photons_per_mAs"] - 2.34e7) < 1.0
+        assert abs(result["spectrum_fluence_photons_per_mAs"] - 2.34e8) < 1.0
         assert "norm_factor" not in result
         assert result["phase_space_multiple_use"] == 10
+
+    def test_write_replay_metadata_independent_of_M_and_R(self, tmp_path: Any) -> None:
+        """spectrum_fluence must be identical regardless of M and R.
+
+        The M x R scaling is absorbed by the scorer-active history count in
+        raw_absolute_dose_Gy, so the replay metadata no longer divides
+        spectrum_fluence. The value must be the scoring-run constant for
+        every (M, R).
+        """
+        base = {
+            "total_histories": 1000000,
+            "exposure_mAs": 100.0,
+            "spectrum_fluence_photons_per_mAs": 2.34e8,
+        }
+
+        def run(meta: dict, m: int, r: int) -> float:
+            meta_path = tmp_path / ("meta_%d_%d.yaml" % (m, r))
+            with open(meta_path, "w") as f:
+                yaml.dump(meta, f)
+            rundir = str(tmp_path / ("run_%d_%d" % (m, r)))
+            os.makedirs(rundir)
+            Orchestrator._write_replay_metadata(rundir, str(meta_path), m, r)
+            with open(os.path.join(rundir, "simulation_metadata.yaml")) as f:
+                out = yaml.safe_load(f)
+            assert out["phase_space_sequential_times"] == r
+            return out["spectrum_fluence_photons_per_mAs"]
+
+        m5r1 = run(dict(base), 5, 1)
+        m5r10 = run(dict(base), 5, 10)
+        m1r1 = run(dict(base), 1, 1)
+        # spectrum_fluence unchanged for all (M, R):
+        for val in (m5r1, m5r10, m1r1):
+            assert abs(val - 2.34e8) < 1.0
 
     def test_write_replay_metadata_rejects_invalid_file(self, tmp_path: Any) -> None:
         bad_path = tmp_path / "bad.yaml"
@@ -527,7 +525,9 @@ class TestOrchestratorPhaseSpace:
         Orchestrator._write_replay_metadata(rundir, scoring_metadata, 5)
         with open(os.path.join(rundir, "simulation_metadata.yaml")) as f:
             result = yaml.safe_load(f)
-        assert abs(result["norm_factor"] - 4.0e-11) < 1e-20
+        # norm_factor is preserved unchanged (M x R scaling now handled by
+        # the scorer-active history count in raw_absolute_dose_Gy).
+        assert abs(result["norm_factor"] - 2.0e-10) < 1e-20
 
 
 class TestScoreModeNonDryRun:
@@ -587,13 +587,19 @@ class TestScoreModeNonDryRun:
         with open(stats_path) as f:
             stats = yaml.safe_load(f)
         assert stats["particle_count"] == 10
-        assert stats["mean_energy_keV"] == 60.0
+        assert stats["mean_energy_keV"] == pytest.approx(60.0, abs=0.01)
 
         # Verify .phsp moved to phase_space/.
         assert os.path.isfile(
             os.path.join(rundir, "phase_space", "beam_exit_phsp.phsp")
         )
         assert not os.path.isfile(os.path.join(rundir, "beam_exit_phsp.phsp"))
+
+        # Verify .header sibling moved alongside the .phsp (replay needs both).
+        assert os.path.isfile(
+            os.path.join(rundir, "phase_space", "beam_exit_phsp.header")
+        )
+        assert not os.path.isfile(os.path.join(rundir, "beam_exit_phsp.header"))
 
         # Verify metadata copied to phase_space/.
         assert os.path.isfile(

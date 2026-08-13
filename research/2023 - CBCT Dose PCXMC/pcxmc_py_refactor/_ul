@@ -1,0 +1,4 @@
+dir: cannot access '/b': No such file or directory
+dir: cannot access '*.png': No such file or directory
+dir: cannot access '*.npz': No such file or directory
+dir: cannot access '*.json': No such file or directory

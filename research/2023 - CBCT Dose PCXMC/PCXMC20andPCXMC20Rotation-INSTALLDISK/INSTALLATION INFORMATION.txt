@@ -1,0 +1,18 @@
+Run the program PCXMC20_Setup.exe on this CD to install PCXMC 2.0 in your PC.
+
+The setup program will also install an Excel application (Autocalc-sheet.xls)
+which allows running PCXMC 2.0 in the batch mode: defining simulation conditions, 
+running simulations and obtaining calculation results directly in an Excel-workbook.
+
+The setup program will also install also another program version with a special 
+rotation geometry interface (PCXMC20Rotation.exe) and the Excel-application 
+that can be used with it (AutocalcRotation-sheet.xls).
+
+These supplementary programs will be installed in the same folder with PCXMC20.exe
+(the default location during installation is C:\Program Files\PCXMC\). However, 
+the installation program creates only a shortcut of PCXMC 2.0 and PCXMC20Rotation 
+on the desktop - if you wish to have shortcuts for the other applications, you should 
+make them yourself.
+
+The User's manuals and other program documentation will be put in folder \PCXMC\Manuals 
+in your hard disk.

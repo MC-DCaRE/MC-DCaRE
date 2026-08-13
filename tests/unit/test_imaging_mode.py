@@ -9,9 +9,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from src.models.imaging_mode import (
     IMAGING_MODES,
-    IMAGING_MODE_SELECTION_LABELS,
     ImagingMode,
-    BACKWARD_COMPAT_LOOKUP,
     _FF_BX1,
     _FF_BX2,
     _FF_BY1,
@@ -27,7 +25,7 @@ class TestImagingModeDataclass:
     def test_field_access(self) -> None:
         mode: ImagingMode = IMAGING_MODES["CBCT Clockwise_Image Gently"]
         assert mode.voltage == "80 kV"
-        assert mode.exposure == "100 mAs"
+        assert mode.exposure == "100.2 mAs"
         assert mode.fan_mode == "Full Fan"
         assert mode.timeline_end == "501 s"
 
@@ -39,19 +37,11 @@ class TestImagingModeDataclass:
         except AttributeError:
             pass
 
-    def test_as_tuple_length(self) -> None:
-        mode: ImagingMode = IMAGING_MODES["CBCT Clockwise_Head"]
-        t = mode.as_tuple()
-        assert len(t) == 21
-
     def test_new_field_access(self) -> None:
         mode: ImagingMode = IMAGING_MODES["CBCT Clockwise_Head"]
         assert mode.ctdi_phantom == "16 cm"
         assert mode.dose_factor == "1.0"
         assert mode.start_angle == "0 deg"
-
-    def test_selection_labels_count(self) -> None:
-        assert len(IMAGING_MODE_SELECTION_LABELS) == 21
 
 
 class TestImagingModesLookup:
@@ -91,7 +81,7 @@ class TestImagingModesLookup:
             "CBCT Clockwise_Head and Shoulders",
             "CBCT Clockwise_Head SRS",
             "CBCT Clockwise_Paediatric Body",
-            "CBCT Clockwise_Pediatric Head",
+            "CBCT Clockwise_Paediatric Head",
             "CBCT Clockwise_Pelvis Spotlight",
             "CBCT Clockwise_SBRT Spine",
             "CBCT Clockwise_Thorax Spotlight",
@@ -105,7 +95,7 @@ class TestImagingModesLookup:
             "CBCT Anticlockwise_Head and Shoulders",
             "CBCT Anticlockwise_Head SRS",
             "CBCT Anticlockwise_Paediatric Body",
-            "CBCT Anticlockwise_Pediatric Head",
+            "CBCT Anticlockwise_Paediatric Head",
             "CBCT Anticlockwise_Pelvis Spotlight",
             "CBCT Anticlockwise_SBRT Spine",
             "CBCT Anticlockwise_Thorax Spotlight",
@@ -113,17 +103,6 @@ class TestImagingModesLookup:
         for key in expected_keys:
             assert key in IMAGING_MODES, "Missing key: " + key
         assert len(IMAGING_MODES) == 47
-
-    def test_backward_compat_lookup_count(self) -> None:
-        assert len(BACKWARD_COMPAT_LOOKUP) == 48  # 1 selection + 47 modes
-
-    def test_backward_compat_lookup_list_length(self) -> None:
-        for key, val in BACKWARD_COMPAT_LOOKUP.items():
-            if key == "selection":
-                continue
-            assert len(val) == 21, "Key {} has {} items, expected 21".format(
-                key, len(val)
-            )
 
     def test_kv_kv_modes_have_n_a_for_new_fields(self) -> None:
         for name in [

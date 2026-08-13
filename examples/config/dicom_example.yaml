@@ -11,14 +11,12 @@ general:
   seed: '9'
   threads: '4'
   histories: '100000'
-  dose_calibration_factor: '1.0'
   log_filename: simulation.log
 imaging:
   simulation_type: DICOM
   rotation_direction: CBCT Clockwise
   imaging_mode: Head
   sequential_times: '1000'
-  time_verbosity: '0'
 dicom:
   dicom_directory: /path/to/dicom/folder
   dicom_rp_file: /path/to/RTPlan.dcm

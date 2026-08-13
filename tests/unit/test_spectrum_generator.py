@@ -135,24 +135,12 @@ class TestSpectrumGenerator:
         SpectrumGenerator.generate(100.0, 10.0, "100000", str(tmp_path))
         calib_path = os.path.join(str(tmp_path), "tmp", "head_calibration_factor.txt")
 
+        # Physical oracle (independent of the source's own arithmetic):
+        # upstream MC-DCaRE/MC-DCaRE defines the head calibration factor as
+        # no_particles / histories, where no_particles = 4*pi*(0.1 m)^2 * flu
+        # = 4*pi*0.01*flu (SpekPy flu over the 0.1 m reference sphere).
+        # MockSpek.get_flu() returns 1000, histories=100000.
         expected = 4.0 * math.pi * 0.01 * 1000.0 / 100000
-        with open(calib_path, "r") as f:
-            actual = float(f.readline().strip())
-        assert abs(actual - expected) < 1e-10
-
-    @patch("src.spectrum_generator.sp")
-    def test_calibration_factor_with_dose_calibration_factor(
-        self, mock_sp: MagicMock, tmp_path: object
-    ) -> None:
-        mock_sp.Spek.return_value = MockSpek()
-        mock_sp.__version__ = "2.0.1"
-        os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
-        SpectrumGenerator.generate(
-            100.0, 10.0, "100000", str(tmp_path), dose_calibration_factor=1.5
-        )
-        calib_path = os.path.join(str(tmp_path), "tmp", "head_calibration_factor.txt")
-
-        expected = 4.0 * math.pi * 0.01 * 1000.0 / 100000 * 1.5
         with open(calib_path, "r") as f:
             actual = float(f.readline().strip())
         assert abs(actual - expected) < 1e-10
@@ -167,13 +155,10 @@ class TestSpectrumGenerator:
         SpectrumGenerator.generate(100.0, 10.0, "100000", str(tmp_path))
         calib_path = os.path.join(str(tmp_path), "tmp", "head_calibration_factor.txt")
 
-        expected_no_factor = 4.0 * math.pi * 0.01 * 1000.0 / 100000
-        SpectrumGenerator.generate(
-            100.0, 10.0, "100000", str(tmp_path), dose_calibration_factor=1.0
-        )
+        expected = 4.0 * math.pi * 0.01 * 1000.0 / 100000
         with open(calib_path, "r") as f:
-            with_factor = float(f.readline().strip())
-        assert abs(with_factor - expected_no_factor) < 1e-10
+            actual = float(f.readline().strip())
+        assert abs(actual - expected) < 1e-10
 
     @patch("src.spectrum_generator.sp")
     def test_creates_simulation_metadata_yaml(
@@ -243,23 +228,6 @@ class TestSpectrumGenerator:
             meta = yaml.safe_load(f)
 
         assert "dcf_hint" not in meta
-
-    @patch("src.spectrum_generator.sp")
-    def test_metadata_includes_dcf_hint_when_not_one(
-        self, mock_sp: MagicMock, tmp_path: object
-    ) -> None:
-        mock_sp.Spek.return_value = MockSpek()
-        mock_sp.__version__ = "2.0.1"
-        os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
-        SpectrumGenerator.generate(
-            100.0, 10.0, "100000", str(tmp_path), dose_calibration_factor=0.85
-        )
-
-        meta_path = os.path.join(str(tmp_path), "tmp", "simulation_metadata.yaml")
-        with open(meta_path) as f:
-            meta = yaml.safe_load(f)
-
-        assert meta["dcf_hint"] == 0.85
 
 
 if __name__ == "__main__":

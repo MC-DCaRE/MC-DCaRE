@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from enum import Enum
 from typing import Any, Dict, Tuple, Type
 
@@ -23,6 +23,25 @@ from src.models.imaging_mode import IMAGING_MODES, ImagingMode
 from src.models.quantity import Quantity
 
 logger = logging.getLogger(__name__)
+
+
+def _filter_known_fields(dataclass_cls: type, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Drop YAML keys that are not fields of *dataclass_cls*.
+
+    Lets :meth:`SimulationConfig.from_yaml` ignore removed/legacy keys
+    (e.g. ``time_verbosity``, ``dose_calibration_factor``) so old config
+    files keep loading instead of raising ``TypeError``.
+    """
+    known = {f.name for f in fields(dataclass_cls)}
+    unknown = [k for k in data if k not in known]
+    if unknown:
+        logger.warning(
+            "Ignoring unknown %s keys: %s",
+            dataclass_cls.__name__,
+            ", ".join(unknown),
+        )
+    return {k: v for k, v in data.items() if k in known}
+
 
 # Dimensional field names per section (used for string→Quantity auto-parsing).
 _IMAGING_Q_FIELDS = (
@@ -94,21 +113,13 @@ def _coerce_quantities(obj: Any, field_names: Tuple[str, ...]) -> None:
 
 @dataclass(frozen=True)
 class GeneralConfig:
-    """TOPAS runtime and environment settings.
-
-    .. deprecated::
-        ``dose_calibration_factor`` is deprecated. Post-hoc calibration is
-        handled by :class:`CalibrationService` via ``calibration.yaml``.
-        The value is written to ``simulation_metadata.yaml`` as ``dcf_hint``
-        for reference only and is never applied automatically.
-    """
+    """TOPAS runtime and environment settings."""
 
     g4_data_directory: str = ""
     topas_directory: str = ""
     seed: str = "9"
     threads: str = "1"
     histories: str = "100000"
-    dose_calibration_factor: str = "1.0"
     log_filename: str = "simulation.log"
 
 
@@ -126,7 +137,6 @@ class ImagingConfig:
     rotation_rate: Quantity = _q(0.4, "deg/s")
     timeline_end: Quantity = _q(501.0, "s")
     sequential_times: str = "1000"
-    time_verbosity: str = "0"
     field_x1: Quantity = _q(14.0, "cm")
     field_x2: Quantity = _q(14.0, "cm")
     field_y1: Quantity = _q(10.7, "cm")
@@ -208,6 +218,11 @@ class PhantomConfig:
     couch_length: Quantity = _q(1000.0, "mm")
     graphics_enabled: bool = False
     organ_scoring_ids: str = ""
+    phase_space_mode: str = "off"
+    phase_space_file: str = ""
+    phase_space_multiple_use: int = 1
+    phase_space_component: str = "Rotation"
+    phase_space_filter_z: float = 0.0
 
     def __post_init__(self) -> None:
         _coerce_quantities(self, _PHANTOM_Q_FIELDS)
@@ -330,7 +345,6 @@ class SimulationConfig:
             ("threads", self.general.threads),
             ("histories", self.general.histories),
             ("sequential_times", self.imaging.sequential_times),
-            ("time_verbosity", self.imaging.time_verbosity),
             ("dose_to_medium_zbins", self.ctdi.dose_to_medium_zbins),
             ("tle_zbins", self.ctdi.tle_zbins),
             ("dose_to_water_zbins", self.ctdi.dose_to_water_zbins),
@@ -341,28 +355,6 @@ class SimulationConfig:
                 raise ValueError(
                     "Config field '{}' must be an integer, got {!r}".format(name, value)
                 )
-        try:
-            calib_val = float(self.general.dose_calibration_factor)
-        except (ValueError, TypeError):
-            raise ValueError(
-                "Config field 'dose_calibration_factor' must be a float, got {!r}".format(
-                    self.general.dose_calibration_factor
-                )
-            )
-        if calib_val <= 0:
-            raise ValueError(
-                "Config field 'dose_calibration_factor' must be positive, got {}".format(
-                    calib_val
-                )
-            )
-        if calib_val != 1.0:
-            logger.warning(
-                "dose_calibration_factor=%.6f is deprecated — "
-                "value is written as dcf_hint to metadata for reference only "
-                "and is NOT applied automatically. "
-                "Use CalibrationService with calibration.yaml for post-hoc calibration.",
-                calib_val,
-            )
         if not 40 <= self.imaging.anode_voltage.value <= 150:
             raise ValueError(
                 "Anode voltage must be 40-150 kV, got {}".format(
@@ -446,11 +438,17 @@ class SimulationConfig:
         ctdi_data = data.get("ctdi", {})
         imaging_data, ctdi_data = _resolve_imaging_mode(imaging_data, ctdi_data)
         config = cls(
-            general=GeneralConfig(**data.get("general", {})),
-            imaging=ImagingConfig(**imaging_data),
-            dicom=DicomConfig(**data.get("dicom", {})),
-            ctdi=CtdiConfig(**ctdi_data),
-            phantom=PhantomConfig(**data.get("phantom", {})),
+            general=GeneralConfig(
+                **_filter_known_fields(GeneralConfig, data.get("general", {}))
+            ),
+            imaging=ImagingConfig(**_filter_known_fields(ImagingConfig, imaging_data)),
+            dicom=DicomConfig(
+                **_filter_known_fields(DicomConfig, data.get("dicom", {}))
+            ),
+            ctdi=CtdiConfig(**_filter_known_fields(CtdiConfig, ctdi_data)),
+            phantom=PhantomConfig(
+                **_filter_known_fields(PhantomConfig, data.get("phantom", {}))
+            ),
             config_yaml_path=os.path.abspath(path),
         )
         config.validate()
@@ -471,7 +469,7 @@ class SimulationConfig:
                 file_config = cls.from_yaml(config_path)
                 g4_dir = file_config.general.g4_data_directory
                 topas_dir = file_config.general.topas_directory
-            except Exception:
+            except (yaml.YAMLError, OSError, ValueError):
                 logger.warning("Failed to load config.yaml, using env/fallback")
         if not g4_dir:
             g4_dir = os.environ.get("G4DATA_DIR", "/root/G4Data")
@@ -487,9 +485,3 @@ class SimulationConfig:
             ctdi=CtdiConfig(),
             phantom=PhantomConfig(),
         )
-
-
-def quantity_unit_stripper(string_value: str) -> Tuple[float, str]:
-    """Parse a quantity string into a ``(float, unit)`` tuple."""
-
-    return Quantity.parse(string_value).to_tuple()

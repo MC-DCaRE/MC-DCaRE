@@ -42,7 +42,7 @@ Calibration aligns simulated dose with physical measurements on your specific Tr
 
 ### Step 1.1: Run a calibration simulation
 
-Create a CTDI config with `dose_calibration_factor: "1.0"` (uncalibrated):
+Create a CTDI config (the run is uncalibrated; the DCF is applied during post-processing via `calibration.yaml`):
 
 ```yaml
 # calibration_config.yaml
@@ -51,7 +51,6 @@ general:
   topas_directory: /path/to/topas/bin/topas
   histories: "1000000"
   threads: "4"
-  dose_calibration_factor: "1.0"    # uncalibrated
 
 imaging:
   simulation_type: "CTDI"
@@ -86,11 +85,11 @@ Arguments:
 
 Output:
 - PASS/FAIL verdict with deviation percentage
-- Recommended `dose_calibration_factor` value
+- Recommended DCF (also written to `calibration.yaml` by the `--kV`/`--fan-mode` options)
 
 ### Step 1.3: Store the calibration factor
 
-Option A: Update `calibration.yaml` (machine calibration database):
+Update `calibration.yaml` (the machine calibration database consumed by `CalibrationService` during post-processing):
 
 ```yaml
 machine: "TrueBeam-SN1234"
@@ -100,14 +99,7 @@ calibrations:
     fan_mode: "Full Fan"
     reference_mAs: 150
     measured_ctdi_w_mGy: 5.72
-    dcf: 0.94    # computed in Step 1.2
-```
-
-Option B: Set `dose_calibration_factor` directly in your simulation config:
-
-```yaml
-general:
-  dose_calibration_factor: "0.94"
+    dcf_tle: 0.94    # TLE DCF, computed in Step 1.2
 ```
 
 ### Calibration scope
@@ -122,7 +114,7 @@ Once calibrated, validate that your beam model reproduces CTDI reference values 
 
 ### Step 2.1: Run a validated simulation
 
-Use the calibrated factor in your config:
+Use a standard protocol config (calibration is applied in post-processing, so no factor is needed in the config):
 
 ```yaml
 # ctdi_validation.yaml
@@ -131,7 +123,6 @@ general:
   topas_directory: /path/to/topas/bin/topas
   histories: "5000000"
   threads: "8"
-  dose_calibration_factor: "0.94"
 
 imaging:
   simulation_type: "CTDI"
@@ -235,7 +226,6 @@ general:
   topas_directory: /path/to/topas/bin/topas
   histories: "1000000"      # per time step; total = histories x sequential_times
   threads: "20"
-  dose_calibration_factor: "1.0"
 
 imaging:
   simulation_type: "ICRP145"
@@ -272,32 +262,67 @@ topas headsourcecode.txt
 
 ```bash
 uv run python calculate_phantom_dose.py runfolder/<timestamp>/ \
-    --ctdiw 15.9 \
     --output organ_doses.csv
 ```
 
+DCF normalization is applied automatically from `calibration.yaml` (same database as CTDI mode). The `--scorer-type` flag selects which scorer's DCF to use (default: `tle`).
+
 Arguments:
-- `--ctdiw`: Measured CTDIw in mGy for absolute dose calibration (from Phase 1)
-- `--output`: Optional CSV path for the organ dose table
+- `--scorer-type` : Scorer for DCF lookup: `tle` (default), `dtw`, or `dtm`. Also auto-detects the matching CSV file (`phantom_tle.csv`, `phantom_dtw.csv`, `phantom_dtm.csv`).
+- `--target-mAs` : Scale dose to a different mAs value (for partial scans)
+- `--dcf` : Manual DCF override (skips calibration.yaml lookup)
+- `--calibration` : Path to calibration.yaml (default: `calibration.yaml`)
+- `--output` : CSV path for the organ dose table
 
 Output:
 - ICRP 103 tissue doses and effective dose (mSv)
 - Per-organ dose table with voxel counts and standard error
 
+### Per-scorer DCFs
+
+Each (kV, fan_mode) entry in `calibration.yaml` stores three DCFs -- one per scorer type:
+
+```yaml
+- kV: 125
+  fan_mode: Half Fan
+  reference_mAs: 1080.0
+  measured_ctdi_w_mGy: 15.9
+  dcf_tle: 1.633637e-03    # Track Length Estimator (primary)
+  dcf_dtw: 1.505360e-03    # Dose To Water
+  dcf_dtm: 1.755722e-03    # Dose To Medium
+  reference_protocol: Pelvis
+```
+
+Backward compat: old YAML files with `dcf:` are automatically mapped to `dcf_tle` on load.
+
 ### Dose normalization pipeline
 
-Absolute dose calibration for phantom mode uses a three-step pipeline:
-
-1. **MC simulation**: TOPAS transports particles through the beam line and voxelized phantom, producing per-voxel DoseToMedium in Gy per history
-2. **CTDIw anchoring**: The mean dose to isocenter-region organs (pelvic bones, bladder) is anchored to the measured CTDIw, providing absolute calibration
-3. **ICRP 103 effective dose**: Organ doses are mapped to 15 tissue categories, mean tissue doses computed, and tissue weighting factors applied
+All simulation modes (CTDI, ICRP145, DICOM) use the **same DCF normalization** from `calibration.yaml`:
 
 ```
-E = Sigma(wT x HT)
+photons_per_mAs = spectrum_fluence * total_histories / exposure_mAs
+absolute_dose_Gy = (TOPAS_Sum / total_histories) * photons_per_mAs * target_mAs * DCF
+```
+
+- `photons_per_mAs` is a kV-dependent constant (histories cancel algebraically)
+- `DCF` is looked up from `calibration.yaml` by (kV, fan_mode, scorer_type)
+- `target_mAs` supports partial scans (defaults to simulated mAs)
+- `TOPAS_Sum` is divided by `total_histories` to convert from total accumulated dose to per-history mean
+
+This formula lives in the single canonical helper `raw_absolute_dose_Gy()` in `src/services/calibration.py`. `CalibrationService.normalize_dose()`, the `calculate_ctdiw.py main` / `cross_validate_calibrations.py` / `BenchmarkCalculator.compare` entry points all route through it, so the division is applied consistently everywhere.
+
+The DCF is computed once from a CTDI calibration run (Phase 1) and applied to all subsequent simulations regardless of geometry. Three scorer-specific DCFs are stored per (kV, fan_mode): TLE (primary), DoseToWater, and DoseToMedium.
+
+### ICRP 103 effective dose
+
+Organ doses are mapped to 15 ICRP 103 tissue categories:
+
+```
+E = Sigma(wT * HT)
 
 where:
   wT = ICRP 103 tissue weighting factor
-  HT = mean absorbed dose to tissue T (Gy), anchored to CTDIw
+  HT = mean absorbed dose to tissue T (mGy), DCF-normalized
 ```
 
 ### Organ-to-tissue mapping
@@ -359,7 +384,6 @@ general:
   topas_directory: /path/to/topas/bin/topas
   histories: "5000000"
   threads: "8"
-  dose_calibration_factor: "0.94"
 
 imaging:
   simulation_type: "DICOM"
@@ -417,7 +441,7 @@ ctdi:
   phase_space_mode: "score"
 ```
 
-Produces `beam_exit_phsp.phsp` + beam statistics in the `phase_space/` subdirectory.
+Produces `beam_exit_phsp.phsp` **and its self-describing sibling `beam_exit_phsp.header`** plus beam statistics in the `phase_space/` subdirectory. TOPAS writes both files; the orchestrator moves them together (replay needs both).
 
 **Replay mode** (uses scored phase space with phantom):
 
@@ -428,7 +452,7 @@ ctdi:
   phase_space_multiple_use: 5  # reuse each particle 5 times
 ```
 
-No spectrum generation in replay mode. The norm factor is divided by `phase_space_multiple_use` for correct normalization.
+The `.phsp` file **and its `.header` sibling must be co-located**; point `phase_space_file` at the `.phsp` and MC-DCaRE resolves and copies the `.header` automatically (via `header_path_for()`). No spectrum generation in replay mode. The norm factor is divided by `phase_space_multiple_use` for correct normalization.
 
 ### Water Chamber Volumes (CTDI only)
 
@@ -493,12 +517,27 @@ uv run python calculate_ctdiw.py benchmark <runfolder> \
 ### Phantom Dose CLI (`calculate_phantom_dose.py`)
 
 ```bash
-# Compute organ and effective dose with CTDIw anchoring
-uv run python calculate_phantom_dose.py <runfolder> \
-  --ctdiw <mGy> [--output organ_doses.csv]
+# TLE scorer (default, best statistics)
+uv run python calculate_phantom_dose.py <runfolder> [--output organ_doses.csv]
 
-# Without absolute calibration (raw per-history doses)
-uv run python calculate_phantom_dose.py <runfolder>
+# DoseToWater or DoseToMedium scorer
+uv run python calculate_phantom_dose.py <runfolder> --scorer-type dtw
+
+# Scale to partial scan mAs
+uv run python calculate_phantom_dose.py <runfolder> --target-mAs 500
+
+# Manual DCF override
+uv run python calculate_phantom_dose.py <runfolder> --dcf 1.634e-03
+```
+
+### DICOM Dose CLI (`calculate_dicom_dose.py`)
+
+```bash
+# Fully automatic DCF normalization
+uv run python calculate_dicom_dose.py <runfolder>
+
+# Scale to partial scan mAs
+uv run python calculate_dicom_dose.py <runfolder> --target-mAs 500
 ```
 
 ---
@@ -511,7 +550,7 @@ Every simulation produces a timestamped runfolder:
 runfolder/2026-06-12_14-30-00/
 ├── config.yaml                       # Copy of source config (provenance)
 ├── simulation.log                    # Python application log
-├── simulation_metadata.yaml          # norm_factor, mAs, dcf_used, SpekPy params
+├── simulation_metadata.yaml          # total_histories, exposure_mAs, spectrum_fluence_photons_per_mAs, SpekPy params
 ├── head_calibration_factor.txt       # Legacy combined calibration factor
 ├── ConvertedTopasFile.txt            # TOPAS energy spectrum
 ├── Muen.dat                          # Mass-energy absorption coefficients
@@ -537,7 +576,10 @@ runfolder/2026-06-12_14-30-00/
 ├── headsourcecode.txt                # TOPAS beam line parameter file
 ├── phantomVoxel.txt                  # Voxelized phantom geometry
 ├── icrp_materials.txt                # 187 ICRP tissue material definitions
-├── phantom_dose.csv                  # 3D voxel dose grid output
+├── phantom_tle.csv                   # TLE scorer output (primary)
+├── phantom_dtw.csv                   # DoseToWater scorer output
+├── phantom_dtm.csv                   # DoseToMedium scorer output
+├── Muen.dat                          # Mass energy absorption data (for TLE)
 └── organ_doses.csv                   # Per-organ dose summary (from calculate_phantom_dose.py)
 ```
 

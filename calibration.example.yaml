@@ -1,56 +1,80 @@
+# Machine calibration file.
+#
+# measured_ctdi_w_mGy : the ion-chamber measurement used to derive the DCF
+#                     (DCF = measured_Gy / simulated_Gy).
+# reference_ctdi_w_mGy: the value cross_validate checks the calibrated dose
+#                     against. With only one measurement per (kV, fan) this
+#                     equals measured_ctdi_w_mGy, so validating the DCF on the
+#                     *calibration* run is tautological (calibrated dose
+#                     algebraically returns measured). cross_validate is only
+#                     meaningful for an independent run-folder at the same
+#                     (kV, fan) -- different mAs exercises dose linearity.
+#                     See cross_validate_calibrations.py --exclude-glob.
 machine: TrueBeam-SN1234
-date_calibrated: '2026-06-18'
+date_calibrated: '2026-07-03'
 calibrations:
 - kV: 80
   fan_mode: Full Fan
   reference_mAs: 100.2
   measured_ctdi_w_mGy: 0.9
-  dcf: 7.186663737978474e-12
+  dcf_tle: 0.0010730208453092686
+  dcf_dtw: null
+  dcf_dtm: null
   reference_protocol: Image Gently
   reference_ctdi_w_mGy: 0.9
-  date: null
+  date: '2026-07-03'
   note: null
 - kV: 100
   fan_mode: Full Fan
   reference_mAs: 150.3
   measured_ctdi_w_mGy: 3.2
-  dcf: 7.94046673386082e-12
+  dcf_tle: 0.00119635829487604
+  dcf_dtw: null
+  dcf_dtm: null
   reference_protocol: Head
   reference_ctdi_w_mGy: 3.2
-  date: null
+  date: '2026-07-03'
   note: null
 - kV: 125
   fan_mode: Full Fan
   reference_mAs: 751.5
   measured_ctdi_w_mGy: 12.3
-  dcf: 8.260353006279922e-12
+  dcf_tle: 0.0012339857764903637
+  dcf_dtw: null
+  dcf_dtm: null
   reference_protocol: Pelvis Spotlight
   reference_ctdi_w_mGy: 12.3
-  date: null
+  date: '2026-07-03'
   note: null
 - kV: 125
   fan_mode: Half Fan
   reference_mAs: 1080.0
   measured_ctdi_w_mGy: 15.9
-  dcf: 1.078038538356342e-11
+  dcf_tle: 0.0016336372711787761
+  dcf_dtw: null
+  dcf_dtm: null
   reference_protocol: Pelvis
   reference_ctdi_w_mGy: 15.9
-  date: null
+  date: '2026-07-03'
   note: null
 - kV: 140
   fan_mode: Half Fan
   reference_mAs: 1700.5
   measured_ctdi_w_mGy: 37.1
-  dcf: 1.2081686487065588e-11
+  dcf_tle: 0.0017969787067322628
+  dcf_dtw: null
+  dcf_dtm: null
   reference_protocol: Pelvis Large
   reference_ctdi_w_mGy: 37.1
-  date: null
+  date: '2026-07-03'
   note: null
 - kV: 140
   fan_mode: Full Fan
   reference_mAs: null
   measured_ctdi_w_mGy: null
-  dcf: null
+  dcf_tle: null
+  dcf_dtw: null
+  dcf_dtm: null
   reference_protocol: null
   reference_ctdi_w_mGy: null
   date: null

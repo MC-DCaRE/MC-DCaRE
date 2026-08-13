@@ -10,7 +10,6 @@ general:
   seed: '9'
   threads: '20'
   histories: '1000000'
-  dose_calibration_factor: '1.0'
   log_filename: simulation.log
 imaging:
   simulation_type: CTDI
@@ -18,7 +17,6 @@ imaging:
   imaging_mode: Pelvis
   sequential_times: '80'
   timeline_end: '450 s'
-  time_verbosity: '0'
 ctdi:
   dose_to_medium_zbins: '100'
   tle_zbins: '100'

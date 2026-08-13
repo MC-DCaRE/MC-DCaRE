@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +52,3 @@ class Quantity:
         if val_str.endswith(".0"):
             val_str = val_str[:-2]
         return "{} {}".format(val_str, self.unit)
-
-    def to_tuple(self) -> Tuple[float, str]:
-        """Return the ``(value, unit)`` pair as a plain tuple."""
-        return (self.value, self.unit)

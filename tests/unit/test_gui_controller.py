@@ -8,7 +8,11 @@ from unittest.mock import MagicMock, patch
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from src.gui.controller import GUIController
+from src.gui.adapter import gui_to_config
 from src.models.keys import (
+    CTDI_PHSP_FILE,
+    CTDI_PHSP_MODE,
+    CTDI_PHSP_MULTIPLE_USE,
     CTDI_RUN,
     CTDI_USER_BLADE,
     COUCH_ENABLED,
@@ -280,3 +284,46 @@ class TestRunEventLoop:
         ctrl.run()
 
         mock_view.show_error.assert_not_called()
+
+
+class TestPhaseSpaceAdapter:
+    """Phase-space GUI controls round-trip through the adapter."""
+
+    def _min_values(self, overrides: Dict[str, Any] = None) -> Dict[str, Any]:
+        # Provide just enough keys to satisfy SimulationConfig required fields.
+        from src.gui.adapter import _PLACEHOLDER_MAP
+
+        values = {key: default for _section, _field, key, default in _PLACEHOLDER_MAP}
+        if overrides:
+            values.update(overrides)
+        return values
+
+    def test_defaults(self) -> None:
+        config = gui_to_config(self._min_values())
+        assert config.ctdi.phase_space_mode == "off"
+        assert config.ctdi.phase_space_file == ""
+        assert config.ctdi.phase_space_multiple_use == 1
+        assert isinstance(config.ctdi.phase_space_multiple_use, int)
+
+    def test_multiple_use_coerced_to_int(self) -> None:
+        # FreeSimpleGUI InputText returns strings; downstream replay
+        # normalization divides by this value, so it must be an int.
+        config = gui_to_config(
+            self._min_values(
+                {
+                    CTDI_PHSP_MODE: "replay",
+                    CTDI_PHSP_FILE: "/path/to/beam.phsp",
+                    CTDI_PHSP_MULTIPLE_USE: "5",
+                }
+            )
+        )
+        assert config.ctdi.phase_space_mode == "replay"
+        assert config.ctdi.phase_space_file == "/path/to/beam.phsp"
+        assert config.ctdi.phase_space_multiple_use == 5
+        assert isinstance(config.ctdi.phase_space_multiple_use, int)
+
+    def test_multiple_use_invalid_falls_back_to_one(self) -> None:
+        config = gui_to_config(
+            self._min_values({CTDI_PHSP_MULTIPLE_USE: "not-a-number"})
+        )
+        assert config.ctdi.phase_space_multiple_use == 1

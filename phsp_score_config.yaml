@@ -1,0 +1,20 @@
+# Phase space scoring for phantom replay validation
+general:
+  g4_data_directory: /opt/topas/GEANT4/G4DATA
+  topas_directory: /opt/topas/TOPAS/OpenTOPAS-install/bin/topas
+  seed: '42'
+  threads: '20'
+  histories: '5000000'
+  log_filename: simulation.log
+imaging:
+  simulation_type: CTDI
+  rotation_direction: CBCT Anticlockwise
+  imaging_mode: Pelvis
+  exposure: '1080.0 mAs'
+  sequential_times: '1'
+ctdi:
+  couch_enabled: false
+  user_blade_enabled: false
+  graphics_enabled: false
+  water_chamber_enabled: false
+  phase_space_mode: 'score'

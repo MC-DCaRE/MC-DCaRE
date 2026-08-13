@@ -1,3 +1,10 @@
+> **Superseded 2026-07-27 by commit `5c199c6`** for the PhaseSpaceAnalyzer
+> internals (record format, particle-type handling, `.header` parsing). The
+> two-step score/replay workflow described here is still accurate; only the
+> analyzer's byte-layout and gamma-only assumptions are outdated. See
+> `src/services/phase_space_analyzer.py` and `tests/fixtures/` for the current
+> header-driven implementation.
+
 ## Architecture Overview
 
 The phase space feature introduces a two-step simulation workflow for CTDI mode. The existing direct-beam pipeline remains unchanged (when `phase_space_mode = "off"`). Two new modes are added alongside it.

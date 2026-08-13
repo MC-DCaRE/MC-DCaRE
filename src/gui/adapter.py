@@ -32,6 +32,9 @@ from src.models.keys import (
     CTDI_FIELD_Y2,
     CTDI_GRAPHICS,
     CTDI_PHANTOM,
+    CTDI_PHSP_FILE,
+    CTDI_PHSP_MODE,
+    CTDI_PHSP_MULTIPLE_USE,
     CTDI_USER_BLADE,
     DICOM_DIR,
     DICOM_GRAPHICS,
@@ -78,7 +81,6 @@ from src.models.keys import (
     START_ANGLE,
     THREADS,
     TIMELINE_END,
-    TIME_VERBOSITY,
     TOPAS_DIR,
     TLE_ZBINS,
     TUBE_VOLTAGE,
@@ -112,7 +114,6 @@ _PLACEHOLDER_MAP: List[Tuple[str, str, str, Any]] = [
     ("imaging", "rotation_rate", ROTATION_RATE, "0.4 deg/s"),
     ("imaging", "timeline_end", TIMELINE_END, "501.0 s"),
     ("imaging", "sequential_times", SEQ_TIMES, "1000"),
-    ("imaging", "time_verbosity", TIME_VERBOSITY, "0"),
     ("imaging", "field_x1", FIELD_X1, "14 cm"),
     ("imaging", "field_x2", FIELD_X2, "14 cm"),
     ("imaging", "field_y1", FIELD_Y1, "10.7 cm"),
@@ -143,6 +144,9 @@ _PLACEHOLDER_MAP: List[Tuple[str, str, str, Any]] = [
     ("ctdi", "couch_thickness", COUCH_THICKNESS, "0.4 mm"),
     ("ctdi", "couch_length", COUCH_LENGTH, "1000 mm"),
     ("ctdi", "user_blade_enabled", CTDI_USER_BLADE, False),
+    ("ctdi", "phase_space_mode", CTDI_PHSP_MODE, "off"),
+    ("ctdi", "phase_space_file", CTDI_PHSP_FILE, ""),
+    ("ctdi", "phase_space_multiple_use", CTDI_PHSP_MULTIPLE_USE, 1),
     ("ctdi", "user_field_x1", CTDI_FIELD_X1, "14 cm"),
     ("ctdi", "user_field_x2", CTDI_FIELD_X2, "14 cm"),
     ("ctdi", "user_field_y1", CTDI_FIELD_Y1, "10.7 cm"),
@@ -168,6 +172,14 @@ for _section, _field, _key, _default in _PLACEHOLDER_MAP:
     if isinstance(_default, bool):
         _BOOL_FIELDS[(_section + "." + _field)] = _key
 
+# Integer fields need explicit coercion: FreeSimpleGUI returns InputText values
+# as strings, and downstream code (e.g. orchestrator replay normalization)
+# performs arithmetic on phase_space_multiple_use.
+_INT_FIELDS: Dict[str, str] = {}
+for _section, _field, _key, _default in _PLACEHOLDER_MAP:
+    if isinstance(_default, int) and not isinstance(_default, bool):
+        _INT_FIELDS[(_section + "." + _field)] = _key
+
 
 def gui_to_config(values: Dict[str, Any]) -> SimulationConfig:
     """Build a :class:`SimulationConfig` from a FreeSimpleGUI values dict.
@@ -187,6 +199,11 @@ def gui_to_config(values: Dict[str, Any]) -> SimulationConfig:
         bool_key: str = section_name + "." + field_name
         if bool_key in _BOOL_FIELDS:
             sections[section_name][field_name] = _parse_bool(raw)
+        elif bool_key in _INT_FIELDS:
+            try:
+                sections[section_name][field_name] = int(raw)
+            except (TypeError, ValueError):
+                sections[section_name][field_name] = 1
         else:
             sections[section_name][field_name] = raw
     return SimulationConfig(
@@ -196,13 +213,3 @@ def gui_to_config(values: Dict[str, Any]) -> SimulationConfig:
         ctdi=CtdiConfig(**sections["ctdi"]),
         phantom=PhantomConfig(**sections["phantom"]),
     )
-
-
-def config_to_gui(config: SimulationConfig) -> Dict[str, str]:
-    """Flatten a :class:`SimulationConfig` into a ``{gui_key: str_value}`` dict."""
-    result: Dict[str, str] = {}
-    for section_name, field_name, key, _default in _PLACEHOLDER_MAP:
-        section = getattr(config, section_name)
-        value = getattr(section, field_name)
-        result[key] = str(value)
-    return result

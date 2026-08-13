@@ -29,7 +29,6 @@ MINIMAL_YAML: str = (
     "  rotation_rate: 0.4 deg/s\n"
     "  timeline_end: 501.0 s\n"
     "  sequential_times: '1000'\n"
-    "  time_verbosity: '0'\n"
     "  field_x1: 14 cm\n"
     "  field_x2: 14 cm\n"
     "  field_y1: 10.7 cm\n"

@@ -24,20 +24,43 @@ logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class CalibrationEntry:
-    """A single (kV, fan_mode) calibration measurement entry."""
+    """A single (kV, fan_mode) calibration measurement entry.
+
+    Stores per-scorer DCFs for flexibility: ``dcf_tle`` (Track Length
+    Estimator), ``dcf_dtw`` (Dose To Water), and ``dcf_water_dtm`` (Dose To
+    Medium in the water-filled CTDI chamber plug). Only the relevant DCF
+    needs to be populated; the others default to ``None``.
+
+    ``dcf_dtm`` (body-tissue Dose To Medium) is retained for backward
+    compatibility but is always ``None`` in the current calibration — the
+    prior value was circular (derived from the reference effective dose)
+    and has been removed. Both ``dcf_tle`` and ``dcf_water_dtm`` are
+    CTDI-derived, non-circular, and transfer to the voxelized phantom
+    (they agree within 4% on effective dose).
+    """
 
     kV: int
     fan_mode: str
     reference_mAs: float
     measured_ctdi_w_mGy: Optional[float] = None
-    dcf: Optional[float] = None
+    dcf_tle: Optional[float] = None
+    dcf_dtw: Optional[float] = None
+    dcf_dtm: Optional[float] = None
+    dcf_water_dtm: Optional[float] = None
     reference_protocol: Optional[str] = None
     reference_ctdi_w_mGy: Optional[float] = None
     date: Optional[str] = None
     note: Optional[str] = None
 
     def __post_init__(self) -> None:
-        for name in ("measured_ctdi_w_mGy", "dcf", "reference_ctdi_w_mGy"):
+        for name in (
+            "measured_ctdi_w_mGy",
+            "dcf_tle",
+            "dcf_dtw",
+            "dcf_dtm",
+            "dcf_water_dtm",
+            "reference_ctdi_w_mGy",
+        ):
             val = getattr(self, name)
             if val is not None and not isinstance(val, (int, float)):
                 raise TypeError(
@@ -76,7 +99,12 @@ class MachineCalibration:
             )
         if "calibrations" not in raw:
             raise ValueError("Invalid calibration YAML: missing 'calibrations' key")
-        entries = [CalibrationEntry(**e) for e in raw["calibrations"]]
+        entries = []
+        for e in raw["calibrations"]:
+            # Backward compat: old YAML used 'dcf' for the TLE DCF
+            if "dcf" in e and "dcf_tle" not in e:
+                e["dcf_tle"] = e.pop("dcf")
+            entries.append(CalibrationEntry(**e))
 
         # Validate no duplicate keys
         keys = [(e.kV, e.fan_mode) for e in entries]
@@ -106,7 +134,10 @@ class MachineCalibration:
                     "fan_mode": e.fan_mode,
                     "reference_mAs": e.reference_mAs,
                     "measured_ctdi_w_mGy": e.measured_ctdi_w_mGy,
-                    "dcf": e.dcf,
+                    "dcf_tle": e.dcf_tle,
+                    "dcf_dtw": e.dcf_dtw,
+                    "dcf_dtm": e.dcf_dtm,
+                    "dcf_water_dtm": e.dcf_water_dtm,
                     "reference_protocol": e.reference_protocol,
                     "reference_ctdi_w_mGy": e.reference_ctdi_w_mGy,
                     "date": e.date,
@@ -124,8 +155,9 @@ class MachineCalibration:
             with os.fdopen(fd, "w", encoding="utf-8") as f:
                 f.write(content)
             os.replace(tmp_path, str(dest))
-        except BaseException:
-            os.unlink(tmp_path) if os.path.exists(tmp_path) else None
+        except Exception:
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
             raise
         logger.info("Calibration data written to %s", path)
 

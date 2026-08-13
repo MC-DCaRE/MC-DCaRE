@@ -4,7 +4,7 @@
 Isolated unit tests for every module in `src/`. Each test file covers one source module, testing public interfaces with mocked dependencies.
 
 ## Architecture
-17 test files mirroring `src/` module structure. `conftest.py` provides shared fixtures (default `SimulationConfig`, mock paths, sample data). `shared.py` provides context dict constants used by mode and orchestrator tests. Tests use `pytest-mock` for patching and `tmp_path` for filesystem operations.
+24 test files mirroring `src/` module structure. `conftest.py` provides shared fixtures (default `SimulationConfig`, mock paths, sample data). `shared.py` provides context dict constants used by mode and orchestrator tests. Tests use `pytest-mock` for patching and `tmp_path` for filesystem operations. Real-TOPAS ground-truth fixtures live in `tests/fixtures/` (e.g. `topas_writebinary_example.{phsp,header}`, a 1031-particle proton run).
 
 ## Key Files
 
@@ -28,7 +28,11 @@ Isolated unit tests for every module in `src/`. Each test file covers one source
 | `test_quantity.py` | `Quantity` dataclass immutability, value/unit access |
 | `test_imaging_mode.py` | `ImagingMode` lookup tables (47 modes, 21 fields), parameter retrieval by mode name, fan/blade consistency, phantom validation, backward compat |
 | `test_fieldtobladeopening.py` | `fieldtobladeopening` conversion function, boundary values |
-| `test_calculate_ctdiw.py` | CTDI-w calculation from chamber plug CSV data |
+| `test_calculate_ctdiw.py` | CTDI-w calculation from chamber plug CSV data; `_compute_raw_Gy` canonical-helper division regression |
+| `test_calibration_service.py` | `CalibrationService` compute/lookup/normalize/apply DCF; canonical `raw_absolute_dose_Gy` + `compute_photons_per_mAs` guard helpers |
+| `test_calibration_model.py` | `MachineCalibration`/`CalibrationEntry` YAML round-trip and validation |
+| `test_ctdi_benchmark.py` | `BenchmarkCalculator` simulated-vs-reference comparison (TLE only) |
+| `test_phase_space_analyzer.py` | Header-driven PhaseSpaceAnalyzer parsing + statistics; real-TOPAS fixture ground-truth regression |
 
 ## Conventions
 - Test files named `test_<src_module>.py` matching source module names

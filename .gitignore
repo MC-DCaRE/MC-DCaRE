@@ -326,6 +326,9 @@ cython_debug/
 /generate_allproc.py
 /tmp/*
 /runfolder/*
+/calibration_runs/*
+/verification_runs/*
+/phantom_runs/*
 
 
 # Personal test file 
@@ -351,6 +354,12 @@ calibration.yaml
 .dolt/
 *.db
 .beads-credential-key
+
+# TOPAS scorer output artifacts
+*.phsp
+*.header
+!tests/fixtures/
+!tests/fixtures/**
 
 # Phantom simulation scratch outputs
 /test_*.topas

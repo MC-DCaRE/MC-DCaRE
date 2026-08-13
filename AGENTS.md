@@ -8,6 +8,7 @@ This AGENTS.md file is a **persistent memory bank** that survives context compac
 - Remove outdated information promptly
 - This file is write-protected and requires explicit approval to modify
 - Reference documentation lives in `docs/CONFIGURATION_REFERENCE.md` (not loaded into context)
+- **TOPAS implementation questions** -> consult the OpenTOPAS docs: <https://opentopas.readthedocs.io/en/latest/>. High-value pages for this project: [Phase Space Sources](https://opentopas.readthedocs.io/en/latest/parameters/source/phasespace.html), [Phase Space Scorer](https://opentopas.readthedocs.io/en/latest/parameters/scoring/phasespace.html), [Parallel Worlds](https://opentopas.readthedocs.io/en/latest/parameters/geometry/parallel_world.html), [LayeredMassGeometry example](https://opentopas.readthedocs.io/en/latest/examples-docs/Basic/LayeredMassGeometry.html), [Custom Scorers (extensions)](https://opentopas.readthedocs.io/en/latest/extension-docs/scoring.html). See `src/AGENTS.md` for the TOPAS version/paths used here.
 
 ---
 

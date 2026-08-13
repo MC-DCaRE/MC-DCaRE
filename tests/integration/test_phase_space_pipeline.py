@@ -212,9 +212,23 @@ class TestReplayPipelineDryRun:
         # Phantom include should be present (CTDIphantom_16).
         assert "ChamberPlug" in content
 
+        # Regression: the replay template must register the 5 chamber-plug
+        # parallel worlds as mass-geometry worlds. Without this line TOPAS
+        # errors at physics setup ("Parallel world ChamberPlugX has material,
+        # but this world not specified in Ph/Default/LayeredMassGeometryWorlds")
+        # and the run dies before scoring.
+        assert "LayeredMassGeometryWorlds" in content
+        for plug in ("Centre", "Top", "Bottom", "Left", "Right"):
+            assert '"ChamberPlug%s"' % plug in content
+
 
 class TestReplayMetadataAdjustment:
-    """Verify replay metadata has norm_factor = original_norm_factor / M."""
+    """Verify replay metadata preserves the scoring-run norm_factor.
+
+    The M x R scaling is now handled by raw_absolute_dose_Gy dividing by the
+    scorer-active history count read from the CSV, so the replay metadata no
+    longer divides norm_factor/spectrum_fluence.
+    """
 
     def test_replay_metadata_norm_factor_adjusted(self, tmp_path: Any) -> None:
         scoring_meta = {
@@ -236,7 +250,8 @@ class TestReplayMetadataAdjustment:
         with open(rundir / "simulation_metadata.yaml") as f:
             result = yaml.safe_load(f)
 
-        assert abs(result["norm_factor"] - 2.0e-10 / M) < 1e-20
+        # norm_factor preserved unchanged (NOT divided by M).
+        assert abs(result["norm_factor"] - 2.0e-10) < 1e-20
         assert result["mAs"] == 200.0
         assert result["dcf_used"] == 1.034
         assert result["phase_space_multiple_use"] == M
@@ -246,18 +261,16 @@ class TestReplayMetadataAdjustment:
         """End-to-end: replay metadata produces correct calibration_factor."""
         from src.services.ctdi_calculator import CTDICalculator
 
-        M = 10
-        original_norm = 5.0e-10
         mAs = 100.0
-        dcf = 1.0
 
-        # Simulate what the orchestrator writes.
+        # Simulate what the orchestrator writes (norm_factor preserved
+        # unchanged -- M x R scaling is handled downstream).
         rundir = tmp_path / "replay_run"
         rundir.mkdir()
         metadata = {
-            "norm_factor": original_norm / M,
+            "norm_factor": 5.0e-10,
             "mAs": mAs,
-            "dcf_used": dcf,
+            "dcf_used": 1.0,
             "total_histories": 1000000,
         }
         with open(rundir / "simulation_metadata.yaml", "w") as f:

@@ -53,6 +53,35 @@ class TestBuildMainContext:
         ctx = mode.build_main_context(config)
         assert ctx["graphics_enabled"] is False
 
+    def test_water_chamber_disabled_by_default_in_main_context(
+        self, make_config: Any
+    ) -> None:
+        mode = CtdiMode()
+        config = make_config()
+        ctx = mode.build_main_context(config)
+        assert ctx["water_chamber_enabled"] is False
+
+    def test_water_chamber_enabled_in_main_context(self, make_config: Any) -> None:
+        # Must reach the main context so headsourcecode_boilerplate.j2 can add
+        # the water parallel worlds to LayeredMassGeometryWorlds (parallel
+        # worlds with material segfault TOPAS if not listed in LMG).
+        mode = CtdiMode()
+        config = make_config(water_chamber_enabled=True)
+        ctx = mode.build_main_context(config)
+        assert ctx["water_chamber_enabled"] is True
+
+    def test_water_chamber_enabled_in_replay_main_context(
+        self, make_config: Any
+    ) -> None:
+        mode = CtdiMode()
+        config = make_config(
+            phase_space_mode="replay",
+            phase_space_file="/tmp/beam_exit_phsp.phsp",
+            water_chamber_enabled=True,
+        )
+        ctx = mode.build_main_context(config)
+        assert ctx["water_chamber_enabled"] is True
+
     def test_rotation_direction_in_context(self, make_config: Any) -> None:
         mode = CtdiMode()
         config = make_config(rotation_direction="CBCT Clockwise")

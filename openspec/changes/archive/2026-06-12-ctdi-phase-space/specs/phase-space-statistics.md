@@ -1,3 +1,12 @@
+> **Superseded 2026-07-27 by commit `5c199c6`.** The analyzer is now
+> **header-driven**: it parses the self-describing `.header` sibling to build a
+> structured numpy dtype (real TOPAS Binary format = 34 bytes/record:
+> 7×f4 + i4 PDG + 2 flag bytes), converts MeV→keV, and decodes PDG particle
+> codes (gamma/electron/positron/neutron/proton). The spec below reflects the
+> *original* (pre-rewrite) implementation, which assumed a fixed 56-byte /
+> 7×float64 / gamma-only layout and is no longer accurate for the format and
+> particle-type behavior. Kept as a historical record.
+
 ## phase-space-statistics
 
 ### Requirement

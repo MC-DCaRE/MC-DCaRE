@@ -10,35 +10,11 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from src.config import (
-    GeneralConfig,
     SimulationConfig,
     _resolve_imaging_mode,
-    quantity_unit_stripper,
 )
-from src.gui.adapter import config_to_gui, gui_to_config
+from src.gui.adapter import gui_to_config
 from src.models.quantity import Quantity
-
-
-class TestQuantityUnitStripper:
-    def test_splits_value_and_unit(self) -> None:
-        result: tuple = quantity_unit_stripper("100 kV")
-        assert result == (100.0, "kV")
-
-    def test_raises_for_no_number(self) -> None:
-        with pytest.raises(ValueError, match="No numeric value"):
-            quantity_unit_stripper("kV")
-
-    def test_returns_empty_unit_for_no_unit(self) -> None:
-        result: tuple = quantity_unit_stripper("100")
-        assert result == (100.0, "")
-
-    def test_handles_compound_units(self) -> None:
-        result: tuple = quantity_unit_stripper("0.4 deg/s")
-        assert result == (0.4, "deg/s")
-
-    def test_handles_negative(self) -> None:
-        result: tuple = quantity_unit_stripper("-5 mm")
-        assert result == (-5.0, "mm")
 
 
 class TestSimulationConfigDefaults:
@@ -59,7 +35,6 @@ class TestSimulationConfigDefaults:
         assert config.general.seed != ""
         assert config.general.threads != ""
         assert config.general.histories != ""
-        assert config.general.dose_calibration_factor != ""
 
     def test_defaults_imaging_fan_mode_is_valid(self) -> None:
         config: SimulationConfig = SimulationConfig.defaults()
@@ -180,7 +155,6 @@ class TestSimulationConfigFromGuiValues:
             "-ROTATION_RATE-": "0.6 deg/s",
             "-TIMELINE_END-": "600.0 s",
             "-SEQ_TIMES-": "2000",
-            "-TIME_VERBOSITY-": "1",
             "-FIELD_X1-": "10 cm",
             "-FIELD_X2-": "10 cm",
             "-FIELD_Y1-": "5 cm",
@@ -253,37 +227,6 @@ class TestSimulationConfigFromGuiValues:
         assert config.dicom.dicom_directory == "/sampledicom/setA"
 
 
-class TestConfigToGui:
-    def test_config_to_gui_has_all_expected_keys(self) -> None:
-        config: SimulationConfig = SimulationConfig.defaults()
-        d: Dict[str, str] = config_to_gui(config)
-        assert "-G4_DATA_DIR-" in d
-        assert "-TOPAS_DIR-" in d
-        assert "-SEED-" in d
-        assert "-THREADS-" in d
-        assert "-HISTORIES-" in d
-        assert "-SIM_TYPE-" in d
-        assert "-FAN_MODE-" in d
-        assert "-CTDI_PHANTOM-" in d
-        assert "-COUCH_ENABLED-" in d
-        assert "-PATIENT_YAW-" in d
-        assert "-PATIENT_PITCH-" in d
-        assert "-PATIENT_ROLL-" in d
-
-    def test_config_to_gui_values_match_config_fields(self) -> None:
-        config: SimulationConfig = SimulationConfig.defaults()
-        d: Dict[str, str] = config_to_gui(config)
-        assert d["-SEED-"] == config.general.seed
-        assert d["-THREADS-"] == config.general.threads
-        assert d["-HISTORIES-"] == config.general.histories
-        assert d["-FAN_MODE-"] == config.imaging.fan_mode
-        assert d["-CTDI_PHANTOM-"] == config.ctdi.phantom_size
-        assert d["-TUBE_VOLTAGE-"] == str(config.imaging.anode_voltage)
-        assert d["-EXPOSURE-"] == str(config.imaging.exposure)
-        assert d["-ISO_X-"] == str(config.dicom.isocenter_x)
-        assert d["-COUCH_WIDTH-"] == str(config.ctdi.couch_width)
-
-
 class TestParseBool:
     def test_true_bool_is_true(self) -> None:
         from src.gui.adapter import _parse_bool
@@ -326,45 +269,7 @@ class TestParseBool:
         assert _parse_bool("true") is True
 
 
-class TestDoseCalibrationFactor:
-    def test_default_value(self) -> None:
-        config = SimulationConfig()
-        assert config.general.dose_calibration_factor == "1.0"
-
-    def test_yaml_roundtrip(self) -> None:
-        config = SimulationConfig(
-            general=GeneralConfig(dose_calibration_factor="1.0523")
-        )
-        with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False, mode="w") as f:
-            path: str = f.name
-        try:
-            config.to_yaml(path)
-            loaded = SimulationConfig.from_yaml(path)
-            assert loaded.general.dose_calibration_factor == "1.0523"
-        finally:
-            os.unlink(path)
-
-    def test_invalid_string_raises(self) -> None:
-        config = SimulationConfig(
-            general=GeneralConfig(dose_calibration_factor="not_a_number")
-        )
-        with pytest.raises(ValueError, match="must be a float"):
-            config.validate()
-
-    def test_negative_raises(self) -> None:
-        config = SimulationConfig(general=GeneralConfig(dose_calibration_factor="-0.5"))
-        with pytest.raises(ValueError, match="must be positive"):
-            config.validate()
-
-    def test_zero_raises(self) -> None:
-        config = SimulationConfig(general=GeneralConfig(dose_calibration_factor="0"))
-        with pytest.raises(ValueError, match="must be positive"):
-            config.validate()
-
-    def test_valid_positive_passes(self) -> None:
-        config = SimulationConfig(general=GeneralConfig(dose_calibration_factor="1.05"))
-        config.validate()
-
+class TestDefaultConfigValidates:
     def test_default_passes_validation(self) -> None:
         config = SimulationConfig()
         config.validate()
@@ -602,7 +507,7 @@ class TestResolveImagingMode:
             {},
         )
         assert img["anode_voltage"] == "100 kV"
-        assert img["exposure"] == "150 mAs"
+        assert img["exposure"] == "150.3 mAs"
         assert img["rotation_rate"] == "0.4 deg/s"
         assert ctdi["phantom_size"] == "16 cm"
 
@@ -664,6 +569,32 @@ class TestResolveImagingMode:
             "test_all_15_fields_resolved".format(len(_RESOLVE_FIELD_MAP))
         )
 
+    def test_resolve_field_map_specific_mappings(self) -> None:
+        """V2: assert the specific (mode_attr -> config key) mappings, not just
+        the count -- catches a renamed/removed field that preserves len==15."""
+        from src.config import _RESOLVE_FIELD_MAP
+
+        # (mode_attr, target_key, target_dict) tuples
+        actual = {(m, k, d) for m, k, d in _RESOLVE_FIELD_MAP}
+        expected = {
+            ("voltage", "anode_voltage", "imaging"),
+            ("ctdi_phantom", "phantom_size", "ctdi"),
+            ("start_angle", "start_angle", "imaging"),
+            ("rotation_rate", "rotation_rate", "imaging"),
+            ("timeline_end", "timeline_end", "imaging"),
+            ("fan_mode", "fan_mode", "imaging"),
+            ("field_x1", "field_x1", "imaging"),
+            ("field_x2", "field_x2", "imaging"),
+            ("field_y1", "field_y1", "imaging"),
+            ("field_y2", "field_y2", "imaging"),
+            ("blade_x1", "blade_x1", "imaging"),
+            ("blade_x2", "blade_x2", "imaging"),
+            ("blade_y1", "blade_y1", "imaging"),
+            ("blade_y2", "blade_y2", "imaging"),
+            ("exposure", "exposure", "imaging"),
+        }
+        assert actual == expected
+
     def test_all_15_fields_resolved(self) -> None:
         from src.models.imaging_mode import IMAGING_MODES as MODES
 
@@ -718,7 +649,7 @@ class TestResolveImagingMode:
             },
             {},
         )
-        assert img["exposure"] == "150 mAs"
+        assert img["exposure"] == "150.3 mAs"
 
     def test_empty_string_falls_back(self) -> None:
         img, ctdi = _resolve_imaging_mode(
@@ -729,7 +660,7 @@ class TestResolveImagingMode:
             },
             {},
         )
-        assert img["exposure"] == "150 mAs"
+        assert img["exposure"] == "150.3 mAs"
 
     def test_dose_factor_not_in_output(self) -> None:
         img, ctdi = _resolve_imaging_mode(
@@ -782,7 +713,7 @@ class TestMinimalYamlIntegration:
         config = SimulationConfig.from_yaml(str(config_file))
         # Verify beam params auto-populated from mode
         assert config.imaging.anode_voltage.value == 100.0
-        assert config.imaging.exposure.value == 150.0
+        assert config.imaging.exposure.value == 150.3
         assert config.imaging.rotation_rate.value == 0.4
         assert config.imaging.fan_mode == "Full Fan"
         assert config.ctdi.phantom_size == "16 cm"

@@ -1,18 +1,16 @@
 # MC-DCaRE CTDI calibration: 125 kV Full Fan (Pelvis Spotlight)
 general:
-  g4_data_directory: /home/bchcphysics/Applications/GEANT4/G4DATA
-  topas_directory: /home/bchcphysics/Applications/TOPAS/OpenTOPAS-build/topas
+  g4_data_directory: /opt/topas/GEANT4/G4DATA
+  topas_directory: /opt/topas/TOPAS/OpenTOPAS-install/bin/topas
   seed: '9'
   threads: '20'
-  histories: '1000000'
-  dose_calibration_factor: '1.0'
+  histories: '5000000'
   log_filename: simulation.log
 imaging:
   simulation_type: CTDI
   rotation_direction: CBCT Clockwise
   imaging_mode: Pelvis Spotlight
-  sequential_times: '150'
-  time_verbosity: '0'
+  sequential_times: '36'
 ctdi:
   dose_to_medium_zbins: '100'
   tle_zbins: '100'
@@ -23,3 +21,4 @@ ctdi:
   couch_length: 1000 mm
   user_blade_enabled: false
   graphics_enabled: false
+  water_chamber_enabled: true

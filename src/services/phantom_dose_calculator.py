@@ -5,8 +5,9 @@ phantom into per-organ dose and ICRP 103 effective dose.
 
 The calculator reads the 3D voxel dose grid, maps each voxel to an organ
 using the voxelization material grid, computes mean organ doses, and
-applies CTDIw-anchored absolute calibration followed by ICRP 103 tissue
-weighting.
+applies DCF normalization from :class:`CalibrationService` (the same
+calibration database used for CTDI mode). ICRP 103 tissue weighting
+factors are then applied for effective dose.
 """
 
 from __future__ import annotations
@@ -23,6 +24,8 @@ from src.models.icrp103 import (
     TISSUE_WEIGHTING_FACTORS,
     map_organ_to_tissue,
 )
+from src.services.calibration import CalibrationService, NormalizedDose
+from src.services.ctdi_calculator import extract_scorer_histories
 
 logger = logging.getLogger(__name__)
 
@@ -57,22 +60,28 @@ class EffectiveDoseResult:
     effective_dose_mSv: float
     tissue_results: List[TissueDoseResult]
     organ_results: List[OrganDoseResult]
-    ctdiw_mGy: Optional[float]
-    scale_factor: float
-    anchor_organs: List[str]
+    normalization: Optional[NormalizedDose]
 
 
 class PhantomDoseCalculator:
     """Post-processes voxelized phantom dose output into organ and effective dose.
 
-    The calculator implements a three-step normalization pipeline:
+    The calculator implements a three-step pipeline:
 
     1. **Voxel-to-organ mapping**: Each voxel in the dose grid is matched to
        an organ using the material ID grid from the voxelization step.
-    2. **CTDIw anchoring**: The mean dose to isocenter-region organs (pelvic
-       bones, bladder, etc.) is anchored to the measured CTDIw, providing
-       absolute dose calibration that accounts for the source model and
-       scatter conditions.
+    2. **DCF normalization**: Per-history organ doses are converted to
+       absolute dose using the same :class:`CalibrationService` DCF as CTDI
+       mode. The formula is::
+
+           photons_per_mAs = spectrum_fluence * N_scoring / exposure_mAs
+           absolute_Gy
+               = (raw_Gy / n_scorer_active_histories) * photons_per_mAs * mAs * DCF
+
+       ``n_scorer_active_histories`` is read from the dose CSV's
+       ``Histories_with_Scorer_Active`` column (falling back to
+       ``total_histories`` when absent), so the same DCF applies to CTDI,
+       phantom, and DICOM simulations.
     3. **ICRP 103 effective dose**: Organ doses are mapped to ICRP 103 tissue
        categories, mean tissue doses are computed, and tissue weighting
        factors are applied.
@@ -83,18 +92,6 @@ class PhantomDoseCalculator:
             voxelization (see :mod:`scripts.voxelize_mrcp_am_fast`).
         material_file_path: Path to the ICRP 145 ``.material`` file.
     """
-
-    # Organs used for CTDIw anchoring (isocenter-region pelvic organs)
-    DEFAULT_ANCHOR_ORGANS = [
-        "Pelvis_spongiosa",
-        "Pelvis_cortical",
-        "Sacrum_spongiosa",
-        "Sacrum_cortical",
-        "Urinary_bladder_wall_insensitive",
-        "Urinary_bladder_content",
-        "Rectum_wall",
-        "Prostate",
-    ]
 
     def __init__(
         self,
@@ -157,7 +154,15 @@ class PhantomDoseCalculator:
         """Load dose CSV and group voxel doses by organ name.
 
         Returns a dict mapping organ name to a list of per-voxel doses
-        (in Gy, raw per-history values from TOPAS).
+        (in Gy, raw per-history values from TOPAS). Voxels with zero
+        dose are **included** so that organ means are unbiased. DTM
+        (collision-based) produces zero for voxels with no interaction;
+        excluding them inflates the mean (selection bias). Including
+        them makes DTM converge to TLE within ~4% under CPE.
+
+        Voxels whose material ID is not in the .material file (e.g. ID 0
+        for air/outside-body regions) are skipped, as are out-of-bounds
+        indices and the sentinel mat_id == -1.
         """
         grid = self.grid
         materials = self.materials
@@ -172,22 +177,20 @@ class PhantomDoseCalculator:
                     continue
                 ix, iy, iz = int(parts[0]), int(parts[1]), int(parts[2])
                 dose = float(parts[3])
-                if dose <= 0:
-                    continue
                 if ix >= grid.shape[0] or iy >= grid.shape[1] or iz >= grid.shape[2]:
                     continue
                 mat_id = int(grid[ix, iy, iz])
-                if mat_id == -1:
-                    continue  # voxel outside phantom body
-                organ = materials.get(mat_id, "Unknown")
+                if mat_id == -1 or mat_id not in materials:
+                    continue  # outside phantom body or unmapped (air)
+                organ = materials[mat_id]
                 organ_doses.setdefault(organ, []).append(dose)
 
-        logger.info("Loaded dose data: %d organs with non-zero dose", len(organ_doses))
+        logger.info("Loaded dose data: %d organs", len(organ_doses))
         return organ_doses
 
     @property
     def organ_doses(self) -> Dict[str, List[float]]:
-        """Raw per-voxel dose lists keyed by organ name (Gy per history)."""
+        """Raw per-voxel TOPAS Sum values keyed by organ name (total accumulated Gy)."""
         if self._organ_doses is None:
             self._organ_doses = self._load_dose_data()
         return self._organ_doses
@@ -198,44 +201,89 @@ class PhantomDoseCalculator:
 
     def calculate(
         self,
-        ctdiw_mGy: Optional[float] = None,
-        anchor_organs: Optional[List[str]] = None,
+        calibration_service: Optional[CalibrationService] = None,
+        metadata: Optional[Dict] = None,
+        target_mAs: Optional[float] = None,
+        dcf_override: Optional[float] = None,
+        scorer_type: str = "tle",
     ) -> EffectiveDoseResult:
-        """Compute organ doses and ICRP 103 effective dose.
+        """Compute organ doses and ICRP 103 effective dose with DCF normalization.
 
         Args:
-            ctdiw_mGy: Measured CTDIw in mGy for absolute dose anchoring.
-                If ``None``, raw per-history doses are returned without
-                absolute calibration.
-            anchor_organs: Organ names to use as the isocenter anchor.
-                Defaults to :attr:`DEFAULT_ANCHOR_ORGANS`.
+            calibration_service: :class:`CalibrationService` for DCF lookup.
+                If None, raw per-history doses are returned uncalibrated.
+            metadata: Simulation metadata dict (from
+                :meth:`CalibrationService.read_metadata`). Required if
+                calibration_service is provided.
+            target_mAs: Scan mAs to scale to (for partial scans). If None,
+                uses the simulated mAs from metadata.
+            dcf_override: DCF to use instead of calibration.yaml lookup.
+            scorer_type: Which scorer's DCF to use (``"tle"``, ``"dtw"``,
+                or ``"dtm"``). Defaults to ``"tle"``. Both TLE (dcf_tle)
+                and DTM (dcf_water_dtm) DCFs are CTDI-derived and
+                transferable to the phantom.
 
         Returns:
             :class:`EffectiveDoseResult` with full provenance.
         """
-        if anchor_organs is None:
-            anchor_organs = self.DEFAULT_ANCHOR_ORGANS
+        # Compute normalization factor
+        norm: Optional[NormalizedDose] = None
+        scale_to_mGy = 1.0  # default: raw Gy -> raw mGy (no calibration)
 
-        # Compute anchor scale factor
-        if ctdiw_mGy is not None:
-            anchor_raw = []
-            for organ in anchor_organs:
-                if organ in self.organ_doses:
-                    anchor_raw.append(np.mean(self.organ_doses[organ]))
-            if not anchor_raw:
-                raise ValueError(
-                    "None of the anchor organs found in dose data: %s" % anchor_organs
+        if calibration_service is not None and metadata is not None:
+            # Inject the scorer-active history count (from the TOPAS CSV
+            # Histories_with_Scorer_Active column) so normalize_dose divides
+            # by the actual accumulated histories rather than metadata
+            # total_histories. This auto-scales for phase-space replay
+            # (N_phsp x M x R) and direct-beam (R x histories_per_run)
+            # sources. NOTE: phantom DoseToMedium CSVs emitted by the current
+            # TsTetGeomScorer/TsDicomPatient scorers only output Sum (no
+            # Histories column), so this returns None for those runs and
+            # normalize_dose falls back to total_histories -- correct for
+            # direct-beam phantom sims but NOT for phase-space replay
+            # (where total_histories != N_phsp x M x R). A warning is logged
+            # in that case.
+            n_scorer_active = extract_scorer_histories(self.dose_csv_path)
+            norm_metadata: Dict = dict(metadata)
+            if n_scorer_active is not None:
+                norm_metadata["n_scorer_active_histories"] = n_scorer_active
+            elif "n_scorer_active_histories" not in metadata:
+                logger.warning(
+                    "Phantom dose CSV %s has no Histories_with_Scorer_Active "
+                    "column; falling back to metadata total_histories=%s for "
+                    "normalization. This is correct for direct-beam phantom "
+                    "sims but NOT for phase-space replay.",
+                    self.dose_csv_path,
+                    metadata.get("total_histories"),
                 )
-            anchor_mean_Gy = float(np.mean(anchor_raw))
-            scale = ctdiw_mGy / anchor_mean_Gy  # mGy per Gy of raw dose
-        else:
-            scale = 1.0
+            # Use a representative organ dose to get the normalization constants
+            # (the scale factor is the same for all organs since it's per-history).
+            # Pick the organ with the highest mean to avoid organs whose mean is
+            # zero (far-from-beam organs at low history counts may have all-zero
+            # DTM voxels, which would cause division-by-zero).
+            representative_dose = max(
+                float(np.mean(doses)) for doses in self.organ_doses.values()
+            )
+            norm = calibration_service.normalize_dose(
+                representative_dose,
+                norm_metadata,
+                target_mAs=target_mAs,
+                dcf_override=dcf_override,
+                scorer_type=scorer_type,
+            )
+            # scale_to_mGy converts raw per-history Gy to calibrated mGy
+            if norm.calibrated_Gy is not None:
+                scale_to_mGy = (
+                    norm.calibrated_Gy / representative_dose * 1000
+                )  # Gy -> mGy
+            else:
+                scale_to_mGy = norm.raw_Gy / representative_dose * 1000
 
         # Compute organ doses
         organ_results: List[OrganDoseResult] = []
         for organ, doses in self.organ_doses.items():
             n = len(doses)
-            scaled_mGy = [d * scale for d in doses]
+            scaled_mGy = [d * scale_to_mGy for d in doses]
             mean_mGy = float(np.mean(scaled_mGy))
             std_mGy = float(np.std(scaled_mGy))
             sem_pct = (std_mGy / np.sqrt(n) / mean_mGy * 100) if mean_mGy > 0 else 0.0
@@ -257,7 +305,6 @@ class PhantomDoseCalculator:
             tissue = result.icrp103_tissue
             tissue_doses.setdefault(tissue, []).append(result.mean_dose_mGy)
 
-        # Remainder: arithmetic mean of all remainder organ doses
         remainder_organs = [
             r.organ_name for r in organ_results if r.icrp103_tissue == "remainder"
         ]
@@ -299,9 +346,7 @@ class PhantomDoseCalculator:
             effective_dose_mSv=effective_dose,
             tissue_results=tissue_results,
             organ_results=organ_results,
-            ctdiw_mGy=ctdiw_mGy,
-            scale_factor=scale,
-            anchor_organs=anchor_organs,
+            normalization=norm,
         )
 
     # ------------------------------------------------------------------
@@ -314,14 +359,14 @@ class PhantomDoseCalculator:
         lines: List[str] = []
         lines.append("=" * 75)
         lines.append("ICRP 145 Phantom Dose Report")
-        if result.ctdiw_mGy is not None:
-            lines.append(
-                f"Absolute calibration: CTDIw-anchored ({result.ctdiw_mGy} mGy)"
-            )
-            lines.append(f"Anchor organs: {', '.join(result.anchor_organs[:4])}...")
-            lines.append(f"Scale factor: {result.scale_factor:.4e}")
+        if result.normalization is not None:
+            n = result.normalization
+            lines.append(f"Normalization: DCF from {n.dcf_source}")
+            lines.append(f"  DCF: {n.dcf}")
+            lines.append(f"  photons_per_mAs: {n.photons_per_mAs:.4e}")
+            lines.append(f"  mAs: {n.mAs_used:.1f} (simulated: {n.mAs_simulated:.1f})")
         else:
-            lines.append("Absolute calibration: none (raw per-history doses)")
+            lines.append("Normalization: none (raw per-history doses)")
         lines.append("=" * 75)
 
         # Tissue table

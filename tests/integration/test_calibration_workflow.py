@@ -21,37 +21,6 @@ from src.services.calibration import CalibrationService
 from src.services.ctdi_calculator import CTDICalculator
 
 
-class MockSpek:
-    """Minimal SpekPy mock matching SpectrumGenerator test convention."""
-
-    class _State:
-        def get_current_state_str(self, mode: str, results: object) -> str:
-            return "Integration test state"
-
-    def __init__(self, **kwargs: object) -> None:
-        self.state = self._State()
-
-    def get_flu(self) -> float:
-        return 5000.0
-
-    def get_spectrum(self, edges: bool = False, diff: bool = False) -> tuple:
-        import numpy as np
-
-        return np.array([10.0, 20.0]), np.array([100.0, 200.0])
-
-    def get_std_results(self) -> object:
-        class R:
-            pass
-
-        return R()
-
-
-class MockSpekWithVersion:
-    def __init__(self) -> None:
-        self.Spek = MockSpek
-        self.__version__ = "2.0.1"
-
-
 def _make_calibration_yaml(path: Path) -> Path:
     data = {
         "machine": "IntegrationTestMachine",
@@ -82,37 +51,25 @@ def _make_runfolder_with_metadata(
     mAs: float = 100.0,
     kV: float = 100.0,
 ) -> Path:
-    """Create a runfolder with simulation_metadata.yaml and chamber plug CSVs."""
+    """Create a runfolder with a hand-authored simulation_metadata.yaml.
+
+    The metadata is written directly rather than generated via
+    ``SpectrumGenerator`` so that CTDICalculator's reader is exercised against
+    an independent fixture (if the writer and reader drifted together, a
+    generated fixture would mask it).
+    """
     rf = tmp_path / "runfolder"
     rf.mkdir()
 
-    tmp_dir = tmp_path / "tmp"
-    tmp_dir.mkdir(exist_ok=True)
-
-    from src.spectrum_generator import SpectrumGenerator
-
-    with patch("src.spectrum_generator.sp") as mock_sp:
-        mock_sp.Spek.return_value = MockSpek()
-        mock_sp.__version__ = "2.0.1"
-        SpectrumGenerator.generate(
-            kV,
-            mAs,
-            "1000",
-            str(tmp_path),
-            fan_mode="Full Fan",
-            seed=42,
-            threads=4,
-        )
-
-    import shutil
-
-    shutil.copy(
-        tmp_path / "tmp" / "simulation_metadata.yaml",
-        rf / "simulation_metadata.yaml",
-    )
-    shutil.copy(
-        tmp_path / "tmp" / "head_calibration_factor.txt",
-        rf / "head_calibration_factor.txt",
+    metadata = {
+        "total_histories": 1000,
+        "exposure_mAs": mAs,
+        "spectrum_fluence_photons_per_mAs": 2.34e8,  # kV-dependent constant
+        "fan_mode": "Full Fan",
+        "spekpy": {"kvp": int(kV)},
+    }
+    (rf / "simulation_metadata.yaml").write_text(
+        yaml.dump(metadata, default_flow_style=False)
     )
 
     for position in ["Bottom", "Top", "Left", "Right", "Centre"]:
@@ -191,7 +148,6 @@ class TestFullCalibrationFlow:
 
         svc = CalibrationService(cal_path)
         svc.compute_dcf(100, "Full Fan", 0.02, 20.0)
-        expected_dcf = (20.0 * 1e-3) / 0.02
 
         with patch.object(
             CTDICalculator, "_extract_dose_from_file", return_value=2.0e-2

@@ -22,7 +22,11 @@ import yaml
 from rich.console import Console
 from rich.table import Table
 
-from src.services.calibration import CalibrationService
+from src.services.calibration import (
+    CalibrationService,
+    compute_photons_per_mAs,
+    raw_absolute_dose_Gy,
+)
 from src.services.ctdi_calculator import CTDICalculator, PRIMARY_SCORER
 
 logging.basicConfig(
@@ -93,14 +97,30 @@ def cross_validate(
     calibration_path: Path,
     runfolder_dir: Path,
     tolerance_pct: float = 10.0,
+    exclude_globs: Optional[List[str]] = None,
 ) -> List[CrossValidationResult]:
-    """Run cross-validation across all run-folders."""
+    """Run cross-validation across all run-folders.
+
+    Args:
+        exclude_globs: Optional list of glob patterns; run-folders whose name
+            matches any pattern are skipped. Use this to exclude the
+            calibration run-folders themselves, since validating a DCF against
+            the same run that derived it is tautological (calibrated dose
+            algebraically equals the reference).
+    """
     calib_svc = CalibrationService(calibration_path)
     results: List[CrossValidationResult] = []
 
     runfolders = sorted([d for d in runfolder_dir.iterdir() if d.is_dir()])
 
     for rf in runfolders:
+        if exclude_globs:
+            import fnmatch
+
+            if any(fnmatch.fnmatch(rf.name, pat) for pat in exclude_globs):
+                logger.debug("Skipping %s: matched exclude glob", rf.name)
+                continue
+
         meta = extract_runfolder_metadata(rf)
         if meta is None:
             logger.debug("Skipping %s: no usable metadata", rf.name)
@@ -144,6 +164,22 @@ def cross_validate(
             )
             continue
 
+        # Warn when this run is the calibration run itself: validating the DCF
+        # against the same run that derived it is tautological (calibrated
+        # dose algebraically equals the reference). The result is only
+        # meaningful for an independent run-folder.
+        is_calibration_run = abs(exposure_mAs - reference_mAs) < 1e-6
+        if is_calibration_run:
+            logger.warning(
+                "%s is the calibration run for (%d kV, %s) at %.1f mAs: its "
+                "PASS is tautological (DCF was derived from this run). Use "
+                "--exclude-glob to drop it for a real linearity check.",
+                rf.name,
+                kV,
+                fan_mode,
+                exposure_mAs,
+            )
+
         # Compute raw CTDI-w (TLE scorer)
         try:
             calculator = CTDICalculator(rf)
@@ -165,22 +201,23 @@ def cross_validate(
 
         raw_sum = tle_result.get("raw_sum", 0.0)
 
-        # Compute photons_per_mAs: no_particles / mAs (kV-dependent constant)
-        # Derived from spectrum_fluence (= no_particles / total_histories)
         result_metadata = tle_result.get("metadata", {})
-        th = result_metadata.get("total_histories", 0)
-        spectrum_fluence = result_metadata.get("spectrum_fluence_photons_per_mAs")
-        old_norm = result_metadata.get("norm_factor")
-
-        if spectrum_fluence and spectrum_fluence > 0 and exposure_mAs > 0:
-            photons_per_mAs = spectrum_fluence * th / exposure_mAs
-        elif old_norm:
-            photons_per_mAs = old_norm * th
-        else:
+        try:
+            photons_per_mAs = compute_photons_per_mAs(result_metadata)
+        except ValueError:
             logger.warning("Cannot compute photons_per_mAs for %s", rf.name)
             continue
 
-        raw_Gy = raw_sum * photons_per_mAs * exposure_mAs
+        # Divide TOPAS Sum by the scorer-active history count (from the CSV
+        # Histories_with_Scorer_Active column, populated by CTDICalculator)
+        # to get the per-history mean before scaling to absolute Gy. Falls
+        # back to metadata total_histories when the CSV lacks the column.
+        n_scorer_active = (
+            result_metadata.get("n_scorer_active_histories") or total_histories
+        )
+        raw_Gy = raw_absolute_dose_Gy(
+            raw_sum, photons_per_mAs, n_scorer_active, exposure_mAs
+        )
         calibrated_Gy = raw_Gy * dcf
         calibrated_mGy = calibrated_Gy * 1000.0  # DCF converts Gy→Gy
 
@@ -344,6 +381,14 @@ def main() -> None:
         default=10.0,
         help="Tolerance in percent (default: 10.0)",
     )
+    parser.add_argument(
+        "--exclude-glob",
+        "-x",
+        action="append",
+        default=None,
+        help="Glob pattern of run-folders to skip (repeatable). Use this to "
+        "exclude calibration run-folders so validation is not tautological.",
+    )
     args = parser.parse_args()
 
     calibration_path = Path(args.calibration)
@@ -370,7 +415,9 @@ def main() -> None:
         )
     )
 
-    results = cross_validate(calibration_path, runfolder_dir, args.tolerance)
+    results = cross_validate(
+        calibration_path, runfolder_dir, args.tolerance, exclude_globs=args.exclude_glob
+    )
 
     if not results:
         console.print(

@@ -23,7 +23,7 @@ Three concrete implementations:
 | File | Role |
 |---|---|
 | `base.py` | `SimulationMode` ABC with context-building, template selection, and file-copying abstract methods |
-| `ctdi_mode.py` | CTDI mode: blade positions, phantom size, single parameter file with parallel worlds, single TOPAS run |
+| `ctdi_mode.py` | CTDI mode: blade positions, phantom size, single parameter file with parallel worlds, single TOPAS run. Branches on `phase_space_mode` (off/score/replay); replay `prepare_run` copies the `.phsp` **and its `.header` sibling** (TOPAS PhaseSpace source needs both) |
 | `dicom_mode.py` | DICOM mode: patient geometry context, DICOM file staging, single TOPAS run |
 | `phantom_mode.py` | ICRP 145 mode: tetrahedral phantom context, sex/offset/couch params, organ-dose scoring, single TOPAS run |
 

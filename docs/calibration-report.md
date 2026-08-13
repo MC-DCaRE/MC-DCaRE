@@ -1,5 +1,21 @@
 # Calibration Summary Report
 
+> **Provenance note (2026-07-27).** This report captures the 2026-06-13
+> `calibrate-all-arcs` snapshot (80M-history runs). Two things have moved on:
+>
+> 1. **Cross-validation figures.** The `+0.00%` results in §2 were not
+>    reproducible — they came from a raw-dose formula that omitted the
+>    `/total_histories` division (corrected by the `fix-ctdiw-normalization`
+>    change). `cross_validate_calibrations.py` now reports real MC-noise-level
+>    errors of ~0.3–0.8% per protocol (14/14 PASS).
+> 2. **DCFs.** The DCFs here (e.g. 125 HF `0.001672`) are the 80M-history
+>    values; the authoritative per-scorer DCFs now live in `calibration.yaml`
+>    (re-derived at 150M/500M histories, e.g. 125 HF TLE `0.0016336`).
+>
+> The raw CTDI-w values in this report were always correctly normalized and
+> remain valid; only the cross-validation percentage and the DCF precision
+> have been superseded.
+
 **Date**: 2026-06-13
 **Machine**: TrueBeam SN1234
 **Change**: calibrate-all-arcs
@@ -22,7 +38,7 @@
 
 | kV | Fan | Protocol | Phantom | mAs | DCF | Ref (mGy) | Calibrated (mGy) | Error |
 |----|-----|----------|---------|-----|-----|-----------|------------------|-------|
-| 125 | FF | Short Thorax | 32 cm | 210 | 0.004486 | 12.3 | 12.30 | +0.00% |
+| 125 | FF | Short Thorax | 32 cm | 210 | 0.004486 | 12.3 | 12.30 | +0.00% *(circular — see note above; real value ~0.3–0.8%)* |
 | 125 | HF | Thorax | 32 cm | 268.5 | 0.001672 | 4.0 | 3.98 | −0.62% |
 
 **Verdict**: DCF is kV/fan-specific — same DCF transfers across protocols within a group. Both PASS.

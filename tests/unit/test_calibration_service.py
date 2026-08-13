@@ -44,6 +44,8 @@ def cal_file(tmp_path: Path) -> Path:
                 "reference_mAs": 100,
                 "measured_ctdi_w_mGy": 45.2,
                 "dcf": 1.034,
+                "dcf_dtm": 1.5,
+                "dcf_water_dtm": 1.07,
             },
             {
                 "kV": 80,
@@ -88,18 +90,18 @@ class TestComputeDCF:
         reloaded = MachineCalibration.from_yaml(cal_file)
         entry = reloaded.find_entry(80, "Full Fan")
         assert entry is not None
-        assert entry.dcf is not None
-        assert abs(entry.dcf - expected) < 1e-10
+        assert entry.dcf_tle is not None
+        assert abs(entry.dcf_tle - expected) < 1e-10
         assert entry.measured_ctdi_w_mGy == 45.0
 
         # Verify sibling entry unchanged
         sibling = reloaded.find_entry(120, "Full Fan")
         assert sibling is not None
-        assert sibling.dcf == 1.034
+        assert sibling.dcf_tle == 1.034
 
     def test_compute_dcf_raises_on_existing_without_force(self, cal_file: Path) -> None:
         svc = CalibrationService(cal_file)
-        with pytest.raises(ValueError, match="already has DCF"):
+        with pytest.raises(ValueError, match="already has"):
             svc.compute_dcf(120, "Full Fan", 0.0437, 46.0)
 
     def test_compute_dcf_overwrites_with_force(self, cal_file: Path) -> None:
@@ -169,7 +171,7 @@ class TestNormalize:
         result = svc.normalize(raw_result, 120, "Full Fan")
 
         photons_per_mAs = 2.34e8 * 1e6 / 100.0
-        expected_raw = 1.0e-15 * photons_per_mAs * 100.0
+        expected_raw = (1.0e-15 / 1e6) * photons_per_mAs * 100.0
         expected_calibrated = expected_raw * 1.034
 
         assert result["ctdi_w_raw_Gy"] == pytest.approx(expected_raw)
@@ -189,7 +191,7 @@ class TestNormalize:
         result = svc.normalize(raw_result, 120, "Full Fan", dcf_override=0.85)
 
         photons_per_mAs = 2.34e8 * 1e6 / 100.0
-        expected_raw = 1.0e-15 * photons_per_mAs * 100.0
+        expected_raw = (1.0e-15 / 1e6) * photons_per_mAs * 100.0
         expected_calibrated = expected_raw * 0.85
 
         assert result["ctdi_w_calibrated_Gy"] == pytest.approx(expected_calibrated)
@@ -201,7 +203,7 @@ class TestNormalize:
         result = svc.normalize(raw_result, 120, "Full Fan", target_mAs=50.0)
 
         photons_per_mAs = 2.34e8 * 1e6 / 100.0
-        expected_raw = 1.0e-15 * photons_per_mAs * 50.0
+        expected_raw = (1.0e-15 / 1e6) * photons_per_mAs * 50.0
 
         assert result["ctdi_w_raw_Gy"] == pytest.approx(expected_raw)
         assert result["mAs_used"] == 50.0
@@ -246,7 +248,7 @@ class TestNormalize:
         result = svc.normalize(old_result, 120, "Full Fan")
         photons_per_mAs = (2.34e8 / 1e6) * 1e6
         assert result["ctdi_w_raw_Gy"] == pytest.approx(
-            1.0e-15 * photons_per_mAs * 100.0
+            (1.0e-15 / 1e6) * photons_per_mAs * 100.0
         )
 
 
@@ -269,7 +271,7 @@ class TestApply:
             yaml.dump(metadata, default_flow_style=False)
         )
         for position in ["Bottom", "Top", "Left", "Right", "Centre"]:
-            for ftype in ["dtm", "tle", "dtw"]:
+            for ftype in ["dtm", "tle", "dtw", "water_dtm"]:
                 (rf / "ChamberPlug{}_{}.csv".format(position, ftype)).write_text(
                     "2.5e-20"
                 )
@@ -284,14 +286,14 @@ class TestApply:
         ):
             results = svc.apply(rf, 120, "Full Fan")
 
-        assert len(results) == 3
+        assert len(results) == 4
         tle_results = [r for r in results if r["scorer_type"] == "tle"]
         assert len(tle_results) == 1
         assert tle_results[0]["dcf_applied"] == 1.034
         assert tle_results[0]["mAs_ratio"] == 1.0
 
         non_tle = [r for r in results if r["scorer_type"] != "tle"]
-        assert len(non_tle) == 2
+        assert len(non_tle) == 3
         for r in non_tle:
             assert r["dcf_applied"] is None
             assert r["CTDI_w_calibrated"] is None
@@ -336,7 +338,8 @@ class TestApply:
             assert r["dcf_applied"] is None
 
     def test_apply_with_dtm_scorer_type(self, cal_file: Path, tmp_path: Path) -> None:
-        """When scorer_type='dtm', DTM gets calibrated and TLE is uncalibrated."""
+        """When scorer_type='dtm', DTM gets its own DCF (1.5, not the TLE 1.034)
+        and TLE is returned uncalibrated as a secondary comparison."""
         svc = CalibrationService(cal_file)
         rf = self._make_runfolder(tmp_path, mAs=100.0)
 
@@ -347,7 +350,9 @@ class TestApply:
 
         dtm_results = [r for r in results if r["scorer_type"] == "dtm"]
         assert len(dtm_results) == 1
-        assert dtm_results[0]["dcf_applied"] == 1.034
+        # apply must forward scorer_type to normalize so DTM uses dcf_dtm (1.5),
+        # NOT the TLE DCF (1.034).
+        assert dtm_results[0]["dcf_applied"] == 1.5
         assert dtm_results[0]["CTDI_w_calibrated"] is not None
 
         tle_results = [r for r in results if r["scorer_type"] == "tle"]
@@ -355,6 +360,23 @@ class TestApply:
         assert tle_results[0]["dcf_applied"] is None
         assert tle_results[0]["CTDI_w_calibrated"] is None
         assert tle_results[0]["note"] == "uncalibrated — secondary comparison"
+
+    def test_apply_with_water_dtm_scorer_type(
+        self, cal_file: Path, tmp_path: Path
+    ) -> None:
+        """When scorer_type='water_dtm', the water_dtm result uses dcf_water_dtm."""
+        svc = CalibrationService(cal_file)
+        rf = self._make_runfolder(tmp_path, mAs=100.0)
+
+        with patch.object(
+            CTDICalculator, "_extract_dose_from_file", return_value=self._MOCK_DOSE
+        ):
+            results = svc.apply(rf, 120, "Full Fan", scorer_type="water_dtm")
+
+        wdtm = [r for r in results if r["scorer_type"] == "water_dtm"]
+        assert len(wdtm) == 1
+        assert wdtm[0]["dcf_applied"] == 1.07
+        assert wdtm[0]["CTDI_w_calibrated"] is not None
 
 
 class TestReplayCalibration:
@@ -380,6 +402,189 @@ class TestReplayCalibration:
         calc = CTDICalculator(rf)
         assert calc.total_histories == 1000000
         assert calc.exposure_mAs == 100.0
+
+
+class TestCanonicalNormalizationHelpers:
+    """Tests for the single-source raw-dose normalization helpers."""
+
+    def test_raw_absolute_dose_Gy_divides_by_scorer_active_histories(self) -> None:
+        from src.services.calibration import raw_absolute_dose_Gy
+
+        # raw_sum=1e-10 over 1e6 scorer-active histories, ppm=2.34e8, mAs=100
+        # = (1e-10/1e6) * 2.34e8 * 100 = 2.34e-6
+        val = raw_absolute_dose_Gy(1.0e-10, 2.34e8, 1_000_000, 100.0)
+        assert val == pytest.approx((1.0e-10 / 1_000_000) * 2.34e8 * 100.0)
+        # Regression guard: the stale formula omitted /total_histories,
+        # producing a value ~1e6x larger (~2.34). Must be well under 1 Gy.
+        assert abs(val) < 1.0
+
+    def test_raw_absolute_dose_Gy_raises_on_zero_histories(self) -> None:
+        from src.services.calibration import raw_absolute_dose_Gy
+
+        with pytest.raises(ValueError, match="n_scorer_active_histories"):
+            raw_absolute_dose_Gy(1.0e-10, 2.34e8, 0, 100.0)
+
+    def test_raw_absolute_dose_Gy_raises_on_negative_histories(self) -> None:
+        from src.services.calibration import raw_absolute_dose_Gy
+
+        with pytest.raises(ValueError, match="n_scorer_active_histories"):
+            raw_absolute_dose_Gy(1.0e-10, 2.34e8, -5, 100.0)
+
+    def test_compute_photons_per_mAs_yields_beam_constant(self) -> None:
+        """photons_per_mAs collapses to no_particles/mAs (a beam constant)
+        because the N_scoring inside spectrum_fluence cancels the multiply."""
+        from src.services.calibration import compute_photons_per_mAs
+
+        # sf = no_particles / N_scoring; ppm = sf * N_scoring / mAs
+        #                                    = no_particles / mAs.
+        no_particles = 2.34e16
+        n_scoring = 1_000_000
+        mAs = 100.0
+        sf = no_particles / n_scoring
+        ppm = compute_photons_per_mAs(
+            {
+                "total_histories": n_scoring,
+                "exposure_mAs": mAs,
+                "spectrum_fluence_photons_per_mAs": sf,
+            }
+        )
+        assert ppm == pytest.approx(no_particles / mAs)
+        # Independent of N_scoring: a different scoring run of the same beam
+        # yields the same beam constant.
+        ppm2 = compute_photons_per_mAs(
+            {
+                "total_histories": 10 * n_scoring,
+                "exposure_mAs": mAs,
+                "spectrum_fluence_photons_per_mAs": no_particles / (10 * n_scoring),
+            }
+        )
+        assert ppm2 == pytest.approx(ppm)
+
+    def test_compute_photons_per_mAs_raises_on_missing_histories(self) -> None:
+        from src.services.calibration import compute_photons_per_mAs
+
+        with pytest.raises(ValueError, match="total_histories"):
+            compute_photons_per_mAs(
+                {"exposure_mAs": 100.0, "spectrum_fluence_photons_per_mAs": 2.34e8}
+            )
+
+    def test_compute_photons_per_mAs_raises_on_zero_histories(self) -> None:
+        from src.services.calibration import compute_photons_per_mAs
+
+        with pytest.raises(ValueError, match="total_histories"):
+            compute_photons_per_mAs(
+                {
+                    "total_histories": 0,
+                    "exposure_mAs": 100.0,
+                    "spectrum_fluence_photons_per_mAs": 2.34e8,
+                }
+            )
+
+    def test_ctdi_direct_beam_sequential_times_36(self) -> None:
+        """CTDI direct beam: sequential_times=36 inflates both raw_sum and
+        N_scorer_active by 36x, so the absolute dose is independent of R.
+
+        For direct beam, metadata total_histories = R x histories_per_run
+        (the value sf was calibrated with), and the CSV
+        Histories_with_Scorer_Active = R x histories_per_run as well.
+        """
+        from src.services.calibration import (
+            compute_photons_per_mAs,
+            raw_absolute_dose_Gy,
+        )
+
+        no_particles = 2.34e16
+        histories_per_run = 5_000_000
+        mAs = 100.0
+
+        def dose_for_R(R: int) -> float:
+            n_scoring = R * histories_per_run  # what compute_histories returns
+            sf = no_particles / n_scoring
+            metadata = {
+                "total_histories": n_scoring,
+                "exposure_mAs": mAs,
+                "spectrum_fluence_photons_per_mAs": sf,
+            }
+            ppm = compute_photons_per_mAs(metadata)
+            # raw_sum scales with R (more histories -> more accumulated dose);
+            # N_scorer_active = R x histories_per_run (from CSV).
+            per_history_dose = 1.0e-12
+            raw_sum = per_history_dose * R * histories_per_run
+            n_scorer_active = R * histories_per_run
+            return raw_absolute_dose_Gy(raw_sum, ppm, n_scorer_active, mAs)
+
+        d1 = dose_for_R(1)
+        d36 = dose_for_R(36)
+        # Dose independent of R (cancels):
+        assert d36 == pytest.approx(d1, rel=1e-12)
+        # And equals per_history_dose x no_particles:
+        assert d36 == pytest.approx(1.0e-12 * no_particles)
+
+    def test_phase_space_replay_M5(self) -> None:
+        """Phase-space replay: M reuse inflates raw_sum and N_scorer_active
+        by M, so absolute dose is independent of M. N_scoring (metadata
+        total_histories) stays at the scoring-run value."""
+        from src.services.calibration import (
+            compute_photons_per_mAs,
+            raw_absolute_dose_Gy,
+        )
+
+        no_particles = 2.34e16
+        n_scoring = 400_000  # scoring-run histories (metadata total_histories)
+        n_phsp = 100_000  # particles that reached the phase-space plane
+        mAs = 100.0
+        sf = no_particles / n_scoring  # undivided (post-fix replay metadata)
+
+        def dose_for_M(M: int) -> float:
+            metadata = {
+                "total_histories": n_scoring,
+                "exposure_mAs": mAs,
+                "spectrum_fluence_photons_per_mAs": sf,
+            }
+            ppm = compute_photons_per_mAs(metadata)
+            per_event_dose = 1.0e-12
+            raw_sum = per_event_dose * n_phsp * M  # scales with M
+            n_scorer_active = n_phsp * M  # CSV Histories_with_Scorer_Active
+            return raw_absolute_dose_Gy(raw_sum, ppm, n_scorer_active, mAs)
+
+        d1 = dose_for_M(1)
+        d5 = dose_for_M(5)
+        assert d5 == pytest.approx(d1, rel=1e-12)
+        # equals per_event_dose x no_particles (the real photon count)
+        assert d5 == pytest.approx(1.0e-12 * no_particles)
+
+    def test_M_and_R_cancel_for_replay(self) -> None:
+        """For replay, absolute dose is invariant in both M (reuse) and R
+        (sequential times): raw_sum / N_scorer_active is constant because
+        both scale as M x R."""
+        from src.services.calibration import (
+            compute_photons_per_mAs,
+            raw_absolute_dose_Gy,
+        )
+
+        no_particles = 2.34e16
+        n_scoring = 400_000
+        n_phsp = 100_000
+        mAs = 100.0
+        sf = no_particles / n_scoring
+
+        def dose(M: int, R: int) -> float:
+            metadata = {
+                "total_histories": n_scoring,
+                "exposure_mAs": mAs,
+                "spectrum_fluence_photons_per_mAs": sf,
+            }
+            ppm = compute_photons_per_mAs(metadata)
+            per_event = 1.0e-12
+            raw_sum = per_event * n_phsp * M * R
+            n_scorer_active = n_phsp * M * R
+            return raw_absolute_dose_Gy(raw_sum, ppm, n_scorer_active, mAs)
+
+        base = dose(1, 1)
+        assert dose(5, 1) == pytest.approx(base, rel=1e-12)
+        assert dose(1, 36) == pytest.approx(base, rel=1e-12)
+        assert dose(5, 36) == pytest.approx(base, rel=1e-12)
+        assert base == pytest.approx(1.0e-12 * no_particles)
 
 
 if __name__ == "__main__":

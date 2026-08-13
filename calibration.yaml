@@ -1,0 +1,98 @@
+# DCFs recomputed 2026-08-11 with unified normalization
+# (fix-normalization-unified-dcf): raw_absolute_dose_Gy divides by the
+# scorer-active history count (TOPAS CSV Histories_with_Scorer_Active) rather
+# than metadata total_histories.
+#
+# Source: 5 direct-beam calibration runs at 180M histories (5M x 36 sequential
+# times) with water-filled chamber cavities (water_chamber_enabled=True):
+#   80 FF  -> runfolder/2026-08-11_14-33-57, 100 FF -> 2026-08-11_15-34-37,
+#   125 FF -> runfolder/2026-08-11_16-34-38,  125 HF -> 2026-08-11_17-33-14,
+#   140 HF -> runfolder/2026-08-11_18-32-20.
+#
+# dcf_tle (Track Length Estimator, fluence-based): transferable DCF valid for
+# both CTDI CTDIw and phantom organ dose (TLE is geometry-independent per-
+# history). On the 125 kV HF pelvis phantom: TLE effective dose = 5.70 mSv.
+#
+# dcf_water_dtm (DoseToMaterial in the water-filled CTDI chamber plug):
+# CTDI-phantom-specific calibration that also transfers to the phantom body.
+# Cross-validates dcf_tle (within 4% across all 5 protocols). On the 125 kV HF
+# pelvis phantom: DTM effective dose = 5.46 mSv (4% vs TLE, both consistent
+# with the 5.4 mSv Hauri 2017 literature value).
+#
+# dcf_dtm (body tissue): REMOVED. The prior value (0.02761 for 125 HF) was
+# circular — derived from the reference effective dose (E_ref / E_raw_MC) and
+# thus reproduced that reference by construction. The phantom effective dose
+# now comes from applying CTDI-derived DCFs (dcf_tle for TLE scorer,
+# dcf_water_dtm for DTM scorer) to the voxelized phantom.
+#
+# Selection-bias fix (2026-08-12): PhantomDoseCalculator previously skipped
+# voxels with dose <= 0, which exclusively removed DTM voxels (collision-based;
+# many zeros in low-fluence organs) while keeping all TLE voxels. This inflated
+# DTM organ means by up to 11x, producing the spurious "DTM doesn't transfer"
+# conclusion. The fix includes zero-dose voxels in the mean.
+machine: TrueBeam
+date_calibrated: '2026-08-11'
+
+# Reference effective doses (mSv) for the generic 80 kg reference phantom.
+effective_dose_references:
+  "4D Spotlight": 1.6
+  "4D Thorax": 3.3
+  "Abdo Spotlight": 1.2
+  "Abdomen": 2.8
+  "Breast 360": 0.2
+  "Extremity Spotlight": 0.5
+  "Head": 0.5
+  "Head and Shoulders": 0.3
+  "Head SRS": 1.8
+  "Pelvis": 4.2
+  "Pelvis Spotlight": 2.2
+  "SBRT Spine": 1.7
+  "Thorax": 1.3
+  "Thorax Spotlight": 0.7
+
+calibrations:
+- kV: 80
+  fan_mode: Full Fan
+  reference_mAs: 100.2
+  measured_ctdi_w_mGy: 0.9
+  reference_protocol: Image Gently
+  dcf_tle: 0.10720179547259340
+  dcf_water_dtm: 0.11025585368661243
+- kV: 100
+  fan_mode: Full Fan
+  reference_mAs: 150.3
+  measured_ctdi_w_mGy: 3.2
+  reference_protocol: Head
+  dcf_tle: 0.11836764523050886
+  dcf_water_dtm: 0.1221793528723298
+- kV: 100
+  fan_mode: Half Fan
+  reference_mAs: 150.0
+  measured_ctdi_w_mGy: 4.14
+  reference_protocol: Head and Shoulders
+  note: INTERPOLATED — no physical CTDI measurement. DCF scaled from 100 FF using
+    the HF/FF ratio at 125 kV (1.339 for dcf_tle, 1.353 for dcf_water_dtm).
+    measured_ctdi_w interpolated as 3.2 * (15.9/12.3) = 4.14 mGy.
+  dcf_tle: 0.15849963578123639
+  dcf_water_dtm: 0.16532847443361898
+- kV: 125
+  fan_mode: Full Fan
+  reference_mAs: 751.5
+  measured_ctdi_w_mGy: 12.3
+  reference_protocol: Pelvis Spotlight
+  dcf_tle: 0.12001912616221766
+  dcf_water_dtm: 0.12359047021105164
+- kV: 125
+  fan_mode: Half Fan
+  reference_mAs: 1080.0
+  measured_ctdi_w_mGy: 15.9
+  reference_protocol: Pelvis
+  dcf_tle: 0.16070247613705832
+  dcf_water_dtm: 0.16720285885953350
+- kV: 140
+  fan_mode: Half Fan
+  reference_mAs: 1700.5
+  measured_ctdi_w_mGy: 37.1
+  reference_protocol: Pelvis Large
+  dcf_tle: 0.17572359541823268
+  dcf_water_dtm: 0.17646064182324922

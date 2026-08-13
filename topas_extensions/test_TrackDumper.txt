@@ -1,0 +1,37 @@
+s:Ge/World/Material = "G4_AIR"
+d:Ge/World/HLX = 20 cm
+d:Ge/World/HLY = 20 cm
+d:Ge/World/HLZ = 20 cm
+
+# A simple scoring box
+s:Ge/Box/Type = "TsBox"
+s:Ge/Box/Parent = "World"
+s:Ge/Box/Material = "G4_WATER"
+d:Ge/Box/HLX = 5 cm
+d:Ge/Box/HLY = 5 cm
+d:Ge/Box/HLZ = 5 cm
+
+# Physics
+s:Ph/ListName = "Default"
+s:Ph/Default/Type = "Geant4_Modular"
+sv:Ph/Default/Modules = 1 "g4em-standard_opt4"
+
+# A few gamma primaries straight down the middle
+s:So/Beam/Type = "Beam"
+s:So/Beam/Component = "World"
+s:So/Beam/BeamParticle = "gamma"
+d:So/Beam/BeamEnergy = 60 keV
+s:So/Beam/BeamPositionDistribution = "None"
+s:So/Beam/BeamAngularDistribution = "None"
+i:So/Beam/NumberOfHistoriesInRun = 10
+
+# The custom track-dumper scorer (registers as Quantity "TrackDumper")
+s:Sc/Track/Quantity = "TrackDumper"
+s:Sc/Track/Component = "Box"
+s:Sc/Track/OutputType = "ASCII"
+s:Sc/Track/OutputFile = "track_dump"
+s:Sc/Track/IfOutputFileAlreadyExists = "Overwrite"
+
+i:Ts/NumberOfThreads = 1
+i:Ts/Seed = 1
+s:Ts/G4DataDirectory = "/opt/topas/GEANT4/G4DATA"

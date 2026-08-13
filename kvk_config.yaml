@@ -21,7 +21,6 @@ imaging:
   rotation_rate: 0 deg/s
   timeline_end: 2.0 s
   sequential_times: '2'
-  time_verbosity: '0'
   field_x1: 14 cm
   field_x2: 14 cm
   field_y1: 10.7 cm

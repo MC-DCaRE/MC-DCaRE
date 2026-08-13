@@ -9,8 +9,8 @@ from typing import Dict
 
 from src.config import SimulationConfig
 from src.fieldtobladeopening import fieldtobladeopening
-from src.modes.base import SimulationMode
-from src.models.quantity import Quantity
+from src.modes.base import SimulationMode, _compute_angle_values
+from src.services.phase_space_analyzer import header_path_for
 from src.simulation_runner import SimulationRunner
 from src.template_renderer import TemplateRenderer
 
@@ -23,22 +23,6 @@ _PLUG_POSITIONS = [
     "ChamberPlugLeft",
     "ChamberPlugRight",
 ]
-
-
-def _compute_angle_values(
-    rotation_direction: str, start_angle: Quantity
-) -> Dict[str, object]:
-    start_val = start_angle.value
-    result: Dict[str, object] = {
-        "rotation_direction": rotation_direction,
-        "start_angle": str(start_angle),
-        "start_angle_value": start_val,
-    }
-    if rotation_direction == "kV-kV":
-        result["second_angle_value"] = start_val + 90.0
-    else:
-        result["second_angle_value"] = 0.0
-    return result
 
 
 class CtdiMode(SimulationMode):
@@ -103,6 +87,10 @@ class CtdiMode(SimulationMode):
                     os.path.basename(config.ctdi.phase_space_file)
                 )[0],
                 "phase_space_multiple_use": config.ctdi.phase_space_multiple_use,
+                # Needed so the main template can add the water parallel
+                # worlds to LayeredMassGeometryWorlds when enabled (parallel
+                # worlds with material MUST be listed or TOPAS segfaults).
+                "water_chamber_enabled": config.ctdi.water_chamber_enabled,
                 **_compute_angle_values(
                     config.imaging.rotation_direction, config.imaging.start_angle
                 ),
@@ -145,6 +133,10 @@ class CtdiMode(SimulationMode):
             "patient_yaw": "0 deg",
             "patient_pitch": "0 deg",
             "patient_roll_value": 0.0,
+            # Needed so the main template can add the water parallel worlds to
+            # LayeredMassGeometryWorlds when enabled (parallel worlds with
+            # material MUST be listed or TOPAS segfaults).
+            "water_chamber_enabled": config.ctdi.water_chamber_enabled,
             **_compute_angle_values(
                 config.imaging.rotation_direction, config.imaging.start_angle
             ),
@@ -211,9 +203,20 @@ class CtdiMode(SimulationMode):
                 project_root, "src", "boilerplates", "TOPAS_includeFiles"
             )
             shutil.copy(os.path.join(include_dir, "Muen.dat"), rundir)
-            # Copy phase space file to runfolder.
+            # Copy phase space file to runfolder, plus its .header sibling.
+            # TOPAS Binary format is self-describing via the header; the
+            # PhaseSpace source requires both files together.
             phsp_src = config.ctdi.phase_space_file
             shutil.copy(phsp_src, rundir)
+            header_src = header_path_for(phsp_src)
+            if os.path.isfile(header_src):
+                shutil.copy(header_src, rundir)
+            else:
+                logger.warning(
+                    "Phase space header not found alongside %s; TOPAS replay "
+                    "may fail to read the file",
+                    phsp_src,
+                )
             logger.info("Prepared replay run in %s", rundir)
         else:
             self.copy_common_files(rundir, config, project_root)

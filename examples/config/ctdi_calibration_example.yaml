@@ -15,7 +15,6 @@
 # Then benchmark against your measured value:
 #   uv run python calculate_ctdiw.py benchmark <runfolder_path> --reference <mSv>
 #
-# The benchmark command will print a recommended dose_calibration_factor.
 # Add it to the general section below and re-run to calibrate all future
 # simulations against measurement. Default is 1.0 (no correction).
 #
@@ -31,7 +30,6 @@ general:
   seed: '9'
   threads: '4'
   histories: '1000000'
-  dose_calibration_factor: '1.0'
   log_filename: simulation.log
 imaging:
   simulation_type: CTDI
@@ -40,7 +38,6 @@ imaging:
   rotation_rate: 0 deg/s
   timeline_end: 1.0 s
   sequential_times: '1'
-  time_verbosity: '0'
 ctdi:
   dose_to_medium_zbins: '100'
   tle_zbins: '100'

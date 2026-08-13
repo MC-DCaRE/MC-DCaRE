@@ -9,8 +9,26 @@ from abc import ABC, abstractmethod
 from typing import Dict
 
 from src.config import SimulationConfig
+from src.models.quantity import Quantity
 
 logger = logging.getLogger(__name__)
+
+
+def _compute_angle_values(
+    rotation_direction: str, start_angle: Quantity
+) -> Dict[str, object]:
+    """Build the rotation-angle context keys shared by all simulation modes."""
+    start_val = start_angle.value
+    result: Dict[str, object] = {
+        "rotation_direction": rotation_direction,
+        "start_angle": str(start_angle),
+        "start_angle_value": start_val,
+    }
+    if rotation_direction == "kV-kV":
+        result["second_angle_value"] = start_val + 90.0
+    else:
+        result["second_angle_value"] = 0.0
+    return result
 
 
 class SimulationMode(ABC):

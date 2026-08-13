@@ -78,7 +78,6 @@ Parse user intent into a SimulationConfig YAML file. Key parameters:
 - `histories`: number of histories (e.g., "100000")
 - `threads`: parallel threads
 - `seed`: random seed
-- `dose_calibration_factor`: DCF (start at "1.0", calibrate against measurement)
 - `g4_data_directory`, `topas_directory`: TOPAS environment paths
 
 **ctdi section:**
@@ -216,7 +215,7 @@ user before executing.
 **Calibration:**
 - DCF (Dose Calibration Factor) corrects TLE simulation to match measurement.
 - Computed via: `uv run python calculate_ctdiw.py benchmark <runfolder> -r <measured_mSv>`
-- Apply by setting `general.dose_calibration_factor` in the config YAML
+- Apply post-hoc via `calibration.yaml` (the `benchmark` command writes the DCF there); no config field needed
 - DCF depends on (kV, fan_mode) — different factors per beam quality
 - BenchmarkCalculator computes recommended DCF and reports PASS/FAIL against tolerance
 

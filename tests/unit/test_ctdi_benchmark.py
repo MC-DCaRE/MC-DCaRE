@@ -64,7 +64,7 @@ class TestUnitConversion:
         bench = _make_bench(tmp_path)
         ref_mSv = 8.52
         photons_per_mAs = 2.34e8 * 1e6 / 100.0
-        raw_sum = ref_mSv * MSV_TO_GY / (photons_per_mAs * 100.0)
+        raw_sum = ref_mSv * MSV_TO_GY * 1e6 / (photons_per_mAs * 100.0)
         mock_results = [_make_raw_result(raw_sum)]
 
         with patch.object(bench.calculator, "validate"):
@@ -80,7 +80,7 @@ class TestCompareWithinTolerance:
         bench = _make_bench(tmp_path)
         ref_mSv = 10.0
         photons_per_mAs = 2.34e8 * 1e6 / 100.0
-        raw_sum = ref_mSv * MSV_TO_GY * 1.05 / (photons_per_mAs * 100.0)
+        raw_sum = ref_mSv * MSV_TO_GY * 1.05 * 1e6 / (photons_per_mAs * 100.0)
         mock_results = [_make_raw_result(raw_sum)]
 
         with patch.object(bench.calculator, "validate"):
@@ -97,7 +97,7 @@ class TestCompareOutsideTolerance:
         bench = _make_bench(tmp_path)
         ref_mSv = 10.0
         photons_per_mAs = 2.34e8 * 1e6 / 100.0
-        raw_sum = ref_mSv * MSV_TO_GY * 1.25 / (photons_per_mAs * 100.0)
+        raw_sum = ref_mSv * MSV_TO_GY * 1.25 * 1e6 / (photons_per_mAs * 100.0)
         mock_results = [_make_raw_result(raw_sum)]
 
         with patch.object(bench.calculator, "validate"):
@@ -114,7 +114,7 @@ class TestCompareNegativeDeviation:
         bench = _make_bench(tmp_path)
         ref_mSv = 10.0
         photons_per_mAs = 2.34e8 * 1e6 / 100.0
-        raw_sum = ref_mSv * MSV_TO_GY * 0.92 / (photons_per_mAs * 100.0)
+        raw_sum = ref_mSv * MSV_TO_GY * 0.92 * 1e6 / (photons_per_mAs * 100.0)
         mock_results = [_make_raw_result(raw_sum)]
 
         with patch.object(bench.calculator, "validate"):
@@ -147,7 +147,7 @@ class TestCompareEdgeCases:
         bench = _make_bench(tmp_path)
         ref_mSv = 10.0
         photons_per_mAs = 2.34e8 * 1e6 / 100.0
-        raw_sum = ref_mSv * MSV_TO_GY * 0.97 / (photons_per_mAs * 100.0)
+        raw_sum = ref_mSv * MSV_TO_GY * 0.97 * 1e6 / (photons_per_mAs * 100.0)
         mock_results = [
             _make_raw_result(raw_sum * 1.02, scorer_type="dtm", is_primary=False),
             _make_raw_result(raw_sum, scorer_type="tle", is_primary=True),

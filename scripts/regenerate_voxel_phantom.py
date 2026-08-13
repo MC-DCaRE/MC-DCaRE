@@ -197,11 +197,25 @@ def regenerate_voxel_phantom(
             f.write(f' "{name}"')
         f.write("\n\n")
 
-        # Scorer
-        f.write('s:Sc/PhantomDose/Quantity = "DoseToMedium"\n')
-        f.write('s:Sc/PhantomDose/Component = "Phantom"\n')
-        f.write('s:Sc/PhantomDose/OutputFile = "phantom_dose"\n')
-        f.write('s:Sc/PhantomDose/IfOutputFileAlreadyExists = "Overwrite"\n')
+        # Scorers: TLE (primary), DoseToWater, DoseToMedium
+        f.write("# TLE scorer (primary -- same as CTDI calibration)\n")
+        f.write('s:Sc/PhantomTLE/Quantity = "TrackLengthEstimator"\n')
+        f.write('s:Sc/PhantomTLE/InputFile = "Muen.dat"\n')
+        f.write('s:Sc/PhantomTLE/Component = "Phantom"\n')
+        f.write('s:Sc/PhantomTLE/OutputFile = "phantom_tle"\n')
+        f.write('s:Sc/PhantomTLE/IfOutputFileAlreadyExists = "Overwrite"\n\n')
+
+        f.write("# DoseToWater scorer\n")
+        f.write('s:Sc/PhantomDTW/Quantity = "DoseToWater"\n')
+        f.write('s:Sc/PhantomDTW/Component = "Phantom"\n')
+        f.write('s:Sc/PhantomDTW/OutputFile = "phantom_dtw"\n')
+        f.write('s:Sc/PhantomDTW/IfOutputFileAlreadyExists = "Overwrite"\n\n')
+
+        f.write("# DoseToMedium scorer\n")
+        f.write('s:Sc/PhantomDTM/Quantity = "DoseToMedium"\n')
+        f.write('s:Sc/PhantomDTM/Component = "Phantom"\n')
+        f.write('s:Sc/PhantomDTM/OutputFile = "phantom_dtm"\n')
+        f.write('s:Sc/PhantomDTM/IfOutputFileAlreadyExists = "Overwrite"\n')
 
     fsize = os.path.getsize(output_file)
     print(f"  File size: {fsize / 1024 / 1024:.1f} MB")

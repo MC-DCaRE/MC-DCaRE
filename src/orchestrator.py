@@ -72,33 +72,39 @@ class Orchestrator:
         rundir: str,
         scoring_metadata_path: str,
         phase_space_multiple_use: int,
+        sequential_times: int = 1,
     ) -> None:
-        """Copy scoring metadata to replay runfolder with adjusted normalization.
+        """Copy scoring metadata to replay runfolder unchanged.
 
-        Divides ``spectrum_fluence_photons_per_mAs`` (or legacy ``norm_factor``)
-        by ``phase_space_multiple_use`` and writes the result to the replay
-        runfolder. Each replayed phase-space particle represents M fewer real
-        photons, so the per-history photon weight is reduced by M.
+        The replay re-delivers the scored phase space once per sequential
+        time step (the arc rotation), so the total transported count scales
+        as ``N_particles x M x R`` (M = ``phase_space_multiple_use``,
+        R = ``sequential_times``). Historically this function divided
+        ``spectrum_fluence_photons_per_mAs`` (or legacy ``norm_factor``) by
+        ``M x R`` to keep the per-primary dose intensive, but that produced
+        a different absolute scale from the CTDI calibration. The
+        ``M x R`` scaling is now handled naturally by
+        :func:`raw_absolute_dose_Gy`, which divides by the scorer-active
+        history count (``N_phsp x M x R``) read from the TOPAS CSV. So the
+        scoring metadata is copied through unchanged; M and R are still
+        recorded for reference.
         """
         with open(scoring_metadata_path, "r", encoding="utf-8") as f:
             metadata = yaml.safe_load(f)
         if not isinstance(metadata, dict):
             raise ValueError("Invalid metadata file: %s" % scoring_metadata_path)
 
-        spectrum_fluence = metadata.get("spectrum_fluence_photons_per_mAs")
-        if spectrum_fluence is not None and spectrum_fluence > 0:
-            metadata["spectrum_fluence_photons_per_mAs"] = (
-                spectrum_fluence / phase_space_multiple_use
-            )
-        elif "norm_factor" in metadata:
-            metadata["norm_factor"] = metadata["norm_factor"] / phase_space_multiple_use
-        else:
+        if (
+            "spectrum_fluence_photons_per_mAs" not in metadata
+            and "norm_factor" not in metadata
+        ):
             raise ValueError(
                 "Scoring metadata missing both 'spectrum_fluence_photons_per_mAs' "
                 "and 'norm_factor': %s" % scoring_metadata_path
             )
 
         metadata["phase_space_multiple_use"] = phase_space_multiple_use
+        metadata["phase_space_sequential_times"] = sequential_times
         metadata["phase_space_source"] = scoring_metadata_path
         if "total_histories" not in metadata:
             metadata["total_histories"] = 0
@@ -106,8 +112,9 @@ class Orchestrator:
         with open(dest_path, "w", encoding="utf-8") as f:
             yaml.dump(metadata, f, default_flow_style=False, sort_keys=False)
         logger.info(
-            "Wrote replay metadata (M=%d): %s",
+            "Wrote replay metadata unchanged (M=%d, R=%d): %s",
             phase_space_multiple_use,
+            sequential_times,
             scoring_metadata_path,
         )
 
@@ -170,13 +177,11 @@ class Orchestrator:
         voltage: float = config.imaging.anode_voltage.value
         exposure: float = config.imaging.exposure.value
         histories: str = mode.compute_histories(config)
-        dose_calibration_factor: float = float(config.general.dose_calibration_factor)
         SpectrumGenerator.generate(
             voltage,
             exposure,
             histories,
             self.project_root,
-            dose_calibration_factor,
             fan_mode=config.imaging.fan_mode,
             seed=int(config.general.seed),
             threads=int(config.general.threads),
@@ -206,13 +211,11 @@ class Orchestrator:
         voltage: float = config.imaging.anode_voltage.value
         exposure: float = config.imaging.exposure.value
         histories: str = ctdi_mode.compute_histories(config)
-        dose_calibration_factor: float = float(config.general.dose_calibration_factor)
         SpectrumGenerator.generate(
             voltage,
             exposure,
             histories,
             self.project_root,
-            dose_calibration_factor,
             fan_mode=config.imaging.fan_mode,
             seed=int(config.general.seed),
             threads=int(config.general.threads),
@@ -224,7 +227,10 @@ class Orchestrator:
             ctdi_mode.execute(config, rundir, self.project_root, detach=detach)
 
             # Post-process: run PhaseSpaceAnalyzer on output.
-            from src.services.phase_space_analyzer import PhaseSpaceAnalyzer
+            from src.services.phase_space_analyzer import (
+                PhaseSpaceAnalyzer,
+                header_path_for,
+            )
 
             phsp_file = os.path.join(rundir, "beam_exit_phsp.phsp")
             metadata_path = os.path.join(
@@ -247,6 +253,20 @@ class Orchestrator:
                 dest = os.path.join(rundir, "phase_space", "beam_exit_phsp.phsp")
                 shutil.move(phsp_file, dest)
                 logger.info("Moved phase space file to %s", dest)
+
+                # Move the .header sibling too — TOPAS Binary format is
+                # self-describing via the header, and the PhaseSpace source
+                # used by replay needs both files together.
+                header_file = header_path_for(phsp_file)
+                if os.path.isfile(header_file):
+                    header_dest = header_path_for(dest)
+                    shutil.move(header_file, header_dest)
+                    logger.info("Moved phase space header to %s", header_dest)
+                else:
+                    logger.warning(
+                        "Phase space header not found at %s; replay may fail",
+                        header_file,
+                    )
 
                 # Copy metadata to phase_space/ so replay can find it.
                 if os.path.isfile(metadata_path):
@@ -290,6 +310,7 @@ class Orchestrator:
                 rundir,
                 scoring_metadata,
                 config.ctdi.phase_space_multiple_use,
+                int(config.imaging.sequential_times),
             )
         else:
             logger.warning(
@@ -299,12 +320,6 @@ class Orchestrator:
 
         if not dry_run:
             ctdi_mode.execute(config, rundir, self.project_root, detach=detach)
-
-    def run_dicom_simulation(self, config: SimulationConfig) -> str:
-        return self.run(config, dry_run=False)
-
-    def run_ctdi_simulation(self, config: SimulationConfig) -> str:
-        return self.run(config, dry_run=False)
 
     def prepare_only(self, config: SimulationConfig) -> str:
         return self.run(config, dry_run=True)

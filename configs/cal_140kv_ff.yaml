@@ -4,16 +4,14 @@ general:
   topas_directory: /home/bchcphysics/Applications/TOPAS/OpenTOPAS-build/topas
   seed: '9'
   threads: '20'
-  histories: '1000000'
-  dose_calibration_factor: '1.0'
+  histories: '5000000'
   log_filename: simulation.log
 imaging:
   simulation_type: CTDI
   rotation_direction: CBCT Clockwise
   imaging_mode: Head
   anode_voltage: '140 kV'
-  sequential_times: '150'
-  time_verbosity: '0'
+  sequential_times: '100'
 ctdi:
   dose_to_medium_zbins: '100'
   tle_zbins: '100'

@@ -222,11 +222,15 @@ s:Ge/BeamHardeningFilter/DrawingStyle="WireFrame"
 #   - BHF is inside CollHoriz housing; all 6 BHF surfaces scored 0
 #     particles (BHF does not intercept the primary beam with Head
 #     mode collimator settings)
-#   - PhspSurface at Y=-86.0 cm: clean geometry (no overlaps),
-#     closest valid position downstream of collimators
+#   - PhspSurface at Y=-75.0 cm: moved downstream from previous Y=-86.0 cm
+#     after investigation revealed the collimator jaws (G4RTrap under 4-level
+#     nested rotations) extend to ~Y=-80 cm, well past the analytical extent.
+#     The previous Y=-86.0 cm plane was INSIDE the jaw, causing the direct sim
+#     to lose ~94% of phantom-directed particles (confirmed by two-plane
+#     scoring: 1035 geometric hits at Y=-86 → only 63 at Y=-80). See
+#     openspec/changes/fix-phase-space-replay-dose/design.md.
 #   - Surface scores on YPlusSurface (particles traveling toward isocenter)
-#   - Test: 10000 histories → 2565 particles reached surface (25.6%)
-#   - Positions Y=-86.5 to -86.8 cm overlap with Coll3/Coll3steel
+#   - Test: 10000 histories → 2565 particles reached surface (25.6%) [at Y=-86]
 ###########################################################
 s:Ge/PhspSurface/Type     = "TsBox"
 s:Ge/PhspSurface/Parent   = "Rotation"
@@ -234,7 +238,7 @@ s:Ge/PhspSurface/Material = "Vacuum"
 d:Ge/PhspSurface/HLX      = 50.0 cm
 d:Ge/PhspSurface/HLY      = 0.1 mm
 d:Ge/PhspSurface/HLZ      = 50.0 cm
-d:Ge/PhspSurface/TransY   = -86.0 cm
+d:Ge/PhspSurface/TransY   = -75.0 cm
 
 # PhaseSpace Scorer
 s:Sc/PhspOut/Quantity            = "PhaseSpace"

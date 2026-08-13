@@ -1,5 +1,5 @@
-# Phase 1 production: legacy CSG bow-tie, Full Fan Head, static beam.
-# Cross-plane (Z) profile, wide Z-field so the collimator does not cut the profile.
+# Phase 1 reference: NO bow-tie, Full Fan Head, static beam (baseline Z profile).
+# Wide Z-field; bowtie_enabled=false removes the bow-tie include entirely.
 general:
   g4_data_directory: /opt/topas/GEANT4/G4DATA
   topas_directory: /opt/topas/TOPAS/OpenTOPAS-install/bin/topas
@@ -14,6 +14,7 @@ imaging:
   fan_mode: Full Fan
   sequential_times: '1'
   legacy_bowtie: true
+  bowtie_enabled: false
 ctdi:
   phase_space_mode: score
   validate_bowtie: true

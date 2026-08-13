@@ -5,10 +5,10 @@
 
 ## Include File ###############################
 includeFile=ConvertedTopasFile.txt
-{% if fan_mode == 'Full Fan' %}{% if legacy_bowtie %}includeFile = fullfan.txt
+{% if fan_mode == 'Full Fan' and bowtie_enabled %}{% if legacy_bowtie %}includeFile = fullfan.txt
 {% else %}includeFile = bowtie_ff.txt
 {% endif %}{% endif %}
-{% if fan_mode == 'Half Fan' %}{% if legacy_bowtie %}includeFile = halffan.txt
+{% if fan_mode == 'Half Fan' and bowtie_enabled %}{% if legacy_bowtie %}includeFile = halffan.txt
 {% else %}includeFile = bowtie_hf.txt
 {% endif %}{% endif %}
 
@@ -219,6 +219,10 @@ s:Ge/BeamHardeningFilter/DrawingStyle="WireFrame"
 # Phase Space Scoring Surface — positioned downstream of all
 # source-side geometry (collimators + BHF).
 #
+# Suppressed when validate_bowtie=True: the PhaseSpace scorer
+# kills particles at Y=-75 cm, which would starve the isocenter
+# BowtieProfileSlab (Y=0) used for the cross-plane profile.
+#
 # Verified by TOPAS test run (2026-06-12):
 #   - Source at Y=-100 cm, CollVert origin at Y=-88.3 cm
 #   - BHF is inside CollHoriz housing; all 6 BHF surfaces scored 0
@@ -234,6 +238,7 @@ s:Ge/BeamHardeningFilter/DrawingStyle="WireFrame"
 #   - Surface scores on YPlusSurface (particles traveling toward isocenter)
 #   - Test: 10000 histories → 2565 particles reached surface (25.6%) [at Y=-86]
 ###########################################################
+{% if not validate_bowtie %}
 s:Ge/PhspSurface/Type     = "TsBox"
 s:Ge/PhspSurface/Parent   = "Rotation"
 s:Ge/PhspSurface/Material = "Vacuum"
@@ -249,28 +254,33 @@ s:Sc/PhspOut/OutputType          = "Binary"
 s:Sc/PhspOut/OutputFile          = "beam_exit_phsp"
 b:Sc/PhspOut/KillAfterPhaseSpace = "True"
 s:Sc/PhspOut/IfOutputFileAlreadyExists = "Overwrite"
+{% endif %}
 
 {% if validate_bowtie %}
 ###########################################################
-# Bow-tie validation: cross-plane dose profile at isocenter
-# (thin air slab, 1D binned DoseToWater). Enable via the
-# validate_bowtie context flag; compare against measured
-# RaySafe data with tools/validate_bowtie.py.
+# Bow-tie validation: cross-plane air-kerma profile at isocenter.
+# Uses TrackLengthEstimator (fluence-based collision kerma) so every
+# photon crossing the thin air slab contributes -- a collision-based
+# DoseToWater scorer records ~zero in 0.5 mm of air. The peak-normalised
+# profile is then compared to the measured RaySafe cross-plane data via
+# tools/convert_bowtie_profile.py + tools/validate_bowtie.py.
 ###########################################################
 s:Ge/BowtieProfileSlab/Type     = "TsBox"
 s:Ge/BowtieProfileSlab/Parent   = "World"
 s:Ge/BowtieProfileSlab/Material = "G4_AIR"
-d:Ge/BowtieProfileSlab/HLX      = 20.0 cm
+d:Ge/BowtieProfileSlab/HLX      = 5.0 cm
 d:Ge/BowtieProfileSlab/HLY      = 0.5 mm
-d:Ge/BowtieProfileSlab/HLZ      = 5.0 cm
+d:Ge/BowtieProfileSlab/HLZ      = 20.0 cm
 d:Ge/BowtieProfileSlab/TransY   = 0.0 cm
-s:Sc/BowtieProfile/Quantity     = "DoseToWater"
+s:Sc/BowtieProfile/Quantity     = "TrackLengthEstimator"
+s:Sc/BowtieProfile/InputFile    = "Muen.dat"
 s:Sc/BowtieProfile/Component    = "BowtieProfileSlab"
 s:Sc/BowtieProfile/OutputFile   = "bowtie_profile"
 s:Sc/BowtieProfile/IfOutputFileAlreadyExists = "Overwrite"
-i:Sc/BowtieProfile/XBins        = 80
+sv:Sc/BowtieProfile/Report = 4 "Sum" "Histories" "Count_In_Bin" "Standard_Deviation"
+i:Sc/BowtieProfile/XBins        = 1
 i:Sc/BowtieProfile/YBins        = 1
-i:Sc/BowtieProfile/ZBins        = 1
+i:Sc/BowtieProfile/ZBins        = 80
 {% endif %}
 
 ###########################################################

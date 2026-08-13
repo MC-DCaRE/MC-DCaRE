@@ -329,6 +329,7 @@ cython_debug/
 /calibration_runs/*
 /verification_runs/*
 /phantom_runs/*
+/artifacts/*
 
 
 # Personal test file 

@@ -25,7 +25,15 @@ def fake_project(tmp_path: Any) -> Any:
         with open(os.path.join(include_dir, name), "w") as f:
             f.write(name + " content\n")
 
-    for name in ["fullfan.txt", "halffan.txt"]:
+    # Legacy CSG bow-tie includes + the TsCAD mesh assets (STL + param include).
+    for name in [
+        "fullfan.txt",
+        "halffan.txt",
+        "bowtie_ff.txt",
+        "bowtie_hf.txt",
+        "fullfan.stl",
+        "halffan.stl",
+    ]:
         with open(os.path.join(include_dir, name), "w") as f:
             f.write(name + " content\n")
 
@@ -71,19 +79,39 @@ class TestCopyCommonFiles:
         rundir = self._run(fake_project, config)
         assert os.path.isfile(os.path.join(rundir, "simulation_metadata.yaml"))
 
-    def test_copies_fullfan_for_full_fan(self, fake_project: Any) -> None:
+    def test_copies_fullfan_for_full_fan_legacy(self, fake_project: Any) -> None:
         config = SimulationConfig(
-            imaging=ImagingConfig(fan_mode="Full Fan"),
+            imaging=ImagingConfig(fan_mode="Full Fan", legacy_bowtie=True),
         )
         rundir = self._run(fake_project, config)
         assert os.path.isfile(os.path.join(rundir, "fullfan.txt"))
 
-    def test_copies_halffan_for_half_fan(self, fake_project: Any) -> None:
+    def test_copies_halffan_for_half_fan_legacy(self, fake_project: Any) -> None:
         config = SimulationConfig(
-            imaging=ImagingConfig(fan_mode="Half Fan"),
+            imaging=ImagingConfig(fan_mode="Half Fan", legacy_bowtie=True),
         )
         rundir = self._run(fake_project, config)
         assert os.path.isfile(os.path.join(rundir, "halffan.txt"))
+
+    def test_copies_tscad_for_full_fan(self, fake_project: Any) -> None:
+        # TsCAD is the default (legacy_bowtie=False): the STL param include +
+        # binary STL are staged (fullfan.txt is always staged too; the template
+        # picks which to include via legacy_bowtie).
+        config = SimulationConfig(
+            imaging=ImagingConfig(fan_mode="Full Fan"),
+        )
+        rundir = self._run(fake_project, config)
+        assert os.path.isfile(os.path.join(rundir, "bowtie_ff.txt"))
+        assert os.path.isfile(os.path.join(rundir, "fullfan.stl"))
+
+    def test_no_bowtie_when_disabled(self, fake_project: Any) -> None:
+        config = SimulationConfig(
+            imaging=ImagingConfig(fan_mode="Full Fan", bowtie_enabled=False),
+        )
+        rundir = self._run(fake_project, config)
+        assert not os.path.isfile(os.path.join(rundir, "fullfan.txt"))
+        assert not os.path.isfile(os.path.join(rundir, "bowtie_ff.txt"))
+        assert os.path.isfile(os.path.join(rundir, "Muen.dat"))
 
     def test_no_fan_file_for_unknown_mode(self, fake_project: Any) -> None:
         config = SimulationConfig(

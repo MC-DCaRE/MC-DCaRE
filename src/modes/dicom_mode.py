@@ -40,6 +40,7 @@ class DicomMode(SimulationMode):
             "coll4_trans_x": str(config.imaging.blade_y2),
             "fan_mode": config.imaging.fan_mode,
             "legacy_bowtie": config.imaging.legacy_bowtie,
+            "bowtie_enabled": config.imaging.bowtie_enabled,
             "graphics_enabled": config.dicom.graphics_enabled,
             "simulation_type": "DICOM",
             "phantom_size": "",

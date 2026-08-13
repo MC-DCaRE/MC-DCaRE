@@ -118,6 +118,9 @@ class SimulationMode(ABC):
             rundatadir,
         )
         fan_mode = config.imaging.fan_mode
+        if not config.imaging.bowtie_enabled:
+            # No bow-tie filter in the beam line (baseline / reference runs).
+            return
         if fan_mode == "Full Fan":
             shutil.copy(os.path.join(include_dir, "fullfan.txt"), rundatadir)
         elif fan_mode == "Half Fan":

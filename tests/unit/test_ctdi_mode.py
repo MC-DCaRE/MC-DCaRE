@@ -346,6 +346,22 @@ class TestPhaseSpaceModeBranching:
         assert "coll1_trans_y" in ctx
         assert "fan_mode" in ctx
 
+    def test_score_mode_context_carries_bowtie_flags(self, make_config: Any) -> None:
+        """validate_bowtie and bowtie_enabled reach the score template context."""
+        mode = CtdiMode()
+        config = make_config(phase_space_mode="score", validate_bowtie=True)
+        ctx = mode.build_main_context(config)
+        assert ctx["validate_bowtie"] is True
+        assert ctx["bowtie_enabled"] is True
+
+    def test_score_mode_context_bowtie_disabled(self, make_config: Any) -> None:
+        """bowtie_enabled=False propagates (no-bow-tie baseline runs)."""
+        mode = CtdiMode()
+        config = make_config(phase_space_mode="score", bowtie_enabled=False)
+        ctx = mode.build_main_context(config)
+        assert ctx["bowtie_enabled"] is False
+        assert ctx["validate_bowtie"] is False
+
     def test_replay_compute_histories_returns_zero(self, make_config: Any) -> None:
         mode = CtdiMode()
         config = make_config(phase_space_mode="replay", phase_space_file="/fake.phsp")
@@ -369,7 +385,11 @@ class TestPhaseSpaceModeBranching:
         )
         include_dir.mkdir(parents=True)
         (include_dir / "Muen.dat").write_text("muen")
+        # TsCAD is the default bow-tie: stage both legacy and STL assets so
+        # copy_common_files succeeds regardless of legacy_bowtie.
         (include_dir / "fullfan.txt").write_text("bowtie")
+        (include_dir / "bowtie_ff.txt").write_text("tscad")
+        (include_dir / "fullfan.stl").write_text("stl")
         mode.prepare_run(config, rundir, str(tmp_path / "project"))
         assert os.path.isdir(os.path.join(rundir, "phase_space"))
 

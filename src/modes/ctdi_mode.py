@@ -128,6 +128,8 @@ class CtdiMode(SimulationMode):
             "coll4_trans_x": coll4,
             "fan_mode": config.imaging.fan_mode,
             "legacy_bowtie": config.imaging.legacy_bowtie,
+            "bowtie_enabled": config.imaging.bowtie_enabled,
+            "validate_bowtie": config.ctdi.validate_bowtie,
             "graphics_enabled": config.ctdi.graphics_enabled,
             "simulation_type": "CTDI",
             "phantom_size": size_number,

@@ -135,7 +135,8 @@ class ImagingConfig:
     fan_mode: str = "Full Fan"
     filtration_mode: str = "hybrid"
     bhf_thickness_mm: float = 0.89
-    legacy_bowtie: bool = True
+    legacy_bowtie: bool = False
+    bowtie_enabled: bool = True
     imaging_mode: str = "Image Gently"
     rotation_rate: Quantity = _q(0.4, "deg/s")
     timeline_end: Quantity = _q(501.0, "s")
@@ -204,6 +205,7 @@ class CtdiConfig:
     user_field_y2: Quantity = _q(10.7, "cm")
     graphics_enabled: bool = False
     water_chamber_enabled: bool = False
+    validate_bowtie: bool = False
     phase_space_mode: str = "off"
     phase_space_file: str = ""
     phase_space_multiple_use: int = 1

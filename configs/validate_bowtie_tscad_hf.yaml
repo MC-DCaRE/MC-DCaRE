@@ -1,23 +1,26 @@
-# Quick validation: does the TsCAD STL bow-tie load in TOPAS? (Full Fan, few histories)
+# Phase 1 production: TsCAD STL bow-tie, Half Fan Pelvis, static beam.
+# The HF STL is a one-sided crop of the full-fan; profile it separately.
 general:
   g4_data_directory: /opt/topas/GEANT4/G4DATA
   topas_directory: /opt/topas/TOPAS/OpenTOPAS-install/bin/topas
   seed: '9'
   threads: '20'
-  histories: 5000000
+  histories: '5000000'
   log_filename: simulation.log
 imaging:
   simulation_type: CTDI
   rotation_direction: CBCT Clockwise
-  imaging_mode: Head
-  fan_mode: Full Fan
-  sequential_times: '8'
+  imaging_mode: Pelvis
+  fan_mode: Half Fan
+  sequential_times: '1'
   legacy_bowtie: false
 ctdi:
+  phase_space_mode: score
+  validate_bowtie: true
   dose_to_medium_zbins: '100'
   tle_zbins: '100'
   dose_to_water_zbins: '100'
-  couch_enabled: true
+  couch_enabled: false
   couch_width: 260 mm
   couch_thickness: 0.4 mm
   couch_length: 1000 mm

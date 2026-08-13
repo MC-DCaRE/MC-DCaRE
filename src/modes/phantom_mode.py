@@ -58,6 +58,7 @@ class PhantomMode(SimulationMode):
             "coll4_trans_x": str(config.imaging.blade_y2),
             "fan_mode": config.imaging.fan_mode,
             "legacy_bowtie": config.imaging.legacy_bowtie,
+            "bowtie_enabled": config.imaging.bowtie_enabled,
             "use_voxel_phantom": config.phantom.use_voxel_phantom,
             "graphics_enabled": config.phantom.graphics_enabled,
             "simulation_type": "ICRP145",

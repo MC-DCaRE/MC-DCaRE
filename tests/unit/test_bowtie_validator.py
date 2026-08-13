@@ -16,9 +16,13 @@ from src.services.bowtie_validator import (
 )
 
 
-def _write_measured_workbook(path, n_groups=2):
-    """Build a tiny workbook mirroring the RaySafe 'Collated results' layout:
-    position in col C, each mode a 4-col group (dose, uGy/s, HVL, blank) from E.
+def _write_measured_workbook(path, n_groups=2, header_row=13, extra_gap=False):
+    """Build a tiny workbook mirroring the RaySafe 'Collated results' layout.
+
+    Position lives in column C (header '/cm'); each mode is a 4-col group
+    (Dose uGy, uGy/s, HVL, blank) starting at column E. With ``extra_gap`` the
+    groups are spaced non-uniformly (an extra column between groups 0 and 1),
+    matching the real workbook where Spotlight/Pelvis carry extra columns.
     """
     import openpyxl
 
@@ -26,14 +30,25 @@ def _write_measured_workbook(path, n_groups=2):
     ws = wb.active
     ws.title = "Collated results"
     positions = [-4, -2, 0, 2, 4]
-    for i, pos in enumerate(positions, start=14):
-        ws.cell(row=i, column=3, value=pos)  # C: position (1-indexed col 3)
+    # Header row: '/cm' in col C, 'Dose uGy'/'uGy/s'/'HVL (mm Al)' per group.
+    ws.cell(row=header_row, column=3, value="/cm")
+    col = 5  # column E
+    group_cols = []
+    for g in range(n_groups):
+        ws.cell(row=header_row, column=col, value="Dose uGy")
+        ws.cell(row=header_row, column=col + 1, value="uGy/s")
+        ws.cell(row=header_row, column=col + 2, value="HVL (mm Al)")
+        group_cols.append(col)
+        col += 4
+        if extra_gap and g == 0:
+            col += 1  # non-uniform spacing between group 0 and 1
+    for i, pos in enumerate(positions, start=header_row + 1):
+        ws.cell(row=i, column=3, value=pos)
         for g in range(n_groups):
-            dose = 10 * (g + 1) + pos  # group-dependent so columns differ
+            dose = 10 * (g + 1) + pos
             hvl = 7.0 + g + 0.01 * abs(pos)
-            # Reader indexes dose=cells[4+4g] (col E=5+4g), hvl=cells[6+4g] (col G=7+4g).
-            ws.cell(row=i, column=5 + 4 * g, value=dose)
-            ws.cell(row=i, column=7 + 4 * g, value=hvl)
+            ws.cell(row=i, column=group_cols[g], value=dose)
+            ws.cell(row=i, column=group_cols[g] + 2, value=hvl)
     wb.save(path)
     return positions
 
@@ -105,3 +120,26 @@ def test_load_measured_profile_normalises_order(tmp_path):
         prof.position_cm[i] <= prof.position_cm[i + 1]
         for i in range(len(prof.position_cm) - 1)
     )
+
+
+def test_load_measured_profile_non_uniform_spacing(tmp_path):
+    """Groups are not always 4 columns apart (Spotlight/Pelvis carry extra
+    columns). The loader must find 'Dose uGy' columns by scanning the header,
+    not by a fixed 4-column offset."""
+    xlsx = tmp_path / "meas.xlsx"
+    _write_measured_workbook(str(xlsx), n_groups=2, extra_gap=True)
+
+    g0 = load_measured_profile(str(xlsx), mode_group=0)
+    g1 = load_measured_profile(str(xlsx), mode_group=1)
+    # Group 1 doses are offset by +10 vs group 0 at every position, even though
+    # group 1 is 5 columns (not 4) after group 0. A fixed-offset reader would
+    # read the wrong column and fail this.
+    assert np.allclose(g1.dose - g0.dose, 10.0)
+    assert (g1.hvl_mmAl > g0.hvl_mmAl).all()
+
+
+def test_load_measured_profile_mode_group_out_of_range(tmp_path):
+    xlsx = tmp_path / "meas.xlsx"
+    _write_measured_workbook(str(xlsx), n_groups=2)
+    with pytest.raises(ValueError, match="out of range"):
+        load_measured_profile(str(xlsx), mode_group=5)

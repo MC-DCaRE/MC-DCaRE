@@ -38,9 +38,15 @@ def load_measured_profile(
 ) -> Profile:
     """Load one mode's measured cross-plane profile from the RaySafe workbook.
 
+    The ``Collated results`` sheet lays each CBCT mode out as a 4-column group
+    (``Dose uGy``, ``uGy/s``, ``HVL (mm Al)``, blank), but the groups are NOT
+    uniformly spaced -- Spotlight/Pelvis carry extra "Coast"/"Scaling" columns.
+    This function locates the ``Dose uGy`` columns by scanning the header row
+    and selects the ``mode_group``-th one (0 = Head, 1 = Spotlight, ...).
+
     Args:
         xlsx_path: Path to the ``New results Oct 2023 (...)`` workbook.
-        mode_group: Which 4-column mode group to read (0 = first mode, e.g. Head).
+        mode_group: Index into the list of ``Dose uGy`` columns (0 = first mode).
         sheet: Sheet name (default ``Collated results``).
     """
     import openpyxl
@@ -50,14 +56,38 @@ def load_measured_profile(
     pos: list[float] = []
     dose: list[float] = []
     hvl: list[float] = []
-    # Data columns: position = 2 (C); group g -> dose = 4 + 4g, uGy/s = 5+4g, hvl = 6+4g.
-    dose_col = 4 + 4 * mode_group
-    hvl_col = 6 + 4 * mode_group
+
+    # First pass: find the header row and the Dose uGy columns. The groups are
+    # unevenly spaced, so we cannot use a fixed 4-column offset.
+    dose_cols: list[int] = []
+    pos_col = 2  # column C holds the lateral position (cm); "/cm" header
+    for row in ws.iter_rows(values_only=True):
+        cells = list(row)
+        for i, c in enumerate(cells):
+            if isinstance(c, str) and c.strip().lower() == "dose ugy":
+                dose_cols.append(i)
+            if isinstance(c, str) and c.strip().lower() == "/cm":
+                pos_col = i
+        if dose_cols:
+            break
+    if not dose_cols:
+        raise ValueError(
+            "No 'Dose uGy' columns found in %s sheet %s" % (xlsx_path, sheet)
+        )
+    if mode_group < 0 or mode_group >= len(dose_cols):
+        raise ValueError(
+            "mode_group=%d out of range; %d modes available (0..%d)"
+            % (mode_group, len(dose_cols), len(dose_cols) - 1)
+        )
+    dose_col = dose_cols[mode_group]
+    hvl_col = dose_col + 2  # Dose, uGy/s, HVL -- consistent across modes
+
+    # Second pass: read data rows (numeric lateral position in +/-20 cm).
     for row in ws.iter_rows(values_only=True):
         cells = list(row)
         if len(cells) <= hvl_col:
             continue
-        c = cells[2]
+        c = cells[pos_col]
         if isinstance(c, (int, float)) and -20 < c < 20:
             pos.append(float(c))
             dose.append(

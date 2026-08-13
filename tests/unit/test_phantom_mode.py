@@ -230,7 +230,9 @@ class TestComputeHistories:
 class TestPrepareRun:
     def test_copies_required_files_legacy(self, make_config: Any) -> None:
         mode = PhantomMode()
-        config = make_config(fan_mode="Full Fan", use_voxel_phantom=False)
+        config = make_config(
+            fan_mode="Full Fan", use_voxel_phantom=False, legacy_bowtie=True
+        )
         with patch("src.modes.phantom_mode.shutil.copy") as mock_copy:
             mode.prepare_run(config, "/rundir", "/project")
             assert mock_copy.call_count == 7
@@ -238,6 +240,21 @@ class TestPrepareRun:
             mock_copy.assert_any_call("/project/tmp/phantomICRP145.txt", "/rundir")
             mock_copy.assert_any_call(
                 "/project/src/boilerplates/TOPAS_includeFiles/fullfan.txt",
+                "/rundir",
+            )
+
+    def test_copies_required_files_tscad(self, make_config: Any) -> None:
+        # TsCAD is the default bow-tie: stages bowtie_ff.txt + fullfan.stl.
+        mode = PhantomMode()
+        config = make_config(fan_mode="Full Fan", use_voxel_phantom=False)
+        with patch("src.modes.phantom_mode.shutil.copy") as mock_copy:
+            mode.prepare_run(config, "/rundir", "/project")
+            mock_copy.assert_any_call(
+                "/project/src/boilerplates/TOPAS_includeFiles/bowtie_ff.txt",
+                "/rundir",
+            )
+            mock_copy.assert_any_call(
+                "/project/src/boilerplates/TOPAS_includeFiles/fullfan.stl",
                 "/rundir",
             )
 

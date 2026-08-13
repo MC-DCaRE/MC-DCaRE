@@ -144,7 +144,10 @@ class TestPrepareRun:
         config = make_config(fan_mode="Full Fan")
         with patch("src.modes.dicom_mode.shutil.copy") as mock_copy:
             mode.prepare_run(config, "/rundir", "/project")
-            assert mock_copy.call_count == 8
+            # TsCAD is the default bow-tie: copy_common_files stages fullfan.txt
+            # (always) + the STL param include + binary STL, plus 4 shared files,
+            # plus 3 DICOM-specific files = 10 copies.
+            assert mock_copy.call_count == 10
             mock_copy.assert_any_call("/project/tmp/headsourcecode.txt", "/rundir")
             mock_copy.assert_any_call(
                 "/project/src/boilerplates/TOPAS_includeFiles/HUtoMaterialSchneider.txt",
@@ -152,7 +155,11 @@ class TestPrepareRun:
             )
             mock_copy.assert_any_call("/project/tmp/patientDICOM.txt", "/rundir")
             mock_copy.assert_any_call(
-                "/project/src/boilerplates/TOPAS_includeFiles/fullfan.txt",
+                "/project/src/boilerplates/TOPAS_includeFiles/bowtie_ff.txt",
+                "/rundir",
+            )
+            mock_copy.assert_any_call(
+                "/project/src/boilerplates/TOPAS_includeFiles/fullfan.stl",
                 "/rundir",
             )
 

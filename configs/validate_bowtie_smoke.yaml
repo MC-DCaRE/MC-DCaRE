@@ -1,11 +1,11 @@
-# Phase 1 production: legacy CSG bow-tie, Full Fan Head, static beam.
-# Cross-plane (Z) profile, wide Z-field so the collimator does not cut the profile.
+# Smoke test: confirm the validate_bowtie scorer emits a bowtie_profile CSV that
+# converts cleanly. TsCAD STL bow-tie, Full Fan Head, few histories, static beam.
 general:
   g4_data_directory: /opt/topas/GEANT4/G4DATA
   topas_directory: /opt/topas/TOPAS/OpenTOPAS-install/bin/topas
   seed: '9'
   threads: '20'
-  histories: '8000000'
+  histories: '50000'
   log_filename: simulation.log
 imaging:
   simulation_type: CTDI
@@ -13,15 +13,10 @@ imaging:
   imaging_mode: Head
   fan_mode: Full Fan
   sequential_times: '1'
-  legacy_bowtie: true
+  legacy_bowtie: false
 ctdi:
   phase_space_mode: score
   validate_bowtie: true
-  user_blade_enabled: true
-  user_field_x1: 32 cm
-  user_field_x2: 32 cm
-  user_field_y1: 10.7 cm
-  user_field_y2: 10.7 cm
   dose_to_medium_zbins: '100'
   tle_zbins: '100'
   dose_to_water_zbins: '100'
@@ -29,4 +24,5 @@ ctdi:
   couch_width: 260 mm
   couch_thickness: 0.4 mm
   couch_length: 1000 mm
+  user_blade_enabled: false
   graphics_enabled: false

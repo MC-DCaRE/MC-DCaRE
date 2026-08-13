@@ -3,10 +3,10 @@
 
 ## Include File ###############################
 includeFile=ConvertedTopasFile.txt
-{% if fan_mode == 'Full Fan' %}{% if legacy_bowtie %}includeFile = fullfan.txt
+{% if fan_mode == 'Full Fan' and bowtie_enabled %}{% if legacy_bowtie %}includeFile = fullfan.txt
 {% else %}includeFile = bowtie_ff.txt
 {% endif %}{% endif %}
-{% if fan_mode == 'Half Fan' %}{% if legacy_bowtie %}includeFile = halffan.txt
+{% if fan_mode == 'Half Fan' and bowtie_enabled %}{% if legacy_bowtie %}includeFile = halffan.txt
 {% else %}includeFile = bowtie_hf.txt
 {% endif %}{% endif %}
 {% if simulation_type == 'DICOM' %}includeFile = patientDICOM.txt

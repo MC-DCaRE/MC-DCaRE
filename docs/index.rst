@@ -19,6 +19,7 @@ Monte Carlo Dose Calculation and Research Environment for CT dosimetry.
    api/models
    ctdi-scoring-methods
    simulation-time-model
+   data_regeneration
 
 .. toctree::
    :maxdepth: 1

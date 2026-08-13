@@ -372,3 +372,5 @@ calibration.yaml
 /OmedMeshScorer*.csv
 /phantom_dose.csv
 /liver_dose_test.csv
+
+_logs/

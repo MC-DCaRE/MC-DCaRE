@@ -250,6 +250,29 @@ s:Sc/PhspOut/OutputFile          = "beam_exit_phsp"
 b:Sc/PhspOut/KillAfterPhaseSpace = "True"
 s:Sc/PhspOut/IfOutputFileAlreadyExists = "Overwrite"
 
+{% if validate_bowtie %}
+###########################################################
+# Bow-tie validation: cross-plane dose profile at isocenter
+# (thin air slab, 1D binned DoseToWater). Enable via the
+# validate_bowtie context flag; compare against measured
+# RaySafe data with tools/validate_bowtie.py.
+###########################################################
+s:Ge/BowtieProfileSlab/Type     = "TsBox"
+s:Ge/BowtieProfileSlab/Parent   = "World"
+s:Ge/BowtieProfileSlab/Material = "G4_AIR"
+d:Ge/BowtieProfileSlab/HLX      = 20.0 cm
+d:Ge/BowtieProfileSlab/HLY      = 0.5 mm
+d:Ge/BowtieProfileSlab/HLZ      = 5.0 cm
+d:Ge/BowtieProfileSlab/TransY   = 0.0 cm
+s:Sc/BowtieProfile/Quantity     = "DoseToWater"
+s:Sc/BowtieProfile/Component    = "BowtieProfileSlab"
+s:Sc/BowtieProfile/OutputFile   = "bowtie_profile"
+s:Sc/BowtieProfile/IfOutputFileAlreadyExists = "Overwrite"
+i:Sc/BowtieProfile/XBins        = 80
+i:Sc/BowtieProfile/YBins        = 1
+i:Sc/BowtieProfile/ZBins        = 1
+{% endif %}
+
 ###########################################################
 # Define beam source - cone beam
 ###########################################################

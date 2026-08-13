@@ -1,7 +1,10 @@
 """Converts radiation field sizes to collimator blade opening positions.
 
-Linear calibration coefficients derived from TrueBeam kV collimator measurements.
-TODO: Cite measurement source (Varian service data / calibration session).
+Linear calibration coefficients derived from the TrueBeam kV collimator values
+recorded in ``research/2023 - CBCT Mode Standardisation/TrueBeamCBCTmodes.xlsx``
+(TB4.1 July25 sheet) and corroborated by the per-mode service screenshots in the
+same collection (CST / OBK / PL LA3-LA5 sites). Full-fan blade tuple is
+(14, 14, 10.7, 10.7) mm and half-fan is (24.7, 3.3, 10.7, 10.7) mm.
 """
 
 from __future__ import annotations

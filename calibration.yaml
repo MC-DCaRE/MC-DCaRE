@@ -35,20 +35,25 @@ date_calibrated: '2026-08-11'
 
 # Reference effective doses (mSv) for the generic 80 kg reference phantom.
 effective_dose_references:
-  "4D Spotlight": 1.6
-  "4D Thorax": 3.3
-  "Abdo Spotlight": 1.2
-  "Abdomen": 2.8
-  "Breast 360": 0.2
-  "Extremity Spotlight": 0.5
-  "Head": 0.5
-  "Head and Shoulders": 0.3
-  "Head SRS": 1.8
-  "Pelvis": 4.2
-  "Pelvis Spotlight": 2.2
-  "SBRT Spine": 1.7
-  "Thorax": 1.3
-  "Thorax Spotlight": 0.7
+  # Per-protocol reference effective dose with provenance. Values are the
+  # PCXMC-derived whole-body E for the generic 80 kg / 180 cm reference adult
+  # (source: research/2023 - CBCT Mode Standardisation/TrueBeamCBCTmodes.xlsx).
+  # `phantom` records which phantom produced/anchors each reference so the
+  # size-based comparison knows what it is validating against.
+  "4D Spotlight": {reference_mSv: 1.6, phantom: MRCP_AM, source: "PCXMC, TrueBeamCBCTmodes.xlsx"}
+  "4D Thorax": {reference_mSv: 3.3, phantom: MRCP_AM, source: "PCXMC, TrueBeamCBCTmodes.xlsx"}
+  "Abdo Spotlight": {reference_mSv: 1.2, phantom: MRCP_AM, source: "PCXMC, TrueBeamCBCTmodes.xlsx"}
+  "Abdomen": {reference_mSv: 2.8, phantom: MRCP_AM, source: "PCXMC, TrueBeamCBCTmodes.xlsx"}
+  "Breast 360": {reference_mSv: 0.2, phantom: MRCP_AF, source: "PCXMC, TrueBeamCBCTmodes.xlsx"}
+  "Extremity Spotlight": {reference_mSv: 0.5, phantom: MRCP_AM, source: "PCXMC, TrueBeamCBCTmodes.xlsx"}
+  "Head": {reference_mSv: 0.5, phantom: MRCP_AM, source: "PCXMC, TrueBeamCBCTmodes.xlsx"}
+  "Head and Shoulders": {reference_mSv: 0.3, phantom: MRCP_AM, source: "PCXMC, TrueBeamCBCTmodes.xlsx"}
+  "Head SRS": {reference_mSv: 1.8, phantom: MRCP_AM, source: "PCXMC, TrueBeamCBCTmodes.xlsx"}
+  "Pelvis": {reference_mSv: 4.2, phantom: MRCP_AM, source: "PCXMC, TrueBeamCBCTmodes.xlsx"}
+  "Pelvis Spotlight": {reference_mSv: 2.2, phantom: MRCP_AM, source: "PCXMC, TrueBeamCBCTmodes.xlsx"}
+  "SBRT Spine": {reference_mSv: 1.7, phantom: MRCP_AM, source: "PCXMC, TrueBeamCBCTmodes.xlsx"}
+  "Thorax": {reference_mSv: 1.3, phantom: MRCP_AM, source: "PCXMC, TrueBeamCBCTmodes.xlsx"}
+  "Thorax Spotlight": {reference_mSv: 0.7, phantom: MRCP_AM, source: "PCXMC, TrueBeamCBCTmodes.xlsx"}
 
 calibrations:
 - kV: 80

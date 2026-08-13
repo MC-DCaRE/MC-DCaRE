@@ -69,7 +69,7 @@ def main() -> None:
         help="Scorer type for DCF lookup (default: tle). TLE uses dcf_tle, "
         "DTM uses dcf_water_dtm, DTW uses dcf_dtw. Both TLE and DTM "
         "DCFs are CTDI-derived and transfer to the phantom (they agree "
-        "within 4%: TLE 5.70 mSv, DTM 5.46 mSv on the 125 kV HF pelvis "
+        "within 4%%: TLE 5.70 mSv, DTM 5.46 mSv on the 125 kV HF pelvis "
         "protocol, consistent with the 5.4 mSv Hauri 2017 value).",
     )
     parser.add_argument(
@@ -80,12 +80,25 @@ def main() -> None:
     parser.add_argument(
         "--voxel-grid",
         default=None,
-        help="Path to the .npy material ID grid (default: auto-detect)",
+        help="Path to the .npy material ID grid (default: resolved from --phantom-name)",
     )
     parser.add_argument(
         "--material-file",
         default=None,
-        help="Path to the ICRP 145 .material file (default: auto-detect)",
+        help="Path to the ICRP 145 .material file (default: resolved from --phantom-name)",
+    )
+    parser.add_argument(
+        "--phantom-name",
+        default="MRCP_AM",
+        help="Phantom name (default MRCP_AM). Resolves the voxel grid to "
+        "data/P145/voxelized/<name>_5mm/phantom.npy and the material file to "
+        "data/P145/Phantom_data/<name>/<name>.material when not overridden.",
+    )
+    parser.add_argument(
+        "--voxel-size-mm",
+        type=float,
+        default=5.0,
+        help="Voxel size for the resolved voxel directory (default 5.0)",
     )
     parser.add_argument(
         "--output",
@@ -104,11 +117,14 @@ def main() -> None:
         sys.exit(1)
 
     project_root = Path(__file__).parent
-    voxel_grid = (
-        Path(args.voxel_grid)
-        if args.voxel_grid
-        else project_root / "test_voxel_output" / "mrcp_am" / "mrcp_am_voxels.npy"
+    voxel_dir = (
+        project_root
+        / "data"
+        / "P145"
+        / "voxelized"
+        / ("%s_%gmm" % (args.phantom_name, args.voxel_size_mm))
     )
+    voxel_grid = Path(args.voxel_grid) if args.voxel_grid else voxel_dir / "phantom.npy"
     material_file = (
         Path(args.material_file)
         if args.material_file
@@ -116,8 +132,8 @@ def main() -> None:
         / "data"
         / "P145"
         / "Phantom_data"
-        / "MRCP_AM"
-        / "MRCP_AM.material"
+        / args.phantom_name
+        / (args.phantom_name + ".material")
     )
 
     for p, desc in [(voxel_grid, "voxel grid"), (material_file, "material file")]:

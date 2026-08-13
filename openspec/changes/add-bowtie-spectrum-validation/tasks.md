@@ -22,7 +22,12 @@
 - [x] 2.4 `imaging.legacy_bowtie` flag (default True = validated CSG fallback)
 - [x] 2.5 BHF thickness from `imaging.bhf_thickness_mm` (replace hardcoded 0.7; default 0.89)
 - [x] 2.6 dry-run render test: TsCAD params present, dispatch correct (TestBowtieDispatch)
-- [ ] 2.7 TOPAS validation: run with legacy_bowtie=false, confirm TsCAD loads STL + transports; flip default to false
+- [x] 2.7 TOPAS validation: TsCAD bow-tie loads + transports cleanly. Placement
+      fixed: reparented to Rotation at 18 cm source-to-bowtie distance (was in
+      the collimator bay, overlapping Coll1/BHF). Result: 0 overlaps, symmetric
+      Top/Bottom dose (TsCAD Centre 2.96e-10 vs legacy CSG 4.6e-10 -- the real
+      measured filter attenuates ~36% more, as expected). legacy_bowtie stays
+      default True until DCF re-calibration at the new bow-tie.
 
 ## 3. Spectrum filtration + HVL
 

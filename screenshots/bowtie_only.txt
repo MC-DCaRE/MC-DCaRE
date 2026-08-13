@@ -1,0 +1,21 @@
+# Standalone bow-tie render (Geant4 RayTracer, headless).
+s:Ge/World/Material = "Vacuum"
+d:Ge/World/HLX = 0.2 m
+d:Ge/World/HLY = 0.2 m
+d:Ge/World/HLZ = 0.2 m
+includeFile = bowtie_ff.txt
+s:Ge/BowtieFilter/Parent = "World"
+s:Ge/BowtieFilter/Material = "G4_Al"
+s:So/beam/Type = "Beam"
+s:So/beam/ParticleType = "gamma"
+d:So/beam/BeamEnergy = 0.1 MeV
+dv:So/beam/Position = 3 0.0 0.0 0.0 m
+uv:So/beam/Direction = 3 0. 1. 0.
+i:So/beam/NumberOfHistories = 1
+s:Gr/ViewA/Type = "RayTracer"
+b:Gr/Enable = "True"
+i:Gr/ViewA/WindowSizeX = 800
+i:Gr/ViewA/WindowSizeY = 600
+d:Gr/ViewA/Theta = 60 deg
+d:Gr/ViewA/Phi = 30 deg
+i:Ts/NumberOfThreads = 1

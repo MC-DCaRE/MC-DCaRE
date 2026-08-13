@@ -1,0 +1,22 @@
+# Bow-tie filter -- measured full-fan as a TOPAS TsCAD tessellated mesh.
+# Generated from research/Monte Carlo Stuff from Inbum/bowtie.stl by
+# tools/process_bowtie_stl.py (recentered, binary STL). Placement matches the
+# former CSG fullfan.txt (Parent=CollimatorsHorizontal, RotZ=-90, TransZ=38.5mm).
+# NOTE: the decimated STL currently overlaps Coll1 by ~0.75 mm and has some
+# inconsistently-oriented facets; QuitIfOverlapDetected is set to False in the
+# head template (top-level) so TOPAS transports (the overlap is sub-mm).
+# Placement + STL normal repair are the remaining follow-up before this becomes
+# the default bow-tie.
+s:Ge/BowtieFilter/Type = "TsCAD"
+s:Ge/BowtieFilter/Parent = "CollimatorsHorizontal"
+s:Ge/BowtieFilter/Material = "Aluminum"
+s:Ge/BowtieFilter/InputFile = "fullfan"
+s:Ge/BowtieFilter/FileFormat = "stl"
+d:Ge/BowtieFilter/Units = 1.0 mm
+d:Ge/BowtieFilter/TransX = 0.0 mm
+d:Ge/BowtieFilter/TransY = 0.0 mm
+d:Ge/BowtieFilter/TransZ = 38.5 mm
+d:Ge/BowtieFilter/RotX = 0. deg
+d:Ge/BowtieFilter/RotY = 0. deg
+dc:Ge/BowtieFilter/RotZ = -90. deg
+s:Ge/BowtieFilter/DrawingStyle = "Wireframe"

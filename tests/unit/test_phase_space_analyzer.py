@@ -60,6 +60,40 @@ class TestPhaseSpaceAnalyzer:
         result = PhaseSpaceAnalyzer(phsp_path).analyze()
         assert result["survival_fraction"] is None
 
+    def test_hvl_none_without_nist_path(self, tmp_path: Any) -> None:
+        phsp_path = str(tmp_path / "test.phsp")
+        PhaseSpaceAnalyzer.create_synthetic_phsp(phsp_path, n_particles=100)
+        result = PhaseSpaceAnalyzer(phsp_path).analyze()
+        assert result["hvl_mmAl"] is None
+
+    def test_compute_hvl_from_nist_table(self) -> None:
+        # Monoenergetic-ish 60 keV spectrum -> HVL ~= ln(2)/mu_Al at 60 keV.
+        # mu/rho Al @60keV = 0.2778 cm2/g, rho=2.699 -> mu=0.7497 /cm ->
+        # HVL = 0.693/0.7497 = 0.924 cm = 9.24 mm.
+        nist = os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "..",
+            "data",
+            "nist",
+            "hvl_coefficients.dat",
+        )
+        if not os.path.isfile(nist):
+            pytest.skip("NIST coefficient table not shipped")
+        edges = [59.0, 60.0, 61.0]
+        counts = [0.0, 1000.0]
+        hvl = PhaseSpaceAnalyzer.compute_hvl_mm_al(edges, counts, nist)
+        assert hvl is not None
+        assert 8.5 < hvl < 10.0  # ~9.2 mm expected
+
+    def test_compute_hvl_none_for_zero_fluence(self, tmp_path: Any) -> None:
+        nist = tmp_path / "nist.dat"
+        nist.write_text("# t\n0.05 0.04 0.37\n0.1 0.016 0.17\n")
+        assert (
+            PhaseSpaceAnalyzer.compute_hvl_mm_al([50.0, 60.0], [0, 0], str(nist))
+            is None
+        )
+
     def test_survival_fraction_none_with_missing_metadata(self, tmp_path: Any) -> None:
         phsp_path = str(tmp_path / "test.phsp")
         PhaseSpaceAnalyzer.create_synthetic_phsp(phsp_path, n_particles=100)

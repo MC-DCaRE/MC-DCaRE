@@ -1,48 +1,49 @@
 ## Status
 
-- [ ] Phase 1: STL bow-tie geometry + spectrum filtration (unblocked)
+- [~] Phase 1: STL bow-tie geometry + spectrum filtration (plumbing done; needs TOPAS validation)
 - [ ] Phase 2: HVL computation + validation utility
 - [ ] Phase 3: re-calibration + regression
 
 ## 1. STL processing tool
 
-- [ ] 1.1 `tools/process_bowtie_stl.py`: ASCII STL parser (stdlib)
-- [ ] 1.2 recenter by bbox centroid
-- [ ] 1.3 decimate to configurable triangle target (~20k)
-- [ ] 1.4 write binary STL -> `data/bowtie/fullfan.stl`
-- [ ] 1.5 derive half-fan (crop one lateral half + TransX offset) -> `data/bowtie/halffan.stl`
-- [ ] 1.6 inspection report -> `data/bowtie/README.md`
-- [ ] 1.7 unit tests: triangle count, bbox, half-fan one-sidedness
+- [x] 1.1 `tools/process_bowtie_stl.py`: ASCII STL parser (stdlib)
+- [x] 1.2 recenter by bbox centroid
+- [x] 1.3 decimate to configurable triangle target (vertex-clustering weld)
+- [x] 1.4 write binary STL -> `fullfan.stl`
+- [x] 1.5 derive half-fan (crop one lateral half + recenter) -> `halffan.stl`
+- [x] 1.6 inspection report -> README in output dir
+- [x] 1.7 unit tests: triangle count, bbox, half-fan one-sidedness
 
 ## 2. TsCAD bow-tie templates
 
-- [ ] 2.1 `bowtie_ff.j2`, `bowtie_hf.j2` rendered includes (TsCAD params)
-- [ ] 2.2 `headsourcecode_boilerplate.j2` / `ctdi_phsp_score.j2` fan_mode dispatch
-- [ ] 2.3 `base.copy_common_files()` copies `fullfan.stl`/`halffan.stl` to runfolder
-- [ ] 2.4 `imaging.legacy_bowtie` flag to keep CSG `.txt` fallback
-- [ ] 2.5 BHF thickness from `imaging.bhf_thickness_mm` (replace hardcoded 0.7)
-- [ ] 2.6 dry-run render test: TsCAD params present, InputFile correct
+- [x] 2.1 `bowtie_ff.txt`, `bowtie_hf.txt` TsCAD parameter includes (generated assets in TOPAS_includeFiles/)
+- [x] 2.2 `headsourcecode_boilerplate.j2` / `ctdi_phsp_score.j2` fan_mode + legacy_bowtie dispatch
+- [x] 2.3 `base.copy_common_files()` copies `fullfan.stl`/`halffan.stl` + TsCAD includes to runfolder
+- [x] 2.4 `imaging.legacy_bowtie` flag (default True = validated CSG fallback)
+- [x] 2.5 BHF thickness from `imaging.bhf_thickness_mm` (replace hardcoded 0.7; default 0.89)
+- [x] 2.6 dry-run render test: TsCAD params present, dispatch correct (TestBowtieDispatch)
+- [ ] 2.7 TOPAS validation: run with legacy_bowtie=false, confirm TsCAD loads STL + transports; flip default to false
 
 ## 3. Spectrum filtration + HVL
 
-- [ ] 3.1 `imaging.filtration_mode` config field (geometric|hybrid, default hybrid)
-- [ ] 3.2 `spectrum_generator.py`: apply Al filters in hybrid mode
-- [ ] 3.3 compute `s.get_hvl1()` -> metadata `spekpy.hvl_mmAl` + calibration file
-- [ ] 3.4 unit test: hybrid mode produces lower bare-spectrum fluence + records HVL
+- [x] 3.1 `imaging.filtration_mode` config field (geometric|hybrid, default hybrid)
+- [x] 3.2 `spectrum_generator.py`: apply Al filters in hybrid mode
+- [x] 3.3 compute `s.get_hvl1()` -> metadata `spekpy.hvl_mmAl` + calibration file
+- [x] 3.4 unit test: hybrid mode filters, geometric does not, HVL recorded
 
 ## 4. HVL in PhaseSpaceAnalyzer
 
-- [ ] 4.1 ship `data/nist/mu_en_aluminium.dat` (NIST XCOM Al)
-- [ ] 4.2 `analyze()` HVL fold -> `hvl_mmAl` in result dict
-- [ ] 4.3 unit test: known monoenergetic spectrum -> expected HVL
+- [x] 4.1 ship `data/nist/hvl_coefficients.dat` (NIST XCOM Al + air, 10-150 keV)
+- [x] 4.2 `analyze()` HVL fold -> `hvl_mmAl` in result dict (gated by nist_coefficients_path)
+- [x] 4.3 unit test: 60 keV monoenergetic -> ~9.2 mm (matches ln2/mu)
 
 ## 5. Validation utility
 
-- [ ] 5.1 add `openpyxl` to pyproject dev/optional deps
-- [ ] 5.2 `isocenter-plane` cross-profile scorer in `ctdi_phsp_score.j2` (gated)
-- [ ] 5.3 `src/services/bowtie_validator.py`: read measured profile + compare
-- [ ] 5.4 `tools/validate_bowtie.py` CLI -> CSV + PNG
-- [ ] 5.5 smoke test on synthetic data
+- [x] 5.1 add `openpyxl` to pyproject dependencies
+- [~] 5.2 isocenter-plane cross-profile scorer in `ctdi_phsp_score.j2` (deferred -- needs TOPAS; validator accepts a scored CSV instead)
+- [x] 5.3 `src/services/bowtie_validator.py`: read measured RaySafe profile + compare to MC CSV (peak-normalised, RMS misfit)
+- [x] 5.4 `tools/validate_bowtie.py` CLI -> CSV + PNG
+- [x] 5.5 unit tests (4) + smoke test against the real Oct 2023 workbook (Head CAX HVL 7.37 mmAl)
 
 ## 6. Re-calibration + regression
 

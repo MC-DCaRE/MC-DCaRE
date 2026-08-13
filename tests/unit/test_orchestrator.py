@@ -105,6 +105,7 @@ class TestRunDicomSimulation:
             fan_mode="Full Fan",
             seed=9,
             threads=1,
+            filtration_mode="hybrid",
         )
 
     @patch("src.orchestrator.SpectrumGenerator")
@@ -195,6 +196,7 @@ class TestRunCtdiSimulation:
             fan_mode="Full Fan",
             seed=9,
             threads=1,
+            filtration_mode="hybrid",
         )
 
 

@@ -62,3 +62,35 @@ class TestRenderString:
             "{% if flag %}on{% else %}off{% endif %}", {"flag": True}
         )
         assert result == "on"
+
+
+class TestBowtieDispatch:
+    """The head template must switch between the legacy CSG bow-tie and the
+    TsCAD mesh bow-tie on the ``legacy_bowtie`` flag, per fan mode."""
+
+    def _render_head(self, tmp_path: Any, context: dict) -> str:
+        repo_root = os.path.join(os.path.dirname(__file__), "..", "..")
+        tpl_dir = os.path.join(repo_root, "src", "boilerplates")
+        renderer = TemplateRenderer(tpl_dir, str(tmp_path / "out"))
+        result = renderer.render("headsourcecode_boilerplate.j2", context, "head.txt")
+        with open(result) as f:
+            return f.read()
+
+    def test_legacy_bowtie_full_fan(self, tmp_path: Any) -> None:
+        content = self._render_head(
+            tmp_path, {"fan_mode": "Full Fan", "legacy_bowtie": True}
+        )
+        assert "includeFile = fullfan.txt" in content
+        assert "bowtie_ff" not in content
+
+    def test_tscad_bowtie_full_fan(self, tmp_path: Any) -> None:
+        content = self._render_head(
+            tmp_path, {"fan_mode": "Full Fan", "legacy_bowtie": False}
+        )
+        assert "includeFile = bowtie_ff.txt" in content
+
+    def test_tscad_bowtie_half_fan(self, tmp_path: Any) -> None:
+        content = self._render_head(
+            tmp_path, {"fan_mode": "Half Fan", "legacy_bowtie": False}
+        )
+        assert "includeFile = bowtie_hf.txt" in content

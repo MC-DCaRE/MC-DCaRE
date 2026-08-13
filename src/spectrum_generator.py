@@ -25,6 +25,7 @@ class SpectrumGenerator:
         fan_mode: str = "",
         seed: int = 9,
         threads: int = 1,
+        filtration_mode: str = "hybrid",
     ) -> None:
         """Generate a kV spectrum and write metadata and TOPAS spectrum files.
 
@@ -36,12 +37,27 @@ class SpectrumGenerator:
             fan_mode: Fan mode string ("Full Fan" or "Half Fan").
             seed: Random seed for reproducibility.
             threads: Number of simulation threads.
+            filtration_mode: Where uniform base filtration lives. ``"hybrid"``
+                (default) folds the inherent (2.7 mm Al) and collimator-window
+                (0.3 mm Al) filtration into the SpekPy spectrum for improved beam
+                hardening; the angular-dependent Ti beam-hardening filter and
+                bow-tie stay geometric. ``"geometric"`` applies no SpekPy
+                filtration (the prior/legacy behaviour -- bare spectrum, inherent
+                filtration not modelled in the spectrum). Note: switching modes
+                or the BHF thickness changes the beam spectrum and requires
+                re-running the CTDI DCF calibration.
         """
+        if filtration_mode not in ("hybrid", "geometric"):
+            raise ValueError(
+                "filtration_mode must be 'hybrid' or 'geometric', got %r"
+                % filtration_mode
+            )
         logger.info(
-            "Generating spectrum: %f kV, %f mAs, %s histories",
+            "Generating spectrum: %f kV, %f mAs, %s histories (filtration=%s)",
             anode_voltage,
             exposure,
             histories,
+            filtration_mode,
         )
         s = sp.Spek(
             kvp=anode_voltage,
@@ -50,6 +66,17 @@ class SpectrumGenerator:
             dk=0.2,
             z=0.1,
         )
+
+        # In hybrid mode the spatially-uniform pre-bow-tie filtration (inherent
+        # tube + collimator polycarbon window, modelled as Al) is folded into
+        # the source spectrum. The angular-dependent Ti BHF and bow-tie remain
+        # geometric in both modes to preserve the off-axis profile.
+        if filtration_mode == "hybrid":
+            s.filter("Al", 2.7)
+            s.filter("Al", 0.3)
+
+        hvl_mm_al: float = float(s.get_hvl1())
+        logger.info("Spectrum first HVL: %.4f mm Al", hvl_mm_al)
 
         summary_of_inputs: str = s.state.get_current_state_str(
             "full", s.get_std_results()
@@ -77,6 +104,8 @@ class SpectrumGenerator:
                 "z": 0.1,
                 "mas": exposure,
                 "version": sp.__version__,
+                "filtration_mode": filtration_mode,
+                "hvl_mmAl": hvl_mm_al,
             },
             "fan_mode": fan_mode,
             "seed": seed,
@@ -96,6 +125,8 @@ class SpectrumGenerator:
             f.write("\nMultiply dose by the factor above to get absolute dose \n")
             f.write("The number of histories in this run was: " + histories + "\n")
             f.write("Calibration factor = Number of particles/Histories\n")
+            f.write("Filtration mode: %s\n" % filtration_mode)
+            f.write("Spectrum first HVL: %.4f mm Al\n" % hvl_mm_al)
             f.write("\n")
             f.write(summary_of_inputs)
 

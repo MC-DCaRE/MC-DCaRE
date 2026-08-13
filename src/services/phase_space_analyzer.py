@@ -106,11 +106,13 @@ class PhaseSpaceAnalyzer:
         phsp_path: str,
         metadata_path: Optional[str] = None,
         n_bins: int = 100,
+        nist_coefficients_path: Optional[str] = None,
     ) -> None:
         self.phsp_path = phsp_path
         self.header_path = header_path_for(phsp_path)
         self.metadata_path = metadata_path
         self.n_bins = n_bins
+        self.nist_coefficients_path = nist_coefficients_path
 
     def analyze(self) -> Dict[str, Any]:
         """Read and analyze the phase space file.
@@ -197,11 +199,20 @@ class PhaseSpaceAnalyzer:
                 particle_count, self.metadata_path
             )
 
+        hvl_mm_al: Optional[float] = None
+        if self.nist_coefficients_path and os.path.isfile(self.nist_coefficients_path):
+            hvl_mm_al = self.compute_hvl_mm_al(
+                energy_edges.tolist(),
+                energy_counts.tolist(),
+                self.nist_coefficients_path,
+            )
+
         return {
             "particle_count": particle_count,
             "survival_fraction": survival_fraction,
             "mean_energy_keV": mean_energy,
             "std_energy_keV": std_energy,
+            "hvl_mmAl": hvl_mm_al,
             "energy_spectrum": {
                 "bin_edges": energy_edges.tolist(),
                 "counts": energy_counts.tolist(),
@@ -225,6 +236,58 @@ class PhaseSpaceAnalyzer:
             "particle_types": particle_types,
             "file_size_mb": file_size_mb,
         }
+
+    @staticmethod
+    def compute_hvl_mm_al(
+        bin_edges_kev: List[float], counts: List[float], nist_path: str
+    ) -> Optional[float]:
+        """Compute the first HVL (mm Al) by folding a scored spectrum with NIST
+        mu_en/rho(air) and mu/rho(Al).
+
+        Args:
+            bin_edges_kev: energy bin edges in keV (len n+1).
+            counts: fluence counts per bin (len n).
+            nist_path: path to a ``hvl_coefficients.dat`` table with columns
+                ``Energy_MeV  mu_en/rho_air  mu/rho_Aluminium`` (cm^2/g).
+
+        Returns:
+            HVL in mm of Aluminum, or None if it cannot be determined.
+        """
+        edges = np.asarray(bin_edges_kev, dtype=np.float64)
+        cnt = np.asarray(counts, dtype=np.float64)
+        if edges.size < 2 or cnt.size < 1 or cnt.sum() <= 0:
+            return None
+        centers_kev = 0.5 * (edges[:-1] + edges[1:])
+        centers_mev = centers_kev / 1000.0
+
+        table = np.loadtxt(nist_path, comments="#")
+        e_tab = table[:, 0]
+        muen_air = np.interp(centers_mev, e_tab, table[:, 1])
+        mu_al = np.interp(centers_mev, e_tab, table[:, 2])
+
+        rho_al = 2.699  # g/cm^3
+        mu_al_linear = mu_al * rho_al  # 1/cm
+
+        # Air-kerma proxy K = sum( fluence * E * mu_en/rho_air ).
+        k_weights = cnt * centers_mev * muen_air
+        k0 = float(k_weights.sum())
+        if k0 <= 0:
+            return None
+
+        def kerma(thickness_cm: float) -> float:
+            return float((k_weights * np.exp(-mu_al_linear * thickness_cm)).sum())
+
+        # Bisection for the thickness that halves the air kerma.
+        lo, hi = 0.0, 100.0  # cm; far beyond any diagnostic HVL
+        if kerma(hi) > k0 / 2.0:
+            return None  # never halves (beam too hard / data issue)
+        for _ in range(100):
+            mid = 0.5 * (lo + hi)
+            if kerma(mid) > k0 / 2.0:
+                lo = mid
+            else:
+                hi = mid
+        return 0.5 * (lo + hi) * 10.0  # cm -> mm
 
     @staticmethod
     def _parse_header(

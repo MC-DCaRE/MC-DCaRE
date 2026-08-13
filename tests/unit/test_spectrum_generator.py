@@ -32,6 +32,15 @@ class MockSpek:
         self.mas = mas
         self.dk = dk
         self._state = MockState()
+        self.filters_applied: list = []
+
+    def filter(self, material: str, thickness: float) -> "MockSpek":
+        self.filters_applied.append((material, thickness))
+        return self
+
+    def get_hvl1(self, matl: str = "Al") -> float:
+        # HVL grows with applied filtration so tests can distinguish modes.
+        return 0.02 + 1.5 * len(self.filters_applied)
 
     def get_flu(self) -> float:
         return 1000.0
@@ -228,6 +237,74 @@ class TestSpectrumGenerator:
             meta = yaml.safe_load(f)
 
         assert "dcf_hint" not in meta
+
+    @patch("src.spectrum_generator.sp")
+    def test_hybrid_mode_applies_base_filtration(
+        self, mock_sp: MagicMock, tmp_path: object
+    ) -> None:
+        mock_spek = MockSpek()
+        mock_sp.Spek.return_value = mock_spek
+        mock_sp.__version__ = "2.0.1"
+        os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
+        SpectrumGenerator.generate(
+            125.0, 100.0, "100000", str(tmp_path), filtration_mode="hybrid"
+        )
+        assert mock_spek.filters_applied == [("Al", 2.7), ("Al", 0.3)]
+
+    @patch("src.spectrum_generator.sp")
+    def test_geometric_mode_applies_no_filtration(
+        self, mock_sp: MagicMock, tmp_path: object
+    ) -> None:
+        mock_spek = MockSpek()
+        mock_sp.Spek.return_value = mock_spek
+        mock_sp.__version__ = "2.0.1"
+        os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
+        SpectrumGenerator.generate(
+            125.0, 100.0, "100000", str(tmp_path), filtration_mode="geometric"
+        )
+        assert mock_spek.filters_applied == []
+
+    @patch("src.spectrum_generator.sp")
+    def test_invalid_filtration_mode_raises(
+        self, mock_sp: MagicMock, tmp_path: object
+    ) -> None:
+        mock_sp.Spek.return_value = MockSpek()
+        os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
+        with pytest.raises(ValueError, match="filtration_mode"):
+            SpectrumGenerator.generate(
+                125.0, 100.0, "100000", str(tmp_path), filtration_mode="bogus"
+            )
+
+    @patch("src.spectrum_generator.sp")
+    def test_metadata_records_hvl_and_filtration_mode(
+        self, mock_sp: MagicMock, tmp_path: object
+    ) -> None:
+        mock_sp.Spek.return_value = MockSpek()
+        mock_sp.__version__ = "2.0.1"
+        os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
+        SpectrumGenerator.generate(
+            125.0, 100.0, "100000", str(tmp_path), filtration_mode="hybrid"
+        )
+        meta_path = os.path.join(str(tmp_path), "tmp", "simulation_metadata.yaml")
+        with open(meta_path) as f:
+            meta = yaml.safe_load(f)
+        assert meta["spekpy"]["filtration_mode"] == "hybrid"
+        # MockSpek.get_hvl1 = 0.02 + 1.5 * 2 filters = 3.02
+        assert abs(meta["spekpy"]["hvl_mmAl"] - 3.02) < 1e-9
+
+    @patch("src.spectrum_generator.sp")
+    def test_calibration_file_records_hvl(
+        self, mock_sp: MagicMock, tmp_path: object
+    ) -> None:
+        mock_sp.Spek.return_value = MockSpek()
+        mock_sp.__version__ = "2.0.1"
+        os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
+        SpectrumGenerator.generate(100.0, 10.0, "100000", str(tmp_path))
+        calib_path = os.path.join(str(tmp_path), "tmp", "head_calibration_factor.txt")
+        with open(calib_path) as f:
+            content = f.read()
+        assert "Filtration mode:" in content
+        assert "mm Al" in content
 
 
 if __name__ == "__main__":

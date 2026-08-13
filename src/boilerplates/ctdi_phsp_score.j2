@@ -5,10 +5,12 @@
 
 ## Include File ###############################
 includeFile=ConvertedTopasFile.txt
-{% if fan_mode == 'Full Fan' %}includeFile = fullfan.txt
-{% endif %}
-{% if fan_mode == 'Half Fan' %}includeFile = halffan.txt
-{% endif %}
+{% if fan_mode == 'Full Fan' %}{% if legacy_bowtie %}includeFile = fullfan.txt
+{% else %}includeFile = bowtie_ff.txt
+{% endif %}{% endif %}
+{% if fan_mode == 'Half Fan' %}{% if legacy_bowtie %}includeFile = halffan.txt
+{% else %}includeFile = bowtie_hf.txt
+{% endif %}{% endif %}
 
 ## Some Control Parameters ####################
 i:Ts/Seed = {{ seed }}
@@ -196,13 +198,13 @@ d:Ge/BeamHardeningFilterGroup/RotY=0. deg
 d:Ge/BeamHardeningFilterGroup/RotZ=0. deg
 d:Ge/BeamHardeningFilterGroup/TransZ=1.59 cm
 
-# Beam Hardening Filter — Ti 0.7 mm
+# Beam Hardening Filter — Ti thickness from imaging.bhf_thickness_mm (default 0.89 mm)
 s:Ge/BeamHardeningFilter/Type="TsBox"
 s:Ge/BeamHardeningFilter/Material="Titanium"
 s:Ge/BeamHardeningFilter/Parent="BeamHardeningFilterGroup"
 d:Ge/BeamHardeningFilter/HLX=0.1 m
 d:Ge/BeamHardeningFilter/HLY=0.1 m
-d:Ge/BeamHardeningFilter/HLZ=0.7 mm
+d:Ge/BeamHardeningFilter/HLZ={{ bhf_thickness_mm }} mm
 d:Ge/BeamHardeningFilter/TransX=0. m
 d:Ge/BeamHardeningFilter/TransY=0. m
 d:Ge/BeamHardeningFilter/TransZ=0. m

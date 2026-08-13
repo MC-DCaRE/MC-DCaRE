@@ -133,6 +133,9 @@ class ImagingConfig:
     anode_voltage: Quantity = _q(100.0, "kV")
     exposure: Quantity = _q(100.0, "mAs")
     fan_mode: str = "Full Fan"
+    filtration_mode: str = "hybrid"
+    bhf_thickness_mm: float = 0.89
+    legacy_bowtie: bool = True
     imaging_mode: str = "Image Gently"
     rotation_rate: Quantity = _q(0.4, "deg/s")
     timeline_end: Quantity = _q(501.0, "s")
@@ -148,6 +151,16 @@ class ImagingConfig:
 
     def __post_init__(self) -> None:
         _coerce_quantities(self, _IMAGING_Q_FIELDS)
+        if self.filtration_mode not in ("hybrid", "geometric"):
+            raise ValueError(
+                "imaging.filtration_mode must be 'hybrid' or 'geometric', got %r"
+                % self.filtration_mode
+            )
+        if self.bhf_thickness_mm <= 0:
+            raise ValueError(
+                "imaging.bhf_thickness_mm must be positive, got %s"
+                % self.bhf_thickness_mm
+            )
 
 
 @dataclass(frozen=True)

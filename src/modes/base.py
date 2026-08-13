@@ -118,3 +118,14 @@ class SimulationMode(ABC):
             shutil.copy(os.path.join(include_dir, "fullfan.txt"), rundatadir)
         elif fan_mode == "Half Fan":
             shutil.copy(os.path.join(include_dir, "halffan.txt"), rundatadir)
+
+        # When the TsCAD mesh bow-tie is enabled, copy the binary STL + its
+        # parameter include into the run dir (TsCAD resolves InputFile relative
+        # to the TOPAS working directory).
+        if not config.imaging.legacy_bowtie:
+            if fan_mode == "Full Fan":
+                shutil.copy(os.path.join(include_dir, "bowtie_ff.txt"), rundatadir)
+                shutil.copy(os.path.join(include_dir, "fullfan.stl"), rundatadir)
+            elif fan_mode == "Half Fan":
+                shutil.copy(os.path.join(include_dir, "bowtie_hf.txt"), rundatadir)
+                shutil.copy(os.path.join(include_dir, "halffan.stl"), rundatadir)

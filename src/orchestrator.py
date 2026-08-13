@@ -185,6 +185,7 @@ class Orchestrator:
             fan_mode=config.imaging.fan_mode,
             seed=int(config.general.seed),
             threads=int(config.general.threads),
+            filtration_mode=config.imaging.filtration_mode,
         )
 
         mode.prepare_run(config, rundir, self.project_root)
@@ -219,6 +220,7 @@ class Orchestrator:
             fan_mode=config.imaging.fan_mode,
             seed=int(config.general.seed),
             threads=int(config.general.threads),
+            filtration_mode=config.imaging.filtration_mode,
         )
 
         ctdi_mode.prepare_run(config, rundir, self.project_root)

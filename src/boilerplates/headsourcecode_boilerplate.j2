@@ -3,10 +3,12 @@
 
 ## Include File ###############################
 includeFile=ConvertedTopasFile.txt
-{% if fan_mode == 'Full Fan' %}includeFile = fullfan.txt
-{% endif %}
-{% if fan_mode == 'Half Fan' %}includeFile = halffan.txt
-{% endif %}
+{% if fan_mode == 'Full Fan' %}{% if legacy_bowtie %}includeFile = fullfan.txt
+{% else %}includeFile = bowtie_ff.txt
+{% endif %}{% endif %}
+{% if fan_mode == 'Half Fan' %}{% if legacy_bowtie %}includeFile = halffan.txt
+{% else %}includeFile = bowtie_hf.txt
+{% endif %}{% endif %}
 {% if simulation_type == 'DICOM' %}includeFile = patientDICOM.txt
 {% endif %}
 {% if simulation_type == 'CTDI' %}sv:Ph/Default/LayeredMassGeometryWorlds = {% if water_chamber_enabled %}10 "ChamberPlugCentre" "ChamberPlugTop" "ChamberPlugBottom" "ChamberPlugLeft" "ChamberPlugRight" "ChamberPlugCentre_water" "ChamberPlugTop_water" "ChamberPlugBottom_water" "ChamberPlugLeft_water" "ChamberPlugRight_water"{% else %}5 "ChamberPlugCentre" "ChamberPlugTop" "ChamberPlugBottom" "ChamberPlugLeft" "ChamberPlugRight"{% endif %}
@@ -208,7 +210,7 @@ s:Ge/Coll4steel/Color="pink"
 
 #BeamHardeningFilter
 
-# Beam Hardening Filter Group — Ti 0.7 mm, confirmed by Kawahara et al. Phys Med 2016
+# Beam Hardening Filter Group — Ti thickness from imaging.bhf_thickness_mm (Kawahara et al. Phys Med 2016; default 0.89 mm)
 s:Ge/BeamHardeningFilterGroup/Type="Group"
 s:Ge/BeamHardeningFilterGroup/Parent="CollimatorsHorizontal"
 d:Ge/BeamHardeningFilterGroup/RotX=0. deg
@@ -222,7 +224,7 @@ s:Ge/BeamHardeningFilter/Material="Titanium"
 s:Ge/BeamHardeningFilter/Parent="BeamHardeningFilterGroup"
 d:Ge/BeamHardeningFilter/HLX=0.1 m
 d:Ge/BeamHardeningFilter/HLY=0.1 m
-d:Ge/BeamHardeningFilter/HLZ=0.7 mm
+d:Ge/BeamHardeningFilter/HLZ={{ bhf_thickness_mm }} mm
 d:Ge/BeamHardeningFilter/TransX=0. m
 d:Ge/BeamHardeningFilter/TransY=0. m
 d:Ge/BeamHardeningFilter/TransZ=0. m # to prevent overlap with top and bottom collimator

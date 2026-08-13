@@ -12,7 +12,30 @@ from src.services.bowtie_validator import (
     Profile,
     compare_profiles,
     load_mc_profile,
+    load_measured_profile,
 )
+
+
+def _write_measured_workbook(path, n_groups=2):
+    """Build a tiny workbook mirroring the RaySafe 'Collated results' layout:
+    position in col C, each mode a 4-col group (dose, uGy/s, HVL, blank) from E.
+    """
+    import openpyxl
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Collated results"
+    positions = [-4, -2, 0, 2, 4]
+    for i, pos in enumerate(positions, start=14):
+        ws.cell(row=i, column=3, value=pos)  # C: position (1-indexed col 3)
+        for g in range(n_groups):
+            dose = 10 * (g + 1) + pos  # group-dependent so columns differ
+            hvl = 7.0 + g + 0.01 * abs(pos)
+            # Reader indexes dose=cells[4+4g] (col E=5+4g), hvl=cells[6+4g] (col G=7+4g).
+            ws.cell(row=i, column=5 + 4 * g, value=dose)
+            ws.cell(row=i, column=7 + 4 * g, value=hvl)
+    wb.save(path)
+    return positions
 
 
 def _make_csv(tmp_path, rows):
@@ -55,3 +78,30 @@ def test_compare_interpolates_mc_onto_measured(tmp_path):
     res = compare_profiles(measured, mc)
     # At +-2 cm, both measured and interpolated MC normalise to 0.5 (peak 2 at centre).
     assert res["mc_norm"][0] == pytest.approx(0.5, abs=1e-6)
+
+
+def test_load_measured_profile_selects_mode_group(tmp_path):
+    xlsx = tmp_path / "meas.xlsx"
+    positions = _write_measured_workbook(str(xlsx), n_groups=2)
+
+    g0 = load_measured_profile(str(xlsx), mode_group=0)
+    g1 = load_measured_profile(str(xlsx), mode_group=1)
+
+    # Positions sorted ascending; matches what was written.
+    assert g0.position_cm.tolist() == sorted(positions)
+    assert g1.position_cm.tolist() == sorted(positions)
+    # Group 1 doses are offset by +10 vs group 0 at every position.
+    assert np.allclose(g1.dose - g0.dose, 10.0)
+    # HVL columns differ between groups (group1 HVL ~ 1 higher).
+    assert (g1.hvl_mmAl > g0.hvl_mmAl).all()
+
+
+def test_load_measured_profile_normalises_order(tmp_path):
+    xlsx = tmp_path / "meas.xlsx"
+    _write_measured_workbook(str(xlsx), n_groups=1)
+    prof = load_measured_profile(str(xlsx), mode_group=0)
+    # Positions must be ascending (the loader sorts).
+    assert all(
+        prof.position_cm[i] <= prof.position_cm[i + 1]
+        for i in range(len(prof.position_cm) - 1)
+    )

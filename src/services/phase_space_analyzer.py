@@ -252,6 +252,12 @@ class PhaseSpaceAnalyzer:
 
         Returns:
             HVL in mm of Aluminum, or None if it cannot be determined.
+
+        Note:
+            ``np.interp`` clamps bin centers below the table's lowest energy
+            (10 keV) to the 10 keV coefficient. For a filtered diagnostic beam
+            this affects negligible fluence; pad the table with verified low-keV
+            NIST values if scoring very soft spectra.
         """
         edges = np.asarray(bin_edges_kev, dtype=np.float64)
         cnt = np.asarray(counts, dtype=np.float64)

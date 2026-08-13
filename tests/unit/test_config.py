@@ -553,6 +553,21 @@ class TestPhantomResolution:
         c = PhantomConfig(phantom_voxel_size_mm=2.5, phantom_sex="AF")
         assert c.resolve_voxel_directory() == "data/P145/voxelized/MRCP_AF_2.5mm"
 
+    def test_adult_percentile_name_has_no_age_segment(self) -> None:
+        from src.config import PhantomConfig
+
+        c = PhantomConfig(phantom_size_percentile=10)
+        assert c.resolve_phantom_name() == "MRCP_AM_p10"
+        c2 = PhantomConfig(phantom_sex="AF", phantom_size_percentile=90)
+        assert c2.resolve_phantom_name() == "MRCP_AF_p90"
+
+    def test_paediatric_percentile_directory(self) -> None:
+        from src.config import PhantomConfig
+
+        c = PhantomConfig(phantom_age="10y", phantom_size_percentile=90)
+        assert c.resolve_phantom_name() == "MRCP_AM_10y_p90"
+        assert c.resolve_voxel_directory() == "data/P145/voxelized/MRCP_AM_10y_p90_5mm"
+
 
 class TestResolveImagingMode:
     """Tests for _resolve_imaging_mode() (tasks 6.4-6.7)."""

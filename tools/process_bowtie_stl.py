@@ -89,15 +89,13 @@ def decimate(triangles: np.ndarray, eps_mm: float) -> np.ndarray:
     eps -> fewer triangles) though it does not target an exact count.
     """
     flat = triangles.reshape(-1, 3)
+    if eps_mm <= 0:
+        logger.info("Decimate eps<=0: no decimation (%d triangles)", triangles.shape[0])
+        return triangles
     keys = np.round(flat / eps_mm).astype(np.int64)
-    # Pack the 3D integer key into a single int64 for unique-ification.
-    # Offsets keep the three axes non-overlapping for non-pathological coords.
-    packed = (
-        keys[:, 0].astype(np.int64) * (2**40)
-        + keys[:, 1].astype(np.int64) * (2**20)
-        + keys[:, 2].astype(np.int64)
-    )
-    _, inverse = np.unique(packed, return_inverse=True)
+    # Unique-ify the 3D integer keys directly (robust for any coordinate range;
+    # the prior packed-int64 scheme could collide for large coords/tiny eps).
+    _, inverse = np.unique(keys, axis=0, return_inverse=True)
     n_unique = int(inverse.max()) + 1 if inverse.size else 0
     welded = np.zeros((n_unique, 3), dtype=np.float32)
     # Representative = mean of clustered vertices (smooths the weld).

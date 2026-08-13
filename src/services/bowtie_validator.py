@@ -98,7 +98,7 @@ def load_mc_profile(csv_path: str) -> Profile:
 
 def _normalise(values: np.ndarray) -> np.ndarray:
     peak = float(np.nanmax(values))
-    if peak <= 0:
+    if peak != peak or peak <= 0:  # NaN or non-positive -> cannot normalise
         return values
     return values / peak
 

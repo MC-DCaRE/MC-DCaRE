@@ -7,7 +7,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from tools.voxelize_phantom import write_phantom_voxel_txt
+from tools.voxelize_phantom import write_phantom_voxel_txt, validate_material_coverage
 
 
 def _parse_voxel_materials(path):
@@ -59,3 +59,33 @@ def test_voxel_materials_zero_id_is_air(tmp_path):
     names = _parse_voxel_materials(str(out))
     # X-fastest: ix=0 first -> grid[0,0,0]=5 then grid[0,0,1]=0
     assert names == ["ICRP_5", "Air"]
+
+
+def test_validate_material_coverage_passes_when_complete():
+    grid = np.array([[[1, 2], [0, 1]]], dtype=np.int32)
+    materials = {
+        1: {"name": "Blood", "density": 1.06, "elements": [(1000, 0.1), (8000, 0.9)]},
+        2: {"name": "Bone", "density": 1.85, "elements": [(20000, 0.5), (8000, 0.4)]},
+    }
+    # No raise: both ids (1,2) present with mapped-Z elements; 0 exempt.
+    validate_material_coverage(grid, materials)
+
+
+def test_validate_material_coverage_fails_on_missing_id():
+    import pytest
+
+    grid = np.array([[[9]]], dtype=np.int32)  # mat_id 9 not in materials
+    with pytest.raises(ValueError, match="absent"):
+        validate_material_coverage(
+            grid, {1: {"name": "x", "density": 1.0, "elements": [(1000, 1.0)]}}
+        )
+
+
+def test_validate_material_coverage_fails_on_only_unknown_z():
+    import pytest
+
+    grid = np.array([[[1]]], dtype=np.int32)
+    # Z 999000 not in _Z_TO_NAME -> material would be skipped -> crash risk.
+    materials = {1: {"name": "X", "density": 1.0, "elements": [(999000, 1.0)]}}
+    with pytest.raises(ValueError, match="unmapped Z"):
+        validate_material_coverage(grid, materials)

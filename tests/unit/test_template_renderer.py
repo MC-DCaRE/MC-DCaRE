@@ -94,3 +94,9 @@ class TestBowtieDispatch:
             tmp_path, {"fan_mode": "Half Fan", "legacy_bowtie": False}
         )
         assert "includeFile = bowtie_hf.txt" in content
+
+    def test_bhf_thickness_substitutes(self, tmp_path: Any) -> None:
+        content = self._render_head(
+            tmp_path, {"fan_mode": "Full Fan", "bhf_thickness_mm": 0.89}
+        )
+        assert "HLZ=0.89 mm" in content or "HLZ = 0.89 mm" in content

@@ -109,6 +109,56 @@ class TestBuildSubContext:
         assert ctx["couch_thickness"] == "0.4 mm"
         assert ctx["couch_length"] == "1000 mm"
 
+    def test_couch_offset_scales_with_age(self, make_config: Any) -> None:
+        """Paediatric phantoms get a proportionally smaller posterior offset."""
+        mode = PhantomMode()
+        adult = make_config(phantom_age="adult")
+        child = make_config(phantom_age="5y")
+        adult_y = float(mode.build_sub_context(adult)["couch_trans_y"].split()[0])
+        child_y = float(mode.build_sub_context(child)["couch_trans_y"].split()[0])
+        # 5y scale (0.6) -> smaller magnitude offset (less negative than adult).
+        assert child_y > adult_y
+        assert abs(child_y) < abs(adult_y)
+
+    def test_couch_offset_scale_table_covers_all_ages(self) -> None:
+        from src.modes.phantom_mode import _COUCH_OFFSET_SCALE, _couch_offset_scale
+
+        for age in ("adult", "15y", "10y", "5y", "1y", "0y"):
+            assert 0.0 < _couch_offset_scale(age) <= 1.0
+        # Monotonic: older -> larger scale.
+        order = [
+            _COUCH_OFFSET_SCALE[a] for a in ("0y", "1y", "5y", "10y", "15y", "adult")
+        ]
+        assert order == sorted(order)
+
+    def test_replay_voxel_path_uses_static_file(
+        self, make_config: Any, tmp_path: Any
+    ) -> None:
+        """On the voxel path, replay must concatenate the static phantomVoxel.txt
+        (not a TsTetGeom render). Regression for the previously-broken replay path."""
+        import os
+
+        # Stage a voxel directory with a marker in phantomVoxel.txt.
+        voxel_dir = tmp_path / "MRCP_AM_5mm"
+        voxel_dir.mkdir()
+        (voxel_dir / "phantomVoxel.txt").write_text("# VOXEL_MARKER static include\n")
+        (voxel_dir / "icrp_materials.txt").write_text("# materials\n")
+
+        repo_root = os.path.join(os.path.dirname(__file__), "..", "..")
+        config = make_config(
+            phase_space_mode="replay",
+            use_voxel_phantom=True,
+            phantom_voxel_directory=str(tmp_path),
+        )
+        mode = PhantomMode()
+        rundir = str(tmp_path / "rundir")
+        os.makedirs(rundir)
+        out = mode._generate_replay_parameter_file(config, rundir, repo_root)
+        with open(out) as f:
+            content = f.read()
+        assert "VOXEL_MARKER" in content
+        assert "TsTetGeom" not in content
+
     def test_builds_output_filename(self, make_config: Any) -> None:
         mode = PhantomMode()
         config = make_config(

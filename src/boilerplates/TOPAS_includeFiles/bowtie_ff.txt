@@ -1,14 +1,5 @@
 # Bow-tie filter -- measured full-fan as a TOPAS TsCAD tessellated mesh.
-# Generated from research/Monte Carlo Stuff from Inbum/bowtie.stl by
-# tools/process_bowtie_stl.py (recentered, binary STL).
-#
-# Placement (physical, literature-consistent): the bow-tie is a separate
-# assembly in the beam line, rotating with the tube. Parented to Rotation
-# (not the collimator bay) at a source-to-bowtie distance of ~18 cm, i.e.
-# downstream of both the collimator jaws (~11.7 cm SDD) and the Ti
-# beam-hardening filter so it overlaps neither. Thin axis (STL-X) aligned
-# with the beam via RotZ=-90; STL is recentered so TransX/Y/Z=0 centres it
-# on the beam axis.
+# Placement: parented to Rotation at 18 cm SDD (validated). See src/AGENTS.md.
 s:Ge/BowtieFilter/Type = "TsCAD"
 s:Ge/BowtieFilter/Parent = "Rotation"
 s:Ge/BowtieFilter/Material = "G4_Al"

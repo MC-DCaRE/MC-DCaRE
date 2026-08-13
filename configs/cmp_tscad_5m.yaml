@@ -1,0 +1,24 @@
+general:
+  g4_data_directory: /opt/topas/GEANT4/G4DATA
+  topas_directory: /opt/topas/TOPAS/OpenTOPAS-install/bin/topas
+  seed: '9'
+  threads: '20'
+  histories: '5000000'
+  log_filename: simulation.log
+imaging:
+  simulation_type: CTDI
+  rotation_direction: CBCT Clockwise
+  imaging_mode: Head
+  fan_mode: Full Fan
+  sequential_times: '8'
+  legacy_bowtie: false
+ctdi:
+  dose_to_medium_zbins: '100'
+  tle_zbins: '100'
+  dose_to_water_zbins: '100'
+  couch_enabled: true
+  couch_width: 260 mm
+  couch_thickness: 0.4 mm
+  couch_length: 1000 mm
+  user_blade_enabled: false
+  graphics_enabled: false

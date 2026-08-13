@@ -41,20 +41,32 @@ Steps:
 Outputs: `data/bowtie/fullfan.stl`, `data/bowtie/halffan.stl` (binary), plus an
 inspection report (triangle count, bbox, centroid) to `data/bowtie/README.md`.
 
-## TOPAS integration
+## TOPAS integration (placement validated 2026-08-13)
 
-`TsCAD` (per OpenTOPAS "Specialized Components -> CAD" docs):
+`TsCAD` loads the binary STL. The placement is the critical decision — the STL
+bow-tie is a **separate assembly parented to `Rotation`** (it rotates with the
+tube), NOT in the collimator bay:
 ```
 s:Ge/BowtieFilter/Type       = "TsCAD"
-s:Ge/BowtieFilter/Parent     = "CollimatorsHorizontal"
-s:Ge/BowtieFilter/Material   = "Aluminum"
-s:Ge/BowtieFilter/InputFile  = "fullfan"        # no extension, case-sensitive
+s:Ge/BowtieFilter/Parent     = "Rotation"        # rotates with the tube
+s:Ge/BowtieFilter/Material   = "G4_Al"
+s:Ge/BowtieFilter/InputFile  = "fullfan"         # no extension, case-sensitive
 s:Ge/BowtieFilter/FileFormat = "stl"
 d:Ge/BowtieFilter/Units      = 1.0 mm
-d:Ge/BowtieFilter/TransZ     = 38.5 mm          # existing placement
-d:Ge/BowtieFilter/RotZ       = -90 deg
-d:Ge/BowtieFilter/TransX     = <recenter + fan offset>
+d:Ge/BowtieFilter/TransY     = Ge/BeamPosition/TransY + 18.0 cm   # 18 cm SDD
+d:Ge/BowtieFilter/RotZ       = -90 deg           # STL-X (thin) -> beam (Y)
 ```
+
+**Why not the collimator bay:** the STL's 140 mm scan-Z extent overlaps the
+collimator jaws (Coll1) and the Ti BHF when parented to `CollimatorsHorizontal`
+at the legacy `TransZ=38.5 mm`. That overlap corrupts Geant4 navigation and
+attenuates the beam ~80x (Centre 3e-12 vs the correct ~3e-10 at 100k histories),
+with Bottom=0 at low statistics. Parented to `Rotation` at 18 cm SDD
+(downstream of the jaws and BHF), the run is clean: 0 overlaps, symmetric
+Top/Bottom (2.6 / 3.1 e-10), and the measured filter attenuates the central
+beam ~36% more than the CSG approximation (expected). The half-fan
+`bowtie_hf.txt` uses the same placement.
+
 `TsCAD` resolves `InputFile` relative to CWD, so the STL must be copied into the
 runfolder by the mode's `copy_common_files()` alongside the existing include
 files. Docs list only **binary** STL as supported -> the ASCII->binary step is

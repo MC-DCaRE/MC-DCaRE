@@ -42,6 +42,16 @@ Also see `calculate_phantom_dose.py` (project root): CLI entry point for phantom
 - **TOPAS Binary phase-space format:** 34 bytes/particle (7×f4 + i4 PDG + 2 flag bytes), self-describing via the `.header` sibling (energy in MeV). See `src/services/phase_space_analyzer.py`.
 - **Phase-space scoring plane placement:** the PhspSurface at Y=-86cm sits inside the collimator jaw geometry (the complex 4-level nested rotation makes the jaw extent analytically invisible). This causes the direct (Beam-source) sim to lose ~94% of phantom-directed particles between Y=-86 and Y=-80cm. The PhaseSpace replay is correct (confirmed by geometric ray-tracing). Fix: move PhspSurface to Y ≤ -75cm. Tracked in `openspec/changes/fix-phase-space-replay-dose/`.
 
+## Bow-tie filter
+
+Two bow-tie models, selected by `imaging.legacy_bowtie` (default **True** = CSG):
+- **Legacy CSG** (`fullfan.txt`/`halffan.txt`): hand-fitted Aluminum trapezoid wedges in the collimator bay. Known-good magnitude/symmetry.
+- **TsCAD mesh** (`bowtie_ff.txt`/`bowtie_hf.txt`): the measured Inbum bow-tie (`research/Monte Carlo Stuff from Inbum/bowtie.stl`), processed to binary STL by `tools/process_bowtie_stl.py` (recentered, decimated). Loaded via `TsCAD` (`FileFormat="stl"`, `Units=1.0 mm`).
+
+**TsCAD placement (validated 2026-08-13):** the STL bow-tie is parented to `Rotation` (rotates with the tube) at a source-to-bowtie distance of **18 cm** (`TransY = Ge/BeamPosition/TransY + 18 cm`), thin axis (STL-X) aligned with the beam via `RotZ=-90`. It must NOT be parented to the collimator bay (`CollimatorsHorizontal`) — the STL's 140 mm scan-Z extent overlaps the collimator jaws (Coll1) and Ti BHF there, which corrupts Geant4 navigation and attenuates the beam ~80×. At the correct 18 cm placement the run is clean (0 overlaps, symmetric Top/Bottom) and the measured filter attenuates the central beam ~36% more than the CSG approximation (expected — it is the real filter). The half-fan `bowtie_hf.txt` is a one-sided crop of the full-fan STL (approximation; the TrueBeam half-fan is a distinct filter).
+
+`imaging.bhf_thickness_mm` (default 0.89) drives the Ti beam-hardening-filter `HLZ` in both head templates. `imaging.filtration_mode` (`geometric` bare spectrum | `hybrid` inherent+collimator Al folded into SpekPy, default **hybrid**) selects where the uniform base filtration lives; Ti BHF + bow-tie stay geometric in both. Switching bow-tie/BHF/filtration changes the beam spectrum and requires re-running the CTDI DCF calibration.
+
 ## Phase-Space Replay Gotchas
 
 ### Component choice controls rotation

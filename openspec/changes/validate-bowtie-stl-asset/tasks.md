@@ -70,6 +70,16 @@
 
 - [ ] 4.1 Re-run the full DCF calibration suite at the chosen bow-tie + filtration mode
 - [ ] 4.2 Update `calibration.yaml` DCF entries
-- [ ] 4.3 Flip `legacy_bowtie` to the validated default; update `src/AGENTS.md`
+- [x] 4.3 Flip `legacy_bowtie` to the validated default; update `src/AGENTS.md`
 - [ ] 4.4 Re-run the pelvis phantom effective dose; confirm vs reference within tolerance
-- [ ] 4.5 Commit + push
+- [x] 4.5 Commit + push
+
+> **Phase 4 status (2026-08-14).** 4.3 + 4.5 done: `imaging.legacy_bowtie` default
+> flipped to False (TsCAD), `src/AGENTS.md` updated with the validated decision,
+> code/config/docs/tests committed and pushed (develop 073e93b, d67dba3).
+> 4.1 is RUNNING: `scripts/run_full_calibration.py` launched in the background
+> (PTY `tscad-recalibration`) at the TsCAD bow-tie -- 6 CTDI calibrations
+> (180M histories each) + verification + pelvis phantom, ~6-8 h. On completion
+> it writes the TsCAD DCFs to `calibration.yaml` (4.2) and emits the phantom
+> effective dose (4.4). The stale-DCF note in `calibration.yaml` is removed
+> when 4.2 lands.

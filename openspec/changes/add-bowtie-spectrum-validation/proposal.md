@@ -1,3 +1,10 @@
+> **STATUS (2026-08-14): Premise refuted; scope narrowed.** The bow-tie-blames
+> hypothesis below is disproven -- `validate-bowtie-stl-asset` showed the TsCAD
+> STL matches the measured RaySafe profile (RMS 0.078) and the legacy CSG does
+> not. The bow-tie is exonerated; the FF-modes-low symptom has another cause.
+> Phases 1/2/5 are done/superseded; Phase 6 re-calibration is running at TsCAD.
+> The remaining work is the **CAX HVL** (Phase 5a). See `tasks.md` Status.
+
 ## Why
 
 The per-protocol effective-dose comparison (`runfolder/effective_dose_comparison.csv`)

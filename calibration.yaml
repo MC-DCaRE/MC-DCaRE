@@ -1,3 +1,13 @@
+# PENDING RE-CALIBRATION (2026-08-14, validate-bowtie-stl-asset): the default
+# bow-tie flipped from legacy CSG to the validated TsCAD STL
+# (imaging.legacy_bowtie default now False). These DCFs were computed with the
+# LEGACY bow-tie and are STALE for TsCAD runs -- a TsCAD sim's raw CTDIw differs
+# from legacy, so applying these DCFs will NOT reproduce measured CTDIw until
+# the re-calibration below lands (DCF = measured_CTDIw / raw_sim_CTDIw absorbs
+# whichever bow-tie it was calibrated against). A full DCF re-calibration at
+# TsCAD is in progress (scripts/run_full_calibration.py); the entries below
+# will be replaced when it completes.
+#
 # DCFs recomputed 2026-08-11 with unified normalization
 # (fix-normalization-unified-dcf): raw_absolute_dose_Gy divides by the
 # scorer-active history count (TOPAS CSV Histories_with_Scorer_Active) rather

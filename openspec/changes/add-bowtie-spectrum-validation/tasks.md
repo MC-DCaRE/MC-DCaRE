@@ -1,8 +1,26 @@
 ## Status
 
-- [~] Phase 1: STL bow-tie geometry + spectrum filtration (plumbing done; needs TOPAS validation)
-- [ ] Phase 2: HVL computation + validation utility
-- [ ] Phase 3: re-calibration + regression
+> **UPDATE 2026-08-14 (validate-bowtie-stl-asset landed).** The bow-tie premise
+> of this change is **refuted**: the TsCAD STL was validated against the RaySafe
+> cross-plane profile (peak-normalised RMS 0.078 vs 0.583 for legacy CSG) and
+> matches measurement -- see `docs/bowtie_validation/`. The legacy CSG bow-tie
+> is the one that fails to shape the profile. The FF-modes-low symptom this
+> change blamed on the bow-tie therefore has another cause (spectrum /
+> normalization / phantom), **not** the bow-tie. `imaging.legacy_bowtie` now
+> defaults to False (TsCAD).
+>
+> Consequences for the remaining work here:
+> - Phases 1, 2, 5 (STL tooling, TsCAD templates, validation utility) are DONE
+>   and superseded by `validate-bowtie-stl-asset`.
+> - Phase 6 (re-calibration) is RUNNING via `scripts/run_full_calibration.py`
+>   at the TsCAD bow-tie.
+> - The **genuine remaining gap is the CAX HVL** (Phases 3-4): the spatial
+>   profile was validated, but the MC CAX energy spectrum / HVL was never
+>   scored (measured = 7.37 mmAl). That is the focused follow-up below.
+
+- [x] Phase 1: STL bow-tie geometry + spectrum filtration (DONE; superseded by validate-bowtie-stl-asset)
+- [ ] Phase 2: CAX HVL computation + validation (REMAINING -- the open gap)
+- [~] Phase 3: re-calibration + regression (re-cal RUNNING at TsCAD; regression after)
 
 ## 1. STL processing tool
 
@@ -25,9 +43,8 @@
 - [x] 2.7 TOPAS validation: TsCAD bow-tie loads + transports cleanly. Placement
       fixed: reparented to Rotation at 18 cm source-to-bowtie distance (was in
       the collimator bay, overlapping Coll1/BHF). Result: 0 overlaps, symmetric
-      Top/Bottom dose (TsCAD Centre 2.96e-10 vs legacy CSG 4.6e-10 -- the real
-      measured filter attenuates ~36% more, as expected). legacy_bowtie stays
-      default True until DCF re-calibration at the new bow-tie.
+      Top/Bottom dose. UPDATE 2026-08-14: TsCAD validated against RaySafe and
+      adopted -- `legacy_bowtie` default is now False (see validate-bowtie-stl-asset).
 
 ## 3. Spectrum filtration + HVL
 
@@ -45,10 +62,22 @@
 ## 5. Validation utility
 
 - [x] 5.1 add `openpyxl` to pyproject dependencies
-- [~] 5.2 isocenter-plane cross-profile scorer in `ctdi_phsp_score.j2` (deferred -- needs TOPAS; validator accepts a scored CSV instead)
+- [x] 5.2 isocenter-plane cross-profile scorer in `ctdi_phsp_score.j2` -- DONE in validate-bowtie-stl-asset (the `validate_bowtie` TLE slab, Z-binned, wide field; see `docs/bowtie_validation/`)
 - [x] 5.3 `src/services/bowtie_validator.py`: read measured RaySafe profile + compare to MC CSV (peak-normalised, RMS misfit)
 - [x] 5.4 `tools/validate_bowtie.py` CLI -> CSV + PNG
 - [x] 5.5 unit tests (4) + smoke test against the real Oct 2023 workbook (Head CAX HVL 7.37 mmAl)
+
+## 5a. CAX HVL follow-up (the remaining gap)
+
+The spatial kerma profile is validated (TsCAD matches). The MC **CAX HVL** is
+not yet scored -- the infrastructure exists (4.1-4.3 PhaseSpaceAnalyzer NIST
+fold; 3.3 SpekPy source spectrum HVL), but there is no post-bow-tie CAX
+spectrum scorer to feed it. Measured Head-FF CAX HVL = 7.37 mm Al.
+
+- [ ] 5a.1 add an energy-binned fluence scorer at the isocenter CAX bin (alongside the `validate_bowtie` slab) so the post-bow-tie CAX spectrum is recorded
+- [ ] 5a.2 fold that spectrum with the shipped NIST Al mu_en/rho (`data/nist/hvl_coefficients.dat`) via `PhaseSpaceAnalyzer.compute_hvl_mm_al` to get the MC CAX HVL
+- [ ] 5a.2 compare MC CAX HVL to the measured 7.37 mm Al (tolerance ~0.5 mm Al); record in `docs/bowtie_validation/`
+
 
 ## 6. Re-calibration + regression
 

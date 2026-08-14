@@ -1,10 +1,8 @@
 # Bow-tie filter -- measured full-fan as a TOPAS TsCAD tessellated mesh.
 # Placement: parented to Rotation at 18 cm SDD (validated). See src/AGENTS.md.
-# Orientation (verified 2026-08-14): RotZ=-90 puts the STL thin axis along the
-# beam (Y); RotY=90 rotates the wedge into World X (the transverse fan) so the
-# bow-tie is uniform along World Z (the phantom cylinder / scan axis). Without
-# RotY=90 the wedge falls along Z and gives no Centre-vs-Peripheral radial
-# gradient (see docs/bowtie_validation/plots/axismap_tscad_FIXED_ff.png).
+# Orientation (selected 2026-08-14): RotZ=-90 puts the STL thin axis along the
+# beam (Y); the wedge then lies in World Z and the extrusion in World X
+# (verified by 2D XxZ kerma map + visual 3-view). RotY stays 0.
 s:Ge/BowtieFilter/Type = "TsCAD"
 s:Ge/BowtieFilter/Parent = "Rotation"
 s:Ge/BowtieFilter/Material = "G4_Al"
@@ -15,6 +13,6 @@ d:Ge/BowtieFilter/TransX = 0.0 mm
 d:Ge/BowtieFilter/TransY = Ge/BeamPosition/TransY + 18.0 cm
 d:Ge/BowtieFilter/TransZ = 0.0 mm
 d:Ge/BowtieFilter/RotX = 0. deg
-d:Ge/BowtieFilter/RotY = 90. deg
+d:Ge/BowtieFilter/RotY = 0. deg
 dc:Ge/BowtieFilter/RotZ = -90. deg
 s:Ge/BowtieFilter/DrawingStyle = "Wireframe"

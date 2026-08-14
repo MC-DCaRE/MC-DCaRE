@@ -3,7 +3,7 @@
 Full calibration, verification, and phantom dose pipeline.
 
 Runs:
-  1. All 6 CTDI calibrations (500M histories each: 5M x 100 sequential)
+  1. All 6 CTDI calibrations (180M histories each: 5M x 36 sequential)
   2. Verification CBCT (150M histories: 1M x 150 sequential, different seed)
   3. ICRP 145 phantom (150M histories: 1M x 150 sequential)
   4. Post-processing: DCF computation, CTDIw, organ doses, effective dose
@@ -39,8 +39,11 @@ G4_DATA = os.environ.get("G4DATA_DIR", "/opt/topas/GEANT4/G4DATA")
 TOPAS_BIN = os.environ.get("TOPAS_DIR", "/opt/topas/TOPAS/OpenTOPAS-install/bin/topas")
 
 # History counts
+# Calibration uses 5M x 36 = 180M histories per protocol, matching the
+# 2026-08-11 production DCFs these replace (apples-to-apples at the TsCAD bow-
+# tie). Verify/phantom use 1M x 150 = 150M.
 CAL_HISTORIES = "5000000"       # per sequential time (calibration)
-CAL_SEQUENTIAL = "100"          # 5M x 100 = 500M total
+CAL_SEQUENTIAL = "36"           # 5M x 36 = 180M total (rotational CTDI, 10 deg)
 VERIFY_HISTORIES = "1000000"   # per sequential time (verification)
 VERIFY_SEQUENTIAL = "150"      # 1M x 150 = 150M total
 
@@ -255,7 +258,7 @@ def has_phantom_output(rundir: str) -> bool:
 def phase1_calibration(threads: str, dry_run: bool, resume: bool) -> Dict:
     """Phase 1: Run all CTDI calibrations and compute DCFs."""
     print("\n" + "=" * 70)
-    print("  PHASE 1: CTDI Calibration (6 protocols, 500M histories each)")
+    print("  PHASE 1: CTDI Calibration (6 protocols, 180M histories each)")
     print("=" * 70)
 
     # Ensure calibration.yaml exists before we start

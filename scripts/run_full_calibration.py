@@ -23,7 +23,7 @@ import shutil
 import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict
 
 import yaml
 
@@ -42,10 +42,10 @@ TOPAS_BIN = os.environ.get("TOPAS_DIR", "/opt/topas/TOPAS/OpenTOPAS-install/bin/
 # Calibration uses 5M x 36 = 180M histories per protocol, matching the
 # 2026-08-11 production DCFs these replace (apples-to-apples at the TsCAD bow-
 # tie). Verify/phantom use 1M x 150 = 150M.
-CAL_HISTORIES = "5000000"       # per sequential time (calibration)
-CAL_SEQUENTIAL = "36"           # 5M x 36 = 180M total (rotational CTDI, 10 deg)
-VERIFY_HISTORIES = "1000000"   # per sequential time (verification)
-VERIFY_SEQUENTIAL = "150"      # 1M x 150 = 150M total
+CAL_HISTORIES = "5000000"  # per sequential time (calibration)
+CAL_SEQUENTIAL = "36"  # 5M x 36 = 180M total (rotational CTDI, 10 deg)
+VERIFY_HISTORIES = "1000000"  # per sequential time (verification)
+VERIFY_SEQUENTIAL = "150"  # 1M x 150 = 150M total
 
 # Calibration configs and reference CTDIw values
 CALIBRATIONS = [
@@ -110,6 +110,7 @@ PHANTOM_NAME = "125 kV HF Pelvis MRCP-AM"
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def load_and_patch_config(
     config_path: str,
     overrides: Dict[str, Dict[str, str]],
@@ -134,7 +135,9 @@ def write_temp_config(data: Dict, name: str) -> Path:
     return out
 
 
-def run_simulation(config_path: Path, output_base: str = "runfolder", dry_run: bool = False) -> str:
+def run_simulation(
+    config_path: Path, output_base: str = "runfolder", dry_run: bool = False
+) -> str:
     """Run a simulation via the orchestrator. Returns the runfolder path.
 
     Args:
@@ -162,10 +165,10 @@ def run_simulation(config_path: Path, output_base: str = "runfolder", dry_run: b
         return rundir
 
     os.makedirs(rundir, exist_ok=True)
-    # Prepare only (render param file + spectrum + stage includes). Execution is
-    # done by run_topas() below; calling execute here would run every protocol
-    # twice (orchestrator execute + run_topas).
-    orch.run_with_runfolder(rundir, config, dry_run=True)
+    # The orchestrator runs the full pipeline (render + spectrum + stage files +
+    # execute TOPAS). Callers that need a mid-runfolder mutation (e.g. the phantom
+    # voxel swap) pass dry_run=True to prepare only and call run_topas() themselves.
+    orch.run_with_runfolder(rundir, config, dry_run=dry_run)
     print(f"  Runfolder: {rundir}")
     return rundir
 
@@ -188,10 +191,8 @@ def swap_voxel_phantom(rundir: str) -> None:
             "includeFile = phantomICRP145.txt",
             "includeFile = phantomVoxel.txt",
         )
-        content = content.replace(
-            "i:Ts/ParameterizationErrorMaxReports = 5\n", ""
-        )
-        if 'QuitIfOverlapDetected' not in content:
+        content = content.replace("i:Ts/ParameterizationErrorMaxReports = 5\n", "")
+        if "QuitIfOverlapDetected" not in content:
             content += '\nb:Ge/QuitIfOverlapDetected = "False"\n'
         head_file.write_text(content)
 
@@ -222,13 +223,16 @@ def run_topas(rundir: str, dry_run: bool = False) -> int:
         timeout=86400,
     )
     elapsed = time.time() - t0
-    print(f"  TOPAS completed in {elapsed:.0f}s ({elapsed / 60:.1f} min), exit={result.returncode}")
+    print(
+        f"  TOPAS completed in {elapsed:.0f}s ({elapsed / 60:.1f} min), exit={result.returncode}"
+    )
     return result.returncode
 
 
 # ---------------------------------------------------------------------------
 # Phase implementations
 # ---------------------------------------------------------------------------
+
 
 def ensure_calibration_yaml() -> Path:
     """Ensure calibration.yaml exists for storing DCFs.
@@ -243,7 +247,7 @@ def ensure_calibration_yaml() -> Path:
             f.write("machine: TrueBeam\n")
             f.write("date_calibrated: '2026-07-01'\n")
             f.write("calibrations: []\n")
-        print(f"  Created empty calibration.yaml")
+        print("  Created empty calibration.yaml")
     return cal_path
 
 
@@ -281,10 +285,17 @@ def phase1_calibration(threads: str, dry_run: bool, resume: bool) -> Dict:
                 existing_dcf = cal_service.lookup_dcf(cal["kV"], cal["fan_mode"])
                 if existing_dcf is not None:
                     print(f"  DCF already exists: {existing_dcf:.6e} (skipping)")
-                    results.append({**cal, "rundir": "cached", "status": "cached", "dcf": existing_dcf})
+                    results.append(
+                        {
+                            **cal,
+                            "rundir": "cached",
+                            "status": "cached",
+                            "dcf": existing_dcf,
+                        }
+                    )
                     continue
                 else:
-                    print(f"  No existing DCF, will run")
+                    print("  No existing DCF, will run")
             except Exception as e:
                 print(f"  Resume check failed ({e}), will run")
 
@@ -302,7 +313,9 @@ def phase1_calibration(threads: str, dry_run: bool, resume: bool) -> Dict:
         }
 
         data = load_and_patch_config(cal["config"], overrides)
-        temp_path = write_temp_config(data, f"cal_{cal['kV']}_{cal['fan_mode'].replace(' ', '')}")
+        temp_path = write_temp_config(
+            data, f"cal_{cal['kV']}_{cal['fan_mode'].replace(' ', '')}"
+        )
 
         if dry_run:
             print(f"  Config: {temp_path}")
@@ -310,20 +323,16 @@ def phase1_calibration(threads: str, dry_run: bool, resume: bool) -> Dict:
             results.append({**cal, "rundir": rundir, "status": "dry_run"})
             continue
 
-        # Run simulation (with error recovery)
+        # Run simulation. The orchestrator stages the parameter file AND runs
+        # TOPAS (raises RuntimeError on non-zero exit, caught below).
         try:
             rundir = run_simulation(temp_path, "calibration_runs", dry_run=False)
-            rc = run_topas(rundir)
         except Exception as e:
             print(f"  ERROR: Simulation failed: {e}")
-            results.append({**cal, "rundir": "N/A", "status": "failed", "error": str(e)})
+            results.append(
+                {**cal, "rundir": "N/A", "status": "failed", "error": str(e)}
+            )
             time.sleep(10)  # Allow OS cleanup before next run
-            continue
-
-        if rc != 0:
-            print(f"  WARNING: TOPAS returned {rc}")
-            results.append({**cal, "rundir": rundir, "status": "failed"})
-            time.sleep(10)
             continue
 
         # Compute DCF
@@ -338,9 +347,7 @@ def phase1_calibration(threads: str, dry_run: bool, resume: bool) -> Dict:
                 primary = [r for r in raw_results if r.get("scorer_type") == "tle"]
                 if primary:
                     # Normalize to get ctdi_w_raw_Gy (raw_sum * photons_per_mAs * mAs)
-                    norm = cal_service.normalize(
-                        primary[0], cal["kV"], cal["fan_mode"]
-                    )
+                    norm = cal_service.normalize(primary[0], cal["kV"], cal["fan_mode"])
                     dcf = cal_service.compute_dcf(
                         cal["kV"],
                         cal["fan_mode"],
@@ -350,15 +357,17 @@ def phase1_calibration(threads: str, dry_run: bool, resume: bool) -> Dict:
                     )
                     print(f"  Raw CTDIw: {norm['ctdi_w_raw_Gy']:.4e} Gy")
                     print(f"  DCF computed: {dcf:.6e}")
-                    results.append({**cal, "rundir": rundir, "status": "ok", "dcf": dcf})
+                    results.append(
+                        {**cal, "rundir": rundir, "status": "ok", "dcf": dcf}
+                    )
                 else:
-                    print(f"  WARNING: No TLE scorer found")
+                    print("  WARNING: No TLE scorer found")
                     results.append({**cal, "rundir": rundir, "status": "no_tle"})
             except Exception as e:
                 print(f"  WARNING: DCF computation failed: {e}")
                 results.append({**cal, "rundir": rundir, "status": "dcf_failed"})
         else:
-            print(f"  No reference CTDIw (skipping DCF)")
+            print("  No reference CTDIw (skipping DCF)")
             results.append({**cal, "rundir": rundir, "status": "no_ref"})
 
         # Allow OS cleanup between heavy runs
@@ -397,7 +406,9 @@ def phase2_verification(threads: str, dry_run: bool, resume: bool) -> Dict:
 
     # Resume check
     if resume:
-        existing = sorted(Path(PROJECT_ROOT / "verification_runs").glob("*/ChamberPlug*_tle.csv"))
+        existing = sorted(
+            Path(PROJECT_ROOT / "verification_runs").glob("*/ChamberPlug*_tle.csv")
+        )
         if existing:
             rundir = str(existing[0].parent)
             print(f"  Existing output found, reusing: {rundir}")
@@ -409,10 +420,16 @@ def phase2_verification(threads: str, dry_run: bool, resume: bool) -> Dict:
 
                     result = sp.run(
                         [sys.executable, "calculate_ctdiw.py", rundir, "--calibrated"],
-                        capture_output=True, text=True, cwd=str(PROJECT_ROOT),
+                        capture_output=True,
+                        text=True,
+                        cwd=str(PROJECT_ROOT),
                     )
-                    return {"phase": "verification", "rundir": rundir, "status": "cached",
-                            "ctdiw": result.stdout}
+                    return {
+                        "phase": "verification",
+                        "rundir": rundir,
+                        "status": "cached",
+                        "ctdiw": result.stdout,
+                    }
             except Exception as e:
                 print(f"  WARNING: CTDIw calculation failed: {e}")
             return {"phase": "verification", "rundir": rundir, "status": "cached"}
@@ -420,38 +437,46 @@ def phase2_verification(threads: str, dry_run: bool, resume: bool) -> Dict:
     try:
         rundir = run_simulation(temp_path, "verification_runs", dry_run=False)
         time.sleep(10)  # Cleanup between phases
-        rc = run_topas(rundir)
     except Exception as e:
         print(f"  ERROR: {e}")
-        return {"phase": "verification", "rundir": "N/A", "status": "failed", "error": str(e)}
+        return {
+            "phase": "verification",
+            "rundir": "N/A",
+            "status": "failed",
+            "error": str(e),
+        }
 
-    status = "ok" if rc == 0 else "failed"
+    status = "ok"  # orchestrator raises RuntimeError on TOPAS failure (caught above)
 
     # Compute CTDIw
     ctdiw_result = None
-    if rc == 0:
-        try:
-            cal_path = PROJECT_ROOT / "calibration.yaml"
-            if cal_path.exists():
-                import subprocess as sp
+    try:
+        cal_path = PROJECT_ROOT / "calibration.yaml"
+        if cal_path.exists():
+            import subprocess as sp
 
-                result = sp.run(
-                    [
-                        sys.executable,
-                        "calculate_ctdiw.py",
-                        rundir,
-                        "--calibrated",
-                    ],
-                    capture_output=True,
-                    text=True,
-                    cwd=str(PROJECT_ROOT),
-                )
-                ctdiw_result = result.stdout
-                print(f"  CTDIw:\n{ctdiw_result[:500]}")
-        except Exception as e:
-            print(f"  WARNING: CTDIw calculation failed: {e}")
+            result = sp.run(
+                [
+                    sys.executable,
+                    "calculate_ctdiw.py",
+                    rundir,
+                    "--calibrated",
+                ],
+                capture_output=True,
+                text=True,
+                cwd=str(PROJECT_ROOT),
+            )
+            ctdiw_result = result.stdout
+            print(f"  CTDIw:\n{ctdiw_result[:500]}")
+    except Exception as e:
+        print(f"  WARNING: CTDIw calculation failed: {e}")
 
-    return {"phase": "verification", "rundir": rundir, "status": status, "ctdiw": ctdiw_result}
+    return {
+        "phase": "verification",
+        "rundir": rundir,
+        "status": status,
+        "ctdiw": ctdiw_result,
+    }
 
 
 def phase3_phantom(threads: str, dry_run: bool, resume: bool) -> Dict:
@@ -484,7 +509,9 @@ def phase3_phantom(threads: str, dry_run: bool, resume: bool) -> Dict:
 
     # Resume check
     if resume:
-        existing = sorted(Path(PROJECT_ROOT / "phantom_runs").glob("*/phantom_dose.csv"))
+        existing = sorted(
+            Path(PROJECT_ROOT / "phantom_runs").glob("*/phantom_dose.csv")
+        )
         if existing:
             rundir = str(existing[0].parent)
             print(f"  Existing output found, reusing: {rundir}")
@@ -495,13 +522,25 @@ def phase3_phantom(threads: str, dry_run: bool, resume: bool) -> Dict:
                 import subprocess as sp
 
                 result = sp.run(
-                    [sys.executable, "calculate_phantom_dose.py", rundir,
-                     "--calibration", str(cal_path),
-                     "--output", str(Path(rundir) / "organ_doses.csv")],
-                    capture_output=True, text=True, cwd=str(PROJECT_ROOT),
+                    [
+                        sys.executable,
+                        "calculate_phantom_dose.py",
+                        rundir,
+                        "--calibration",
+                        str(cal_path),
+                        "--output",
+                        str(Path(rundir) / "organ_doses.csv"),
+                    ],
+                    capture_output=True,
+                    text=True,
+                    cwd=str(PROJECT_ROOT),
                 )
-                return {"phase": "phantom", "rundir": rundir, "status": "cached",
-                        "dose_report": result.stdout}
+                return {
+                    "phase": "phantom",
+                    "rundir": rundir,
+                    "status": "cached",
+                    "dose_report": result.stdout,
+                }
             except Exception as e:
                 print(f"  WARNING: Dose calculation failed: {e}")
             return {"phase": "phantom", "rundir": rundir, "status": "cached"}
@@ -515,7 +554,12 @@ def phase3_phantom(threads: str, dry_run: bool, resume: bool) -> Dict:
         rc = run_topas(rundir)
     except Exception as e:
         print(f"  ERROR: {e}")
-        return {"phase": "phantom", "rundir": "N/A", "status": "failed", "error": str(e)}
+        return {
+            "phase": "phantom",
+            "rundir": "N/A",
+            "status": "failed",
+            "error": str(e),
+        }
 
     status = "ok" if rc == 0 else "failed"
 
@@ -544,14 +588,21 @@ def phase3_phantom(threads: str, dry_run: bool, resume: bool) -> Dict:
                 cwd=str(PROJECT_ROOT),
             )
             dose_result = result.stdout
-            print(f"  Organ doses and effective dose computed")
+            print("  Organ doses and effective dose computed")
         except Exception as e:
             print(f"  WARNING: Dose calculation failed: {e}")
 
-    return {"phase": "phantom", "rundir": rundir, "status": status, "dose_report": dose_result}
+    return {
+        "phase": "phantom",
+        "rundir": rundir,
+        "status": status,
+        "dose_report": dose_result,
+    }
 
 
-def phase4_report(cal_results: Dict, verify_results: Dict, phantom_results: Dict) -> None:
+def phase4_report(
+    cal_results: Dict, verify_results: Dict, phantom_results: Dict
+) -> None:
     """Phase 4: Report all values."""
     print("\n" + "=" * 70)
     print("  PHASE 4: Summary Report")
@@ -559,7 +610,9 @@ def phase4_report(cal_results: Dict, verify_results: Dict, phantom_results: Dict
 
     # Calibration results
     print("\n--- Calibration DCFs ---")
-    print(f"{'Protocol':<35} {'kV':>4} {'Fan':>10} {'Ref mGy':>8} {'DCF':>14} {'Status':>8}")
+    print(
+        f"{'Protocol':<35} {'kV':>4} {'Fan':>10} {'Ref mGy':>8} {'DCF':>14} {'Status':>8}"
+    )
     print("-" * 83)
     for r in cal_results.get("results", []):
         dcf = r.get("dcf", "N/A")
@@ -595,6 +648,7 @@ def phase4_report(cal_results: Dict, verify_results: Dict, phantom_results: Dict
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
 
 def main() -> None:
     global G4_DATA, TOPAS_BIN

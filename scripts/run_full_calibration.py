@@ -162,7 +162,10 @@ def run_simulation(config_path: Path, output_base: str = "runfolder", dry_run: b
         return rundir
 
     os.makedirs(rundir, exist_ok=True)
-    orch.run_with_runfolder(rundir, config, dry_run=False)
+    # Prepare only (render param file + spectrum + stage includes). Execution is
+    # done by run_topas() below; calling execute here would run every protocol
+    # twice (orchestrator execute + run_topas).
+    orch.run_with_runfolder(rundir, config, dry_run=True)
     print(f"  Runfolder: {rundir}")
     return rundir
 

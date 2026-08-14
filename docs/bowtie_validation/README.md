@@ -3,6 +3,18 @@
 Cross-plane air-kerma profile validation of the TsCAD mesh bow-tie against the
 measured RaySafe Oct-2023 data. Source change: `openspec/changes/validate-bowtie-stl-asset/`.
 
+> **CORRECTION (2026-08-14): orientation was wrong; results below are in the
+> wrong plane.** The scorer that produced the RMS table below binned **World Z**
+> (the phantom cylinder / scan axis), but a bow-tie wedge belongs in the
+> **transverse fan (World X)** and must be *uniform* along Z. The 0.078 RMS is a
+> 1D peak-normalised *shape* match between a Z-wedge (sim, mis-oriented) and a
+> fan-wedge (RaySafe) -- it did not validate the orientation. The orientation
+> was corrected (`RotY=90` in `bowtie_ff.txt`/`bowtie_hf.txt`); see
+> `plots/axismap_tscad_FIXED_ff.png` (2D X×Z map: wedge now in X, flat in Z) and
+> `plots/geometry_orientation.png`. A proper X-plane re-validation vs RaySafe is
+> pending (the `validate_bowtie` scorer now bins X). The TsCAD STL wedge *shape*
+> is still considered a good match; only its plane was wrong.
+
 ## Result
 
 The TsCAD STL bow-tie is the validated asset; the legacy CSG bow-tie is not.
@@ -27,12 +39,15 @@ normalization / phantom), not in the bow-tie.
   G4_AIR slab at isocenter, in `src/boilerplates/ctdi_phsp_score.j2`, gated by
   `ctdi.validate_bowtie`. A collision-based `DoseToWater` scorer records ~0 in a
   0.5 mm air slab, so it cannot be used.
-- **Axis:** the bow-tie wedge varies in **World Z**, not X (verified from the
-  `fullfan.txt` wedge layout and the fact that tscad/legacy/nobtie give
-  identical X shapes). The scorer Z-bins.
-- **Collimator field:** wide Z-field (`user_field_x` = 32 cm) so the collimator
-  does not cut the bow-tie profile before it develops. The Head-mode X-field
-  (10.7 cm) is left at default; the slab integrates the central X strip.
+- **Axis (CORRECTED):** the bow-tie wedge belongs in **World X** (transverse
+  fan) and must be uniform along **World Z** (scan axis). The original runs below
+  scored Z (the wrong plane); the "identical X shapes" observation was the
+  scorer not resolving X (XBins=1), not the bow-tie being uniform in X. After
+  the `RotY=90` fix the scorer bins X and sees the wedge there. The scorer X-bins.
+- **Collimator field (CORRECTED):** to expose the fan profile open the
+  **X-field** wide (`user_field_y` ≥ 32 cm, which drives the X-direction blades)
+  and leave the Z-field (`user_field_x`) at the Head default; the slab
+  integrates the central Z strip.
 - **Histories:** 8 M per config, static beam (`sequential_times = 1`, matches a
   stationary RaySafe measurement).
 - **Field->blade:** verified self-consistent -- blade `TransX` is from the

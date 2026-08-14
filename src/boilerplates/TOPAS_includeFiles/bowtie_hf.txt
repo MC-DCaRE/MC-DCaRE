@@ -5,8 +5,10 @@
 #
 # Placement matches bowtie_ff.txt: parented to Rotation (rotates with the
 # tube) at a source-to-bowtie distance of ~18 cm, downstream of the
-# collimator jaws and the Ti beam-hardening filter. Thin axis (STL-X) along
-# the beam via RotZ=-90. TransX offsets the one-sided half-fan laterally.
+# collimator jaws and the Ti beam-hardening filter. RotZ=-90 puts the STL thin
+# axis along the beam (Y); RotY=90 rotates the wedge into World X (transverse
+# fan), uniform along World Z (scan axis) -- same orientation fix as full-fan.
+# The one-sided half-fan crop is recentered in halffan.stl (TransX=0).
 s:Ge/BowtieFilter/Type = "TsCAD"
 s:Ge/BowtieFilter/Parent = "Rotation"
 s:Ge/BowtieFilter/Material = "G4_Al"
@@ -17,6 +19,6 @@ d:Ge/BowtieFilter/TransX = 0.0 mm
 d:Ge/BowtieFilter/TransY = Ge/BeamPosition/TransY + 18.0 cm
 d:Ge/BowtieFilter/TransZ = 0.0 mm
 d:Ge/BowtieFilter/RotX = 0. deg
-d:Ge/BowtieFilter/RotY = 0. deg
+d:Ge/BowtieFilter/RotY = 90. deg
 dc:Ge/BowtieFilter/RotZ = -90. deg
 s:Ge/BowtieFilter/DrawingStyle = "Wireframe"

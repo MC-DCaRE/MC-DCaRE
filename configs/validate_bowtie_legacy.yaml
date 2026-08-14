@@ -1,5 +1,5 @@
 # Phase 1 production: legacy CSG bow-tie, Full Fan Head, static beam.
-# Cross-plane (Z) profile, wide Z-field so the collimator does not cut the profile.
+# Transverse (X) profile, wide X-field so the collimator does not cut the profile.
 general:
   g4_data_directory: /opt/topas/GEANT4/G4DATA
   topas_directory: /opt/topas/TOPAS/OpenTOPAS-install/bin/topas
@@ -18,10 +18,10 @@ ctdi:
   phase_space_mode: score
   validate_bowtie: true
   user_blade_enabled: true
-  user_field_x1: 32 cm
-  user_field_x2: 32 cm
-  user_field_y1: 10.7 cm
-  user_field_y2: 10.7 cm
+  user_field_x1: 10.7 cm
+  user_field_x2: 10.7 cm
+  user_field_y1: 32 cm
+  user_field_y2: 32 cm
   dose_to_medium_zbins: '100'
   tle_zbins: '100'
   dose_to_water_zbins: '100'

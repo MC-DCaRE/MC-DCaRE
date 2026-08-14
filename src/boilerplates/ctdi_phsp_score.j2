@@ -258,29 +258,34 @@ s:Sc/PhspOut/IfOutputFileAlreadyExists = "Overwrite"
 
 {% if validate_bowtie %}
 ###########################################################
-# Bow-tie validation: cross-plane air-kerma profile at isocenter.
+# Bow-tie validation: transverse (X) air-kerma profile at isocenter.
 # Uses TrackLengthEstimator (fluence-based collision kerma) so every
 # photon crossing the thin air slab contributes -- a collision-based
 # DoseToWater scorer records ~zero in 0.5 mm of air. The peak-normalised
-# profile is then compared to the measured RaySafe cross-plane data via
+# profile is then compared to the measured RaySafe fan data via
 # tools/convert_bowtie_profile.py + tools/validate_bowtie.py.
+#
+# The bow-tie wedge is in World X (transverse fan), uniform along World Z
+# (scan axis) -- see src/AGENTS.md. So the scorer bins X (wide) and
+# integrates the central Z strip. To expose the full fan profile, open the
+# X-field wide in the config (user_field_y1/y2 >= 32 cm).
 ###########################################################
 s:Ge/BowtieProfileSlab/Type     = "TsBox"
 s:Ge/BowtieProfileSlab/Parent   = "World"
 s:Ge/BowtieProfileSlab/Material = "G4_AIR"
-d:Ge/BowtieProfileSlab/HLX      = 5.0 cm
+d:Ge/BowtieProfileSlab/HLX      = 20.0 cm
 d:Ge/BowtieProfileSlab/HLY      = 0.5 mm
-d:Ge/BowtieProfileSlab/HLZ      = 20.0 cm
+d:Ge/BowtieProfileSlab/HLZ      = 5.0 cm
 d:Ge/BowtieProfileSlab/TransY   = 0.0 cm
 s:Sc/BowtieProfile/Quantity     = "TrackLengthEstimator"
 s:Sc/BowtieProfile/InputFile    = "Muen.dat"
 s:Sc/BowtieProfile/Component    = "BowtieProfileSlab"
 s:Sc/BowtieProfile/OutputFile   = "bowtie_profile"
 s:Sc/BowtieProfile/IfOutputFileAlreadyExists = "Overwrite"
-sv:Sc/BowtieProfile/Report = 4 "Sum" "Histories" "Count_In_Bin" "Standard_Deviation"
-i:Sc/BowtieProfile/XBins        = 1
+sv:Sc/BowtieProfile/Report = 4 "Sum" "Histories" "Count_in_Bin" "Standard_Deviation"
+i:Sc/BowtieProfile/XBins        = 80
 i:Sc/BowtieProfile/YBins        = 1
-i:Sc/BowtieProfile/ZBins        = 80
+i:Sc/BowtieProfile/ZBins        = 1
 {% endif %}
 
 ###########################################################

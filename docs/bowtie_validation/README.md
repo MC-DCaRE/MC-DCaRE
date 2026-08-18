@@ -222,11 +222,30 @@ bow-ties under-attenuate the CAX by a similar factor, which is why the TsCAD
 and legacy DCFs came out nearly equal, and why the "legacy is flat" profile
 behaviour was observed (it is literally a flat slab, no wedge).
 
-**Consequence / follow-up:** composite the STL with a central Al slab (or
-re-source the scan) to bring the CAX to ~8.3 mm Al-eq, then re-run the profile
-+ HVL + transmission validation and the full DCF calibration. This is a
-candidate contributor to the residual effective-dose gap (the CAX fluence
-entering the phantom is over-weighted ~1.7x at the beam centre).
+**Decision (2026-08-18): absorb, don't fix (Option E).** The under-thin CAX is
+accepted for dose work: the measured fluence anchors and DCFs absorb the ~1.7x
+central transparency (effective-fluence philosophy, mirroring how the DCF
+absorbs the photons_per_mAs bias), the wedge off-axis is correct (HVL(Z)
+0.3-0.5 mm Al at |Z| >= 7 cm), and Phase-2A located the dominant E/CTDIw gap
+in the primary masks / phantom pathway, not the bow-tie. Known cost: any
+un-normalised or wedge-shape-sensitive central quantity stays biased (the
++10-13% protocol-dependent residual on body modes).
+
+**Future work — Option B' (preferred fix): graded mesh surgery.** Displace the
+beam-entry-face STL vertices by a z-dependent thickness delta(z) derived from
+the measured HVL(Z) deficit (1.7 mm Al at CAX falling to ~0 by |Z| ~ 6.5 cm
+iso / ~1.2 cm at the 18 cm bow-tie plane), implemented in
+`tools/process_bowtie_stl.py` — single component, no step artefact, no
+placement change. Requires re-processing from the un-decimated 148k-triangle
+mesh for central-plateau resolution. Cheaper cut (A'): a 2-3 step graded TsBox
+Al slab fitted to the same HVL(Z), offset from the STL plane to avoid solid
+overlap — risks a step artefact inside Spotlight/pelvis fields (edge at iso
++-6-8 cm). Either fix mandates the full tail: re-derive
+`data/measured/fluence_anchors.yaml` (F(100)/F(125) were fitted with the thin
+centre in the beam), re-calibrate the DCFs, re-run the profile + HVL +
+transmission battery and the 14-protocol E sweep — the same campaign Phase 8
+(upstream housing aperture + mask removal) requires, so bundle both into one
+re-validation cycle.
 
 ## HVL(Z) wedge map (2026-08-18)
 

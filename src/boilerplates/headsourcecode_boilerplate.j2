@@ -225,6 +225,66 @@ s:Ge/BeamHardeningFilter/Color="lightblue"
 s:Ge/BeamHardeningFilter/DrawingStyle="WireFrame"
 {% endif %}
 
+###########################################################
+# Primary collimator mask (tube-housing kill box)
+###########################################################
+# Fixed lead aperture at 20 cm SDD (Y=-78.0 cm, downstream of the bow-tie
+# whose thin axis ends at Y=-78.9 cm; upstream of the PhspSurface at -75).
+# Cuts the source-cone tails (sigma 26/27.5 deg) and bow-tie scatter that the
+# real tube housing / primary collimator would stop: without it the fluence
+# slab diagnostic measured 50%-of-peak kerma out to |Z|=88 cm at the patient
+# plane (2026-08-18). Identical for every protocol -- the per-field shaping
+# stays with the jaws, so between-protocol statistics remain comparable.
+#
+# Port: largest clinical fan + penumbra margin at 20 cm SDD
+#   X: half-fan needs 24.7 x 20/100 = 4.94 cm -> port 5.0 cm
+#   Z: 10.7 x 20/100 = 2.14 cm -> port 2.7 cm
+# Walls: 1.5 cm Pb (>>10 HVLs at 140 kVp); outer extent +-14 cm bounds every
+# ray that can reach the phantom (41.8 deg at 100 cm SAD = tan 43 deg).
+# Exact-abut tiling, no chained relative parameters.
+# top/bottom walls (block +-Z beyond the port)
+s:Ge/PrimaryMaskTop/Type="TsBox"
+s:Ge/PrimaryMaskTop/Parent="Rotation"
+s:Ge/PrimaryMaskTop/Material="Lead"
+d:Ge/PrimaryMaskTop/HLX=14.0 cm
+d:Ge/PrimaryMaskTop/HLY=1.5 cm
+d:Ge/PrimaryMaskTop/HLZ=11.3 cm
+d:Ge/PrimaryMaskTop/TransX=0.0 cm
+d:Ge/PrimaryMaskTop/TransY=-78.0 cm
+d:Ge/PrimaryMaskTop/TransZ=14.0 cm
+
+s:Ge/PrimaryMaskBottom/Type="TsBox"
+s:Ge/PrimaryMaskBottom/Parent="Rotation"
+s:Ge/PrimaryMaskBottom/Material="Lead"
+d:Ge/PrimaryMaskBottom/HLX=14.0 cm
+d:Ge/PrimaryMaskBottom/HLY=1.5 cm
+d:Ge/PrimaryMaskBottom/HLZ=11.3 cm
+d:Ge/PrimaryMaskBottom/TransX=0.0 cm
+d:Ge/PrimaryMaskBottom/TransY=-78.0 cm
+d:Ge/PrimaryMaskBottom/TransZ=-14.0 cm
+
+# left/right walls (block +-X beyond the port; shortened in Z to abut, not
+# overlap, the top/bottom walls)
+s:Ge/PrimaryMaskLeft/Type="TsBox"
+s:Ge/PrimaryMaskLeft/Parent="Rotation"
+s:Ge/PrimaryMaskLeft/Material="Lead"
+d:Ge/PrimaryMaskLeft/HLX=9.0 cm
+d:Ge/PrimaryMaskLeft/HLY=1.5 cm
+d:Ge/PrimaryMaskLeft/HLZ=2.7 cm
+d:Ge/PrimaryMaskLeft/TransX=-14.0 cm
+d:Ge/PrimaryMaskLeft/TransY=-78.0 cm
+d:Ge/PrimaryMaskLeft/TransZ=0.0 cm
+
+s:Ge/PrimaryMaskRight/Type="TsBox"
+s:Ge/PrimaryMaskRight/Parent="Rotation"
+s:Ge/PrimaryMaskRight/Material="Lead"
+d:Ge/PrimaryMaskRight/HLX=9.0 cm
+d:Ge/PrimaryMaskRight/HLY=1.5 cm
+d:Ge/PrimaryMaskRight/HLZ=2.7 cm
+d:Ge/PrimaryMaskRight/TransX=14.0 cm
+d:Ge/PrimaryMaskRight/TransY=-78.0 cm
+d:Ge/PrimaryMaskRight/TransZ=0.0 cm
+
 
 
 

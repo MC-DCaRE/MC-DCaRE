@@ -8,6 +8,7 @@ import shutil
 from typing import Dict, Optional
 
 from src.config import SimulationConfig
+from src.models.quantity import Quantity
 from src.modes.base import SimulationMode, _compute_angle_values
 from src.simulation_runner import SimulationRunner
 
@@ -52,10 +53,14 @@ class PhantomMode(SimulationMode):
             "sequential_times": config.imaging.sequential_times,
             "timeline_end": str(config.imaging.timeline_end),
             "rotation_rate": str(config.imaging.rotation_rate),
-            "coll1_trans_y": str(config.imaging.blade_x1),
-            "coll2_trans_y": str(config.imaging.blade_x2),
-            "coll3_trans_x": str(config.imaging.blade_y1),
-            "coll4_trans_x": str(config.imaging.blade_y2),
+            "coll1_trans_y": str(config.imaging.blade_y1),
+            "coll2_trans_y": str(config.imaging.blade_y2),
+            "coll3_trans_x": str(
+                Quantity(-config.imaging.blade_x2.value, config.imaging.blade_x2.unit)
+            ),
+            "coll4_trans_x": str(
+                Quantity(-config.imaging.blade_x1.value, config.imaging.blade_x1.unit)
+            ),
             "fan_mode": config.imaging.fan_mode,
             "legacy_bowtie": config.imaging.legacy_bowtie,
             "bowtie_enabled": config.imaging.bowtie_enabled,

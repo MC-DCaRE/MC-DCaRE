@@ -8,6 +8,7 @@ from unittest.mock import patch
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from src.modes.ctdi_mode import CtdiMode
+from src.models.quantity import Quantity
 
 
 class TestBuildMainContext:
@@ -27,8 +28,17 @@ class TestBuildMainContext:
         mode = CtdiMode()
         config = make_config()
         ctx = mode.build_main_context(config)
-        assert ctx["coll1_trans_y"] == str(config.imaging.blade_x1)
-        assert ctx["coll2_trans_y"] == str(config.imaging.blade_x2)
+        # Coll1/Coll2 shape world Z (slice axis) -> blade_y;
+        # Coll3/Coll4 shape world X (fan axis) -> blade_x.
+        assert ctx["coll1_trans_y"] == str(config.imaging.blade_y1)
+        assert ctx["coll2_trans_y"] == str(config.imaging.blade_y2)
+        # fan pair is negated (mirror: wide half-fan edge on world -X)
+        assert ctx["coll3_trans_x"] == str(
+            Quantity(-config.imaging.blade_x2.value, config.imaging.blade_x2.unit)
+        )
+        assert ctx["coll4_trans_x"] == str(
+            Quantity(-config.imaging.blade_x1.value, config.imaging.blade_x1.unit)
+        )
 
     def test_blade_positions_overridden_when_user_blade(self, make_config: Any) -> None:
         mode = CtdiMode()
@@ -44,8 +54,11 @@ class TestBuildMainContext:
             return_value=["5.0 cm", "-5.0 cm", "4.0 cm", "-4.0 cm"],
         ):
             ctx = mode.build_main_context(config)
-        assert ctx["coll1_trans_y"] == "5.0 cm"
-        assert ctx["coll3_trans_x"] == "4.0 cm"
+        # blades = [x1, x2, y1, y2]; y pair -> Coll1/Coll2 (world Z),
+        # negated+mirrored x pair -> Coll3/Coll4 (world X, wide side on -X)
+        assert ctx["coll1_trans_y"] == "4.0 cm"
+        assert ctx["coll3_trans_x"] == "5 cm"
+        assert ctx["coll4_trans_x"] == "-5 cm"
 
     def test_graphics_enabled_in_context(self, make_config: Any) -> None:
         mode = CtdiMode()

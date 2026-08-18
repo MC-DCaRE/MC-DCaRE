@@ -8,6 +8,7 @@ import shutil
 from typing import Dict
 
 from src.config import SimulationConfig
+from src.models.quantity import Quantity
 from src.fieldtobladeopening import fieldtobladeopening
 from src.modes.base import SimulationMode, _compute_angle_values
 from src.services.phase_space_analyzer import header_path_for
@@ -97,11 +98,25 @@ class CtdiMode(SimulationMode):
             }
 
         # Base context shared by off and score modes (beam line geometry).
+        # Axis mapping: Coll1/Coll2 sit in the RotX=90 "vertical" group, so
+        # their TransY displaces along WORLD Z (the slice/longitudinal axis)
+        # -> they carry the blade_y (field_y1/y2) aperture. Coll3/Coll4 sit
+        # in the horizontal group and displace along WORLD X (the fan width
+        # axis) -> they carry blade_x (field_x1/x2). The previous x/y swap
+        # was invisible while the blades were wide open (2026-08-18 fluence
+        # slab diagnostic).
         size_number = config.ctdi.phantom_size.split()[0]
-        coll1: str = str(config.imaging.blade_x1)
-        coll2: str = str(config.imaging.blade_x2)
-        coll3: str = str(config.imaging.blade_y1)
-        coll4: str = str(config.imaging.blade_y2)
+        coll1: str = str(config.imaging.blade_y1)
+        coll2: str = str(config.imaging.blade_y2)
+        # Fan-side mirror: the +X slot (Coll3) takes the narrow edge
+        # (-blade_x2) and the -X slot (Coll4) the wide edge (-blade_x1), so
+        # the half-fan extends to -24.7 cm (Gros 2025 Table 2: X1=-24.7).
+        coll3: str = str(
+            Quantity(-config.imaging.blade_x2.value, config.imaging.blade_x2.unit)
+        )
+        coll4: str = str(
+            Quantity(-config.imaging.blade_x1.value, config.imaging.blade_x1.unit)
+        )
         if config.ctdi.user_blade_enabled:
             blades = fieldtobladeopening(
                 [
@@ -111,7 +126,12 @@ class CtdiMode(SimulationMode):
                     str(config.ctdi.user_field_y2),
                 ]
             )
-            coll1, coll2, coll3, coll4 = blades
+            # blades = [x1, x2, y1, y2]; map y->Coll1/2 (world Z), x->Coll3/4
+            b_x1 = Quantity.parse(blades[0])
+            b_x2 = Quantity.parse(blades[1])
+            coll1, coll2 = blades[2], blades[3]
+            coll3 = str(Quantity(-b_x2.value, b_x2.unit))
+            coll4 = str(Quantity(-b_x1.value, b_x1.unit))
 
         base_context: Dict[str, object] = {
             "g4_data_directory": config.general.g4_data_directory,

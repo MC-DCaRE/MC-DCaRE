@@ -546,7 +546,22 @@ production `calibration.yaml` untouched. Pelvis phantom leg: MRCP-AM voxel,
 |---|---|---|---|---|
 | baseline (mask on) | 2.755e-2 | 0.5770 | **1.83** | -66% |
 | **7a: mask-off** | 2.705e-2 | 0.5893 | **3.07** | -43% |
+| **7b: no-bowtie (mask on)** | 3.394e-2 | 0.4685 | **3.73** | -31% |
+| **7c: bhf-geometric (mask-off)** | 2.023e-2 | 0.7861 | **4.59** | -15% |
 | **7d: cutoff 15/12 deg + mask-off** | 2.255e-1 | 0.0705 | **1.84** | -66% |
+
+**7b (H2 supported):** removing the bow-tie (mask on) raises E +103%:
+phantom raw +151% vs CTDI raw +23%. The TsCAD bow-tie attenuates the human
+phantom far harder than the compact CTDI cylinder -- consistent with the
+known under-thin STL central region (CAX transmission 0.899 vs 0.523
+measured) plus the wedge profile's off-axis attenuation.
+
+**7c (H3 supported, diagnostic):** bhf_mode=geometric at mask-off raises
+E +50% over 7a (4.59 vs 3.07). NB geometric renders 1.78 mm physical Ti
+(TOPAS HLZ is a half-length) vs spekpy's 0.89 mm -- the harder beam
+penetrates the phantom better per unit CTDI. Production stays spekpy
+(HVL-validated vs measured 7.37 mmAl); this quantifies the Ti-state
+sensitivity of the E/CTDIw transfer (~50% per 0.9 mm Ti at 125 kV).
 
 **Key findings:**
 
@@ -586,8 +601,24 @@ production `calibration.yaml` untouched. Pelvis phantom leg: MRCP-AM voxel,
    phantom and the Alderson-type TLD phantom used by Hauri 2017. Further
    investigation should focus on the phantom pathway, not the beam.
 
-**Next steps:** Implement the upstream housing aperture (Phase 8), remove
-the downstream primary mask, re-derive DCFs, run the full 14-protocol
-sweep. The source sigma issue (26.1/27.5 deg from Campos thesis) is now
-characterized but requires the aperture fix, not the cutoff.
+**Phase 8 acceptance (2026-08-19): aperture-on production config (3.5 cm SDD,
+mask off, spekpy Ti) gives E = 1.94 mSv, DCF 0.5910, raw CTDIw 2.690e-2
+(+6% vs mask baseline; clean run, 0 overlaps).** This revises the
+interpretation: the aperture does NOT restore the mask-off E (3.07) -- it
+reproduces the mask's E. Unified picture: **any clipping of the wide source
+cone at the ~14 deg (X) / ~8 deg (Z) angular port -- downstream mask at
+20 cm, source aperture at 3.5 cm, or resampled angular cutoff -- lands at
+E = 1.8-1.9 while CTDI raw stays flat (2.7e-2 Gy).** The 7d "cutoff is a
+no-op" finding was an artifact of TOPAS resampling truncated angles
+(renormalization) rather than absorbing them; a physical aperture absorbs,
+confirming the same ~40% phantom-dose cut as the mask. Since the unclipped
+model is physically absurd (50%-of-peak kerma at |Z|=88 cm), clipping is
+correct, E ~= 1.9 stands, and the residual -64% vs Hauri is attributable to
+the phantom/calibration pathway (organ mapping, materials, or the CTDI
+reference), not the beam model. The aperture is retained as the production
+geometry (physically motivated tube-housing position, before bow-tie/jaws).
+
+**Next steps:** overnight user-run re-calibration + full 14-protocol sweep
+on the aperture config (task 16); the E-gap investigation moves to the
+phantom pathway (see `add-phantom-library-and-size-dosimetry` change).
 

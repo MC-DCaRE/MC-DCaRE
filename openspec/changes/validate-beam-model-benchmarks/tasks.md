@@ -23,17 +23,34 @@
   - [x] 7a mask-off (H1 confirmed) -- 2026-08-18: mask cuts 64% phantom dose,
     2% CTDI dose; mask-off E = 3.07 mSv (matches pre-mask 3.09); explains
     entire pelvis transfer regression
-  - [ ] 7b bowtie-off (H2: STL Z-dependent error) -- pending
-  - [ ] 7c bhf geometric (H3: Ti thickness/softening) -- pending
+  - [x] 7b bowtie-off (H2 supported) -- 2026-08-19: mask-on no-bowtie
+    E = 3.73 mSv (+103% vs 1.83 baseline); phantom raw +151% vs CTDI raw
+    +23% -- the TsCAD bow-tie attenuates the human phantom far more than
+    the CTDI cylinder; consistent with the known under-thick STL CAX
+  - [x] 7c bhf geometric (H3 supported, diagnostic) -- 2026-08-19:
+    mask-off + bhf-geometric E = 4.59 mSv (+50% vs 7a's 3.07); geometric
+    renders 1.78 mm Ti (HLZ half-length) vs spekpy's 0.89 mm -- harder
+    beam penetrates phantom better per unit CTDI. Production stays spekpy
+    (HVL-validated); H3 quantifies the Ti-state transfer sensitivity
   - [x] 7d tight source cone cutoff (15/12 deg = housing-equivalent) -- 2026-08-18:
     uniform scaling, no E/CTDIw change (E = 1.84 ≈ baseline 1.83); cutoff
     ≠ mask: cutoff scales all angles equally, mask clips spatially at a
     downstream Z-plane disproportionately hitting the elongated human phantom
-- [ ] Phase 8: upstream housing aperture (physical fix for source sigma)
-  - [ ] Implement aperture TsBox at 8–12cm SDD (before bow-tie), sized to
-    max clinical fan (±25cm X / ±13.5cm Z at iso → ±2.5/±1.35 cm at 10cm)
-  - [ ] Remove downstream primary mask (`primary_mask_enabled` → deprecated)
-  - [ ] Re-derive DCFs + full 14-protocol sweep
+- [x] Phase 8: upstream housing aperture (physical fix for source sigma)
+  - [x] Implement aperture TsBox: 3.5 cm SDD (Y=-96.5, only clear window
+    upstream of the X-jaw boxes at Y=-95.8; 10 cm SDD overlapped Coll1),
+    0.6 cm Pb walls, port 0.9 x 0.5 cm (X 14.4 deg / Z 8.1 deg), outer
+    bounds match the retired mask angular cone
+  - [x] Remove downstream primary mask (`primary_mask_enabled` default
+    flipped to False, template block marked DEPRECATED)
+  - [x] Acceptance A/B (2026-08-19): aperture-on default config
+    E = 1.94 mSv, DCF 0.5910, clean run. Revises the mask story: ANY
+    ~14/8-deg clipping (mask, aperture, resampled cutoff) lands at
+    E 1.8-1.9 with CTDI flat -- clipping is correct (unclipped tails are
+    absurd), residual -64% vs Hauri is phantom-pathway, not beam-model
+  - [ ] Re-derive DCFs + full 14-protocol sweep -- overnight user-run
+    (`scripts/run_full_calibration.py` + `scripts/run_edose_validation.py`,
+    ~7 h)
 
 ## 5b. Measured fluence anchor (executed 2026-08-18, post blade fix)
 

@@ -74,15 +74,25 @@ not yet scored -- the infrastructure exists (4.1-4.3 PhaseSpaceAnalyzer NIST
 fold; 3.3 SpekPy source spectrum HVL), but there is no post-bow-tie CAX
 spectrum scorer to feed it. Measured Head-FF CAX HVL = 7.37 mm Al.
 
-- [ ] 5a.1 add an energy-binned fluence scorer at the isocenter CAX bin (alongside the `validate_bowtie` slab) so the post-bow-tie CAX spectrum is recorded
-- [ ] 5a.2 fold that spectrum with the shipped NIST Al mu_en/rho (`data/nist/hvl_coefficients.dat`) via `PhaseSpaceAnalyzer.compute_hvl_mm_al` to get the MC CAX HVL
-- [ ] 5a.2 compare MC CAX HVL to the measured 7.37 mm Al (tolerance ~0.5 mm Al); record in `docs/bowtie_validation/`
+- [x] 5a.1 add an energy-binned fluence scorer at the isocenter CAX bin (alongside the `validate_bowtie` slab) so the post-bow-tie CAX spectrum is recorded
+  *(done: `CaxSlab` + `Sc/CaxSpectrum` Fluence scorer, 150 x 1 keV bins, in `ctdi_phsp_score.j2`)*
+- [x] 5a.2 fold that spectrum with the shipped NIST Al mu_en/rho (`data/nist/hvl_coefficients.dat`) via `PhaseSpaceAnalyzer.compute_hvl_mm_al` to get the MC CAX HVL
+  *(done: `tools/compute_cax_hvl.py`)*
+- [x] 5a.2 compare MC CAX HVL to the measured 7.37 mm Al (tolerance ~0.5 mm Al); record in `docs/bowtie_validation/`
+  *(done 2026-08-18, both fans + no-bowtie controls: FF TsCAD 7.80 vs 7.37 = +0.43 PASS,
+  legacy 8.26 fail; HF TsCAD 8.96 vs 8.06 = +0.90, legacy 9.34; no-bowtie controls
+  7.96/8.90 prove the residual is base filtration (Ti BHF + inherent Al), not the
+  bow-tie. Full tables in docs/bowtie_validation/README.md)*
 
 
 ## 6. Re-calibration + regression
 
-- [ ] 6.1 re-run the 5 DCF calibration runs at Ti 0.89 mm + STL bow-tie
-- [ ] 6.2 update `calibration.yaml` DCF entries
-- [ ] 6.3 re-run FF modes; confirm the -65..-88% gap narrows
+- [x] 6.1 re-run the 5 DCF calibration runs at Ti 0.89 mm + STL bow-tie
+  *(done 2026-08-14 overnight: 6 protocols at TsCAD, 180M each)*
+- [x] 6.2 update `calibration.yaml` DCF entries
+  *(date_calibrated 2026-08-14; dcf_tle per protocol in the file)*
+- [x] 6.3 re-run FF modes; confirm the -65..-88% gap narrows
+  *(edose sweep 2026-08-18: Pelvis Spotlight -65%->-9%, Abdo -56%->-11%,
+  Head/SRS/Extremity -84..-88%->-56%; residual is systematic, not bow-tie)*
 - [ ] 6.4 quality gates: ruff, mypy, pytest green
 - [ ] 6.5 update `src/AGENTS.md` + `fieldtobladeopening.py` TODO (cite Oct 2023 data)

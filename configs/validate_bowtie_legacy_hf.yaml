@@ -1,7 +1,6 @@
-# Phase 1 production: TsCAD STL bow-tie, Half Fan Pelvis (125 kV), static beam.
+# Phase 1 production: legacy CSG bow-tie, Half Fan Pelvis (125 kV), static beam.
 # CAX spectrum -> HVL compared to the measured RaySafe Pelvis HF CAX HVL
-# (8.06 mm Al). The HF field (blades 24.7/3.3) natively covers isocenter, so
-# no wide-field override is needed.
+# (8.06 mm Al). Mirrors validate_bowtie_tscad_hf.yaml with legacy_bowtie=true.
 general:
   g4_data_directory: /opt/topas/GEANT4/G4DATA
   topas_directory: /opt/topas/TOPAS/OpenTOPAS-install/bin/topas
@@ -15,7 +14,7 @@ imaging:
   imaging_mode: Pelvis
   fan_mode: Half Fan
   sequential_times: '1'
-  legacy_bowtie: false
+  legacy_bowtie: true
 ctdi:
   phase_space_mode: score
   validate_bowtie: true

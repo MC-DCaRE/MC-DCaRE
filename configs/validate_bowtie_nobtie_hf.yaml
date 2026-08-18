@@ -1,4 +1,4 @@
-# Phase 1 production: TsCAD STL bow-tie, Half Fan Pelvis (125 kV), static beam.
+# No-bowtie control: HF, Half Fan Pelvis (125 kV), static beam.
 # CAX spectrum -> HVL compared to the measured RaySafe Pelvis HF CAX HVL
 # (8.06 mm Al). The HF field (blades 24.7/3.3) natively covers isocenter, so
 # no wide-field override is needed.
@@ -15,7 +15,8 @@ imaging:
   imaging_mode: Pelvis
   fan_mode: Half Fan
   sequential_times: '1'
-  legacy_bowtie: false
+  legacy_bowtie: true
+  bowtie_enabled: false
 ctdi:
   phase_space_mode: score
   validate_bowtie: true

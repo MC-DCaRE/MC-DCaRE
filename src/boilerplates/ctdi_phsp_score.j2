@@ -282,6 +282,28 @@ sv:Sc/BowtieProfile/Report = 4 "Sum" "Histories" "Count_In_Bin" "Standard_Deviat
 i:Sc/BowtieProfile/XBins        = 1
 i:Sc/BowtieProfile/YBins        = 1
 i:Sc/BowtieProfile/ZBins        = 80
+
+###########################################################
+# CAX energy spectrum (HVL): a small slab on the central
+# axis, 2 cm upstream of the profile slab (avoids overlap),
+# with a Fluence scorer binned in energy. The histogram is
+# folded with NIST mu_en/rho(air) + mu/rho(Al) by
+# tools/compute_cax_hvl.py -> PhaseSpaceAnalyzer.compute_hvl_mm_al
+# and compared to the measured RaySafe CAX HVL (7.37 mm Al).
+###########################################################
+s:Ge/CaxSlab/Type     = "TsBox"
+s:Ge/CaxSlab/Parent   = "World"
+s:Ge/CaxSlab/Material = "G4_AIR"
+d:Ge/CaxSlab/HLX      = 1.0 cm
+d:Ge/CaxSlab/HLY      = 0.5 mm
+d:Ge/CaxSlab/HLZ      = 1.0 cm
+d:Ge/CaxSlab/TransY   = 2.0 cm
+s:Sc/CaxSpectrum/Quantity     = "Fluence"
+s:Sc/CaxSpectrum/Component    = "CaxSlab"
+s:Sc/CaxSpectrum/OutputFile   = "cax_spectrum"
+s:Sc/CaxSpectrum/IfOutputFileAlreadyExists = "Overwrite"
+i:Sc/CaxSpectrum/EBins        = 150
+d:Sc/CaxSpectrum/EBinMax      = 150 keV
 {% endif %}
 
 ###########################################################

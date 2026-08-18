@@ -70,3 +70,32 @@ Only the **spatial** kerma profile was scored. The MC **CAX energy spectrum**
 was not, so the MC CAX HVL has no computed counterpart to the measured 7.37 mm
 Al. Adding a CAX spectrum scorer + an HVL computation is the remaining scope of
 `add-bowtie-spectrum-validation` (Phase 2).
+
+## Final outcome (post re-calibration, 2026-08-14/18)
+
+Adopted TsCAD (`legacy_bowtie=False` default), full DCF re-calibration at TsCAD
+(6 protocols, `calibration.yaml` date_calibrated 2026-08-14: dcf_tle 80 FF
+0.20361, 100 FF 0.19744, 125 FF 0.19097, 125 HF 0.26365, 140 HF 0.27683).
+
+**Pelvis phantom (MRCP-AM, 150M hist): E = 3.09 mSv (TLE)** vs 4.2 PCXMC
+(-26%) / 5.4 Hauri (-43%). Dominant contributor: bladder (28 mSy organ, 1.12
+mSv weighted of the 3.09 total).
+
+Full-protocol sweep (5M hist/protocol, `scripts/run_edose_validation.py` ->
+`edose_validation_runs/validation_results.csv`), new-vs-old diff vs reference:
+
+| protocol | legacy diff | TsCAD diff |
+|---|---|---|
+| Pelvis Spotlight (FF) | -65% | **-9%** |
+| Abdo Spotlight (FF) | -56% | **-11%** |
+| Pelvis (HF) | -54% | -28% |
+| Abdomen (HF) | -62% | -28% |
+| Thorax (HF) | 0% | -42% |
+| Head / SRS / Extremity (FF) | -84..-88% | -56..-57% |
+| Head and Shoulders | +140% | +153% |
+
+The FF body modes closed almost entirely; a consistent residual ~-28..-56%
+remains across modes. Since the bow-tie is measured-validated and the DCFs are
+fresh, that residual is systematic elsewhere (spectrum fidelity vs TrueBeam,
+PCXMC reference provenance, or the CTDI->phantom DCF transfer) -- follow-up
+work, not a bow-tie issue.

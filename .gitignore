@@ -329,7 +329,9 @@ cython_debug/
 /calibration_runs/*
 /verification_runs/*
 /phantom_runs/*
+/edose_validation_runs/*
 /artifacts/*
+!edose_validation_runs/validation_results.csv
 
 
 # Personal test file 

@@ -43,6 +43,52 @@ ROTATION = "CBCT Anticlockwise"
 # 5M total histories, rotational sampling matched to the production runs
 HIST_PER_SEQ = "33334"  # x 150 sequential times = 5,000,100 total
 
+# Region isocenters (mm, phantom frame) from MRCP-AM organ centroids -- the
+# same placement the 2026-08-13 phase-space replay study used
+# (docs/validation_results/README.md). The beam aims at world Z=0, so the
+# phantom is shifted DOWN by the isocenter to bring the target region in.
+ISOCENTER_Z_MM = {
+    "4D Spotlight": 460,
+    "4D Thorax": 460,
+    "Abdo Spotlight": 200,
+    "Abdomen": 200,
+    "Breast 360": 460,
+    "Extremity Spotlight": -200,
+    "Head": 795,
+    "Head and Shoulders": 600,
+    "Head SRS": 795,
+    "Pelvis": 0,
+    "Pelvis Spotlight": 0,
+    "SBRT Spine": 300,
+    "Thorax": 460,
+    "Thorax Spotlight": 460,
+}
+
+# Baseline Z placement baked into the static swapped phantomVoxel.txt
+VOXEL_BASELINE_TRANSZ_CM = 0.64
+
+
+def apply_isocenter(rundir: str, iso_z_mm: float) -> None:
+    """Shift the swapped voxel phantom so iso_z_mm sits at the beam plane.
+
+    The static ``phantomVoxel.txt`` hardcodes ``Ge/Phantom/TransZ`` (config
+    ``phantom.trans_z`` is ignored on the voxel-swap path), so the runfolder
+    file is patched directly: TransZ = baseline - iso_z_mm/10 (cm).
+    """
+    voxel_file = Path(rundir) / "phantomVoxel.txt"
+    new_z = VOXEL_BASELINE_TRANSZ_CM - iso_z_mm / 10.0
+    content = voxel_file.read_text()
+    patched = re.sub(
+        r"d:Ge/Phantom/TransZ = [-\d.]+ cm",
+        f"d:Ge/Phantom/TransZ = {new_z:.3f} cm",
+        content,
+        count=1,
+    )
+    if patched == content:
+        raise RuntimeError(f"TransZ line not found in {voxel_file}")
+    voxel_file.write_text(patched)
+    print(f"    Isocenter Z = {iso_z_mm:.0f} mm (TransZ -> {new_z:.3f} cm)")
+
 
 def load_protocols() -> List[Dict]:
     """Return protocols from the reference table that have a reference E."""
@@ -109,11 +155,14 @@ def main() -> None:
             },
         }
         data = load_and_patch_config(PHANTOM_CONFIG, overrides)
-        temp_path = write_temp_config(data, f"edose_{re.sub(r'[^a-z0-9]+', '_', name.lower())}")
+        temp_path = write_temp_config(
+            data, f"edose_{re.sub(r'[^a-z0-9]+', '_', name.lower())}"
+        )
 
         try:
             rundir = run_simulation(temp_path, OUTPUT_BASE, dry_run=True)
             swap_voxel_phantom(rundir)
+            apply_isocenter(rundir, ISOCENTER_Z_MM[name])
             if args.dry_run:
                 print(f"    [DRY RUN] {rundir}")
                 continue
@@ -160,10 +209,23 @@ def _meta(p: Dict) -> Dict:
 def _write_report(rows: List[Dict], dry_run: bool) -> None:
     out_dir = PROJECT_ROOT / OUTPUT_BASE
     csv_path = out_dir / "validation_results.csv"
-    if not dry_run:
+    if not dry_run and rows:
         out_dir.mkdir(exist_ok=True)
+        # Fixed fieldnames: failure rows carry fewer keys than ok rows; an
+        # ok-first derivation crashes on the first mixed-shape sweep.
+        fieldnames = [
+            "protocol",
+            "status",
+            "kV",
+            "fan",
+            "mAs",
+            "e_sim_mSv",
+            "e_ref_mSv",
+            "diff_pct",
+            "rundir",
+        ]
         with open(csv_path, "w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(rows)
         print(f"\nCSV: {csv_path}")
@@ -177,7 +239,9 @@ def _write_report(rows: List[Dict], dry_run: bool) -> None:
                 f"| {r['e_sim_mSv']:.2f} | {r['e_ref_mSv']:.1f} | {r['diff_pct']:+.1f}% |"
             )
         else:
-            print(f"| {r['protocol']} | {r['kV']} | {r['fan']} | {r['mAs']} | - | - | {r['status']} |")
+            print(
+                f"| {r['protocol']} | {r['kV']} | {r['fan']} | {r['mAs']} | - | - | {r['status']} |"
+            )
 
 
 if __name__ == "__main__":

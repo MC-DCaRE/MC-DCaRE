@@ -142,23 +142,44 @@ Adopted TsCAD (`legacy_bowtie=False` default), full DCF re-calibration at TsCAD
 mSv weighted of the 3.09 total).
 
 Full-protocol sweep (5M hist/protocol, `scripts/run_edose_validation.py` ->
-`edose_validation_runs/validation_results.csv`), new-vs-old diff vs reference:
+`edose_validation_runs/validation_results.csv`), direct-beam voxel-phantom
+runs at **region-specific isocenters** (MRCP-AM organ centroids, same
+placement as the 2026-08-13 replay study: pelvis 0, abdomen 200, spine 300,
+thorax 460, neck 600, head 795 mm; the swapped `phantomVoxel.txt` TransZ is
+patched per run):
 
-| protocol | legacy diff | TsCAD diff |
-|---|---|---|
-| Pelvis Spotlight (FF) | -65% | **-9%** |
-| Abdo Spotlight (FF) | -56% | **-11%** |
-| Pelvis (HF) | -54% | -28% |
-| Abdomen (HF) | -62% | -28% |
-| Thorax (HF) | 0% | -42% |
-| Head / SRS / Extremity (FF) | -84..-88% | -56..-57% |
-| Head and Shoulders | +140% | +153% |
+| Protocol | kV | Fan | mAs | E_sim (mSv) | E_ref (mSv) | Diff |
+|---|---|---|---|---|---|---|
+| 4D Spotlight | 125 | FF | 373.6 | 3.12 | 1.6 | +95.0% |
+| 4D Thorax | 125 | HF | 671.2 | 5.09 | 3.3 | +54.2% |
+| Abdo Spotlight | 125 | FF | 400.8 | 1.21 | 1.2 | +0.8% |
+| Abdomen | 125 | HF | 716.0 | 3.23 | 2.8 | +15.4% |
+| Breast 360 | 125 | HF | 89.5 | 0.68 | 0.2 | +240.0% |
+| Extremity Spotlight | 100 | FF | 150.3 | 0.23 | 0.5 | -54.0% |
+| Head | 100 | FF | 150.3 | 0.30 | 0.5 | -40.0% |
+| Head and Shoulders | 125 | HF | 268.5 | 2.19 | 0.3 | +630.0% |
+| Head SRS | 100 | FF | 537.0 | 1.06 | 1.8 | -41.1% |
+| Pelvis | 125 | HF | 1074.0 | 3.04 | 4.2 | -27.6% |
+| Pelvis Spotlight | 125 | FF | 751.5 | 2.01 | 2.2 | -8.6% |
+| SBRT Spine | 125 | HF | 358.0 | 3.78 | 1.7 | +122.4% |
+| Thorax | 125 | HF | 268.5 | 2.04 | 1.3 | +56.9% |
+| Thorax Spotlight | 125 | FF | 150.3 | 1.26 | 0.7 | +80.0% |
 
-The FF body modes closed almost entirely; a consistent residual ~-28..-56%
-remains across modes. Since the bow-tie is measured-validated and the DCFs are
-fresh, that residual is systematic elsewhere (spectrum fidelity vs TrueBeam,
-PCXMC reference provenance, or the CTDI->phantom DCF transfer) -- follow-up
-work, not a bow-tie issue.
+Isocenter placement dominates the head/thorax/abdomen results: with all
+protocols at the pelvis isocenter (first sweep) thorax modes read ~-42%; at
+the correct thorax isocenter they read +54-57%, bracketing the reference.
+Head protocols read -40..-54% vs the manufacturer PCXMC table at any
+placement, but the **Head result (0.30 mSv at 150.3 mAs) agrees with the
+independent Abuhaimed 2018 EGSnrc MC (0.32 mSv at 150 mAs, ICRP male) to
+within 6%** -- evidence the simulator itself transfers, and that the
+manufacturer PCXMC head reference (0.5 mSv) sits high. Similarly our Pelvis
+(3.04) sits between the PCXMC (4.2) and Hauri TLD (5.4) anchors and below the
+Abuhaimed pelvis MC (7.05); the pelvis literature spread is wide (see table
+above). Breast 360 and Head and Shoulders remain extreme outliers (+240% /
++630%) -- both were already flagged as suspicious references in the
+2026-08-13 study. Pelvis-family protocols are isocenter-invariant (Z=0), so
+the bowtie-era conclusions (FF body modes closed: Pelvis Spotlight -8.6%,
+Abdo Spotlight +0.8%) stand unchanged.
 
 ## Literature comparison
 
@@ -192,7 +213,7 @@ techniques):
 
 | Source | Method | Head | Thorax | Pelvis |
 |---|---|---|---|---|
-| **This work** (TsCAD, 5M hist, MRCP-AM) | TOPAS MC + own-CTDIw DCF | see sweep table below | " | " |
+| **This work** (TsCAD, 5M hist, MRCP-AM) | TOPAS MC + own-CTDIw DCF | 0.30 | 2.04 | 3.04 |
 | Abuhaimed & Martin 2018 (OBI V2.5, ICRP male) | BEAMnrc/DOSXYZnrc MC | 0.32 | 3.92 | 7.05 |
 | Martin & Abuhaimed 2022 (SED, male phantoms) | MC review | -- | 3.8-7.6 | 11-22 |
 | Abuhaimed & Martin 2023 (BMI phantom library) | MC, mSv/100 mAs | -- | -- | 0.85-1.53 per 100 mAs (9.1-16.4 at 1080 mAs) |

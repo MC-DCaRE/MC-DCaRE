@@ -46,6 +46,7 @@ class DicomMode(SimulationMode):
             "fan_mode": config.imaging.fan_mode,
             "legacy_bowtie": config.imaging.legacy_bowtie,
             "bowtie_enabled": config.imaging.bowtie_enabled,
+            "primary_mask_enabled": config.imaging.primary_mask_enabled,
             "graphics_enabled": config.dicom.graphics_enabled,
             "simulation_type": "DICOM",
             "phantom_size": "",

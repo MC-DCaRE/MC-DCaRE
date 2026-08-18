@@ -225,6 +225,7 @@ s:Ge/BeamHardeningFilter/Color="lightblue"
 s:Ge/BeamHardeningFilter/DrawingStyle="WireFrame"
 {% endif %}
 
+{% if primary_mask_enabled %}
 ###########################################################
 # Primary collimator mask (tube-housing kill box)
 ###########################################################
@@ -289,6 +290,7 @@ d:Ge/PrimaryMaskRight/TransZ=0.0 cm
 
 
 
+{% endif %}
 ###########################################################
 # Define beam source - cone beam
 ###########################################################

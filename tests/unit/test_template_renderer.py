@@ -75,7 +75,11 @@ class TestBowtieDispatch:
         renderer = TemplateRenderer(tpl_dir, str(tmp_path / "out"))
         # bowtie_enabled defaults on so existing dispatch tests exercise the
         # include; the no-bow-tie test overrides it explicitly.
-        merged = {"bowtie_enabled": True, "bhf_mode": "geometric"}
+        merged = {
+            "bowtie_enabled": True,
+            "bhf_mode": "geometric",
+            "primary_mask_enabled": True,
+        }
         merged.update(context)
         result = renderer.render("headsourcecode_boilerplate.j2", merged, "head.txt")
         with open(result) as f:
@@ -108,6 +112,39 @@ class TestBowtieDispatch:
         assert "fullfan.txt" not in content
         assert "bowtie_ff" not in content
         assert "halffan" not in content
+
+
+class TestPrimaryMaskToggle:
+    """The head template must render the primary-collimator mask volumes only
+    when ``primary_mask_enabled`` is True (mask-off A/B experiments)."""
+
+    def test_mask_present_by_default(self, tmp_path: Any) -> None:
+        renderer, content = _render_head_with_mask(tmp_path, True)
+        assert "Ge/PrimaryMaskTop/Type" in content
+        assert "Ge/PrimaryMaskRight/TransX" in content
+
+    def test_mask_omitted_when_disabled(self, tmp_path: Any) -> None:
+        renderer, content = _render_head_with_mask(tmp_path, False)
+        assert "PrimaryMask" not in content
+
+
+def _render_head_with_mask(tmp_path: Any, enabled: bool) -> Any:
+    repo_root = os.path.join(os.path.dirname(__file__), "..", "..")
+    tpl_dir = os.path.join(repo_root, "src", "boilerplates")
+    renderer = TemplateRenderer(tpl_dir, str(tmp_path / "out"))
+    result = renderer.render(
+        "headsourcecode_boilerplate.j2",
+        {
+            "fan_mode": "Full Fan",
+            "legacy_bowtie": False,
+            "bowtie_enabled": True,
+            "bhf_mode": "geometric",
+            "primary_mask_enabled": enabled,
+        },
+        "head.txt",
+    )
+    with open(result) as f:
+        return renderer, f.read()
 
     def test_bhf_thickness_substitutes(self, tmp_path: Any) -> None:
         content = self._render_head(

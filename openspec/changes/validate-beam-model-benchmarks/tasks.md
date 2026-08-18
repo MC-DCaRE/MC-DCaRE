@@ -9,6 +9,20 @@
     retained as the full-geometry validation toggle
 - [x] Phase 5a (added): measured fluence anchor -- implemented + verified
 - [x] Phase 5: literature per-100 mAs benchmarks + docs
+- [x] Phase 6 (added 2026-08-18 PM): E-dose transfer analysis on the new
+  beam model (14-protocol sweep, 2026-08-18 DCFs) -- `tools/analyze_edose_transfer.py`,
+  Phase-0 table + findings in docs/bowtie_validation/README.md. Headline:
+  pelvis E/CTDIw transfer fell 3.09 -> 1.83 mSv (vs Hauri -66%) while CTDIw
+  and iso-Kair anchors hold; 100 kV head regressed vs Abuhaimed 2018
+  (0.30 -> 0.17 vs 0.32); change is protocol-geometry-dependent (raw_ph
+  spread 2.07x within 125 HF). Trusted anchors: Abuhaimed/Gros/Hauri;
+  PCXMC demoted to caveat.
+- [ ] Phase 7: hypothesis A/B experiments (DCF re-derived per variant,
+  `scripts/validate_pelvis_edose.py`; mask toggle =
+  `imaging.primary_mask_enabled`, default True)
+  - [ ] 7a mask-off (H1: primary masks starve scatter) -- running 2026-08-18
+  - [ ] 7b bowtie-off (H2: STL Z-dependent error)
+  - [ ] 7c bhf geometric (H3: Ti thickness/softening)
 
 ## 5b. Measured fluence anchor (executed 2026-08-18, post blade fix)
 

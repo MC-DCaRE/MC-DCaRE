@@ -375,6 +375,22 @@ class TestPhaseSpaceModeBranching:
         assert ctx["bowtie_enabled"] is False
         assert ctx["validate_bowtie"] is False
 
+    def test_score_mode_context_carries_primary_mask_flag(
+        self, make_config: Any
+    ) -> None:
+        """primary_mask_enabled reaches the score template context."""
+        mode = CtdiMode()
+        config = make_config(phase_space_mode="score")
+        ctx = mode.build_main_context(config)
+        assert ctx["primary_mask_enabled"] is True
+
+    def test_score_mode_context_primary_mask_disabled(self, make_config: Any) -> None:
+        """primary_mask_enabled=False propagates (mask-off A/B experiments)."""
+        mode = CtdiMode()
+        config = make_config(phase_space_mode="score", primary_mask_enabled=False)
+        ctx = mode.build_main_context(config)
+        assert ctx["primary_mask_enabled"] is False
+
     def test_replay_compute_histories_returns_zero(self, make_config: Any) -> None:
         mode = CtdiMode()
         config = make_config(phase_space_mode="replay", phase_space_file="/fake.phsp")

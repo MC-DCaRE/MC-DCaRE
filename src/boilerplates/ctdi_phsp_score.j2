@@ -207,6 +207,7 @@ s:Ge/BeamHardeningFilter/Color="lightblue"
 s:Ge/BeamHardeningFilter/DrawingStyle="WireFrame"
 {% endif %}
 
+{% if primary_mask_enabled %}
 ###########################################################
 # Primary collimator mask (tube-housing kill box)
 ###########################################################
@@ -268,6 +269,7 @@ d:Ge/PrimaryMaskRight/TransY=-78.0 cm
 d:Ge/PrimaryMaskRight/TransZ=0.0 cm
 
 
+{% endif %}
 ###########################################################
 # Phase Space Scoring Surface — positioned downstream of all
 # source-side geometry (collimators + BHF).

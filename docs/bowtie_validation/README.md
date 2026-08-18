@@ -446,3 +446,71 @@ The literature E spread for pelvis (4.2 PCXMC / 5.4 TLD / 7.05-22 MC / 0.16-7.6
 XVI range) is wide -- protocol version, scan-length, phantom and E-convention
 differences all contribute. MC-DCaRE's simulated values should be judged against
 this spread, not a single number.
+
+## Phase-0 transfer analysis (2026-08-18, post blade fix + masks + anchor)
+
+Full 14-protocol sweep on the complete new beam model (rectangular blades +
+primary masks + spekpy Ti + measured anchor, 2026-08-18 DCFs; 10M hist/protocol,
+`tools/analyze_edose_transfer.py`, CSV in `edose_validation_runs/phase0_transfer.csv`).
+Trusted anchors only (PCXMC carried as caveat per 2026-08-18 decision):
+Abuhaimed & Martin 2023 all-size per-100 mAs (chest 2.07, pelvis 1.19),
+Abuhaimed 2018 Head EGSnrc (0.32 mSv @ 150.3 mAs), Hauri 2017 pelvis TLD
+(5.4 mSv), Gros 2025 iso-Kair (passes, 1.01-1.13).
+
+| protocol | kV/fan | E new | E old | ratio | raw_ph* | /100 mAs |
+|---|---|---|---|---|---|---|
+| Head SRS | 100 FF | 0.61 | 1.06 | 0.57 | 0.77 | 0.113 |
+| Extremity Spotlight | 100 FF | 0.09 | 0.23 | 0.37 | 0.49 | 0.057 |
+| Head | 100 FF | 0.17 | 0.30 | 0.57 | 0.76 | 0.113 |
+| Pelvis Spotlight | 125 FF | 1.58 | 2.01 | 0.78 | 1.39 | 0.210 |
+| Abdo Spotlight | 125 FF | 1.10 | 1.21 | 0.91 | 1.61 | 0.275 |
+| 4D Spotlight | 125 FF | 2.97 | 3.12 | 0.95 | 1.69 | 0.795 |
+| Thorax Spotlight | 125 FF | 1.20 | 1.26 | 0.95 | 1.68 | 0.795 |
+| Pelvis | 125 HF | 1.83 | 3.04 | 0.60 | 1.56 | 0.171 |
+| Abdomen | 125 HF | 1.64 | 3.23 | 0.51 | 1.32 | 0.230 |
+| 4D Thorax | 125 HF | 4.25 | 5.09 | 0.83 | 2.16 | 0.633 |
+| SBRT Spine | 125 HF | 1.86 | 3.78 | 0.49 | 1.27 | 0.519 |
+| Head and Shoulders | 125 HF | 0.88 | 2.19 | 0.40 | 1.04 | 0.328 |
+| Thorax | 125 HF | 1.70 | 2.04 | 0.83 | 2.15 | 0.633 |
+| Breast 360 | 125 HF | 0.57 | 0.68 | 0.83 | 2.15 | 0.633 |
+
+\* raw_ph = unanchored raw phantom-dose transport ratio new/old
+(E_ratio x DCF_old/DCF_new / anchor). Old = 2026-08-18 10:31 sweep (wedge
+blades, geometric 1.78 mm Ti, no masks, no anchor, 2026-08-14 DCFs).
+
+Findings:
+
+1. **Not a uniform scale.** raw_ph spans 1.04-2.16 within 125 HF alone
+   (2.07x spread); identical beam settings, different field/iso. The change
+   is protocol-geometry-dependent, so no single renormalization fixes it.
+2. **E/CTDIw transfer regression vs every absolute anchor.** Pelvis E =
+   1.83 mSv vs Hauri 5.4 (-66%) / PCXMC 4.2 (-56%, caveat) while CTDIw
+   matches by construction (DCF) and iso-Kair matches (Gros 1.11). Within
+   the direct-beam pathway the pelvis transfer fell 3.09 -> 1.83 mSv
+   (E/CTDIw 0.20 -> 0.117 mSv/mGy). The earlier 5.70 mSv (2026-08-12) is
+   the phase-space replay pathway (different normalization semantics) and
+   is not apples-to-apples.
+3. **100 kV head regression against its matched anchor.** Old Head 0.30 vs
+   Abuhaimed 2018 0.32 (+6%); new 0.17 (0.53x). raw_ph fell 24% while
+   unanchored raw_CTDI rose 33% -- the two phantoms diverged in opposite
+   directions at 100 kV.
+4. iso-Z correlation weak (Pearson +0.33 over 125 HF), confounded by field
+   size (Head and Shoulders: smallest HF field, lowest raw_ph 1.04).
+5. Abuhaimed-2023 per-mAs comparison (0.14-0.67 of their values) carries an
+   mAs-convention caveat: their per-mAs x our mAs = 12.8 mSv for pelvis,
+   exceeding even their own 2018 absolute (7.05). Direction is consistent
+   with finding 2; magnitude is not load-bearing.
+
+Hypotheses ranked for Phase 2 (A/B Monte Carlo, DCF re-derived per variant,
+`scripts/validate_pelvis_edose.py --mask-off`):
+- **H1 (primary masks starve scatter)**: masks are new since the 3.09-era
+  run and selectively cut wide-angle head scatter that the 179-cm human
+  phantom integrates into E but the 15-cm CTDI cylinder barely sees.
+  Analytic check already done: the 5.0 x 2.7 cm port clears every clinical
+  blade aperture, so the primary field is intact -- only scatter is in play.
+- H2 (bow-tie STL Z-dependent error): supported by the Z-gradient
+  (our chest/pelvis per-mAs ratio 3.7 vs Abuhaimed 1.7), partially absorbed
+  by the DCF.
+- H3 (Ti 0.89 spekpy vs 1.78 geometric): spectrum softening interacts with
+  mu_en/rho scoring; test via bhf_mode toggle.
+

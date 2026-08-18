@@ -139,6 +139,7 @@ class ImagingConfig:
     fluence_anchor: str = "measured"
     legacy_bowtie: bool = False
     bowtie_enabled: bool = True
+    primary_mask_enabled: bool = True
     imaging_mode: str = "Image Gently"
     rotation_rate: Quantity = _q(0.4, "deg/s")
     timeline_end: Quantity = _q(501.0, "s")

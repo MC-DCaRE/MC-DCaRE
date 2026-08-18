@@ -149,6 +149,7 @@ class CtdiMode(SimulationMode):
             "fan_mode": config.imaging.fan_mode,
             "legacy_bowtie": config.imaging.legacy_bowtie,
             "bowtie_enabled": config.imaging.bowtie_enabled,
+            "primary_mask_enabled": config.imaging.primary_mask_enabled,
             "validate_bowtie": config.ctdi.validate_bowtie,
             "hvlmap": config.ctdi.validate_bowtie_hvlmap,
             "graphics_enabled": config.ctdi.graphics_enabled,

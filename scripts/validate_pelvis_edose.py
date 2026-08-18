@@ -143,6 +143,9 @@ def main() -> None:
         "--no-bowtie", action="store_true", help="bowtie_enabled=False (H2)"
     )
     parser.add_argument(
+        "--bhf-geometric", action="store_true", help="bhf_mode=geometric (H3)"
+    )
+    parser.add_argument(
         "--cutoff-x", default=None, help="source_angular_cutoff_x in deg (e.g. 15.0)"
     )
     parser.add_argument(
@@ -158,6 +161,8 @@ def main() -> None:
         imaging_over["primary_mask_enabled"] = False
     if args.no_bowtie:
         imaging_over["bowtie_enabled"] = False
+    if args.bhf_geometric:
+        imaging_over["bhf_mode"] = "geometric"
     if args.cutoff_x is not None:
         imaging_over["source_angular_cutoff_x"] = f"{args.cutoff_x} deg"
     if args.cutoff_y is not None:
@@ -167,6 +172,8 @@ def main() -> None:
         flags.append("mask-off")
     if args.no_bowtie:
         flags.append("no-bowtie")
+    if args.bhf_geometric:
+        flags.append("bhf-geometric")
     if args.cutoff_x or args.cutoff_y:
         flags.append(f"cutoff {args.cutoff_x}/{args.cutoff_y} deg")
     label = " ".join(flags) if flags else "baseline"

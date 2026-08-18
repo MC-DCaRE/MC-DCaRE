@@ -141,7 +141,8 @@ class ImagingConfig:
     fluence_anchor: str = "measured"
     legacy_bowtie: bool = False
     bowtie_enabled: bool = True
-    primary_mask_enabled: bool = True
+    housing_aperture_enabled: bool = True
+    primary_mask_enabled: bool = False
     source_angular_cutoff_x: Quantity = _q(90.0, "deg")
     source_angular_cutoff_y: Quantity = _q(90.0, "deg")
     imaging_mode: str = "Image Gently"

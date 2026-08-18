@@ -149,6 +149,7 @@ class CtdiMode(SimulationMode):
             "fan_mode": config.imaging.fan_mode,
             "legacy_bowtie": config.imaging.legacy_bowtie,
             "bowtie_enabled": config.imaging.bowtie_enabled,
+            "housing_aperture_enabled": config.imaging.housing_aperture_enabled,
             "primary_mask_enabled": config.imaging.primary_mask_enabled,
             "source_angular_cutoff_x": str(config.imaging.source_angular_cutoff_x),
             "source_angular_cutoff_y": str(config.imaging.source_angular_cutoff_y),

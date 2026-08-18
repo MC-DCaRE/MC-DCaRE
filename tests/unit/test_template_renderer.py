@@ -136,7 +136,7 @@ class TestPrimaryMaskToggle:
         assert "PrimaryMask" not in content
 
 
-def _render_head_with_mask(tmp_path: Any, enabled: bool) -> Any:
+def _render_head_with_mask(tmp_path: Any, enabled: bool, aperture: bool = False) -> Any:
     repo_root = os.path.join(os.path.dirname(__file__), "..", "..")
     tpl_dir = os.path.join(repo_root, "src", "boilerplates")
     renderer = TemplateRenderer(tpl_dir, str(tmp_path / "out"))
@@ -147,6 +147,7 @@ def _render_head_with_mask(tmp_path: Any, enabled: bool) -> Any:
             "legacy_bowtie": False,
             "bowtie_enabled": True,
             "bhf_mode": "geometric",
+            "housing_aperture_enabled": aperture,
             "primary_mask_enabled": enabled,
             "source_angular_cutoff_x": "15.0 deg",
             "source_angular_cutoff_y": "12.0 deg",
@@ -155,6 +156,20 @@ def _render_head_with_mask(tmp_path: Any, enabled: bool) -> Any:
     )
     with open(result) as f:
         return renderer, f.read()
+
+
+class TestHousingApertureToggle:
+    """The head template must render the upstream tube-housing aperture only
+    when ``housing_aperture_enabled`` is True (Phase 8 production fix)."""
+
+    def test_aperture_present_when_enabled(self, tmp_path: Any) -> None:
+        renderer, content = _render_head_with_mask(tmp_path, False, aperture=True)
+        assert "Ge/HousingApertureTop/Type" in content
+        assert "Ge/HousingApertureRight/TransX" in content
+
+    def test_aperture_omitted_when_disabled(self, tmp_path: Any) -> None:
+        renderer, content = _render_head_with_mask(tmp_path, False, aperture=False)
+        assert "HousingAperture" not in content
 
 
 class TestSourceAngularCutoff:

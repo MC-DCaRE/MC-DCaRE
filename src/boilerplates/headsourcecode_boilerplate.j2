@@ -225,9 +225,75 @@ s:Ge/BeamHardeningFilter/Color="lightblue"
 s:Ge/BeamHardeningFilter/DrawingStyle="WireFrame"
 {% endif %}
 
+{% if housing_aperture_enabled %}
+###########################################################
+# Tube housing aperture (upstream kill box)
+###########################################################
+# Fixed lead aperture at 10 cm SDD (Y=-90.0 cm, upstream of the bow-tie
+# at 18 cm SDD). Physical replacement for the downstream primary mask:
+# clips the source-cone tails (sigma 26/27.5 deg) at the tube-housing
+# position BEFORE the bow-tie. The downstream mask cut 64% of phantom
+# dose vs 2% of CTDI dose (mask-off A/B, 2026-08-18) because it clipped
+# scatter at a Z-plane that the 179-cm human phantom integrates but the
+# compact CTDI cylinder does not; clipping at the source with the same
+# angular port removes the wide-angle tails without that asymmetry.
+#
+# Port: largest clinical fan + penumbra margin at 10 cm SDD
+#   X: half-fan needs 24.7 x 10/100 = 2.47 cm -> port 2.5 cm
+#   Z: 10.7 x 10/100 = 1.07 cm -> port 1.35 cm
+# Walls: 1.5 cm Pb (>>10 HVLs at 140 kVp); outer extent bounds the same
+# angular cone as the retired mask (X +-35 deg, Z +-52 deg).
+# Exact-abut tiling, no chained relative parameters.
+# top/bottom walls (block +-Z beyond the port)
+s:Ge/HousingApertureTop/Type="TsBox"
+s:Ge/HousingApertureTop/Parent="Rotation"
+s:Ge/HousingApertureTop/Material="Lead"
+d:Ge/HousingApertureTop/HLX=7.0 cm
+d:Ge/HousingApertureTop/HLY=1.5 cm
+d:Ge/HousingApertureTop/HLZ=5.65 cm
+d:Ge/HousingApertureTop/TransX=0.0 cm
+d:Ge/HousingApertureTop/TransY=-90.0 cm
+d:Ge/HousingApertureTop/TransZ=7.0 cm
+
+s:Ge/HousingApertureBottom/Type="TsBox"
+s:Ge/HousingApertureBottom/Parent="Rotation"
+s:Ge/HousingApertureBottom/Material="Lead"
+d:Ge/HousingApertureBottom/HLX=7.0 cm
+d:Ge/HousingApertureBottom/HLY=1.5 cm
+d:Ge/HousingApertureBottom/HLZ=5.65 cm
+d:Ge/HousingApertureBottom/TransX=0.0 cm
+d:Ge/HousingApertureBottom/TransY=-90.0 cm
+d:Ge/HousingApertureBottom/TransZ=-7.0 cm
+
+# left/right walls (block +-X beyond the port; shortened in Z to abut,
+# not overlap, the top/bottom walls)
+s:Ge/HousingApertureLeft/Type="TsBox"
+s:Ge/HousingApertureLeft/Parent="Rotation"
+s:Ge/HousingApertureLeft/Material="Lead"
+d:Ge/HousingApertureLeft/HLX=4.5 cm
+d:Ge/HousingApertureLeft/HLY=1.5 cm
+d:Ge/HousingApertureLeft/HLZ=1.35 cm
+d:Ge/HousingApertureLeft/TransX=-7.0 cm
+d:Ge/HousingApertureLeft/TransY=-90.0 cm
+d:Ge/HousingApertureLeft/TransZ=0.0 cm
+
+s:Ge/HousingApertureRight/Type="TsBox"
+s:Ge/HousingApertureRight/Parent="Rotation"
+s:Ge/HousingApertureRight/Material="Lead"
+d:Ge/HousingApertureRight/HLX=4.5 cm
+d:Ge/HousingApertureRight/HLY=1.5 cm
+d:Ge/HousingApertureRight/HLZ=1.35 cm
+d:Ge/HousingApertureRight/TransX=7.0 cm
+d:Ge/HousingApertureRight/TransY=-90.0 cm
+d:Ge/HousingApertureRight/TransZ=0.0 cm
+
+
+
+
+{% endif %}
 {% if primary_mask_enabled %}
 ###########################################################
-# Primary collimator mask (tube-housing kill box)
+# Primary collimator mask (tube-housing kill box) -- DEPRECATED
 ###########################################################
 # Fixed lead aperture at 20 cm SDD (Y=-78.0 cm, downstream of the bow-tie
 # whose thin axis ends at Y=-78.9 cm; upstream of the PhspSurface at -75).

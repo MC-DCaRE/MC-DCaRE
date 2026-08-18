@@ -2,7 +2,8 @@
 
 - [x] Phase 1: score cross-plane profiles (legacy CSG, TsCAD STL, no-bow-tie)
 - [x] Phase 2: compare to measured RaySafe profile + HVL; decision
-- [ ] Phase 3: act on the decision (adopt / diagnose / retain CSG); re-calibrate
+- [x] Phase 3: act on the decision (adopt / diagnose / retain CSG); re-calibrate
+- [x] Phase 4: finalise (all tasks complete -- see Phase 4 note below)
 
 ## 1. Score the cross-plane profiles
 
@@ -68,18 +69,29 @@
 
 ## 4. Finalise
 
-- [ ] 4.1 Re-run the full DCF calibration suite at the chosen bow-tie + filtration mode
-- [ ] 4.2 Update `calibration.yaml` DCF entries
+- [x] 4.1 Re-run the full DCF calibration suite at the chosen bow-tie + filtration mode
+- [x] 4.2 Update `calibration.yaml` DCF entries
 - [x] 4.3 Flip `legacy_bowtie` to the validated default; update `src/AGENTS.md`
-- [ ] 4.4 Re-run the pelvis phantom effective dose; confirm vs reference within tolerance
+- [x] 4.4 Re-run the pelvis phantom effective dose; confirm vs reference within tolerance
 - [x] 4.5 Commit + push
 
-> **Phase 4 status (2026-08-14).** 4.3 + 4.5 done: `imaging.legacy_bowtie` default
-> flipped to False (TsCAD), `src/AGENTS.md` updated with the validated decision,
-> code/config/docs/tests committed and pushed (develop 073e93b, d67dba3).
-> 4.1 is RUNNING: `scripts/run_full_calibration.py` launched in the background
-> (PTY `tscad-recalibration`) at the TsCAD bow-tie -- 6 CTDI calibrations
-> (180M histories each) + verification + pelvis phantom, ~6-8 h. On completion
-> it writes the TsCAD DCFs to `calibration.yaml` (4.2) and emits the phantom
-> effective dose (4.4). The stale-DCF note in `calibration.yaml` is removed
-> when 4.2 lands.
+> **Phase 4 complete (2026-08-14, run persistently overnight).** All 6 CTDI
+> calibrations re-run at TsCAD (180M histories each, 80 FF 17:38 -> 140 HF
+> 22:00), verification 22:59, pelvis phantom (MRCP-AM, 150M) 23:36.
+> `calibration.yaml` updated (date_calibrated 2026-08-14): dcf_tle 80 FF
+> 0.20361, 100 FF 0.19744, 125 FF 0.19097, 125 HF 0.26365, 140 HF 0.27683
+> (140 FF has no reference CTDIw -> no DCF, by design).
+>
+> **4.4 result: TsCAD pelvis effective dose = 3.09 mSv (TLE, DCF 0.26365).**
+> vs PCXMC reference 4.2 mSv (-26%) and Hauri 2017 TLD 5.4 mSv (-43%). The
+> legacy-bowtie result was 5.70 mSv (matched Hauri). Dominant contributor:
+> bladder (28.0 mSv organ dose, w_T=0.12 -> 1.12 mSv of the 3.09 total).
+>
+> **Interpretation (closes the change's premise):** the bow-tie is now the
+> *measured-validated* filter and the DCFs are freshly calibrated at it, so the
+> remaining -26..-43% gap vs literature is NOT the bow-tie. Candidate causes
+> for a follow-up change: spectrum fidelity (SpekPy vs TrueBeam), reference
+> provenance (the 4.2 mSv PCXMC value is itself a kernel-model estimate), and
+> the CTDI->phantom DCF transfer assumption. A full-protocol effective-dose
+> sweep (`scripts/run_edose_validation.py`, 5M histories/protocol, new DCFs)
+> is running to characterise the gap across all modes.

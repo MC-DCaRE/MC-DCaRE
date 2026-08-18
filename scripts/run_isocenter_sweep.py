@@ -154,6 +154,9 @@ def main() -> None:
 
     out_dir = Path(OUTPUT_BASE)
     out_dir.mkdir(exist_ok=True)
+    if not rows:
+        print("ERROR: every shift failed; nothing to write")
+        sys.exit(1)
     with open(out_dir / "isocenter_sensitivity_pelvis.csv", "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
         writer.writeheader()

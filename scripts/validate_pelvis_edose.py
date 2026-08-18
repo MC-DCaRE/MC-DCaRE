@@ -139,9 +139,15 @@ def run_phantom(
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mask-off", action="store_true")
-    parser.add_argument("--no-bowtie", action="store_true", help="bowtie_enabled=False (H2)")
-    parser.add_argument("--cutoff-x", default=None, help="source_angular_cutoff_x in deg (e.g. 15.0)")
-    parser.add_argument("--cutoff-y", default=None, help="source_angular_cutoff_y in deg (e.g. 12.0)")
+    parser.add_argument(
+        "--no-bowtie", action="store_true", help="bowtie_enabled=False (H2)"
+    )
+    parser.add_argument(
+        "--cutoff-x", default=None, help="source_angular_cutoff_x in deg (e.g. 15.0)"
+    )
+    parser.add_argument(
+        "--cutoff-y", default=None, help="source_angular_cutoff_y in deg (e.g. 12.0)"
+    )
     parser.add_argument("--threads", default="20")
     parser.add_argument("--cal-hist", default="100000", help="cal leg histories/seq")
     parser.add_argument("--hist-per-seq", default=HIST_PER_SEQ)
@@ -157,9 +163,12 @@ def main() -> None:
     if args.cutoff_y is not None:
         imaging_over["source_angular_cutoff_y"] = f"{args.cutoff_y} deg"
     flags = []
-    if args.mask_off: flags.append("mask-off")
-    if args.no_bowtie: flags.append("no-bowtie")
-    if args.cutoff_x or args.cutoff_y: flags.append(f"cutoff {args.cutoff_x}/{args.cutoff_y} deg")
+    if args.mask_off:
+        flags.append("mask-off")
+    if args.no_bowtie:
+        flags.append("no-bowtie")
+    if args.cutoff_x or args.cutoff_y:
+        flags.append(f"cutoff {args.cutoff_x}/{args.cutoff_y} deg")
     label = " ".join(flags) if flags else "baseline"
     print(f"[1/3] {label} CTDI calibration leg ({args.cal_hist} hist/seq)")
     cal_rundir = run_variant_cal(args.threads, args.cal_hist, imaging_over)

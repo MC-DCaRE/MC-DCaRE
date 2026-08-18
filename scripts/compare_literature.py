@@ -9,7 +9,6 @@ matched to this machine).
 
 Usage:
     uv run python scripts/compare_literature.py Head edose_validation_runs/<ts>/organ_doses.csv
-    uv run python scripts/compare_literature.py --all edose_validation_runs/
 """
 
 from __future__ import annotations
@@ -97,7 +96,10 @@ def main() -> None:
 
     with open(BENCHMARK) as f:
         benchmarks = yaml.safe_load(f)
-    proto = benchmarks["protocols"][args.protocol]
+    proto = benchmarks["protocols"].get(args.protocol)
+    if proto is None:
+        available = ", ".join(sorted(benchmarks["protocols"]))
+        sys.exit(f"unknown protocol {args.protocol!r}; available: {available}")
 
     table = compare(args.protocol, args.organ_csv, benchmarks)
     if table is None or table.empty:

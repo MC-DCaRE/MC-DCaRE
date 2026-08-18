@@ -309,3 +309,75 @@ class TestSpectrumGenerator:
 
 if __name__ == "__main__":
     pytest.main([__file__])
+
+
+class TestBhfModeToggle:
+    """bhf_mode='spekpy' folds Ti into the spectrum; 'geometric' (default)
+    leaves the spectrum untouched (the templates render the TsBox)."""
+
+    @patch("src.spectrum_generator.sp")
+    def test_spekpy_mode_filters_titanium(
+        self, mock_sp: MagicMock, tmp_path: object
+    ) -> None:
+        mock_sp.Spek.return_value = MockSpek()
+        mock_sp.__version__ = "2.0.1"
+        os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
+        SpectrumGenerator.generate(
+            100.0,
+            10.0,
+            "100000",
+            str(tmp_path),
+            bhf_thickness_mm=0.89,
+            bhf_mode="spekpy",
+        )
+        filters = mock_sp.Spek.return_value.filters_applied
+        assert ("Ti", 0.89) in filters
+
+    @patch("src.spectrum_generator.sp")
+    def test_geometric_mode_does_not_filter_titanium(
+        self, mock_sp: MagicMock, tmp_path: object
+    ) -> None:
+        mock_sp.Spek.return_value = MockSpek()
+        mock_sp.__version__ = "2.0.1"
+        os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
+        SpectrumGenerator.generate(
+            100.0, 10.0, "100000", str(tmp_path), bhf_thickness_mm=0.89
+        )
+        filters = mock_sp.Spek.return_value.filters_applied
+        assert all(mat != "Ti" for mat, _ in filters)
+
+    @patch("src.spectrum_generator.sp")
+    def test_spekpy_mode_with_zero_thickness_rejected(
+        self, mock_sp: MagicMock, tmp_path: object
+    ) -> None:
+        os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
+        with pytest.raises(ValueError, match="bhf_thickness_mm > 0"):
+            SpectrumGenerator.generate(
+                100.0,
+                10.0,
+                "100000",
+                str(tmp_path),
+                bhf_thickness_mm=0.0,
+                bhf_mode="spekpy",
+            )
+
+    @patch("src.spectrum_generator.sp")
+    def test_spekpy_mode_records_metadata(
+        self, mock_sp: MagicMock, tmp_path: object
+    ) -> None:
+        mock_sp.Spek.return_value = MockSpek()
+        mock_sp.__version__ = "2.0.1"
+        os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
+        SpectrumGenerator.generate(
+            100.0,
+            10.0,
+            "100000",
+            str(tmp_path),
+            bhf_thickness_mm=0.5,
+            bhf_mode="spekpy",
+        )
+        meta = yaml.safe_load(
+            open(os.path.join(str(tmp_path), "tmp", "simulation_metadata.yaml"))
+        )
+        assert meta["spekpy"]["bhf_mode"] == "spekpy"
+        assert meta["spekpy"]["bhf_thickness_mm"] == 0.5

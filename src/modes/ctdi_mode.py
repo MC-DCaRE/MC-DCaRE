@@ -134,6 +134,7 @@ class CtdiMode(SimulationMode):
             "simulation_type": "CTDI",
             "phantom_size": size_number,
             "bhf_thickness_mm": config.imaging.bhf_thickness_mm,
+            "bhf_mode": config.imaging.bhf_mode,
             "patient_yaw": "0 deg",
             "patient_pitch": "0 deg",
             "patient_roll_value": 0.0,

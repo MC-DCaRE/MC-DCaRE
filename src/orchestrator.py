@@ -188,6 +188,8 @@ class Orchestrator:
             seed=int(config.general.seed),
             threads=int(config.general.threads),
             filtration_mode=config.imaging.filtration_mode,
+            bhf_thickness_mm=config.imaging.bhf_thickness_mm,
+            bhf_mode=config.imaging.bhf_mode,
         )
 
         mode.prepare_run(config, rundir, self.project_root)
@@ -223,6 +225,8 @@ class Orchestrator:
             seed=int(config.general.seed),
             threads=int(config.general.threads),
             filtration_mode=config.imaging.filtration_mode,
+            bhf_thickness_mm=config.imaging.bhf_thickness_mm,
+            bhf_mode=config.imaging.bhf_mode,
         )
 
         ctdi_mode.prepare_run(config, rundir, self.project_root)

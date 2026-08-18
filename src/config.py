@@ -135,6 +135,7 @@ class ImagingConfig:
     fan_mode: str = "Full Fan"
     filtration_mode: str = "hybrid"
     bhf_thickness_mm: float = 0.89
+    bhf_mode: str = "geometric"
     legacy_bowtie: bool = False
     bowtie_enabled: bool = True
     imaging_mode: str = "Image Gently"
@@ -157,10 +158,22 @@ class ImagingConfig:
                 "imaging.filtration_mode must be 'hybrid' or 'geometric', got %r"
                 % self.filtration_mode
             )
-        if self.bhf_thickness_mm <= 0:
+        if self.bhf_thickness_mm < 0:
             raise ValueError(
-                "imaging.bhf_thickness_mm must be positive, got %s"
+                "imaging.bhf_thickness_mm must be non-negative, got %s"
+                "(0 removes the Ti beam-hardening filter: Ti-out bracketing)"
                 % self.bhf_thickness_mm
+            )
+        if self.bhf_mode not in ("geometric", "spekpy"):
+            raise ValueError(
+                "imaging.bhf_mode must be 'geometric' or 'spekpy', got %r "
+                "(geometric: physical Ti TsBox in the beam line; spekpy: Ti "
+                "folded into the SpekPy source spectrum, no TsBox)" % self.bhf_mode
+            )
+        if self.bhf_mode == "spekpy" and self.bhf_thickness_mm <= 0:
+            raise ValueError(
+                "imaging.bhf_mode='spekpy' requires bhf_thickness_mm > 0 "
+                "(use bhf_mode='geometric' with thickness 0 for no filter)"
             )
 
 

@@ -55,6 +55,64 @@ ORDERED_TISSUES = [
     "remainder",
 ]
 
+# ICRP 103 remainder categories (Publication 103, Table B.2 footnote):
+# the wT = 0.12 applies to the arithmetic mean dose of these 14 tissues
+# (uterus/cervix applies to female phantoms only, leaving 13 for males).
+REMAINDER_CATEGORIES = [
+    "adrenals",
+    "extrathoracic_region",
+    "gall_bladder",
+    "heart",
+    "kidneys",
+    "lymphatic_nodes",
+    "muscle",
+    "oral_mucosa",
+    "pancreas",
+    "prostate",
+    "small_intestine",
+    "spleen",
+    "thymus",
+    "uterus_cervix",
+]
+
+# ICRP 145 organ-name substring rules -> ICRP 103 remainder category.
+# Order matters (first match wins).
+_REMAINDER_RULES = [
+    ("adrenals", ("adrenal",)),
+    ("extrathoracic_region", ("et1", "et2")),
+    ("gall_bladder", ("gall_bladder",)),
+    ("heart", ("heart_wall", "heart_chamber")),
+    ("kidneys", ("kidney",)),
+    ("lymphatic_nodes", ("lymphatic_nodes",)),
+    ("muscle", ("muscle",)),
+    ("oral_mucosa", ("tongue", "tonsil", "oral_vestibule")),
+    ("pancreas", ("pancreas",)),
+    ("prostate", ("prostate",)),
+    ("small_intestine", ("small_intestine",)),
+    ("spleen", ("spleen",)),
+    ("thymus", ("thymus",)),
+    ("uterus_cervix", ("uterus", "cervix")),
+]
+
+
+def map_organ_to_remainder_category(organ_name: str) -> str | None:
+    """Map an ICRP 145 organ name to an ICRP 103 remainder category.
+
+    Args:
+        organ_name: Organ name from the ICRP 145 material file
+            (e.g. ``"Gall_bladder_wall"``, ``"ET2(65-Surface)"``).
+
+    Returns:
+        Remainder category string, or ``None`` when the organ is not one
+        of the 14 ICRP 103 remainder tissues (it then contributes to the
+        effective dose only via its non-remainder tissue tag, if any).
+    """
+    o = organ_name.lower()
+    for category, needles in _REMAINDER_RULES:
+        if any(n in o for n in needles):
+            return category
+    return None
+
 
 def map_organ_to_tissue(organ_name: str) -> str:
     """Map an ICRP 145 organ name to an ICRP 103 tissue category.
@@ -93,7 +151,10 @@ def map_organ_to_tissue(organ_name: str) -> str:
     if "testis" in o or "gonad" in o or "ovary" in o:
         return "gonads"
 
-    # Bladder
+    # Bladder (urinary only -- gall bladder is an ICRP 103 remainder organ,
+    # so the "gall" check must precede the substring "bladder" match)
+    if "gall" in o:
+        return "remainder"
     if "bladder" in o:
         return "bladder"
 

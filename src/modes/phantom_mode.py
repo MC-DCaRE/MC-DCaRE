@@ -64,6 +64,7 @@ class PhantomMode(SimulationMode):
             "simulation_type": "ICRP145",
             "phantom_size": "",
             "bhf_thickness_mm": config.imaging.bhf_thickness_mm,
+            "bhf_mode": config.imaging.bhf_mode,
             "patient_yaw": str(config.dicom.patient_yaw),
             "patient_pitch": str(config.dicom.patient_pitch),
             "patient_roll_value": config.dicom.patient_roll.value,

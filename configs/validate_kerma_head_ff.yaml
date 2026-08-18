@@ -1,0 +1,23 @@
+# Absolute CAX kerma anchor run: Head 100 kV FF, TsCAD bow-tie, Ti BHF in,
+# CLINICAL field (default Head blades) to match the RaySafe service-mode
+# measurement (59.01 uGy @ 1.6 mAs).
+general:
+  g4_data_directory: /opt/topas/GEANT4/G4DATA
+  topas_directory: /opt/topas/TOPAS/OpenTOPAS-install/bin/topas
+  seed: '9'
+  threads: '20'
+  histories: '8000000'
+  log_filename: simulation.log
+imaging:
+  simulation_type: CTDI
+  rotation_direction: CBCT Clockwise
+  imaging_mode: Head
+  fan_mode: Full Fan
+  sequential_times: '1'
+  legacy_bowtie: false
+ctdi:
+  phase_space_mode: score
+  validate_bowtie: true
+  couch_enabled: false
+  user_blade_enabled: false
+  graphics_enabled: false

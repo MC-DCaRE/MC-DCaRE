@@ -75,7 +75,7 @@ class TestBowtieDispatch:
         renderer = TemplateRenderer(tpl_dir, str(tmp_path / "out"))
         # bowtie_enabled defaults on so existing dispatch tests exercise the
         # include; the no-bow-tie test overrides it explicitly.
-        merged = {"bowtie_enabled": True}
+        merged = {"bowtie_enabled": True, "bhf_mode": "geometric"}
         merged.update(context)
         result = renderer.render("headsourcecode_boilerplate.j2", merged, "head.txt")
         with open(result) as f:
@@ -114,3 +114,31 @@ class TestBowtieDispatch:
             tmp_path, {"fan_mode": "Full Fan", "bhf_thickness_mm": 0.89}
         )
         assert "HLZ=0.89 mm" in content or "HLZ = 0.89 mm" in content
+
+
+class TestBhfGating:
+    """The Ti BHF TsBox must be gated on thickness AND bhf_mode='geometric';
+    bhf_mode='spekpy' folds the Ti into the spectrum and omits the box."""
+
+    def _render_score(self, tmp_path: Any, **over: object) -> str:
+        repo_root = os.path.join(os.path.dirname(__file__), "..", "..")
+        renderer = TemplateRenderer(
+            os.path.join(repo_root, "src", "boilerplates"), str(tmp_path / "out")
+        )
+        ctx: dict = {"bhf_thickness_mm": 0.89, "bhf_mode": "geometric"}
+        ctx.update(over)
+        result = renderer.render("ctdi_phsp_score.j2", ctx, "score.txt")
+        with open(result) as f:
+            return f.read()
+
+    def test_geometric_mode_renders_bhf(self, tmp_path: Any) -> None:
+        content = self._render_score(tmp_path)
+        assert "Ge/BeamHardeningFilter/HLZ" in content
+
+    def test_spekpy_mode_omits_bhf(self, tmp_path: Any) -> None:
+        content = self._render_score(tmp_path, bhf_mode="spekpy")
+        assert "Ge/BeamHardeningFilter/HLZ" not in content
+
+    def test_zero_thickness_omits_bhf(self, tmp_path: Any) -> None:
+        content = self._render_score(tmp_path, bhf_thickness_mm=0.0)
+        assert "Ge/BeamHardeningFilter/HLZ" not in content

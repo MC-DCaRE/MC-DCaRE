@@ -22,6 +22,7 @@ import numpy as np
 from src.models.icrp103 import (
     ORDERED_TISSUES,
     TISSUE_WEIGHTING_FACTORS,
+    map_organ_to_remainder_category,
     map_organ_to_tissue,
 )
 from src.services.calibration import CalibrationService, NormalizedDose
@@ -206,6 +207,7 @@ class PhantomDoseCalculator:
         target_mAs: Optional[float] = None,
         dcf_override: Optional[float] = None,
         scorer_type: str = "tle",
+        remainder_convention: str = "all-organs",
     ) -> EffectiveDoseResult:
         """Compute organ doses and ICRP 103 effective dose with DCF normalization.
 
@@ -222,6 +224,11 @@ class PhantomDoseCalculator:
                 or ``"dtm"``). Defaults to ``"tle"``. Both TLE (dcf_tle)
                 and DTM (dcf_water_dtm) DCFs are CTDI-derived and
                 transferable to the phantom.
+            remainder_convention: ``"all-organs"`` (default, historical)
+                takes the arithmetic mean over every remainder-tagged
+                organ; ``"icrp103"`` maps organs onto the 14 ICRP 103
+                remainder categories first (category mean, then arithmetic
+                mean over categories, with the >10 mSv update rule).
 
         Returns:
             :class:`EffectiveDoseResult` with full provenance.
@@ -309,17 +316,29 @@ class PhantomDoseCalculator:
             r.organ_name for r in organ_results if r.icrp103_tissue == "remainder"
         ]
 
+        if remainder_convention == "icrp103":
+            ht_remainder, remainder_detail = self._icrp103_remainder(
+                tissue_doses, organ_results
+            )
+        elif remainder_convention == "all-organs":
+            ht_remainder = (
+                float(np.mean(tissue_doses.get("remainder", [0])))
+                if tissue_doses.get("remainder")
+                else 0.0
+            )
+        else:
+            raise ValueError(
+                f"unknown remainder_convention '{remainder_convention}' "
+                "(expected 'all-organs' or 'icrp103')"
+            )
+
         # Compute effective dose
         tissue_results: List[TissueDoseResult] = []
         effective_dose = 0.0
         for tissue in ORDERED_TISSUES:
             wT = TISSUE_WEIGHTING_FACTORS[tissue]
             if tissue == "remainder":
-                ht = (
-                    float(np.mean(tissue_doses.get("remainder", [0])))
-                    if tissue_doses.get("remainder")
-                    else 0.0
-                )
+                ht = ht_remainder
                 source = remainder_organs
             else:
                 ht = (
@@ -348,6 +367,58 @@ class PhantomDoseCalculator:
             organ_results=organ_results,
             normalization=norm,
         )
+
+    # ------------------------------------------------------------------
+    # ICRP 103 remainder aggregation
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _icrp103_remainder(
+        tissue_doses: Dict[str, List[float]],
+        organ_results: List[OrganDoseResult],
+    ) -> tuple[float, Dict[str, float]]:
+        """ICRP 103 remainder HT: category mean, then mean over categories.
+
+        Organs tagged ``remainder`` by :func:`map_organ_to_tissue` are
+        further mapped to the 14 ICRP 103 remainder categories
+        (:func:`map_organ_to_remainder_category`). Each category's dose is
+        the arithmetic mean of its organ mean doses; the remainder HT is
+        the arithmetic mean over the categories present (13 for a male
+        phantom; ``uterus/cervix`` is absent).
+
+        The ICRP 103 single-tissue update rule (assigning a separate wT
+        when one remainder category exceeds 10 mSv) is NOT applied --
+        the published MC benchmarks (Abuhaimed 2018 et al.) use the
+        simple category mean.
+
+        Args:
+            tissue_doses: Organ mean doses keyed by ICRP 103 tissue tag.
+            organ_results: Per-organ dose results (for name -> category).
+
+        Returns:
+            Tuple of (remainder HT in mGy, per-category HT dict).
+        """
+        del tissue_doses  # organ_results already carries everything needed
+        category_doses: Dict[str, List[float]] = {}
+        for r in organ_results:
+            if r.icrp103_tissue != "remainder":
+                continue
+            category = map_organ_to_remainder_category(r.organ_name)
+            if category is None:
+                continue
+            category_doses.setdefault(category, []).append(r.mean_dose_mGy)
+        category_means = {
+            cat: float(np.mean(v)) for cat, v in category_doses.items() if v
+        }
+        if not category_means:
+            return 0.0, {}
+        ht = float(np.mean(list(category_means.values())))
+        logger.info(
+            "ICRP 103 remainder: %d categories, HT = %.3f mGy",
+            len(category_means),
+            ht,
+        )
+        return ht, category_means
 
     # ------------------------------------------------------------------
     # Reporting

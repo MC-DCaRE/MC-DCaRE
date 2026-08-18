@@ -1,0 +1,74 @@
+# Measured free-in-air CAX kerma anchors (RaySafe X2, service mode, Oct 2023)
+# Source workbook: research/2023 - CBCT Dose PCXMC/
+#   "New results Oct 2023 (Spotlight, Raysafe X2) - fixed spotlight.xlsx", Sheet1
+# All "Dose" values are per frame at 40 mA x 40 ms = 1.6 mAs, large focal spot,
+# unless noted. Provenance = Sheet1 row/col at extraction (2026-08-18).
+# "Coast"/"Outback" columns in the workbook are second-machine replicates
+# (local TrueBeam names) and are not independent anchors.
+anchors:
+  - id: head_ff_bt_ti
+    description: Head 100 kV Full Fan, WITH bow-tie, Ti filter IN, CAX
+    kVp_measured: 100.6
+    fan: Full Fan
+    bowtie: true
+    ti_filter: in
+    dose_uGy_at_1.6mAs: 59.01
+    hvl_mmAl: 7.37
+    provenance: "Sheet1 row 46 (Head block header row 33-35: Ti Filter in)"
+  - id: spotlight_ff_bt_ti
+    description: Spotlight 125 kV Full Fan, WITH bow-tie, CAX
+    kVp_measured: 124.5
+    fan: Full Fan
+    bowtie: true
+    ti_filter: in
+    dose_uGy_at_1.6mAs: 107.1
+    hvl_mmAl: 8.42
+    provenance: "Sheet1 row 18 (125 Full Fan CAX Spotlight block, row 16-17)"
+  - id: pelvis_hf_bt_ti
+    description: Pelvis 125 kV Half Fan, WITH bow-tie, CAX
+    kVp_measured: 125.7
+    fan: Half Fan
+    bowtie: true
+    ti_filter: in
+    dose_uGy_at_1.6mAs: 106.3
+    hvl_mmAl: 8.4
+    provenance: "Sheet1 row 14 (Pelvis 125kV HF block, row 10-11)"
+  - id: nobtie_100_ti_state_unstated
+    description: 100 kV no bow-tie CAX (Ti state NOT stated in workbook)
+    kVp_measured: 100.4
+    fan: Full Fan
+    bowtie: false
+    ti_filter: unstated
+    dose_uGy_at_1.6mAs: 112.8
+    hvl_mmAl: 5.04
+    total_filtration_mmAl: 4.7
+    provenance: "Sheet1 row 35 (100kV no bow tie block, row 33-34)"
+    note: >-
+      rate column (3.022) implies 120.9 uGy/frame (~7% above the Dose column);
+      use the Dose column. HVL 5.04 + TF 4.7 is the cleanest Ti-state
+      discriminator.
+  - id: nobtie_80_ti_state_unstated
+    description: 80 kV no bow-tie CAX (Ti state NOT stated)
+    kVp_measured: 80
+    fan: Full Fan
+    bowtie: false
+    ti_filter: unstated
+    dose_uGy_at_1.6mAs: 28.89
+    hvl_mmAl: 6.18
+    provenance: "Sheet1 row 60 (80kV no bow tie block, row 58-59)"
+    note: >-
+      rate column consistent (0.717 mGy/s x 0.04 s = 28.7 uGy), but HVL 6.18
+      exceeds the 100 kV no-bow-tie HVL (5.04) -- physically inconsistent for
+      identical filtration; treat the 80 kV HVL as suspect, kerma as usable.
+excluded:
+  - id: nobtie_120
+    reason: >-
+      Sheet1 row 13 reads Dose 6.523 in unknown units (block header row 12);
+      not reconcilable with the 100 kV block (112.8 uGy) at +20 kV. Excluded
+      until units are clarified with the measurement log.
+derived:
+  bowtie_cax_transmission_head: 0.5234
+  bowtie_cax_transmission_head_note: >-
+    59.01 / 112.8 (Head FF, 100 kV). The real bow-tie's CAX thin spot removes
+    ~48% of CAX kerma. Field- and normalization-independent (common-mode
+    cancellation) -- the most robust absolute test of STL central thickness.

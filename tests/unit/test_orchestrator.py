@@ -106,6 +106,8 @@ class TestRunDicomSimulation:
             seed=9,
             threads=1,
             filtration_mode="hybrid",
+            bhf_thickness_mm=0.89,
+            bhf_mode="geometric",
         )
 
     @patch("src.orchestrator.SpectrumGenerator")
@@ -197,6 +199,8 @@ class TestRunCtdiSimulation:
             seed=9,
             threads=1,
             filtration_mode="hybrid",
+            bhf_thickness_mm=0.89,
+            bhf_mode="geometric",
         )
 
 

@@ -26,6 +26,8 @@ class SpectrumGenerator:
         seed: int = 9,
         threads: int = 1,
         filtration_mode: str = "hybrid",
+        bhf_thickness_mm: float = 0.89,
+        bhf_mode: str = "geometric",
     ) -> None:
         """Generate a kV spectrum and write metadata and TOPAS spectrum files.
 
@@ -40,24 +42,41 @@ class SpectrumGenerator:
             filtration_mode: Where uniform base filtration lives. ``"hybrid"``
                 (default) folds the inherent (2.7 mm Al) and collimator-window
                 (0.3 mm Al) filtration into the SpekPy spectrum for improved beam
-                hardening; the angular-dependent Ti beam-hardening filter and
-                bow-tie stay geometric. ``"geometric"`` applies no SpekPy
-                filtration (the prior/legacy behaviour -- bare spectrum, inherent
-                filtration not modelled in the spectrum). Note: switching modes
-                or the BHF thickness changes the beam spectrum and requires
-                re-running the CTDI DCF calibration.
+                hardening; ``"geometric"`` applies no SpekPy filtration (the
+                prior/legacy behaviour).
+            bhf_thickness_mm: Ti beam-hardening-filter physical thickness in mm.
+            bhf_mode: ``"geometric"`` (default) keeps the Ti BHF as a physical
+                TsBox in the beam line (templates render it; note TOPAS HLZ is a
+                HALF-length, so the box spans 2x this thickness along Z).
+                ``"spekpy"`` folds the Ti into the source spectrum via
+                ``s.filter("Ti", thickness)`` and the templates omit the TsBox,
+                so mm means mm with no half-length ambiguity. Switching modes
+                changes the beam spectrum and requires re-running the CTDI DCF
+                calibration.
         """
         if filtration_mode not in ("hybrid", "geometric"):
             raise ValueError(
                 "filtration_mode must be 'hybrid' or 'geometric', got %r"
                 % filtration_mode
             )
+        if bhf_mode not in ("geometric", "spekpy"):
+            raise ValueError(
+                "bhf_mode must be 'geometric' or 'spekpy', got %r" % bhf_mode
+            )
+        if bhf_mode == "spekpy" and bhf_thickness_mm <= 0:
+            raise ValueError(
+                "bhf_mode='spekpy' requires bhf_thickness_mm > 0, got %s"
+                % bhf_thickness_mm
+            )
         logger.info(
-            "Generating spectrum: %f kV, %f mAs, %s histories (filtration=%s)",
+            "Generating spectrum: %f kV, %f mAs, %s histories "
+            "(filtration=%s, bhf=%s mm %s)",
             anode_voltage,
             exposure,
             histories,
             filtration_mode,
+            bhf_thickness_mm,
+            bhf_mode,
         )
         s = sp.Spek(
             kvp=anode_voltage,
@@ -74,6 +93,12 @@ class SpectrumGenerator:
         if filtration_mode == "hybrid":
             s.filter("Al", 2.7)
             s.filter("Al", 0.3)
+
+        # Optional: fold the Ti BHF into the spectrum instead of a geometric
+        # TsBox (bhf_mode="spekpy"). Removes the TOPAS half-length (HLZ)
+        # ambiguity: the thickness here is the physical mm of Ti.
+        if bhf_mode == "spekpy":
+            s.filter("Ti", bhf_thickness_mm)
 
         hvl_mm_al: float = float(s.get_hvl1())
         logger.info("Spectrum first HVL: %.4f mm Al", hvl_mm_al)
@@ -105,6 +130,8 @@ class SpectrumGenerator:
                 "mas": exposure,
                 "version": sp.__version__,
                 "filtration_mode": filtration_mode,
+                "bhf_mode": bhf_mode,
+                "bhf_thickness_mm": bhf_thickness_mm,
                 "hvl_mmAl": hvl_mm_al,
             },
             "fan_mode": fan_mode,

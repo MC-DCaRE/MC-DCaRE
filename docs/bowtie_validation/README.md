@@ -131,6 +131,52 @@ spectrum scorer; note the hybrid SpekPy spectrum (uniform filtration only, no
 geometric Ti BHF/bow-tie) sits at 4.69 mm Al at 125 kV, so the remaining
 hardening must come from the geometric filters, not the spectrum model.
 
+## Absolute CAX kerma + Ti-BHF bracketing (2026-08-18)
+
+New tooling: `tools/compare_cax_kerma.py` (canonical normalization via
+`compute_photons_per_mAs` + `raw_absolute_dose_Gy`), anchors in
+`data/measured/cax_kerma_anchors.yaml` (with provenance; the 120 kV 6.523-unit
+block and the 80 kV HVL are flagged/excluded). New config toggle:
+**`imaging.bhf_mode`** — `geometric` (default; physical Ti TsBox) vs `spekpy`
+(Ti folded into the source spectrum via `s.filter("Ti", mm)`, no TsBox, so mm
+means mm with no TOPAS half-length ambiguity). Zero thickness (Ti-out) is also
+valid.
+
+**Ti-BHF bracketing, 100 kV no-bow-tie (measured HVL 5.04 mm Al, TF 4.7,
+kerma 112.8 uGy @ 1.6 mAs; Ti state of the measurement unstated):**
+
+| Ti arm | HVL mm Al | diff | CAX kerma uGy |
+|---|---|---|---|
+| geometric HLZ=0.89 = **1.78 mm physical** (production default) | 7.96 | +2.92 | 358 |
+| geometric HLZ=0.445 = 0.89 mm physical | 6.29 | +1.25 | 583 |
+| **spekpy 0.445 mm** | **4.85** | **-0.19** | 850 |
+| spekpy 0.89 mm | 6.13 | +1.09 | 597 |
+| Ti out | 2.99 | -2.05 | 1503 |
+
+Findings:
+1. **TOPAS `HLZ` is a half-length**: the production default renders
+   1.78 mm of Ti, twice the intended 0.89. Equal-physical-thickness arms agree
+   across modes (6.29/583 geometric vs 6.13/597 spekpy), validating the toggle
+   and confirming the factor-2.
+2. The measured no-bow-tie HVL (5.04) is bracketed by Ti-out (2.99) and the
+   1.78 mm default (7.96); the spekpy-0.445 arm matches to -0.19 mm Al. Either
+   the measurement was taken with a thin/absent BHF state, or the effective
+   base filtration differs from the model by ~1 mm Al eq.
+3. **Absolute kerma is 3-7x HIGH on every arm** (e.g. best-HVL arm 850 vs
+   112.8 measured): the `photons_per_mAs` fluence scale overestimates the true
+   tube output. The CTDI DCF absorbs this for calibrated dose, but any
+   un-normalised absolute quantity is biased. Candidate follow-up: re-anchor
+   `spectrum_fluence_photons_per_mAs` to the measured free-in-air kerma.
+4. **Bow-tie CAX transmission: MC 0.899 vs measured 0.523 (Head FF, both-Ti-in
+   pair, common-mode-free).** The TsCAD STL central region is ~1.7x too
+   transparent. This was invisible to the peak-normalised profile comparison;
+   the STL likely needs central thickness added (the legacy CSG's `DemoFlat`
+   ~1 mm Al central piece is consistent with the real filter having a
+   non-trivial CAX thickness).
+
+Configs: `configs/validate_kerma_*.yaml`. Switching `bhf_mode` or thickness
+changes the beam spectrum and requires re-running the CTDI DCF calibration.
+
 ## Final outcome (post re-calibration, 2026-08-14/18)
 
 Adopted TsCAD (`legacy_bowtie=False` default), full DCF re-calibration at TsCAD

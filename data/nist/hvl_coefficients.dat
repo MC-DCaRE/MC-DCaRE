@@ -1,0 +1,17 @@
+# NIST XCOM mass attenuation / energy-absorption coefficients for HVL folding.
+# Source: NIST XCOM Photon Cross Sections Database (physics.nist.gov/PhysRefData/Xcom).
+# Values are cm^2/g. Energies in MeV. Verify against the NIST source before
+# production use; these cover the diagnostic kV range (10-150 keV).
+#
+# Columns: Energy_MeV   mu_en/rho_air   mu/rho_Aluminium
+0.010    4.642    26.23
+0.015    1.294     7.955
+0.020    0.5501    3.441
+0.030    0.1535    1.128
+0.040    0.06683   0.5685
+0.050    0.0403    0.3681
+0.060    0.0286    0.2778
+0.080    0.01962   0.2018
+0.100    0.01649   0.1704
+0.125    0.01478   0.1488
+0.150    0.01394   0.1378

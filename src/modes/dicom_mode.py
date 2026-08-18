@@ -45,6 +45,7 @@ class DicomMode(SimulationMode):
             "simulation_type": "DICOM",
             "phantom_size": "",
             "bhf_thickness_mm": config.imaging.bhf_thickness_mm,
+            "bhf_mode": config.imaging.bhf_mode,
             "patient_yaw": str(config.dicom.patient_yaw),
             "patient_pitch": str(config.dicom.patient_pitch),
             "patient_roll_value": config.dicom.patient_roll.value,

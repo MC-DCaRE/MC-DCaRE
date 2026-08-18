@@ -351,7 +351,9 @@ config.local.yaml
 calibration.yaml
 
 # Large reference datasets (ICRP 145 phantoms, DICOM samples, etc.)
-/data/
+/data/*
+!/data/nist/
+!/data/measured/
 
 # Beads / Dolt files (added by bd init)
 .dolt/

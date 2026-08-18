@@ -220,6 +220,10 @@ d:Ge/BeamHardeningFilterGroup/RotZ=0. deg
 d:Ge/BeamHardeningFilterGroup/TransZ=1.59 cm #preventgeometryoverlapwithvertical
 
 # Beam Hardening Filter
+# Omitted when bhf_thickness_mm is 0 (Ti-out bracketing) or bhf_mode is
+# "spekpy" (Ti folded into the SpekPy source spectrum instead). NB: TOPAS HLZ
+# is a HALF-length, so the geometric box spans 2x bhf_thickness_mm along Z.
+{% if bhf_thickness_mm and bhf_mode == 'geometric' %}
 s:Ge/BeamHardeningFilter/Type="TsBox"
 s:Ge/BeamHardeningFilter/Material="Titanium"
 s:Ge/BeamHardeningFilter/Parent="BeamHardeningFilterGroup"
@@ -234,6 +238,7 @@ dc:Ge/BeamHardeningFilter/RotY=0. deg
 dc:Ge/BeamHardeningFilter/RotZ=0. deg
 s:Ge/BeamHardeningFilter/Color="lightblue"
 s:Ge/BeamHardeningFilter/DrawingStyle="WireFrame"
+{% endif %}
 
 
 

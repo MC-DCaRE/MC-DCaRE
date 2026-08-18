@@ -146,6 +146,11 @@ def main() -> None:
         "--bhf-geometric", action="store_true", help="bhf_mode=geometric (H3)"
     )
     parser.add_argument(
+        "--no-aperture",
+        action="store_true",
+        help="housing_aperture_enabled=False (pre-Phase-8 baseline)",
+    )
+    parser.add_argument(
         "--cutoff-x", default=None, help="source_angular_cutoff_x in deg (e.g. 15.0)"
     )
     parser.add_argument(
@@ -163,6 +168,8 @@ def main() -> None:
         imaging_over["bowtie_enabled"] = False
     if args.bhf_geometric:
         imaging_over["bhf_mode"] = "geometric"
+    if args.no_aperture:
+        imaging_over["housing_aperture_enabled"] = False
     if args.cutoff_x is not None:
         imaging_over["source_angular_cutoff_x"] = f"{args.cutoff_x} deg"
     if args.cutoff_y is not None:
@@ -174,6 +181,8 @@ def main() -> None:
         flags.append("no-bowtie")
     if args.bhf_geometric:
         flags.append("bhf-geometric")
+    if args.no_aperture:
+        flags.append("no-aperture")
     if args.cutoff_x or args.cutoff_y:
         flags.append(f"cutoff {args.cutoff_x}/{args.cutoff_y} deg")
     label = " ".join(flags) if flags else "baseline"

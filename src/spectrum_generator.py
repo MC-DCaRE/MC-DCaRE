@@ -45,12 +45,16 @@ class SpectrumGenerator:
                 hardening; ``"geometric"`` applies no SpekPy filtration (the
                 prior/legacy behaviour).
             bhf_thickness_mm: Ti beam-hardening-filter physical thickness in mm.
-            bhf_mode: ``"geometric"`` (default) keeps the Ti BHF as a physical
-                TsBox in the beam line (templates render it; note TOPAS HLZ is a
-                HALF-length, so the box spans 2x this thickness along Z).
-                ``"spekpy"`` folds the Ti into the source spectrum via
-                ``s.filter("Ti", thickness)`` and the templates omit the TsBox,
-                so mm means mm with no half-length ambiguity. Switching modes
+            bhf_mode: ``"spekpy"`` (default) folds the Ti into the source
+                spectrum via ``s.filter("Ti", thickness)``; the templates omit
+                the TsBox, so mm means mm with no half-length ambiguity, and
+                the beam line carries one less solid (marginally faster).
+                ``"geometric"`` keeps the Ti BHF as a physical TsBox in the
+                beam line (templates render it; note TOPAS HLZ is a
+                HALF-length, so the box spans 2x this thickness along Z) --
+                use it for full-geometry validation runs. The two modes agree
+                at equal physical thickness to ~3% (HVL 6.13 vs 6.29 mm Al,
+                kerma 597 vs 583 uGy; docs/bowtie_validation/). Switching modes
                 changes the beam spectrum and requires re-running the CTDI DCF
                 calibration.
         """

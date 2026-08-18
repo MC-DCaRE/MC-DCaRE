@@ -3,8 +3,10 @@
 - [x] Phase 1: absolute CAX kerma + transmission ratios (anchors, tool, runs)
 - [x] Phase 2: Ti-state bracketing + base-filtration attribution
   + NEW: `imaging.bhf_mode` toggle (geometric TsBox | spekpy-folded Ti)
-- [ ] Phase 3: HVL(Z) wedge map
-- [ ] Phase 4: Gros 2025 Kair per protocol
+- [x] Phase 3: HVL(Z) wedge map
+- [x] Phase 4: Gros 2025 Kair per protocol
+  + `imaging.bhf_mode` default flipped to spekpy (faster, mm=mm); geometric
+    retained as the full-geometry validation toggle
 - [ ] Phase 5: literature per-100 mAs benchmarks + docs
 
 ## 1. Absolute CAX kerma (Ti in)
@@ -24,14 +26,14 @@
 
 ## 3. HVL(Z) wedge map
 
-- [ ] 3.1 config + scorer: `ZBins=40 x EBins=100` energy-resolved profile (new config; production profile config unchanged)
-- [ ] 3.2 `tools/compute_hvl_map.py`: per-Z fold -> HVL(Z) CSV + plot vs measured hvl_mmAl (Head FF + Pelvis HF, TsCAD + legacy)
-- [ ] 3.3 record wedge-shape verdicts (this is the sharpest bow-tie test)
+- [x] 3.1 config + scorer: `ZBins=40 x EBins=150` energy-resolved profile (`validate_bowtie_hvlmap` flag; production profile config unchanged)
+- [x] 3.2 `tools/compute_hvl_map.py`: per-Z fold -> HVL(Z) CSV + plot vs measured + STL ray-cast geometry prediction (Head FF TsCAD)
+- [x] 3.3 verdict: off-axis |Z|>=7 cm matches measured to 0.3-0.5 mm Al (wedge shape correct); central plateau short (5.6 vs 7.37); ray-cast prediction tracks MC everywhere (transport == geometry). Artefacts: docs/bowtie_validation/hvl_map_tscad_ff.*
 
 ## 4. Gros 2025 Kair per protocol
 
-- [ ] 4.1 five score-mode runs (Head/Thorax/Pelvis/Pelvis Large/Spotlight) clinical fields, absolute kerma at iso
-- [ ] 4.2 compare to Gros Kair (5.3/17.8/64.3/132.0/44.7 mGy) with technique matching noted (Spotlight outlier expected)
+- [x] 4.1 five clinical-field TsCAD runs (configs/validate_kerma_*.yaml incl. thorax_hf, pelvislarge_hf, spotlight_ff)
+- [x] 4.2 all protocols 5.7-9.8x high (mean 8.1, 23% spread): confirms the fluence-scale bias against an independent group's data; Thorax/Spotlight CAX kerma identical (HF crop shares the FF thin spot -- consistency check). Table in README
 
 ## 5. Literature per-100 mAs benchmarks
 

@@ -142,3 +142,33 @@ class TestBhfGating:
     def test_zero_thickness_omits_bhf(self, tmp_path: Any) -> None:
         content = self._render_score(tmp_path, bhf_thickness_mm=0.0)
         assert "Ge/BeamHardeningFilter/HLZ" not in content
+
+
+class TestHvlMapGating:
+    """validate_bowtie_hvlmap switches the profile scorer between the plain
+    80-bin Z profile and the energy-resolved 40x150 wedge map."""
+
+    def _render_score(self, tmp_path: Any, **over: object) -> str:
+        repo_root = os.path.join(os.path.dirname(__file__), "..", "..")
+        renderer = TemplateRenderer(
+            os.path.join(repo_root, "src", "boilerplates"), str(tmp_path / "out")
+        )
+        ctx: dict = {
+            "bhf_thickness_mm": 0.89,
+            "bhf_mode": "geometric",
+            "validate_bowtie": True,
+        }
+        ctx.update(over)
+        result = renderer.render("ctdi_phsp_score.j2", ctx, "score.txt")
+        with open(result) as f:
+            return f.read()
+
+    def test_hvlmap_adds_energy_binning(self, tmp_path: Any) -> None:
+        content = self._render_score(tmp_path, hvlmap=True)
+        assert "Sc/BowtieProfile/EBins" in content
+        assert "Sc/BowtieProfile/ZBins        = 40" in content
+
+    def test_default_profile_is_plain_z(self, tmp_path: Any) -> None:
+        content = self._render_score(tmp_path, hvlmap=False)
+        assert "Sc/BowtieProfile/EBins" not in content
+        assert "Sc/BowtieProfile/ZBins        = 80" in content

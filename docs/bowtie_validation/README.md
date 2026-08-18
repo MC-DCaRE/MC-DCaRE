@@ -21,6 +21,15 @@ causes the ~40 % low pelvis effective dose -- TsCAD's CAX dose is in fact
 *higher* than legacy, so the effective-dose gap lives elsewhere (spectrum /
 normalization / phantom), not in the bow-tie.
 
+**Amended 2026-08-18 (absolute-kerma round):** the profile result above is
+*wedge-shape only*. The follow-up absolute tests qualify the asset more
+precisely: the off-axis wedge is correct (HVL(Z) matches measurement within
+0.3-0.5 mm Al at |Z| >= 7 cm; see the wedge-map section), but the **central
+~5 cm plateau is ~5-6x under-thick** (STL CAX chord 1.48 mm Al vs ~8.3 mm
+Al-eq measured), and the MC absolute fluence scale is 3-10x high. The TsCAD
+adoption stands relative to legacy (which has the same central deficit), but a
+corrected central slab + DCF re-calibration is the follow-up.
+
 ## Methodology
 
 - **Scorer:** `TrackLengthEstimator` (fluence-based collision kerma) on a thin
@@ -137,10 +146,11 @@ New tooling: `tools/compare_cax_kerma.py` (canonical normalization via
 `compute_photons_per_mAs` + `raw_absolute_dose_Gy`), anchors in
 `data/measured/cax_kerma_anchors.yaml` (with provenance; the 120 kV 6.523-unit
 block and the 80 kV HVL are flagged/excluded). New config toggle:
-**`imaging.bhf_mode`** — `geometric` (default; physical Ti TsBox) vs `spekpy`
-(Ti folded into the source spectrum via `s.filter("Ti", mm)`, no TsBox, so mm
-means mm with no TOPAS half-length ambiguity). Zero thickness (Ti-out) is also
-valid.
+**`imaging.bhf_mode`** — `spekpy` (default since 2026-08-18; Ti folded into the
+source spectrum via `s.filter("Ti", mm)`, no TsBox, so mm means mm with no
+TOPAS half-length ambiguity, marginally faster) vs `geometric` (physical Ti
+TsBox; the full-geometry validation toggle). Zero thickness (Ti-out) is also
+valid (geometric only).
 
 **Ti-BHF bracketing, 100 kV no-bow-tie (measured HVL 5.04 mm Al, TF 4.7,
 kerma 112.8 uGy @ 1.6 mAs; Ti state of the measurement unstated):**
@@ -177,9 +187,109 @@ Findings:
 Configs: `configs/validate_kerma_*.yaml`. Switching `bhf_mode` or thickness
 changes the beam spectrum and requires re-running the CTDI DCF calibration.
 
+### Why the CAX transmission is 0.899 despite an acceptable HVL
+
+HVL and transmission are independent observables: HVL is a *normalised
+spectral-shape* metric (which half-attenuates the beam in Al), transmission is
+a *magnitude* metric (how much kerma survives). Our with-bow-tie HVL agreement
+(7.80 vs measured 7.37) is real but **degenerate** — it results from error
+cancellation: the base filtration over-hardens (no-bow-tie HVL 7.96 MC vs 5.04
+measured) while the bow-tie under-attenuates, and the two errors partially
+cancel in the with-bow-tie spectrum. The transmission test breaks the
+degeneracy. The quantitative chain (all arms consistent):
+
+| quantity | value | implies |
+|---|---|---|
+| STL CAX chord (ray-cast, watertight) | **1.48 mm Al** | spectral fold -> T = 0.85-0.90 |
+| MC bt/nobt transmission (Ti-in pair) | 0.899 | ~1.0-1.5 mm effective: transport consistent with the mesh |
+| measured CAX TF (RaySafe TF column) | 13 mm Al (base 4.7) | **~8.3 mm Al-eq of real central bow-tie material** -> T = 0.52 |
+| measured bt/nobt | 0.523 | confirms ~6-8 mm Al-eq |
+
+So the TsCAD STL central region is **~5-6x too thin** (1.48 vs ~8.3 mm Al-eq).
+Crucially, the original Inbum scan (`research/Monte Carlo Stuff from
+Inbum/bowtie.stl`) has the *same* 1.48 mm CAX chord — the processing pipeline
+is faithful; the source scan itself lacks the central material (likely a
+scan/segmentation artifact at the wedge minimum). Off-axis the asset is about
+right: the chord ramps 1.5 -> 4 -> 11 -> 28 mm at Z = 0/5/10/20 mm, matching
+the measured edge HVL (~10 mm Al at iso +/-12-14 cm). This is exactly why the
+peak-normalised profile comparison passed (RMS 0.078): normalising at the peak
+divides out the central deficit, and the wedge *shape* (edges) is correct.
+
+**Legacy corroboration:** the legacy CSG's wedges are entirely commented out
+in `fullfan.txt` — the only live central element is the `DemoFlat` slab
+(HLX = 1 mm half-length -> 2.0 mm Al), predicting T = 0.811. So both prior
+bow-ties under-attenuate the CAX by a similar factor, which is why the TsCAD
+and legacy DCFs came out nearly equal, and why the "legacy is flat" profile
+behaviour was observed (it is literally a flat slab, no wedge).
+
+**Consequence / follow-up:** composite the STL with a central Al slab (or
+re-source the scan) to bring the CAX to ~8.3 mm Al-eq, then re-run the profile
++ HVL + transmission validation and the full DCF calibration. This is a
+candidate contributor to the residual effective-dose gap (the CAX fluence
+entering the phantom is over-weighted ~1.7x at the beam centre).
+
+## HVL(Z) wedge map (2026-08-18)
+
+Energy-resolved Z profile (config `validate_bowtie_hvlmap_tscad.yaml`: the
+`validate_bowtie` slab with `ZBins=40 x EBins=150 x 1 keV`, wide field),
+each Z row folded with NIST Al by `tools/compute_hvl_map.py`. The tool also
+computes a **geometry-only prediction** (scored no-bow-tie spectrum folded
+through the STL ray-cast chord at the corresponding bow-tie-plane position,
+magnification 0.18) -- if the MC matches this prediction, transport is
+consistent with the mesh and any residual is the asset itself.
+
+| Z (cm) | MC HVL | measured | STL ray-cast pred |
+|---|---|---|---|
+| -0.5 | 5.74 | 7.37 | 6.14 |
+| 0.5 | 5.62 | 7.37 | 6.14 |
+| 4.5 | 7.27 | 7.81 | 7.84 |
+| 6.5 | 8.25 | 8.48 | 9.09 |
+| 7.5 | 9.00 | 9.42 | 9.43 |
+| 9.5 | 9.57 | 9.65 | 9.70 |
+| 11.5 | 9.22 | 9.81 | 9.70 |
+| 13.5 | 9.49 | 9.98 | 9.70 |
+
+(The Z=5.5 row is a ramp-boundary artefact; full table in the runfolder's
+`hvl_map.csv`, plot in `hvl_map.png`.)
+
+**Verdict:** off-axis (|Z| >= 7 cm) the MC wedge matches measurement to
+0.3-0.5 mm Al -- the wedge *shape* is right. The central plateau is short
+(5.6 vs 7.37), and the ray-cast prediction tracks the MC closely across the
+whole wedge, confirming transport == geometry: the deficit is in the asset's
+central thickness, not the simulation. This spatially localises the
+transmission finding and closes the sharpest open bow-tie test.
+
+## Per-protocol absolute free-in-air kerma vs Gros 2025 (2026-08-18)
+
+CAX kerma per mAs from the five clinical-field TsCAD arms
+(`tools/compare_cax_kerma.py`), scaled to each protocol's technique mAs and
+compared to Gros et al. 2025 (arXiv:2502.01509) Farmer free-in-air Kair:
+
+| protocol | MC uGy/mAs | MC @ mAs (mGy) | Gros Kair (mGy) | ratio |
+|---|---|---|---|---|
+| Head (100 FF) | 201 | 30.2 | 5.3 | 5.7x |
+| Thorax (125 HF) | 575 | 154.4 | 17.8 | 8.7x |
+| Pelvis (125 HF) | 397 | 426.0 | 64.3 | 6.6x |
+| Pelvis Large (140 HF) | 758 | 1289.1 | 132.0 | 9.8x |
+| Spotlight (125 FF) | 575 | 432.3 | 44.7 | 9.7x |
+
+**Findings.** (1) Every protocol is high by 5.7-9.8x, re-confirming the
+`photons_per_mAs` fluence-scale bias already measured against the RaySafe
+per-frame anchors (5-7x there) -- an independent group's measurements agree
+with our own machine's, so the bias is in the MC normalization chain, not the
+references. (2) The bias is *not* perfectly constant (23% spread; lowest for
+Head FF at 5.7x, highest for the 140 kV and Spotlight protocols at ~9.8x).
+A single global fluence rescale would leave this residual protocol dependence
+behind, so at least one further kV/filtration-dependent error rides along
+(candidates: the over-hard base filtration model, the under-thin STL centre,
+or SpekPy output scaling with kV). Disentangling needs the fluence re-anchor
+first. (3) Thorax (HF) and Spotlight (FF) give identical CAX kerma per mAs
+(575.2) -- expected: the HF STL is a lateral crop of the FF, so both share
+the same thin-spot geometry and spectrum at the exact CAX; a useful internal
+consistency check.
+
 ## Final outcome (post re-calibration, 2026-08-14/18)
 
-Adopted TsCAD (`legacy_bowtie=False` default), full DCF re-calibration at TsCAD
 (6 protocols, `calibration.yaml` date_calibrated 2026-08-14: dcf_tle 80 FF
 0.20361, 100 FF 0.19744, 125 FF 0.19097, 125 HF 0.26365, 140 HF 0.27683).
 

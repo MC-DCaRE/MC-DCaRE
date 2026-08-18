@@ -285,7 +285,16 @@ s:Sc/BowtieProfile/IfOutputFileAlreadyExists = "Overwrite"
 sv:Sc/BowtieProfile/Report = 4 "Sum" "Histories" "Count_In_Bin" "Standard_Deviation"
 i:Sc/BowtieProfile/XBins        = 1
 i:Sc/BowtieProfile/YBins        = 1
+{% if hvlmap %}
+# HVL(Z) wedge-map variant (validate_bowtie_hvlmap): coarser Z bins, energy-
+# binned fluence. Each Z row's spectrum is folded with NIST Al by
+# tools/compute_hvl_map.py and compared to the measured per-position HVL.
+i:Sc/BowtieProfile/ZBins        = 40
+i:Sc/BowtieProfile/EBins        = 150
+d:Sc/BowtieProfile/EBinMax      = 150 keV
+{% else %}
 i:Sc/BowtieProfile/ZBins        = 80
+{% endif %}
 
 ###########################################################
 # CAX energy spectrum (HVL): a small slab on the central

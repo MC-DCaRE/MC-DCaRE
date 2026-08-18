@@ -8,7 +8,7 @@
   + `imaging.bhf_mode` default flipped to spekpy (faster, mm=mm); geometric
     retained as the full-geometry validation toggle
 - [x] Phase 5a (added): measured fluence anchor -- implemented + verified
-- [ ] Phase 5: literature per-100 mAs benchmarks + docs
+- [x] Phase 5: literature per-100 mAs benchmarks + docs
 
 ## 5b. Measured fluence anchor (executed 2026-08-18, post blade fix)
 
@@ -50,7 +50,7 @@
 
 ## 5. Literature per-100 mAs benchmarks
 
-- [ ] 5.1 `data/literature/abuhaimed2023_tables.yaml` (Tables 2-3 organ + SSED per 100 mAs)
-- [ ] 5.2 tool/analysis: our edose organ_doses + E per 100 mAs vs tables; organ-level residual table
-- [ ] 5.3 docs: update Literature comparison section (add per-100 mAs normalisation insight: bladder -8%, RBM ~4x low)
-- [ ] 5.4 quality gates (ruff/mypy/pytest) + commit/push
+- [x] 5.1 `data/literature/abuhaimed2023_tables.yaml` (Tables 2-3, full BMI classes C1-C6+All; staged for the phantom-library change)
+- [x] 5.2 `tools/compare_abuhaimed2023.py` (+4 unit tests): E per 100 mAs vs tables (stale-sweep ratios Thorax 0.37 / Pelvis 0.24); organ-level table attaches post-recalibration
+- [x] 5.3 docs: per-100 mAs subsection added to Literature comparison (kV caveat noted)
+- [x] 5.4 quality gates (ruff/mypy/pytest) + commit/push (613 tests green)

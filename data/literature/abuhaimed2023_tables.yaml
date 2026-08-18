@@ -1,0 +1,49 @@
+# Abuhaimed & Martin 2023 (J Radiol Prot; eprints.gla.ac.uk/152785) Tables 2-3.
+# Organ and size-specific effective doses per 100 mAs for kV-CBCT chest and
+# pelvis scans, NCI/UF hybrid phantom library (193 adults) grouped by WHO BMI
+# class, BEAMnrc/DOSXYZnrc (EGSnrc) MC of the Varian TrueBeam OBI.
+#
+# Technique: 120 kV, 360 deg, single default field 22 cm (longitudinal) x
+# 28.1 cm (lateral), phase-space replay per scan position. Doses in
+# mGy/100 mAs (organs) and mSv/100 mAs (effective). Transcribed from the
+# manuscript Tables 2-3 (BMI classes C1 underweight .. C6 obesity-III plus
+# the all-size average "All").
+#
+# CAVEATS for comparison against MC-DCaRE: (1) kV differs (ours 125 kV vs
+# their 120 kV) -- per-100 mAs normalization removes mAs, not kV; expect a
+# few-% harder spectrum at 125 kV. (2) Their OBI generation (V2.5-class,
+# 2023 paper) may differ from this machine's techniques. (3) Only organs
+# fully/partially inside the scan field are listed.
+source: "Abuhaimed & Martin 2023, BMI phantom library, EGSnrc MC"
+kV: 120
+scan: 360 deg, default field 22 x 28.1 cm
+bmi_classes: [C1, C2, C3, C4, C5, C6, All]
+chest:
+  RBM: [1.42, 1.19, 1.02, 0.91, 0.84, 0.82, 1.00]
+  Lung: [3.53, 2.89, 2.34, 2.02, 1.81, 1.71, 2.30]
+  Stomach: [1.05, 0.83, 0.69, 0.63, 0.60, 0.63, 0.71]
+  Breast: [3.24, 2.87, 2.55, 2.30, 2.15, 2.07, 2.48]
+  Adrenals: [0.65, 0.52, 0.45, 0.39, 0.37, 0.38, 0.44]
+  Gall bladder: [0.60, 0.46, 0.40, 0.35, 0.35, 0.38, 0.40]
+  Heart: [4.48, 3.72, 3.04, 2.51, 2.22, 2.00, 2.90]
+  Kidneys: [0.26, 0.21, 0.20, 0.18, 0.18, 0.19, 0.20]
+  Pancreas: [0.34, 0.27, 0.24, 0.22, 0.22, 0.24, 0.24]
+  Spleen: [0.82, 0.67, 0.58, 0.54, 0.53, 0.56, 0.60]
+  Thymus: [4.54, 3.90, 3.31, 2.74, 2.36, 2.01, 3.06]
+  Oesophagus: [3.30, 2.62, 2.07, 1.69, 1.46, 1.32, 1.99]
+  Liver: [1.56, 1.16, 0.95, 0.83, 0.78, 0.80, 0.96]
+  Thyroid: [1.67, 1.33, 1.28, 1.13, 1.12, 1.08, 1.23]
+  Skin: [0.60, 0.52, 0.47, 0.44, 0.43, 0.41, 0.47]
+  effective_dose_mSv_per_100mAs: [3.01, 2.51, 2.14, 1.86, 1.70, 1.61, 2.07]
+pelvis:
+  RBM: [1.60, 1.40, 1.18, 1.05, 0.92, 0.78, 1.13]
+  Colon: [0.82, 0.68, 0.61, 0.55, 0.51, 0.47, 0.59]
+  Small intestine: [1.43, 1.24, 1.01, 0.83, 0.71, 0.58, 0.94]
+  Kidneys: [0.21, 0.20, 0.17, 0.16, 0.15, 0.14, 0.17]
+  Prostate: [4.58, 3.92, 3.57, 3.16, 2.78, 2.23, 3.37]
+  Uterus: [3.50, 2.90, 2.25, 1.80, 1.46, 1.18, 2.05]
+  Ovaries: [3.82, 3.18, 2.46, 1.97, 1.63, 1.32, 2.26]
+  Testes: [5.48, 4.70, 4.57, 4.38, 4.28, 3.60, 4.47]
+  Urinary bladder: [4.36, 3.73, 3.07, 2.54, 2.14, 1.66, 2.84]
+  Skin: [0.66, 0.57, 0.52, 0.48, 0.46, 0.44, 0.51]
+  effective_dose_mSv_per_100mAs: [1.68, 1.47, 1.28, 1.12, 0.98, 0.76, 1.19]

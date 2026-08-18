@@ -354,6 +354,7 @@ calibration.yaml
 /data/*
 !/data/nist/
 !/data/measured/
+!/data/literature/
 
 # Beads / Dolt files (added by bd init)
 .dolt/

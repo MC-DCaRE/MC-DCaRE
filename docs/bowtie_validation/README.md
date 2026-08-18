@@ -398,6 +398,18 @@ Spotlight outlier (+142%) suggests a different Spotlight technique generation
 between the two machines; this machine's 12.3 mGy chamber measurement is what
 the 125 FF DCF is anchored to and is retained.
 
+### Per-100 mAs benchmark (Abuhaimed & Martin 2023 BMI library)
+
+`data/literature/abuhaimed2023_tables.yaml` (Tables 2-3, full BMI classes)
++ `tools/compare_abuhaimed2023.py` normalise our sweep to mSv/100 mAs. On the
+current (pre-blade-fix, pre-anchor) sweep the ratios are Thorax 0.37 and
+Pelvis 0.24 vs their all-size 2.07 / 1.19 mSv per 100 mAs -- consistent with
+the documented residual gap; the organ-level table (bladder vs RBM
+localisation) attaches once the post-recalibration sweep lands. Caveats: their
+120 kV vs our 125 kV (per-100 mAs removes mAs, not kV) and OBI-generation
+differences. The BMI-class columns are staged for the phantom-library change
+(size-specific dosimetry).
+
 ### Effective dose: MC and measurement literature vs this work
 
 Published TrueBeam-OBI-class effective doses (male phantoms, default

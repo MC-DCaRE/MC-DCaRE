@@ -42,23 +42,27 @@ class ImagingMode:
     ctdiw_reference: str
 
 
-# Full Fan blade openings (small field)
-_FF_BX1 = "6.175536078965273 cm"
-_FF_BX2 = "-6.175536078965273 cm"
-_FF_BY1 = "5.814471115800571 cm"
-_FF_BY2 = "-5.814471115800571 cm"
+# Blade openings from geometric demagnification (blade = field x 11.7/100,
+# BLADE_DEMAGNIFICATION in fieldtobladeopening.py). Full-fan field is
+# (14, 14, 10.7, 10.7) cm, half-fan (24.7, 3.3, 10.7, 10.7) cm and kV-kV
+# (13.2, 13.2, 9.9, 9.9) cm at the isocenter; blade edges sit 11.7 cm from
+# the source on the 100 cm source-isocenter axis.
+_FF_BX1 = "1.638 cm"
+_FF_BX2 = "-1.638 cm"
+_FF_BY1 = "1.2519 cm"
+_FF_BY2 = "-1.2519 cm"
 
 # Half Fan blade openings (large field)
-_HF_BX1 = "6.94034206943498 cm"
-_HF_BX2 = "-5.410730088495566 cm"
-_HF_BY1 = "5.814471115800571 cm"
-_HF_BY2 = "-5.814471115800571 cm"
+_HF_BX1 = "2.8899 cm"
+_HF_BX2 = "-0.3861 cm"
+_HF_BY1 = "1.2519 cm"
+_HF_BY2 = "-1.2519 cm"
 
 # kV-kV blade openings
-_KV_BX1 = "6.1183543226684725 cm"
-_KV_BX2 = "-6.1183543226684725 cm"
-_KV_BY1 = "5.768414666314948 cm"
-_KV_BY2 = "-5.768414666314948 cm"
+_KV_BX1 = "1.5444 cm"
+_KV_BX2 = "-1.5444 cm"
+_KV_BY1 = "1.1583 cm"
+_KV_BY2 = "-1.1583 cm"
 
 # kV-kV new-field sentinel values (8 values appended to each kV-kV tuple)
 _KV_NEW = ("N/A", "N/A", "0 deg", "N/A", "N/A", "N/A", "N/A", "N/A")

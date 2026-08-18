@@ -10,84 +10,76 @@ class TestFieldToBladeOpening:
     @pytest.mark.parametrize(
         "input_field,expected_output",
         [
-            # Standard field sizes
+            # Standard field sizes (geometric demagnification x 11.7/100)
             (
                 ["14 cm", "14 cm", "14 cm", "14 cm"],
                 [
-                    "6.175536078965273 cm",
-                    "-6.175536078965273 cm",
-                    "6.004453969928769 cm",
-                    "-6.004453969928769 cm",
+                    "1.638 cm",
+                    "-1.638 cm",
+                    "1.638 cm",
+                    "-1.638 cm",
                 ],
             ),
             # Different numeric values
             (
                 ["5 cm", "5 cm", "5 cm", "5 cm"],
                 [
-                    "5.532241320626267 cm",
-                    "-5.532241320626267 cm",
-                    "5.486318913215502 cm",
-                    "-5.486318913215502 cm",
+                    "0.585 cm",
+                    "-0.585 cm",
+                    "0.585 cm",
+                    "-0.585 cm",
                 ],
             ),
             (
                 ["10 cm", "10 cm", "10 cm", "10 cm"],
                 [
-                    "5.889627297481271 cm",
-                    "-5.889627297481271 cm",
-                    "5.77417172250065 cm",
-                    "-5.77417172250065 cm",
+                    "1.17 cm",
+                    "-1.17 cm",
+                    "1.17 cm",
+                    "-1.17 cm",
                 ],
             ),
             (
                 ["30 cm", "30 cm", "30 cm", "30 cm"],
                 [
-                    "7.319171204901283 cm",
-                    "-7.319171204901283 cm",
-                    "6.925582959641245 cm",
-                    "-6.925582959641245 cm",
+                    "3.51 cm",
+                    "-3.51 cm",
+                    "3.51 cm",
+                    "-3.51 cm",
                 ],
             ),
             # Minimum field size
             (
                 ["0 cm", "0 cm", "0 cm", "0 cm"],
-                [
-                    "5.174855343771264 cm",
-                    "-5.174855343771264 cm",
-                    "5.198466103930353 cm",
-                    "-5.198466103930353 cm",
-                ],
+                ["0.0 cm", "-0.0 cm", "0.0 cm", "-0.0 cm"],
             ),
             # Maximum field size
             (
                 ["40 cm", "40 cm", "40 cm", "40 cm"],
                 [
-                    "8.03394315861129 cm",
-                    "-8.03394315861129 cm",
-                    "7.501288578211542 cm",
-                    "-7.501288578211542 cm",
+                    "4.68 cm",
+                    "-4.68 cm",
+                    "4.68 cm",
+                    "-4.68 cm",
                 ],
             ),
             # Decimal values
             (
                 ["12.5 cm", "12.5 cm", "12.5 cm", "12.5 cm"],
                 [
-                    "6.068320285908772 cm",
-                    "-6.068320285908772 cm",
-                    "5.9180981271432245 cm",
-                    "-5.9180981271432245 cm",
+                    "1.4625 cm",
+                    "-1.4625 cm",
+                    "1.4625 cm",
+                    "-1.4625 cm",
                 ],
             ),
-            # Unit variations - these will fail with current implementation due to parsing bug
-            # (["14cm", "14cm", "14cm", "14cm"],
-            #  ["5.367413028296427 cm", "-5.367413028296427 cm", "6.029994381937938 cm", "-6.029994381937938 cm"]),
             (
                 ["14 CM", "14 CM", "14 CM", "14 CM"],
                 [
-                    "6.175536078965273 CM",
-                    "-6.175536078965273 CM",
-                    "6.004453969928769 CM",
-                    "-6.004453969928769 CM",
+                    "1.638 CM",
+                    "-1.638 CM",
+                    "1.638 CM",
+                    "-1.638 CM",
                 ],
             ),
         ],
@@ -126,7 +118,7 @@ class TestFieldToBladeOpening:
 
     def test_fieldtobladeopening_different_values(self):
         """Test fieldtobladeopening with different values for each field."""
-        input_field = ["2 cm", "4 cm", "16 cm", "20 cm"]
+        input_field = ["2 cm", "2 cm", "16 cm", "16 cm"]
         result = fieldtobladeopening(input_field)
 
         # Check that all results are strings

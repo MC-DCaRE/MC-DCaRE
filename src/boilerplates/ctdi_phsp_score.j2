@@ -60,134 +60,123 @@ s:Ge/CollimatorsHorizontal/Parent="CollimatorsVertical"
 dc:Ge/CollimatorsHorizontal/RotX=0. deg
 dc:Ge/CollimatorsHorizontal/RotY=0. deg
 dc:Ge/CollimatorsHorizontal/RotZ=180. deg
-d:Ge/CollimatorsHorizontal/TransZ=1.4 cm + Ge/Coll1/LY
+d:Ge/CollimatorsHorizontal/TransZ=1.4 cm + Ge/Coll1/HLZ
+
+###########################################################
+# kV jaw blades: RECTANGULAR lead blocks (TsBox).
+# TODO: adapt to trapezoid blades (true jaw shape) later.
+#
+# Convention: collN_trans_* is the FIELD-DEFINING APERTURE EDGE
+# (cm, from fieldtobladeopening geometric demagnification: field x 11.7/100).
+# The block centre is offset OUTWARD by its shaping half-length (HLY), so the
+# inner face sits exactly at the aperture edge. Rectangles replace the old
+# G4RTrap wedges, whose taper corners collided at small (demagnified)
+# openings; the original per-blade rotations are kept (they orient the thin
+# axis along the shaping direction). HLX/HLZ are housing coverage -- make
+# them larger if off-axis leakage appears in the fluence-slab diagnostic.
+###########################################################
 
 # top collimator
-s:Ge/Coll1/Type="G4RTrap"
+s:Ge/Coll1/Type="TsBox"
 s:Ge/Coll1/Parent="CollimatorsVertical"
 s:Ge/Coll1/Material="Lead"
 dc:Ge/Coll1/TransX=0 cm
-dc:Ge/Coll1/TransY = {{ coll1_trans_y }}
+dc:Ge/Coll1/TransY = {{ coll1_trans_y }} + Ge/Coll1/HLY
 dc:Ge/Coll1/TransZ=0. cm
-dc:Ge/Coll1/RotX=-90. deg
-dc:Ge/Coll1/RotY=90. deg
-dc:Ge/Coll1/RotZ=0 deg
-dc:Ge/Coll1/LZ=120. mm
-dc:Ge/Coll1/LY=3. mm
-dc:Ge/Coll1/LX=100. mm
-dc:Ge/Coll1/LTX=92. mm
+d:Ge/Coll1/HLX=7.5 cm
+d:Ge/Coll1/HLY=3.0 cm
+d:Ge/Coll1/HLZ=0.5 cm
 s:Ge/Coll1/Color="red"
 
 # bottom collimator
-s:Ge/Coll2/Type="G4RTrap"
+s:Ge/Coll2/Type="TsBox"
 s:Ge/Coll2/Parent="CollimatorsVertical"
 s:Ge/Coll2/Material="Lead"
 dc:Ge/Coll2/TransX=0 cm
-dc:Ge/Coll2/TransY = {{ coll2_trans_y }}
+dc:Ge/Coll2/TransY = {{ coll2_trans_y }} - Ge/Coll2/HLY
 dc:Ge/Coll2/TransZ=0. cm
-dc:Ge/Coll2/RotX=-90. deg
-dc:Ge/Coll2/RotY=270. deg
-dc:Ge/Coll2/RotZ=0 deg
-dc:Ge/Coll2/LZ=120. mm
-dc:Ge/Coll2/LY=3. mm
-dc:Ge/Coll2/LX=100. mm
-dc:Ge/Coll2/LTX=92. mm
+d:Ge/Coll2/HLX=7.5 cm
+d:Ge/Coll2/HLY=3.0 cm
+d:Ge/Coll2/HLZ=0.5 cm
 s:Ge/Coll2/Color="red"
 
 # right collimator
-s:Ge/Coll3/Type="G4RTrap"
+s:Ge/Coll3/Type="TsBox"
 s:Ge/Coll3/Parent="CollimatorsHorizontal"
 s:Ge/Coll3/Material="Lead"
-dc:Ge/Coll3/TransX = {{ coll3_trans_x }}
+dc:Ge/Coll3/TransX = {{ coll3_trans_x }} + Ge/Coll3/HLX
 dc:Ge/Coll3/TransY=0. cm
 dc:Ge/Coll3/TransZ=0. cm
-dc:Ge/Coll3/RotX=-90. deg
-dc:Ge/Coll3/RotY=180. deg
-dc:Ge/Coll3/RotZ=0 deg
-dc:Ge/Coll3/LZ=120. mm
-dc:Ge/Coll3/LY=3. mm
-dc:Ge/Coll3/LX=100. mm
-dc:Ge/Coll3/LTX=92. mm
+d:Ge/Coll3/HLX=3.0 cm
+d:Ge/Coll3/HLY=7.5 cm
+d:Ge/Coll3/HLZ=0.5 cm
 s:Ge/Coll3/Color="red"
 
 # left collimator
-s:Ge/Coll4/Type="G4RTrap"
+s:Ge/Coll4/Type="TsBox"
 s:Ge/Coll4/Parent="CollimatorsHorizontal"
 s:Ge/Coll4/Material="Lead"
-dc:Ge/Coll4/TransX = {{ coll4_trans_x }}
+dc:Ge/Coll4/TransX = {{ coll4_trans_x }} - Ge/Coll4/HLX
 dc:Ge/Coll4/TransY=0. cm
 dc:Ge/Coll4/TransZ=0. cm
-dc:Ge/Coll4/RotX=-90. deg
-dc:Ge/Coll4/RotY=0. deg
-dc:Ge/Coll4/RotZ=0 deg
-dc:Ge/Coll4/LZ=120. mm
-dc:Ge/Coll4/LY=3. mm
-dc:Ge/Coll4/LX=100. mm
-dc:Ge/Coll4/LTX=92. mm
+d:Ge/Coll4/HLX=3.0 cm
+d:Ge/Coll4/HLY=7.5 cm
+d:Ge/Coll4/HLZ=0.5 cm
 s:Ge/Coll4/Color="red"
 
+###########################################################
+# Steel backing plates: rectangles sharing the lead's shaping
+# footprint, separated along the bank stack axis (TransZ=-0.75 cm,
+# shared face at the lead rear). No chained relative params: the
+# shaping centre repeats the lead's const+param expression.
+###########################################################
+
 # top collimator steel backing
-s:Ge/Coll1steel/Type="G4RTrap"
+s:Ge/Coll1steel/Type="TsBox"
 s:Ge/Coll1steel/Parent="CollimatorsVertical"
 s:Ge/Coll1steel/Material="Steel"
 dc:Ge/Coll1steel/TransX=0 cm
-dc:Ge/Coll1steel/TransY=Ge/Coll1/TransY - 0.2 cm
-dc:Ge/Coll1steel/TransZ=-0.25 cm
-dc:Ge/Coll1steel/RotX=-90. deg
-dc:Ge/Coll1steel/RotY=90. deg
-dc:Ge/Coll1steel/RotZ=0 deg
-dc:Ge/Coll1steel/LZ=120. mm
-dc:Ge/Coll1steel/LY=2. mm
-dc:Ge/Coll1steel/LX=100. mm
-dc:Ge/Coll1steel/LTX=100. mm
+dc:Ge/Coll1steel/TransY = {{ coll1_trans_y }} + Ge/Coll1/HLY
+dc:Ge/Coll1steel/TransZ=-0.75 cm
+d:Ge/Coll1steel/HLX=7.5 cm
+d:Ge/Coll1steel/HLY=3.0 cm
+d:Ge/Coll1steel/HLZ=0.25 cm
 s:Ge/Coll1steel/Color="pink"
 
 # bottom collimator steel backing
-s:Ge/Coll2steel/Type="G4RTrap"
+s:Ge/Coll2steel/Type="TsBox"
 s:Ge/Coll2steel/Parent="CollimatorsVertical"
 s:Ge/Coll2steel/Material="Steel"
 dc:Ge/Coll2steel/TransX=0 cm
-dc:Ge/Coll2steel/TransY=Ge/Coll2/TransY + 0.2 cm
-dc:Ge/Coll2steel/TransZ=-0.25 cm
-dc:Ge/Coll2steel/RotX=-90. deg
-dc:Ge/Coll2steel/RotY=270. deg
-dc:Ge/Coll2steel/RotZ=0 deg
-dc:Ge/Coll2steel/LZ=120. mm
-dc:Ge/Coll2steel/LY=2. mm
-dc:Ge/Coll2steel/LX=100. mm
-dc:Ge/Coll2steel/LTX=100. mm
+dc:Ge/Coll2steel/TransY = {{ coll2_trans_y }} - Ge/Coll2/HLY
+dc:Ge/Coll2steel/TransZ=-0.75 cm
+d:Ge/Coll2steel/HLX=7.5 cm
+d:Ge/Coll2steel/HLY=3.0 cm
+d:Ge/Coll2steel/HLZ=0.25 cm
 s:Ge/Coll2steel/Color="pink"
 
 # right collimator steel backing
-s:Ge/Coll3steel/Type="G4RTrap"
+s:Ge/Coll3steel/Type="TsBox"
 s:Ge/Coll3steel/Parent="CollimatorsHorizontal"
 s:Ge/Coll3steel/Material="Steel"
-dc:Ge/Coll3steel/TransX=Ge/Coll3/TransX - 0.2 cm
+dc:Ge/Coll3steel/TransX = {{ coll3_trans_x }} + Ge/Coll3steel/HLX
 dc:Ge/Coll3steel/TransY=0. cm
-dc:Ge/Coll3steel/TransZ=-0.25 cm
-dc:Ge/Coll3steel/RotX=-90. deg
-dc:Ge/Coll3steel/RotY=180. deg
-dc:Ge/Coll3steel/RotZ=0 deg
-dc:Ge/Coll3steel/LZ=120. mm
-dc:Ge/Coll3steel/LY=2. mm
-dc:Ge/Coll3steel/LX=100. mm
-dc:Ge/Coll3steel/LTX=100. mm
+dc:Ge/Coll3steel/TransZ=-0.75 cm
+d:Ge/Coll3steel/HLX=3.0 cm
+d:Ge/Coll3steel/HLY=7.5 cm
+d:Ge/Coll3steel/HLZ=0.25 cm
 s:Ge/Coll3steel/Color="pink"
 
 # left collimator steel backing
-s:Ge/Coll4steel/Type="G4RTrap"
+s:Ge/Coll4steel/Type="TsBox"
 s:Ge/Coll4steel/Parent="CollimatorsHorizontal"
 s:Ge/Coll4steel/Material="Steel"
-dc:Ge/Coll4steel/TransX=Ge/Coll4/TransX + 0.2 cm
+dc:Ge/Coll4steel/TransX = {{ coll4_trans_x }} - Ge/Coll4steel/HLX
 dc:Ge/Coll4steel/TransY=0. cm
-dc:Ge/Coll4steel/TransZ=-0.25 cm
-dc:Ge/Coll4steel/RotX=-90. deg
-dc:Ge/Coll4steel/RotY=0. deg
-dc:Ge/Coll4steel/RotZ=0 deg
-dc:Ge/Coll4steel/LZ=120. mm
-dc:Ge/Coll4steel/LY=2. mm
-dc:Ge/Coll4steel/LX=100. mm
-dc:Ge/Coll4steel/LTX=100. mm
+dc:Ge/Coll4steel/TransZ=-0.75 cm
+d:Ge/Coll4steel/HLX=3.0 cm
+d:Ge/Coll4steel/HLY=7.5 cm
+d:Ge/Coll4steel/HLZ=0.25 cm
 s:Ge/Coll4steel/Color="pink"
 
 # Beam Hardening Filter Group

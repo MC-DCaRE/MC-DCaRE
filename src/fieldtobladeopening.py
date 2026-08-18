@@ -1,10 +1,18 @@
 """Converts radiation field sizes to collimator blade opening positions.
 
-Linear calibration coefficients derived from the TrueBeam kV collimator values
-recorded in ``research/2023 - CBCT Mode Standardisation/TrueBeamCBCTmodes.xlsx``
-(TB4.1 July25 sheet) and corroborated by the per-mode service screenshots in the
-same collection (CST / OBK / PL LA3-LA5 sites). Full-fan blade tuple is
-(14, 14, 10.7, 10.7) mm and half-fan is (24.7, 3.3, 10.7, 10.7) mm.
+Geometric demagnification: the kV jaw blades sit 11.7 cm downstream of the
+source (``Ge/CollimatorsVertical/TransY``) and the isocenter is at 100 cm
+(``Ge/BeamPosition/TransY = -1000 mm``), so a field edge of F cm at the
+isocenter projects to a blade edge at F x 11.7/100 cm from the central axis.
+
+The previous affine fits (``blade = (field + 90.3)/17.4`` etc., regressed
+from service-mode readouts) produced openings 4-8x too wide: the 2026-08-18
+patient-plane fluence-slab diagnostic (``tools/run_fluence_slab.py``, run
+``edose_validation_runs/2026-08-18_12-16-10``) measured only 23.2% of the
+pelvis-mode kerma inside the intended X/Z field, with a +-50 cm effective
+fan -- the blades were physically clear of the beam instead of shaping it.
+Full-fan blade tuple is (14, 14, 10.7, 10.7) mm and half-fan is
+(24.7, 3.3, 10.7, 10.7) mm at the isocenter.
 """
 
 from __future__ import annotations
@@ -16,6 +24,13 @@ from src.models.quantity import Quantity
 
 logger = logging.getLogger(__name__)
 
+# kV collimator geometry (see headsourcecode_boilerplate.j2)
+BLADE_SOURCE_DISTANCE_CM = 11.7  # Ge/CollimatorsVertical/TransY
+SOURCE_ISOCENTER_DISTANCE_CM = 100.0  # |Ge/BeamPosition/TransY|
+
+# Field-to-blade demagnification: blade edge = field edge x SDD/SAD
+BLADE_DEMAGNIFICATION = BLADE_SOURCE_DISTANCE_CM / SOURCE_ISOCENTER_DISTANCE_CM
+
 
 def fieldtobladeopening(field_size_list: List[str]) -> List[str]:
     """Convert four field-size strings to collimator blade opening positions.
@@ -25,25 +40,14 @@ def fieldtobladeopening(field_size_list: List[str]) -> List[str]:
             [x1, x2, y1, y2], each with a numeric value and unit (e.g. ``"14 cm"``).
 
     Returns:
-        Four blade-opening strings with sign indicating direction.
-
-    Raises:
-        TypeError: If a field-size string does not contain a numeric value.
+        Four blade-opening strings with sign indicating direction
+        (x1/y1 positive, x2/y2 negative), matching the Coll1..Coll4
+        TransY/TransX template slots.
     """
 
-    def ybladeopening(field: float) -> float:
-        """Convert field size (cm) to Y-blade opening position (cm).
-
-        Linear calibration: blade = (field + 90.297) / 17.370
-        """
-        return (field + 90.2972966781214) / 17.3699885452463
-
-    def xbladeopening(field: float) -> float:
-        """Convert field size (cm) to X-blade opening position (cm).
-
-        Linear calibration: blade = (field + 72.399) / 13.990
-        """
-        return (field + 72.3986904761904) / 13.9904761904762
+    def bladeopening(field: float) -> float:
+        """Convert field size at isocenter (cm) to blade edge position (cm)."""
+        return field * BLADE_DEMAGNIFICATION
 
     blade_position_list: List[str] = []
     for count, field_str in enumerate(field_size_list):
@@ -63,13 +67,13 @@ def fieldtobladeopening(field_size_list: List[str]) -> List[str]:
         elif parsed.unit.lower() == "m":
             parsed = Quantity(parsed.value * 100, "cm")
         if count == 0:
-            blade_position_float = xbladeopening(parsed.value)
+            blade_position_float = bladeopening(parsed.value)
         elif count == 1:
-            blade_position_float = xbladeopening(parsed.value) * -1
+            blade_position_float = bladeopening(parsed.value) * -1
         elif count == 2:
-            blade_position_float = ybladeopening(parsed.value)
+            blade_position_float = bladeopening(parsed.value)
         else:
-            blade_position_float = ybladeopening(parsed.value) * -1
+            blade_position_float = bladeopening(parsed.value) * -1
         blade_position_list.append(str(blade_position_float) + " " + parsed.unit)
 
     return blade_position_list

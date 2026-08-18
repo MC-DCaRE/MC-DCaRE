@@ -146,10 +146,10 @@ class ImagingConfig:
     field_x2: Quantity = _q(14.0, "cm")
     field_y1: Quantity = _q(10.7, "cm")
     field_y2: Quantity = _q(10.7, "cm")
-    blade_x1: Quantity = _q(6.175536078965273, "cm")
-    blade_x2: Quantity = _q(-6.175536078965273, "cm")
-    blade_y1: Quantity = _q(5.814471115800571, "cm")
-    blade_y2: Quantity = _q(-5.814471115800571, "cm")
+    blade_x1: Quantity = _q(1.638, "cm")
+    blade_x2: Quantity = _q(-1.638, "cm")
+    blade_y1: Quantity = _q(1.2519, "cm")
+    blade_y2: Quantity = _q(-1.2519, "cm")
 
     def __post_init__(self) -> None:
         _coerce_quantities(self, _IMAGING_Q_FIELDS)

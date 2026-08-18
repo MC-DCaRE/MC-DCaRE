@@ -1,0 +1,938 @@
+# ICRP 145 MRCP-AM tissue material definitions
+# 187 materials
+
+# Adrenal_left (ID=100, density=1.036 g/cm3)
+sv:Ma/ICRP_100/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_100/Fractions = 9 0.104000 0.228000 0.028000 0.630000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_100/Density = 1.036 g/cm3
+
+# Adrenal_right (ID=200, density=1.036 g/cm3)
+sv:Ma/ICRP_200/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_200/Fractions = 9 0.104000 0.228000 0.028000 0.630000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_200/Density = 1.036 g/cm3
+
+# ET1(0-8) (ID=300, density=1.031 g/cm3)
+sv:Ma/ICRP_300/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_300/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_300/Density = 1.031 g/cm3
+
+# ET1(8-40) (ID=301, density=1.031 g/cm3)
+sv:Ma/ICRP_301/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_301/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_301/Density = 1.031 g/cm3
+
+# ET1(40-50) (ID=302, density=1.031 g/cm3)
+sv:Ma/ICRP_302/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_302/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_302/Density = 1.031 g/cm3
+
+# ET1(50-Surface) (ID=303, density=1.031 g/cm3)
+sv:Ma/ICRP_303/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_303/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_303/Density = 1.031 g/cm3
+
+# ET2(-15-0) (ID=400, density=1.0 g/cm3)
+sv:Ma/ICRP_400/Components = 2 "Hydrogen" "Oxygen"
+uv:Ma/ICRP_400/Fractions = 2 0.112000 0.888000
+d:Ma/ICRP_400/Density = 1.0 g/cm3
+
+# ET2(0-40) (ID=401, density=1.031 g/cm3)
+sv:Ma/ICRP_401/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_401/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_401/Density = 1.031 g/cm3
+
+# ET2(40-50) (ID=402, density=1.031 g/cm3)
+sv:Ma/ICRP_402/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_402/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_402/Density = 1.031 g/cm3
+
+# ET2(50-55) (ID=403, density=1.031 g/cm3)
+sv:Ma/ICRP_403/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_403/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_403/Density = 1.031 g/cm3
+
+# ET2(55-65) (ID=404, density=1.031 g/cm3)
+sv:Ma/ICRP_404/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_404/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_404/Density = 1.031 g/cm3
+
+# ET2(65-Surface) (ID=405, density=1.031 g/cm3)
+sv:Ma/ICRP_405/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_405/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_405/Density = 1.031 g/cm3
+
+# Oral_mucosa_tongue (ID=500, density=1.05 g/cm3)
+sv:Ma/ICRP_500/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_500/Fractions = 9 0.102000 0.142000 0.034000 0.711000 0.001000 0.002000 0.003000 0.001000 0.004000
+d:Ma/ICRP_500/Density = 1.05 g/cm3
+
+# Oral_mucosa_mouth_floor (ID=501, density=1.05 g/cm3)
+sv:Ma/ICRP_501/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_501/Fractions = 9 0.102000 0.142000 0.034000 0.711000 0.001000 0.002000 0.003000 0.001000 0.004000
+d:Ma/ICRP_501/Density = 1.05 g/cm3
+
+# Oral_mucosa_lips_and_cheeks (ID=600, density=1.05 g/cm3)
+sv:Ma/ICRP_600/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_600/Fractions = 9 0.102000 0.142000 0.034000 0.711000 0.001000 0.002000 0.003000 0.001000 0.004000
+d:Ma/ICRP_600/Density = 1.05 g/cm3
+
+# Trachea (ID=700, density=1.031 g/cm3)
+sv:Ma/ICRP_700/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_700/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_700/Density = 1.031 g/cm3
+
+# BB(-11--6) (ID=800, density=1.0 g/cm3)
+sv:Ma/ICRP_800/Components = 2 "Hydrogen" "Oxygen"
+uv:Ma/ICRP_800/Fractions = 2 0.112000 0.888000
+d:Ma/ICRP_800/Density = 1.0 g/cm3
+
+# BB(-6-0) (ID=801, density=1.031 g/cm3)
+sv:Ma/ICRP_801/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_801/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_801/Density = 1.031 g/cm3
+
+# BB(0-10) (ID=802, density=1.031 g/cm3)
+sv:Ma/ICRP_802/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_802/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_802/Density = 1.031 g/cm3
+
+# BB(10-35) (ID=803, density=1.031 g/cm3)
+sv:Ma/ICRP_803/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_803/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_803/Density = 1.031 g/cm3
+
+# BB(35-40) (ID=804, density=1.031 g/cm3)
+sv:Ma/ICRP_804/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_804/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_804/Density = 1.031 g/cm3
+
+# BB(40-50) (ID=805, density=1.031 g/cm3)
+sv:Ma/ICRP_805/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_805/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_805/Density = 1.031 g/cm3
+
+# BB(50-60) (ID=806, density=1.031 g/cm3)
+sv:Ma/ICRP_806/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_806/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_806/Density = 1.031 g/cm3
+
+# BB(60-70) (ID=807, density=1.031 g/cm3)
+sv:Ma/ICRP_807/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_807/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_807/Density = 1.031 g/cm3
+
+# BB(70-surface) (ID=808, density=1.031 g/cm3)
+sv:Ma/ICRP_808/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_808/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_808/Density = 1.031 g/cm3
+
+# Blood_in_large_arteries_head (ID=900, density=1.06 g/cm3)
+sv:Ma/ICRP_900/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Iron"
+uv:Ma/ICRP_900/Fractions = 10 0.102000 0.110000 0.033000 0.745000 0.001000 0.001000 0.002000 0.003000 0.002000 0.001000
+d:Ma/ICRP_900/Density = 1.06 g/cm3
+
+# Blood_in_large_veins_head (ID=910, density=1.06 g/cm3)
+sv:Ma/ICRP_910/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Iron"
+uv:Ma/ICRP_910/Fractions = 10 0.102000 0.110000 0.033000 0.745000 0.001000 0.001000 0.002000 0.003000 0.002000 0.001000
+d:Ma/ICRP_910/Density = 1.06 g/cm3
+
+# Blood_in_large_arteries_trunk (ID=1000, density=1.06 g/cm3)
+sv:Ma/ICRP_1000/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Iron"
+uv:Ma/ICRP_1000/Fractions = 10 0.102000 0.110000 0.033000 0.745000 0.001000 0.001000 0.002000 0.003000 0.002000 0.001000
+d:Ma/ICRP_1000/Density = 1.06 g/cm3
+
+# Blood_in_large_veins_trunk (ID=1010, density=1.06 g/cm3)
+sv:Ma/ICRP_1010/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Iron"
+uv:Ma/ICRP_1010/Fractions = 10 0.102000 0.110000 0.033000 0.745000 0.001000 0.001000 0.002000 0.003000 0.002000 0.001000
+d:Ma/ICRP_1010/Density = 1.06 g/cm3
+
+# Blood_in_large_arteries_arms (ID=1100, density=1.06 g/cm3)
+sv:Ma/ICRP_1100/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Iron"
+uv:Ma/ICRP_1100/Fractions = 10 0.102000 0.110000 0.033000 0.745000 0.001000 0.001000 0.002000 0.003000 0.002000 0.001000
+d:Ma/ICRP_1100/Density = 1.06 g/cm3
+
+# Blood_in_large_veins_arms (ID=1110, density=1.06 g/cm3)
+sv:Ma/ICRP_1110/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Iron"
+uv:Ma/ICRP_1110/Fractions = 10 0.102000 0.110000 0.033000 0.745000 0.001000 0.001000 0.002000 0.003000 0.002000 0.001000
+d:Ma/ICRP_1110/Density = 1.06 g/cm3
+
+# Blood_in_large_arteries_legs (ID=1200, density=1.06 g/cm3)
+sv:Ma/ICRP_1200/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Iron"
+uv:Ma/ICRP_1200/Fractions = 10 0.102000 0.110000 0.033000 0.745000 0.001000 0.001000 0.002000 0.003000 0.002000 0.001000
+d:Ma/ICRP_1200/Density = 1.06 g/cm3
+
+# Blood_in_large_veins_legs (ID=1210, density=1.06 g/cm3)
+sv:Ma/ICRP_1210/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Iron"
+uv:Ma/ICRP_1210/Fractions = 10 0.102000 0.110000 0.033000 0.745000 0.001000 0.001000 0.002000 0.003000 0.002000 0.001000
+d:Ma/ICRP_1210/Density = 1.06 g/cm3
+
+# Humeri_upper_cortical (ID=1300, density=1.904 g/cm3)
+sv:Ma/ICRP_1300/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Calcium"
+uv:Ma/ICRP_1300/Fractions = 9 0.036000 0.159000 0.042000 0.448000 0.003000 0.002000 0.094000 0.003000 0.213000
+d:Ma/ICRP_1300/Density = 1.904 g/cm3
+
+# Humeri_upper_spogiosa (ID=1400, density=1.233 g/cm3)
+sv:Ma/ICRP_1400/Components = 11 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_1400/Fractions = 11 0.081000 0.354000 0.028000 0.410000 0.002000 0.001000 0.037000 0.002000 0.001000 0.001000 0.083000
+d:Ma/ICRP_1400/Density = 1.233 g/cm3
+
+# Humeri_upper_medullary_cavity (ID=1500, density=0.981 g/cm3)
+sv:Ma/ICRP_1500/Components = 7 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Sulfur" "Chlorine"
+uv:Ma/ICRP_1500/Fractions = 7 0.115000 0.636000 0.007000 0.239000 0.001000 0.001000 0.001000
+d:Ma/ICRP_1500/Density = 0.981 g/cm3
+
+# Humeri_lower_cortical (ID=1600, density=1.904 g/cm3)
+sv:Ma/ICRP_1600/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Calcium"
+uv:Ma/ICRP_1600/Fractions = 9 0.036000 0.159000 0.042000 0.448000 0.003000 0.002000 0.094000 0.003000 0.213000
+d:Ma/ICRP_1600/Density = 1.904 g/cm3
+
+# Humeri_lower_spongiosa (ID=1700, density=1.109 g/cm3)
+sv:Ma/ICRP_1700/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Calcium"
+uv:Ma/ICRP_1700/Fractions = 9 0.096000 0.504000 0.017000 0.308000 0.001000 0.022000 0.002000 0.001000 0.049000
+d:Ma/ICRP_1700/Density = 1.109 g/cm3
+
+# Humeri_lower_medullary_cavity (ID=1800, density=0.981 g/cm3)
+sv:Ma/ICRP_1800/Components = 7 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Sulfur" "Chlorine"
+uv:Ma/ICRP_1800/Fractions = 7 0.115000 0.636000 0.007000 0.239000 0.001000 0.001000 0.001000
+d:Ma/ICRP_1800/Density = 0.981 g/cm3
+
+# Ulnae_and_radii_cotical (ID=1900, density=1.904 g/cm3)
+sv:Ma/ICRP_1900/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Calcium"
+uv:Ma/ICRP_1900/Fractions = 9 0.036000 0.159000 0.042000 0.448000 0.003000 0.002000 0.094000 0.003000 0.213000
+d:Ma/ICRP_1900/Density = 1.904 g/cm3
+
+# Ulnae_and_radii_spongiosa (ID=2000, density=1.109 g/cm3)
+sv:Ma/ICRP_2000/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Calcium"
+uv:Ma/ICRP_2000/Fractions = 9 0.096000 0.504000 0.017000 0.308000 0.001000 0.022000 0.002000 0.001000 0.049000
+d:Ma/ICRP_2000/Density = 1.109 g/cm3
+
+# Ulnae_and_radii_medullary_cavity (ID=2100, density=0.981 g/cm3)
+sv:Ma/ICRP_2100/Components = 7 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Sulfur" "Chlorine"
+uv:Ma/ICRP_2100/Fractions = 7 0.115000 0.636000 0.007000 0.239000 0.001000 0.001000 0.001000
+d:Ma/ICRP_2100/Density = 0.981 g/cm3
+
+# Wrists_and_hand_bones_cortical (ID=2200, density=1.904 g/cm3)
+sv:Ma/ICRP_2200/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Calcium"
+uv:Ma/ICRP_2200/Fractions = 9 0.036000 0.159000 0.042000 0.448000 0.003000 0.002000 0.094000 0.003000 0.213000
+d:Ma/ICRP_2200/Density = 1.904 g/cm3
+
+# Wrists_and_hand_bones_spongiosa (ID=2300, density=1.109 g/cm3)
+sv:Ma/ICRP_2300/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Calcium"
+uv:Ma/ICRP_2300/Fractions = 9 0.096000 0.504000 0.017000 0.308000 0.001000 0.022000 0.002000 0.001000 0.049000
+d:Ma/ICRP_2300/Density = 1.109 g/cm3
+
+# Clavicles_cortical (ID=2400, density=1.904 g/cm3)
+sv:Ma/ICRP_2400/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Calcium"
+uv:Ma/ICRP_2400/Fractions = 9 0.036000 0.159000 0.042000 0.448000 0.003000 0.002000 0.094000 0.003000 0.213000
+d:Ma/ICRP_2400/Density = 1.904 g/cm3
+
+# Clavicles_spongiosa (ID=2500, density=1.157 g/cm3)
+sv:Ma/ICRP_2500/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_2500/Fractions = 10 0.089000 0.409000 0.025000 0.385000 0.001000 0.027000 0.002000 0.001000 0.001000 0.060000
+d:Ma/ICRP_2500/Density = 1.157 g/cm3
+
+# Cranium_cortical (ID=2600, density=1.904 g/cm3)
+sv:Ma/ICRP_2600/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Calcium"
+uv:Ma/ICRP_2600/Fractions = 9 0.036000 0.159000 0.042000 0.448000 0.003000 0.002000 0.094000 0.003000 0.213000
+d:Ma/ICRP_2600/Density = 1.904 g/cm3
+
+# Cranium_spongiosa (ID=2700, density=1.165 g/cm3)
+sv:Ma/ICRP_2700/Components = 11 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_2700/Fractions = 11 0.088000 0.395000 0.026000 0.395000 0.001000 0.001000 0.028000 0.002000 0.001000 0.001000 0.062000
+d:Ma/ICRP_2700/Density = 1.165 g/cm3
+
+# Femora_upper_cortical (ID=2800, density=1.904 g/cm3)
+sv:Ma/ICRP_2800/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Calcium"
+uv:Ma/ICRP_2800/Fractions = 9 0.036000 0.159000 0.042000 0.448000 0.003000 0.002000 0.094000 0.003000 0.213000
+d:Ma/ICRP_2800/Density = 1.904 g/cm3
+
+# Femora_upper_spongiosa (ID=2900, density=1.125 g/cm3)
+sv:Ma/ICRP_2900/Components = 11 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_2900/Fractions = 11 0.093000 0.441000 0.023000 0.365000 0.001000 0.001000 0.022000 0.002000 0.001000 0.001000 0.050000
+d:Ma/ICRP_2900/Density = 1.125 g/cm3
+
+# Femora_upper_medullary_cavity (ID=3000, density=0.981 g/cm3)
+sv:Ma/ICRP_3000/Components = 7 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Sulfur" "Chlorine"
+uv:Ma/ICRP_3000/Fractions = 7 0.115000 0.636000 0.007000 0.239000 0.001000 0.001000 0.001000
+d:Ma/ICRP_3000/Density = 0.981 g/cm3
+
+# Femora_lower_cortical (ID=3100, density=1.904 g/cm3)
+sv:Ma/ICRP_3100/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Calcium"
+uv:Ma/ICRP_3100/Fractions = 9 0.036000 0.159000 0.042000 0.448000 0.003000 0.002000 0.094000 0.003000 0.213000
+d:Ma/ICRP_3100/Density = 1.904 g/cm3
+
+# Femora_lower_spongiosa (ID=3200, density=1.109 g/cm3)
+sv:Ma/ICRP_3200/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Calcium"
+uv:Ma/ICRP_3200/Fractions = 9 0.096000 0.504000 0.017000 0.308000 0.001000 0.022000 0.002000 0.001000 0.049000
+d:Ma/ICRP_3200/Density = 1.109 g/cm3
+
+# Femora_lower_medullary_cavity (ID=3300, density=0.981 g/cm3)
+sv:Ma/ICRP_3300/Components = 7 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Sulfur" "Chlorine"
+uv:Ma/ICRP_3300/Fractions = 7 0.115000 0.636000 0.007000 0.239000 0.001000 0.001000 0.001000
+d:Ma/ICRP_3300/Density = 0.981 g/cm3
+
+# Tibiae_fibulae_and_patellae_cortical (ID=3400, density=1.904 g/cm3)
+sv:Ma/ICRP_3400/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Calcium"
+uv:Ma/ICRP_3400/Fractions = 9 0.036000 0.159000 0.042000 0.448000 0.003000 0.002000 0.094000 0.003000 0.213000
+d:Ma/ICRP_3400/Density = 1.904 g/cm3
+
+# Tibiae_fibulae_and_patellae_spongiosa (ID=3500, density=1.109 g/cm3)
+sv:Ma/ICRP_3500/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Calcium"
+uv:Ma/ICRP_3500/Fractions = 9 0.096000 0.504000 0.017000 0.308000 0.001000 0.022000 0.002000 0.001000 0.049000
+d:Ma/ICRP_3500/Density = 1.109 g/cm3
+
+# Tibiae_fibulae_and_patellae_medullary_cavity (ID=3600, density=0.981 g/cm3)
+sv:Ma/ICRP_3600/Components = 7 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Sulfur" "Chlorine"
+uv:Ma/ICRP_3600/Fractions = 7 0.115000 0.636000 0.007000 0.239000 0.001000 0.001000 0.001000
+d:Ma/ICRP_3600/Density = 0.981 g/cm3
+
+# Ankles_and_foot_cortical (ID=3700, density=1.904 g/cm3)
+sv:Ma/ICRP_3700/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Calcium"
+uv:Ma/ICRP_3700/Fractions = 9 0.036000 0.159000 0.042000 0.448000 0.003000 0.002000 0.094000 0.003000 0.213000
+d:Ma/ICRP_3700/Density = 1.904 g/cm3
+
+# Ankles_and_foot_spongiosa (ID=3800, density=1.109 g/cm3)
+sv:Ma/ICRP_3800/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Calcium"
+uv:Ma/ICRP_3800/Fractions = 9 0.096000 0.504000 0.017000 0.308000 0.001000 0.022000 0.002000 0.001000 0.049000
+d:Ma/ICRP_3800/Density = 1.109 g/cm3
+
+# Mandible_cortical (ID=3900, density=1.904 g/cm3)
+sv:Ma/ICRP_3900/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Calcium"
+uv:Ma/ICRP_3900/Fractions = 9 0.036000 0.159000 0.042000 0.448000 0.003000 0.002000 0.094000 0.003000 0.213000
+d:Ma/ICRP_3900/Density = 1.904 g/cm3
+
+# Mandible_spongiosa (ID=4000, density=1.271 g/cm3)
+sv:Ma/ICRP_4000/Components = 11 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_4000/Fractions = 11 0.077000 0.332000 0.030000 0.420000 0.002000 0.001000 0.041000 0.002000 0.001000 0.001000 0.093000
+d:Ma/ICRP_4000/Density = 1.271 g/cm3
+
+# Pelvis_cortical (ID=4100, density=1.904 g/cm3)
+sv:Ma/ICRP_4100/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Calcium"
+uv:Ma/ICRP_4100/Fractions = 9 0.036000 0.159000 0.042000 0.448000 0.003000 0.002000 0.094000 0.003000 0.213000
+d:Ma/ICRP_4100/Density = 1.904 g/cm3
+
+# Pelvis_spongiosa (ID=4200, density=1.121 g/cm3)
+sv:Ma/ICRP_4200/Components = 11 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_4200/Fractions = 11 0.094000 0.409000 0.026000 0.400000 0.001000 0.001000 0.020000 0.002000 0.001000 0.001000 0.045000
+d:Ma/ICRP_4200/Density = 1.121 g/cm3
+
+# Ribs_cortical (ID=4300, density=1.904 g/cm3)
+sv:Ma/ICRP_4300/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Calcium"
+uv:Ma/ICRP_4300/Fractions = 9 0.036000 0.159000 0.042000 0.448000 0.003000 0.002000 0.094000 0.003000 0.213000
+d:Ma/ICRP_4300/Density = 1.904 g/cm3
+
+# Ribs_spongiosa (ID=4400, density=1.17 g/cm3)
+sv:Ma/ICRP_4400/Components = 12 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium" "Iron"
+uv:Ma/ICRP_4400/Fractions = 12 0.088000 0.346000 0.031000 0.444000 0.001000 0.001000 0.026000 0.002000 0.001000 0.001000 0.058000 0.001000
+d:Ma/ICRP_4400/Density = 1.17 g/cm3
+
+# Scapulae_cortical (ID=4500, density=1.904 g/cm3)
+sv:Ma/ICRP_4500/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Calcium"
+uv:Ma/ICRP_4500/Fractions = 9 0.036000 0.159000 0.042000 0.448000 0.003000 0.002000 0.094000 0.003000 0.213000
+d:Ma/ICRP_4500/Density = 1.904 g/cm3
+
+# Scapulae_spongiosa (ID=4600, density=1.201 g/cm3)
+sv:Ma/ICRP_4600/Components = 11 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_4600/Fractions = 11 0.084000 0.373000 0.027000 0.404000 0.001000 0.001000 0.033000 0.002000 0.001000 0.001000 0.073000
+d:Ma/ICRP_4600/Density = 1.201 g/cm3
+
+# Cervical_spine_cortical (ID=4700, density=1.904 g/cm3)
+sv:Ma/ICRP_4700/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Calcium"
+uv:Ma/ICRP_4700/Fractions = 9 0.036000 0.159000 0.042000 0.448000 0.003000 0.002000 0.094000 0.003000 0.213000
+d:Ma/ICRP_4700/Density = 1.904 g/cm3
+
+# Cervical_spine_spongiosa (ID=4800, density=1.049 g/cm3)
+sv:Ma/ICRP_4800/Components = 11 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium" "Iron"
+uv:Ma/ICRP_4800/Fractions = 11 0.103000 0.416000 0.028000 0.428000 0.001000 0.006000 0.002000 0.002000 0.001000 0.012000 0.001000
+d:Ma/ICRP_4800/Density = 1.049 g/cm3
+
+# Thoracic_spine_cortical (ID=4900, density=1.904 g/cm3)
+sv:Ma/ICRP_4900/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Calcium"
+uv:Ma/ICRP_4900/Fractions = 9 0.036000 0.159000 0.042000 0.448000 0.003000 0.002000 0.094000 0.003000 0.213000
+d:Ma/ICRP_4900/Density = 1.904 g/cm3
+
+# Thoracic_spine_spongiosa (ID=5000, density=1.07 g/cm3)
+sv:Ma/ICRP_5000/Components = 11 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium" "Iron"
+uv:Ma/ICRP_5000/Fractions = 11 0.100000 0.403000 0.028000 0.431000 0.001000 0.010000 0.002000 0.002000 0.001000 0.021000 0.001000
+d:Ma/ICRP_5000/Density = 1.07 g/cm3
+
+# Lumbar_spine_cortical (ID=5100, density=1.904 g/cm3)
+sv:Ma/ICRP_5100/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Calcium"
+uv:Ma/ICRP_5100/Fractions = 9 0.036000 0.159000 0.042000 0.448000 0.003000 0.002000 0.094000 0.003000 0.213000
+d:Ma/ICRP_5100/Density = 1.904 g/cm3
+
+# Lumbar_spine_spongiosa (ID=5200, density=1.108 g/cm3)
+sv:Ma/ICRP_5200/Components = 11 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium" "Iron"
+uv:Ma/ICRP_5200/Fractions = 11 0.095000 0.380000 0.030000 0.436000 0.001000 0.016000 0.002000 0.002000 0.001000 0.036000 0.001000
+d:Ma/ICRP_5200/Density = 1.108 g/cm3
+
+# Sacrum_cortical (ID=5300, density=1.904 g/cm3)
+sv:Ma/ICRP_5300/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Calcium"
+uv:Ma/ICRP_5300/Fractions = 9 0.036000 0.159000 0.042000 0.448000 0.003000 0.002000 0.094000 0.003000 0.213000
+d:Ma/ICRP_5300/Density = 1.904 g/cm3
+
+# Sacrum_spongiosa (ID=5400, density=1.033 g/cm3)
+sv:Ma/ICRP_5400/Components = 11 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium" "Iron"
+uv:Ma/ICRP_5400/Fractions = 11 0.105000 0.426000 0.027000 0.426000 0.001000 0.003000 0.002000 0.002000 0.001000 0.006000 0.001000
+d:Ma/ICRP_5400/Density = 1.033 g/cm3
+
+# Sternum_cortical (ID=5500, density=1.904 g/cm3)
+sv:Ma/ICRP_5500/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Magnesium" "Phosphorus" "Sulfur" "Calcium"
+uv:Ma/ICRP_5500/Fractions = 9 0.036000 0.159000 0.042000 0.448000 0.003000 0.002000 0.094000 0.003000 0.213000
+d:Ma/ICRP_5500/Density = 1.904 g/cm3
+
+# Sternum_spongiosa (ID=5600, density=1.041 g/cm3)
+sv:Ma/ICRP_5600/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium" "Iron"
+uv:Ma/ICRP_5600/Fractions = 10 0.104000 0.421000 0.028000 0.427000 0.005000 0.002000 0.002000 0.001000 0.009000 0.001000
+d:Ma/ICRP_5600/Density = 1.041 g/cm3
+
+# Cartilage_costal (ID=5700, density=1.099 g/cm3)
+sv:Ma/ICRP_5700/Components = 8 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine"
+uv:Ma/ICRP_5700/Fractions = 8 0.096000 0.099000 0.022000 0.744000 0.005000 0.022000 0.009000 0.003000
+d:Ma/ICRP_5700/Density = 1.099 g/cm3
+
+# Cartilage_discs (ID=5800, density=1.099 g/cm3)
+sv:Ma/ICRP_5800/Components = 8 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine"
+uv:Ma/ICRP_5800/Fractions = 8 0.096000 0.099000 0.022000 0.744000 0.005000 0.022000 0.009000 0.003000
+d:Ma/ICRP_5800/Density = 1.099 g/cm3
+
+# Brain (ID=6100, density=1.041 g/cm3)
+sv:Ma/ICRP_6100/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_6100/Fractions = 9 0.107000 0.143000 0.023000 0.713000 0.002000 0.004000 0.002000 0.003000 0.003000
+d:Ma/ICRP_6100/Density = 1.041 g/cm3
+
+# Breast_left_adipose_tissue (ID=6200, density=0.953 g/cm3)
+sv:Ma/ICRP_6200/Components = 7 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Sulfur" "Chlorine"
+uv:Ma/ICRP_6200/Fractions = 7 0.114000 0.581000 0.008000 0.294000 0.001000 0.001000 0.001000
+d:Ma/ICRP_6200/Density = 0.953 g/cm3
+
+# Breast_left_glandular_tissue (ID=6300, density=1.021 g/cm3)
+sv:Ma/ICRP_6300/Components = 8 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine"
+uv:Ma/ICRP_6300/Fractions = 8 0.106000 0.324000 0.030000 0.535000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_6300/Density = 1.021 g/cm3
+
+# Breast_right_adipose_tissue (ID=6400, density=0.953 g/cm3)
+sv:Ma/ICRP_6400/Components = 7 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Sulfur" "Chlorine"
+uv:Ma/ICRP_6400/Fractions = 7 0.114000 0.581000 0.008000 0.294000 0.001000 0.001000 0.001000
+d:Ma/ICRP_6400/Density = 0.953 g/cm3
+
+# Breast_right_glandular_tissue (ID=6500, density=1.021 g/cm3)
+sv:Ma/ICRP_6500/Components = 8 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine"
+uv:Ma/ICRP_6500/Fractions = 8 0.106000 0.324000 0.030000 0.535000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_6500/Density = 1.021 g/cm3
+
+# Eye_lens_sensitive_left (ID=6600, density=1.06 g/cm3)
+sv:Ma/ICRP_6600/Components = 8 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine"
+uv:Ma/ICRP_6600/Fractions = 8 0.096000 0.195000 0.057000 0.646000 0.001000 0.001000 0.003000 0.001000
+d:Ma/ICRP_6600/Density = 1.06 g/cm3
+
+# Eye_lens_insensitive_left (ID=6601, density=1.06 g/cm3)
+sv:Ma/ICRP_6601/Components = 8 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine"
+uv:Ma/ICRP_6601/Fractions = 8 0.096000 0.195000 0.057000 0.646000 0.001000 0.001000 0.003000 0.001000
+d:Ma/ICRP_6601/Density = 1.06 g/cm3
+
+# Cornea_left (ID=6700, density=1.1 g/cm3)
+sv:Ma/ICRP_6700/Components = 8 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine"
+uv:Ma/ICRP_6700/Fractions = 8 0.101000 0.125000 0.037000 0.732000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_6700/Density = 1.1 g/cm3
+
+# Aqueous_left (ID=6701, density=1.025 g/cm3)
+sv:Ma/ICRP_6701/Components = 4 "Hydrogen" "Carbon" "Nitrogen" "Oxygen"
+uv:Ma/ICRP_6701/Fractions = 4 0.112000 0.004000 0.001000 0.883000
+d:Ma/ICRP_6701/Density = 1.025 g/cm3
+
+# Vitreous_left (ID=6702, density=1.031 g/cm3)
+sv:Ma/ICRP_6702/Components = 4 "Hydrogen" "Carbon" "Nitrogen" "Oxygen"
+uv:Ma/ICRP_6702/Fractions = 4 0.112000 0.004000 0.001000 0.883000
+d:Ma/ICRP_6702/Density = 1.031 g/cm3
+
+# Eye_lens_sensitive_right (ID=6800, density=1.06 g/cm3)
+sv:Ma/ICRP_6800/Components = 8 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine"
+uv:Ma/ICRP_6800/Fractions = 8 0.096000 0.195000 0.057000 0.646000 0.001000 0.001000 0.003000 0.001000
+d:Ma/ICRP_6800/Density = 1.06 g/cm3
+
+# Eye_lens_insensitive_right (ID=6801, density=1.06 g/cm3)
+sv:Ma/ICRP_6801/Components = 8 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine"
+uv:Ma/ICRP_6801/Fractions = 8 0.096000 0.195000 0.057000 0.646000 0.001000 0.001000 0.003000 0.001000
+d:Ma/ICRP_6801/Density = 1.06 g/cm3
+
+# Cornea_right (ID=6900, density=1.1 g/cm3)
+sv:Ma/ICRP_6900/Components = 8 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine"
+uv:Ma/ICRP_6900/Fractions = 8 0.101000 0.125000 0.037000 0.732000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_6900/Density = 1.1 g/cm3
+
+# Aqueous_right (ID=6901, density=1.025 g/cm3)
+sv:Ma/ICRP_6901/Components = 4 "Hydrogen" "Carbon" "Nitrogen" "Oxygen"
+uv:Ma/ICRP_6901/Fractions = 4 0.112000 0.004000 0.001000 0.883000
+d:Ma/ICRP_6901/Density = 1.025 g/cm3
+
+# Vitreous_right (ID=6902, density=1.031 g/cm3)
+sv:Ma/ICRP_6902/Components = 4 "Hydrogen" "Carbon" "Nitrogen" "Oxygen"
+uv:Ma/ICRP_6902/Fractions = 4 0.112000 0.004000 0.001000 0.883000
+d:Ma/ICRP_6902/Density = 1.031 g/cm3
+
+# Gall_bladder_wall (ID=7000, density=1.031 g/cm3)
+sv:Ma/ICRP_7000/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_7000/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_7000/Density = 1.031 g/cm3
+
+# Gall_bladder_contents (ID=7100, density=1.03 g/cm3)
+sv:Ma/ICRP_7100/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_7100/Fractions = 9 0.105000 0.256000 0.027000 0.602000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_7100/Density = 1.03 g/cm3
+
+# Stomach_wall(0-60) (ID=7200, density=1.037 g/cm3)
+sv:Ma/ICRP_7200/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_7200/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_7200/Density = 1.037 g/cm3
+
+# Stomach_wall(60-100) (ID=7201, density=1.037 g/cm3)
+sv:Ma/ICRP_7201/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_7201/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_7201/Density = 1.037 g/cm3
+
+# Stomach_wall(100-300) (ID=7202, density=1.037 g/cm3)
+sv:Ma/ICRP_7202/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_7202/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_7202/Density = 1.037 g/cm3
+
+# Stomach_wall(300-surface) (ID=7203, density=1.037 g/cm3)
+sv:Ma/ICRP_7203/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_7203/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_7203/Density = 1.037 g/cm3
+
+# Stomach_contents (ID=7300, density=1.04 g/cm3)
+sv:Ma/ICRP_7300/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_7300/Fractions = 10 0.100000 0.222000 0.022000 0.644000 0.001000 0.002000 0.003000 0.001000 0.004000 0.001000
+d:Ma/ICRP_7300/Density = 1.04 g/cm3
+
+# Small_intestine_wall(0-130) (ID=7400, density=1.037 g/cm3)
+sv:Ma/ICRP_7400/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_7400/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_7400/Density = 1.037 g/cm3
+
+# Small_intestine_wall(130-150) (ID=7401, density=1.037 g/cm3)
+sv:Ma/ICRP_7401/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_7401/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_7401/Density = 1.037 g/cm3
+
+# Small_intestine_wall(150-200) (ID=7402, density=1.037 g/cm3)
+sv:Ma/ICRP_7402/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_7402/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_7402/Density = 1.037 g/cm3
+
+# Small_intestine_wall(200-surface) (ID=7403, density=1.037 g/cm3)
+sv:Ma/ICRP_7403/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_7403/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_7403/Density = 1.037 g/cm3
+
+# Small_intestine_contents(-500-0) (ID=7500, density=1.04 g/cm3)
+sv:Ma/ICRP_7500/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_7500/Fractions = 10 0.100000 0.222000 0.022000 0.644000 0.001000 0.002000 0.003000 0.001000 0.004000 0.001000
+d:Ma/ICRP_7500/Density = 1.04 g/cm3
+
+# Small_intestine_contents(centre--500) (ID=7501, density=1.04 g/cm3)
+sv:Ma/ICRP_7501/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_7501/Fractions = 10 0.100000 0.222000 0.022000 0.644000 0.001000 0.002000 0.003000 0.001000 0.004000 0.001000
+d:Ma/ICRP_7501/Density = 1.04 g/cm3
+
+# Ascending_colon_wall(0-280) (ID=7600, density=1.037 g/cm3)
+sv:Ma/ICRP_7600/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_7600/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_7600/Density = 1.037 g/cm3
+
+# Ascending_colon_wall(280-300) (ID=7601, density=1.037 g/cm3)
+sv:Ma/ICRP_7601/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_7601/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_7601/Density = 1.037 g/cm3
+
+# Ascending_colon_wall(300-surface) (ID=7602, density=1.037 g/cm3)
+sv:Ma/ICRP_7602/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_7602/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_7602/Density = 1.037 g/cm3
+
+# Ascending_colon_content (ID=7700, density=1.04 g/cm3)
+sv:Ma/ICRP_7700/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_7700/Fractions = 10 0.100000 0.222000 0.022000 0.644000 0.001000 0.002000 0.003000 0.001000 0.004000 0.001000
+d:Ma/ICRP_7700/Density = 1.04 g/cm3
+
+# Transverse_colon_wall_right(0-280) (ID=7800, density=1.037 g/cm3)
+sv:Ma/ICRP_7800/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_7800/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_7800/Density = 1.037 g/cm3
+
+# Transverse_colon_wall_right(280-300) (ID=7801, density=1.037 g/cm3)
+sv:Ma/ICRP_7801/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_7801/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_7801/Density = 1.037 g/cm3
+
+# Transverse_colon_wall_right(300-surface) (ID=7802, density=1.037 g/cm3)
+sv:Ma/ICRP_7802/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_7802/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_7802/Density = 1.037 g/cm3
+
+# Transverse_colon_contents_right (ID=7900, density=1.04 g/cm3)
+sv:Ma/ICRP_7900/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_7900/Fractions = 10 0.100000 0.222000 0.022000 0.644000 0.001000 0.002000 0.003000 0.001000 0.004000 0.001000
+d:Ma/ICRP_7900/Density = 1.04 g/cm3
+
+# Transverse_colon_wall_left(0-280) (ID=8000, density=1.037 g/cm3)
+sv:Ma/ICRP_8000/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_8000/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_8000/Density = 1.037 g/cm3
+
+# Transverse_colon_wall_left(280-300) (ID=8001, density=1.037 g/cm3)
+sv:Ma/ICRP_8001/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_8001/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_8001/Density = 1.037 g/cm3
+
+# Transverse_colon_wall_left(300-surface) (ID=8002, density=1.037 g/cm3)
+sv:Ma/ICRP_8002/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_8002/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_8002/Density = 1.037 g/cm3
+
+# Transverse_colon_content_left (ID=8100, density=1.04 g/cm3)
+sv:Ma/ICRP_8100/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_8100/Fractions = 10 0.100000 0.222000 0.022000 0.644000 0.001000 0.002000 0.003000 0.001000 0.004000 0.001000
+d:Ma/ICRP_8100/Density = 1.04 g/cm3
+
+# Descending_colon_wall(0-280) (ID=8200, density=1.037 g/cm3)
+sv:Ma/ICRP_8200/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_8200/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_8200/Density = 1.037 g/cm3
+
+# Descending_colon_wall(280-300) (ID=8201, density=1.037 g/cm3)
+sv:Ma/ICRP_8201/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_8201/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_8201/Density = 1.037 g/cm3
+
+# Descending_colon_wall(300-surface) (ID=8202, density=1.037 g/cm3)
+sv:Ma/ICRP_8202/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_8202/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_8202/Density = 1.037 g/cm3
+
+# Descending_colon_content (ID=8300, density=1.04 g/cm3)
+sv:Ma/ICRP_8300/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_8300/Fractions = 10 0.100000 0.222000 0.022000 0.644000 0.001000 0.002000 0.003000 0.001000 0.004000 0.001000
+d:Ma/ICRP_8300/Density = 1.04 g/cm3
+
+# Sigmoid_colon_wall(0-280) (ID=8400, density=1.037 g/cm3)
+sv:Ma/ICRP_8400/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_8400/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_8400/Density = 1.037 g/cm3
+
+# Sigmoid_colon_wall(280-300) (ID=8401, density=1.037 g/cm3)
+sv:Ma/ICRP_8401/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_8401/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_8401/Density = 1.037 g/cm3
+
+# Sigmoid_colon_wall(300-surface) (ID=8402, density=1.037 g/cm3)
+sv:Ma/ICRP_8402/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_8402/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_8402/Density = 1.037 g/cm3
+
+# Sigmoid_colon_contents (ID=8500, density=1.04 g/cm3)
+sv:Ma/ICRP_8500/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_8500/Fractions = 10 0.100000 0.222000 0.022000 0.644000 0.001000 0.002000 0.003000 0.001000 0.004000 0.001000
+d:Ma/ICRP_8500/Density = 1.04 g/cm3
+
+# Rectum_wall (ID=8600, density=1.037 g/cm3)
+sv:Ma/ICRP_8600/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_8600/Fractions = 9 0.105000 0.114000 0.025000 0.750000 0.001000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_8600/Density = 1.037 g/cm3
+
+# Heart_wall (ID=8700, density=1.051 g/cm3)
+sv:Ma/ICRP_8700/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_8700/Fractions = 9 0.104000 0.135000 0.029000 0.722000 0.001000 0.002000 0.002000 0.002000 0.003000
+d:Ma/ICRP_8700/Density = 1.051 g/cm3
+
+# Blood_in_heart_chamber (ID=8800, density=1.06 g/cm3)
+sv:Ma/ICRP_8800/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Iron"
+uv:Ma/ICRP_8800/Fractions = 10 0.102000 0.110000 0.033000 0.745000 0.001000 0.001000 0.002000 0.003000 0.002000 0.001000
+d:Ma/ICRP_8800/Density = 1.06 g/cm3
+
+# Kidney_left_cortex (ID=8900, density=1.053 g/cm3)
+sv:Ma/ICRP_8900/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_8900/Fractions = 10 0.103000 0.126000 0.031000 0.729000 0.002000 0.002000 0.002000 0.002000 0.002000 0.001000
+d:Ma/ICRP_8900/Density = 1.053 g/cm3
+
+# Kidney_left_medulla (ID=9000, density=1.053 g/cm3)
+sv:Ma/ICRP_9000/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_9000/Fractions = 10 0.103000 0.126000 0.031000 0.729000 0.002000 0.002000 0.002000 0.002000 0.002000 0.001000
+d:Ma/ICRP_9000/Density = 1.053 g/cm3
+
+# Kidney_left_pelvis (ID=9100, density=1.053 g/cm3)
+sv:Ma/ICRP_9100/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_9100/Fractions = 10 0.103000 0.126000 0.031000 0.729000 0.002000 0.002000 0.002000 0.002000 0.002000 0.001000
+d:Ma/ICRP_9100/Density = 1.053 g/cm3
+
+# Kidney_right_cortex (ID=9200, density=1.053 g/cm3)
+sv:Ma/ICRP_9200/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_9200/Fractions = 10 0.103000 0.126000 0.031000 0.729000 0.002000 0.002000 0.002000 0.002000 0.002000 0.001000
+d:Ma/ICRP_9200/Density = 1.053 g/cm3
+
+# Kidney_right_medulla (ID=9300, density=1.053 g/cm3)
+sv:Ma/ICRP_9300/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_9300/Fractions = 10 0.103000 0.126000 0.031000 0.729000 0.002000 0.002000 0.002000 0.002000 0.002000 0.001000
+d:Ma/ICRP_9300/Density = 1.053 g/cm3
+
+# Kidney_right_pelvis (ID=9400, density=1.053 g/cm3)
+sv:Ma/ICRP_9400/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_9400/Fractions = 10 0.103000 0.126000 0.031000 0.729000 0.002000 0.002000 0.002000 0.002000 0.002000 0.001000
+d:Ma/ICRP_9400/Density = 1.053 g/cm3
+
+# Liver (ID=9500, density=1.06 g/cm3)
+sv:Ma/ICRP_9500/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_9500/Fractions = 9 0.102000 0.132000 0.031000 0.723000 0.002000 0.002000 0.003000 0.002000 0.003000
+d:Ma/ICRP_9500/Density = 1.06 g/cm3
+
+# Lung(AI)_left (ID=9700, density=0.415 g/cm3)
+sv:Ma/ICRP_9700/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Iron"
+uv:Ma/ICRP_9700/Fractions = 10 0.102000 0.108000 0.032000 0.748000 0.001000 0.001000 0.002000 0.003000 0.002000 0.001000
+d:Ma/ICRP_9700/Density = 0.415 g/cm3
+
+# Lung(AI)_right (ID=9900, density=0.415 g/cm3)
+sv:Ma/ICRP_9900/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Iron"
+uv:Ma/ICRP_9900/Fractions = 10 0.102000 0.108000 0.032000 0.748000 0.001000 0.001000 0.002000 0.003000 0.002000 0.001000
+d:Ma/ICRP_9900/Density = 0.415 g/cm3
+
+# Lymphatic_nodes_ET (ID=10000, density=1.032 g/cm3)
+sv:Ma/ICRP_10000/Components = 7 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Sulfur" "Chlorine"
+uv:Ma/ICRP_10000/Fractions = 7 0.108000 0.045000 0.012000 0.827000 0.003000 0.001000 0.004000
+d:Ma/ICRP_10000/Density = 1.032 g/cm3
+
+# Lymphatic_nodes_thoracic (ID=10100, density=1.032 g/cm3)
+sv:Ma/ICRP_10100/Components = 7 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Sulfur" "Chlorine"
+uv:Ma/ICRP_10100/Fractions = 7 0.108000 0.045000 0.012000 0.827000 0.003000 0.001000 0.004000
+d:Ma/ICRP_10100/Density = 1.032 g/cm3
+
+# Lymphatic_nodes_head (ID=10200, density=1.032 g/cm3)
+sv:Ma/ICRP_10200/Components = 7 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Sulfur" "Chlorine"
+uv:Ma/ICRP_10200/Fractions = 7 0.108000 0.045000 0.012000 0.827000 0.003000 0.001000 0.004000
+d:Ma/ICRP_10200/Density = 1.032 g/cm3
+
+# Lymphatic_nodes_trunk (ID=10300, density=1.032 g/cm3)
+sv:Ma/ICRP_10300/Components = 7 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Sulfur" "Chlorine"
+uv:Ma/ICRP_10300/Fractions = 7 0.108000 0.045000 0.012000 0.827000 0.003000 0.001000 0.004000
+d:Ma/ICRP_10300/Density = 1.032 g/cm3
+
+# Lymphatic_nodes_arms (ID=10400, density=1.032 g/cm3)
+sv:Ma/ICRP_10400/Components = 7 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Sulfur" "Chlorine"
+uv:Ma/ICRP_10400/Fractions = 7 0.108000 0.045000 0.012000 0.827000 0.003000 0.001000 0.004000
+d:Ma/ICRP_10400/Density = 1.032 g/cm3
+
+# Lymphatic_nodes_legs (ID=10500, density=1.032 g/cm3)
+sv:Ma/ICRP_10500/Components = 7 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Sulfur" "Chlorine"
+uv:Ma/ICRP_10500/Fractions = 7 0.108000 0.045000 0.012000 0.827000 0.003000 0.001000 0.004000
+d:Ma/ICRP_10500/Density = 1.032 g/cm3
+
+# Muscle_head (ID=10600, density=1.05 g/cm3)
+sv:Ma/ICRP_10600/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_10600/Fractions = 9 0.102000 0.142000 0.034000 0.711000 0.001000 0.002000 0.003000 0.001000 0.004000
+d:Ma/ICRP_10600/Density = 1.05 g/cm3
+
+# Muscle_trunk (ID=10700, density=1.05 g/cm3)
+sv:Ma/ICRP_10700/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_10700/Fractions = 9 0.102000 0.142000 0.034000 0.711000 0.001000 0.002000 0.003000 0.001000 0.004000
+d:Ma/ICRP_10700/Density = 1.05 g/cm3
+
+# Muscle_arms (ID=10800, density=1.05 g/cm3)
+sv:Ma/ICRP_10800/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_10800/Fractions = 9 0.102000 0.142000 0.034000 0.711000 0.001000 0.002000 0.003000 0.001000 0.004000
+d:Ma/ICRP_10800/Density = 1.05 g/cm3
+
+# Muscle_legs (ID=10900, density=1.05 g/cm3)
+sv:Ma/ICRP_10900/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_10900/Fractions = 9 0.102000 0.142000 0.034000 0.711000 0.001000 0.002000 0.003000 0.001000 0.004000
+d:Ma/ICRP_10900/Density = 1.05 g/cm3
+
+# Oesophagus_wall(0-190) (ID=11000, density=1.037 g/cm3)
+sv:Ma/ICRP_11000/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_11000/Fractions = 9 0.104000 0.223000 0.028000 0.635000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_11000/Density = 1.037 g/cm3
+
+# Oesophagus_wall(190-200) (ID=11001, density=1.037 g/cm3)
+sv:Ma/ICRP_11001/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_11001/Fractions = 9 0.104000 0.223000 0.028000 0.635000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_11001/Density = 1.037 g/cm3
+
+# Oesophagus_wall(200-surface) (ID=11002, density=1.037 g/cm3)
+sv:Ma/ICRP_11002/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_11002/Fractions = 9 0.104000 0.223000 0.028000 0.635000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_11002/Density = 1.037 g/cm3
+
+# Oesophagus_contents (ID=11003, density=1.04 g/cm3)
+sv:Ma/ICRP_11003/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_11003/Fractions = 10 0.100000 0.222000 0.022000 0.644000 0.001000 0.002000 0.003000 0.001000 0.004000 0.001000
+d:Ma/ICRP_11003/Density = 1.04 g/cm3
+
+# Pancreas (ID=11300, density=1.044 g/cm3)
+sv:Ma/ICRP_11300/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_11300/Fractions = 9 0.105000 0.158000 0.024000 0.704000 0.002000 0.002000 0.001000 0.002000 0.002000
+d:Ma/ICRP_11300/Density = 1.044 g/cm3
+
+# Pituitary_gland (ID=11400, density=1.031 g/cm3)
+sv:Ma/ICRP_11400/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_11400/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_11400/Density = 1.031 g/cm3
+
+# Prostate (ID=11500, density=1.031 g/cm3)
+sv:Ma/ICRP_11500/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_11500/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_11500/Density = 1.031 g/cm3
+
+# RST_head (ID=11600, density=0.939 g/cm3)
+sv:Ma/ICRP_11600/Components = 8 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine"
+uv:Ma/ICRP_11600/Fractions = 8 0.112000 0.517000 0.011000 0.355000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_11600/Density = 0.939 g/cm3
+
+# RST_trunk (ID=11700, density=0.939 g/cm3)
+sv:Ma/ICRP_11700/Components = 8 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine"
+uv:Ma/ICRP_11700/Fractions = 8 0.112000 0.517000 0.011000 0.355000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_11700/Density = 0.939 g/cm3
+
+# RST_arms (ID=11800, density=0.939 g/cm3)
+sv:Ma/ICRP_11800/Components = 8 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine"
+uv:Ma/ICRP_11800/Fractions = 8 0.112000 0.517000 0.011000 0.355000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_11800/Density = 0.939 g/cm3
+
+# RST_legs (ID=11900, density=0.939 g/cm3)
+sv:Ma/ICRP_11900/Components = 8 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine"
+uv:Ma/ICRP_11900/Fractions = 8 0.112000 0.517000 0.011000 0.355000 0.001000 0.001000 0.002000 0.001000
+d:Ma/ICRP_11900/Density = 0.939 g/cm3
+
+# Salivary_glands_left (ID=12000, density=1.031 g/cm3)
+sv:Ma/ICRP_12000/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_12000/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_12000/Density = 1.031 g/cm3
+
+# Salivary_glandss_right (ID=12100, density=1.031 g/cm3)
+sv:Ma/ICRP_12100/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_12100/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_12100/Density = 1.031 g/cm3
+
+# Skin_head_insensitive (ID=12200, density=1.089 g/cm3)
+sv:Ma/ICRP_12200/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_12200/Fractions = 9 0.100000 0.199000 0.042000 0.650000 0.002000 0.001000 0.002000 0.003000 0.001000
+d:Ma/ICRP_12200/Density = 1.089 g/cm3
+
+# Skin_head_sensitive(50-100) (ID=12201, density=1.089 g/cm3)
+sv:Ma/ICRP_12201/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_12201/Fractions = 9 0.100000 0.199000 0.042000 0.650000 0.002000 0.001000 0.002000 0.003000 0.001000
+d:Ma/ICRP_12201/Density = 1.089 g/cm3
+
+# Skin_trunk_insensitive (ID=12300, density=1.089 g/cm3)
+sv:Ma/ICRP_12300/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_12300/Fractions = 9 0.100000 0.199000 0.042000 0.650000 0.002000 0.001000 0.002000 0.003000 0.001000
+d:Ma/ICRP_12300/Density = 1.089 g/cm3
+
+# Skin_trunk_sensitive(50-100) (ID=12301, density=1.089 g/cm3)
+sv:Ma/ICRP_12301/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_12301/Fractions = 9 0.100000 0.199000 0.042000 0.650000 0.002000 0.001000 0.002000 0.003000 0.001000
+d:Ma/ICRP_12301/Density = 1.089 g/cm3
+
+# Skin_arms_insensitive (ID=12400, density=1.089 g/cm3)
+sv:Ma/ICRP_12400/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_12400/Fractions = 9 0.100000 0.199000 0.042000 0.650000 0.002000 0.001000 0.002000 0.003000 0.001000
+d:Ma/ICRP_12400/Density = 1.089 g/cm3
+
+# Skin_arms_sensitive(50-100) (ID=12401, density=1.089 g/cm3)
+sv:Ma/ICRP_12401/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_12401/Fractions = 9 0.100000 0.199000 0.042000 0.650000 0.002000 0.001000 0.002000 0.003000 0.001000
+d:Ma/ICRP_12401/Density = 1.089 g/cm3
+
+# Skin_legs_insensitive (ID=12500, density=1.089 g/cm3)
+sv:Ma/ICRP_12500/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_12500/Fractions = 9 0.100000 0.199000 0.042000 0.650000 0.002000 0.001000 0.002000 0.003000 0.001000
+d:Ma/ICRP_12500/Density = 1.089 g/cm3
+
+# Skin_legs_sensitive(50-100) (ID=12501, density=1.089 g/cm3)
+sv:Ma/ICRP_12501/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_12501/Fractions = 9 0.100000 0.199000 0.042000 0.650000 0.002000 0.001000 0.002000 0.003000 0.001000
+d:Ma/ICRP_12501/Density = 1.089 g/cm3
+
+# Spinal_cord (ID=12600, density=1.031 g/cm3)
+sv:Ma/ICRP_12600/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_12600/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_12600/Density = 1.031 g/cm3
+
+# Spleen (ID=12700, density=1.06 g/cm3)
+sv:Ma/ICRP_12700/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_12700/Fractions = 9 0.103000 0.112000 0.032000 0.743000 0.001000 0.002000 0.002000 0.002000 0.003000
+d:Ma/ICRP_12700/Density = 1.06 g/cm3
+
+# Teeth (ID=12800, density=2.688 g/cm3)
+sv:Ma/ICRP_12800/Components = 7 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Magnesium" "Phosphorus" "Calcium"
+uv:Ma/ICRP_12800/Fractions = 7 0.023000 0.095000 0.029000 0.426000 0.007000 0.135000 0.285000
+d:Ma/ICRP_12800/Density = 2.688 g/cm3
+
+# Teeth_retention_region (ID=12801, density=1.04 g/cm3)
+sv:Ma/ICRP_12801/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Calcium"
+uv:Ma/ICRP_12801/Fractions = 10 0.100000 0.222000 0.022000 0.644000 0.001000 0.002000 0.003000 0.001000 0.004000 0.001000
+d:Ma/ICRP_12801/Density = 1.04 g/cm3
+
+# Testis_left (ID=12900, density=1.041 g/cm3)
+sv:Ma/ICRP_12900/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_12900/Fractions = 9 0.106000 0.099000 0.021000 0.765000 0.002000 0.001000 0.002000 0.002000 0.002000
+d:Ma/ICRP_12900/Density = 1.041 g/cm3
+
+# Testis_right (ID=13000, density=1.041 g/cm3)
+sv:Ma/ICRP_13000/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_13000/Fractions = 9 0.106000 0.099000 0.021000 0.765000 0.002000 0.001000 0.002000 0.002000 0.002000
+d:Ma/ICRP_13000/Density = 1.041 g/cm3
+
+# Thymus (ID=13100, density=1.031 g/cm3)
+sv:Ma/ICRP_13100/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_13100/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_13100/Density = 1.031 g/cm3
+
+# Thyroid (ID=13200, density=1.051 g/cm3)
+sv:Ma/ICRP_13200/Components = 10 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium" "Iodine"
+uv:Ma/ICRP_13200/Fractions = 10 0.104000 0.118000 0.025000 0.745000 0.002000 0.001000 0.001000 0.002000 0.001000 0.001000
+d:Ma/ICRP_13200/Density = 1.051 g/cm3
+
+# Tongue_upper(food) (ID=13300, density=1.05 g/cm3)
+sv:Ma/ICRP_13300/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_13300/Fractions = 9 0.102000 0.142000 0.034000 0.711000 0.001000 0.002000 0.003000 0.001000 0.004000
+d:Ma/ICRP_13300/Density = 1.05 g/cm3
+
+# Tongue_lower (ID=13301, density=1.05 g/cm3)
+sv:Ma/ICRP_13301/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_13301/Fractions = 9 0.102000 0.142000 0.034000 0.711000 0.001000 0.002000 0.003000 0.001000 0.004000
+d:Ma/ICRP_13301/Density = 1.05 g/cm3
+
+# Tonsils (ID=13400, density=1.031 g/cm3)
+sv:Ma/ICRP_13400/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_13400/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_13400/Density = 1.031 g/cm3
+
+# Ureter_left (ID=13500, density=1.031 g/cm3)
+sv:Ma/ICRP_13500/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_13500/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_13500/Density = 1.031 g/cm3
+
+# Ureter_right (ID=13600, density=1.031 g/cm3)
+sv:Ma/ICRP_13600/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_13600/Fractions = 9 0.105000 0.251000 0.027000 0.607000 0.001000 0.002000 0.003000 0.002000 0.002000
+d:Ma/ICRP_13600/Density = 1.031 g/cm3
+
+# Urinary_bladder_wall_insensitive (ID=13700, density=1.04 g/cm3)
+sv:Ma/ICRP_13700/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_13700/Fractions = 9 0.105000 0.096000 0.026000 0.761000 0.002000 0.002000 0.002000 0.003000 0.003000
+d:Ma/ICRP_13700/Density = 1.04 g/cm3
+
+# Urinary_bladder_wall_sensitive(75-118) (ID=13701, density=1.04 g/cm3)
+sv:Ma/ICRP_13701/Components = 9 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Sulfur" "Chlorine" "Potassium"
+uv:Ma/ICRP_13701/Fractions = 9 0.105000 0.096000 0.026000 0.761000 0.002000 0.002000 0.002000 0.003000 0.003000
+d:Ma/ICRP_13701/Density = 1.04 g/cm3
+
+# Urinary_bladder_content (ID=13800, density=1.04 g/cm3)
+sv:Ma/ICRP_13800/Components = 7 "Hydrogen" "Carbon" "Nitrogen" "Oxygen" "Sodium" "Phosphorus" "Potassium"
+uv:Ma/ICRP_13800/Fractions = 7 0.107000 0.003000 0.010000 0.873000 0.004000 0.001000 0.002000
+d:Ma/ICRP_13800/Density = 1.04 g/cm3
+
+# Air_inside_body (ID=14000, density=0.001 g/cm3)
+sv:Ma/ICRP_14000/Components = 2 "Nitrogen" "Oxygen"
+uv:Ma/ICRP_14000/Fractions = 2 0.800000 0.200000
+d:Ma/ICRP_14000/Density = 0.001 g/cm3
+

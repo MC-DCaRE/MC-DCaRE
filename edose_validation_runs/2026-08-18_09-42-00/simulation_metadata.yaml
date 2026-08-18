@@ -1,0 +1,16 @@
+total_histories: 5000100
+exposure_mAs: 671.2
+spectrum_fluence_photons_per_mAs: 6282746701.165291
+spekpy:
+  kvp: 125.0
+  th: 14
+  dk: 0.2
+  z: 0.1
+  mas: 671.2
+  version: 2.5.4
+  filtration_mode: hybrid
+  hvl_mmAl: 4.6886345104249605
+fan_mode: Half Fan
+seed: 42
+threads: 20
+timestamp: '2026-08-17T23:42:06.648982+00:00'

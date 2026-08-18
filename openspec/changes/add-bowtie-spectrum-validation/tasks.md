@@ -19,8 +19,8 @@
 >   scored (measured = 7.37 mmAl). That is the focused follow-up below.
 
 - [x] Phase 1: STL bow-tie geometry + spectrum filtration (DONE; superseded by validate-bowtie-stl-asset)
-- [ ] Phase 2: CAX HVL computation + validation (REMAINING -- the open gap)
-- [~] Phase 3: re-calibration + regression (re-cal RUNNING at TsCAD; regression after)
+- [x] Phase 2: CAX HVL computation + validation (DONE 2026-08-18; see 5a.1-5a.2 below)
+- [x] Phase 3: re-calibration + regression (DONE; 6.1-6.5 complete)
 
 ## 1. STL processing tool
 
@@ -94,5 +94,21 @@ spectrum scorer to feed it. Measured Head-FF CAX HVL = 7.37 mm Al.
 - [x] 6.3 re-run FF modes; confirm the -65..-88% gap narrows
   *(edose sweep 2026-08-18: Pelvis Spotlight -65%->-9%, Abdo -56%->-11%,
   Head/SRS/Extremity -84..-88%->-56%; residual is systematic, not bow-tie)*
-- [ ] 6.4 quality gates: ruff, mypy, pytest green
-- [ ] 6.5 update `src/AGENTS.md` + `fieldtobladeopening.py` TODO (cite Oct 2023 data)
+- [x] 6.4 quality gates: ruff, mypy, pytest green
+      *(2026-08-18: ruff format/check clean, mypy 0 errors in 31 files, 640/640
+      pytest. Fixed 11 pre-existing mypy errors in this change's files
+      (calibration.py kwargs->dataclasses.replace, spectrum_generator float
+      coercion, phase_space_analyzer ndarray annotation, bowtie_validator cell
+      narrowing) + the 4 dry-run integration tests: the fake_project fixture
+      predated the legacy_bowtie=False default flip and never staged the TsCAD
+      assets (bowtie_ff/hf.txt, fullfan/halffan.stl) that copy_common_files
+      now requires)*
+- [x] 6.5 update `src/AGENTS.md` + `fieldtobladeopening.py` TODO (cite Oct 2023 data)
+      *(AGENTS.md: added the 2026-08-18 CAX HVL validation block — CaxSlab/
+      CaxSpectrum scorer, tools/compute_cax_hvl.py, FF 7.80 vs 7.37 PASS /
+      HF 8.96 vs 8.06, no-bowtie controls -> residual is base filtration.
+      fieldtobladeopening.py: the "TODO: Cite measurement source" is moot —
+      removed in 5f6eccb (2026-08-18 rectangular-blade rewrite) which replaced
+      the affine fits with geometric demagnification citing its own
+      fluence-slab validation; the Oct 2023 workbook holds HVL/dose profiles,
+      not blade data)*

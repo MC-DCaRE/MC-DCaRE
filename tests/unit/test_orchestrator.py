@@ -108,6 +108,7 @@ class TestRunDicomSimulation:
             filtration_mode="hybrid",
             bhf_thickness_mm=0.89,
             bhf_mode="spekpy",
+            fluence_anchor="measured",
         )
 
     @patch("src.orchestrator.SpectrumGenerator")
@@ -201,6 +202,7 @@ class TestRunCtdiSimulation:
             filtration_mode="hybrid",
             bhf_thickness_mm=0.89,
             bhf_mode="spekpy",
+            fluence_anchor="measured",
         )
 
 

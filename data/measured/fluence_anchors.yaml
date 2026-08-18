@@ -1,0 +1,28 @@
+# Measured fluence-anchor factors for the MC-DCaRE beam model.
+# F(kV) = measured free-in-air CAX kerma / MC raw CAX kerma, with bow-tie ON,
+# Ti BHF spekpy-folded (0.89 mm), clinical fields, at 1.6 mAs (40 mA x 40 ms).
+#
+# Derivation runs (2026-08-18, post rectangular-blade fix, spekpy BHF default):
+#   Head 100 FF   runfolder/2026-08-18_13-51-57  MC 551.6 uGy  meas 59.01 -> 0.1070
+#   Pelvis 125 HF runfolder/2026-08-18_13-57-58  MC 989.4 uGy  meas 106.3 -> 0.1074
+#   Spotlight 125 FF runfolder/2026-08-18_13-59-49 MC 990.3 uGy meas 107.1 -> 0.1081
+# Spread at 125 kV: 0.6% (FF vs HF) -- the bias is a single multiplicative
+# factor (SpekPy tube-output normalization + isotropic 4*pi inflation at
+# z=10 cm), NOT protocol-dependent, after the blade + spekpy fixes.
+#
+# Interpretation (with-bow-tie anchors): F absorbs the STL bow-tie's known
+# under-thin centre (CAX transmission 0.899 MC vs 0.523 measured) into an
+# effective fluence, mirroring the CTDI DCF philosophy. No-bow-tie arms will
+# therefore read low by ~1.7x at the CAX -- documented, accepted.
+#
+# Rule: linear-in-log(kV) interpolation between measured points; outside the
+# measured range, clamp to the nearest measured kV (the two measured factors
+# differ by <1%, so the extrapolation risk is negligible).
+anchors:
+  - kV: 100
+    factor: 0.1070
+    provenance: "Head FF, RaySafe 59.01 uGy @1.6 mAs vs MC 551.6"
+  - kV: 125
+    factor: 0.10775
+    provenance: "mean of Pelvis HF (106.3/989.4) and Spotlight FF (107.1/990.3)"
+measured_by: "2026-08-18 validate-beam-model-benchmarks"

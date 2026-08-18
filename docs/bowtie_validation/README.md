@@ -288,6 +288,42 @@ first. (3) Thorax (HF) and Spotlight (FF) give identical CAX kerma per mAs
 the same thin-spot geometry and spectrum at the exact CAX; a useful internal
 consistency check.
 
+## Measured fluence anchor (2026-08-18, post blade fix)
+
+The absolute fluence scale is now anchored to measurement:
+`imaging.fluence_anchor = measured` (default; `model` keeps the raw SpekPy
+isotropic inflation for auditing) scales `no_particles` in
+`SpectrumGenerator` by a per-kV factor from
+`data/measured/fluence_anchors.yaml`, recorded in run metadata.
+
+**Derivation** (with-bow-tie, spekpy Ti, clinical fields, 1.6 mAs anchors):
+F(100) = 59.01/551.6 = **0.1070** (Head FF); F(125) = mean(106.3/989.4,
+107.1/990.3) = **0.1077** -- <1% spread across two kV and both fans, i.e. a
+single multiplicative bias (SpekPy tube-output normalization + 4*pi isotropic
+inflation at z=10 cm), no longer protocol-dependent after the rectangular
+blade fix. Option-A anchoring: the with-BT factors absorb the (accepted)
+under-thin STL centre into an effective fluence, mirroring the DCF philosophy;
+no-bow-tie arms read ~1.7x low at the CAX by construction.
+
+**Verification:** the Head anchor arm re-run with the anchor closes to
+59.0 vs 59.01 uGy (ratio 1.000). Independent check vs Gros 2025 Kair
+(all five protocols re-run post-fix, anchored):
+
+| protocol | MC @ mAs (mGy) | Gros Kair (mGy) | ratio (was, pre-fix) |
+|---|---|---|---|
+| Head | 5.5 | 5.3 | 1.05 (5.7x) |
+| Thorax | 17.9 | 17.8 | 1.01 (8.7x) |
+| Pelvis | 71.6 | 64.3 | 1.11 (6.6x) |
+| Pelvis Large | 149.1 | 132.0 | 1.13 (9.8x) |
+| Spotlight | 50.1 | 44.7 | 1.12 (9.7x) |
+
+The prior 5.7-9.8x bias is gone; the residual +10-13% on body modes vs
++1-5% on head/thorax is the remaining small systematic (candidates: off-axis
+wedge detail, technique-generation differences between machines -- Gros
+themselves report machine-to-machine spread of this order). Note the DCFs in
+`calibration.yaml` (2026-08-14) predate the blade fix AND the anchor and are
+stale for absolute work until re-calibrated.
+
 ## Final outcome (post re-calibration, 2026-08-14/18)
 
 (6 protocols, `calibration.yaml` date_calibrated 2026-08-14: dcf_tle 80 FF

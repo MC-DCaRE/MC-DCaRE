@@ -7,7 +7,20 @@
 - [x] Phase 4: Gros 2025 Kair per protocol
   + `imaging.bhf_mode` default flipped to spekpy (faster, mm=mm); geometric
     retained as the full-geometry validation toggle
+- [x] Phase 5a (added): measured fluence anchor -- implemented + verified
 - [ ] Phase 5: literature per-100 mAs benchmarks + docs
+
+## 5b. Measured fluence anchor (executed 2026-08-18, post blade fix)
+
+- [x] 5b.1 derive F(kV) from with-BT anchor arms (Head 100 FF, Pelvis 125 HF,
+  Spotlight 125 FF; spekpy Ti, clinical fields): F(100)=0.1070, F(125)=0.1077
+  (<1% spread across kV and fan) -> data/measured/fluence_anchors.yaml
+- [x] 5b.2 `imaging.fluence_anchor = measured|model` (default measured) in
+  ImagingConfig + SpectrumGenerator (scales no_particles; recorded in metadata)
+- [x] 5b.3 verify: Head anchor arm closes 59.0 vs 59.01 uGy (ratio 1.000);
+  Gros 2025 per-protocol Kair ratios collapse 5.7-9.8x -> 1.01-1.13x
+- [x] 5b.4 calibration.yaml marked stale (blade fix + anchor shift raw CTDIw);
+  docs + AGENTS.md updated
 
 ## 1. Absolute CAX kerma (Ti in)
 

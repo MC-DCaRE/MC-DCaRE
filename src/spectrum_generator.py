@@ -12,6 +12,34 @@ import yaml
 
 logger = logging.getLogger(__name__)
 
+_FLUENCE_ANCHORS_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "data",
+    "measured",
+    "fluence_anchors.yaml",
+)
+
+
+def _fluence_anchor_factor(kv: float) -> float:
+    """Per-kV measured fluence-anchor factor (linear in log kV).
+
+    Loads ``data/measured/fluence_anchors.yaml``; interpolates between the
+    measured kV points and clamps outside the measured range (the measured
+    factors differ by <1%, so clamping is conservative).
+    """
+    with open(_FLUENCE_ANCHORS_PATH, encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+    points = sorted((a["kV"], a["factor"]) for a in data["anchors"])
+    if kv <= points[0][0]:
+        return points[0][1]
+    if kv >= points[-1][0]:
+        return points[-1][1]
+    for (k_lo, f_lo), (k_hi, f_hi) in zip(points, points[1:]):
+        if k_lo <= kv <= k_hi:
+            t = (np.log(kv) - np.log(k_lo)) / (np.log(k_hi) - np.log(k_lo))
+            return float(np.exp(np.log(f_lo) + t * (np.log(f_hi) - np.log(f_lo))))
+    raise ValueError("no anchor bracket for kV=%s" % kv)
+
 
 class SpectrumGenerator:
     """Creates SpekPy X-ray spectra and writes TOPAS-compatible spectrum files."""
@@ -28,6 +56,7 @@ class SpectrumGenerator:
         filtration_mode: str = "hybrid",
         bhf_thickness_mm: float = 0.89,
         bhf_mode: str = "geometric",
+        fluence_anchor: str = "measured",
     ) -> None:
         """Generate a kV spectrum and write metadata and TOPAS spectrum files.
 
@@ -72,6 +101,10 @@ class SpectrumGenerator:
                 "bhf_mode='spekpy' requires bhf_thickness_mm > 0, got %s"
                 % bhf_thickness_mm
             )
+        if fluence_anchor not in ("measured", "model"):
+            raise ValueError(
+                "fluence_anchor must be 'measured' or 'model', got %r" % fluence_anchor
+            )
         logger.info(
             "Generating spectrum: %f kV, %f mAs, %s histories "
             "(filtration=%s, bhf=%s mm %s)",
@@ -113,6 +146,16 @@ class SpectrumGenerator:
         karr, spkarr = s.get_spectrum(edges=False, diff=False)
         no_particles: float = 4 * np.pi * 0.1**2 * s.get_flu()
 
+        # Measured fluence anchor: the SpekPy isotropic-inflation heuristic
+        # overestimates the tube output by ~9.3x against the RaySafe
+        # free-in-air CAX kerma (see data/measured/fluence_anchors.yaml).
+        # 'measured' (default) scales no_particles by the per-kV factor;
+        # 'model' keeps the raw SpekPy scale for auditing.
+        anchor_factor: float = 1.0
+        if fluence_anchor == "measured":
+            anchor_factor = _fluence_anchor_factor(anode_voltage)
+            no_particles *= anchor_factor
+
         if exposure <= 0:
             raise ValueError("exposure (mAs) must be positive, got %s" % exposure)
         if int(histories) <= 0:
@@ -137,6 +180,10 @@ class SpectrumGenerator:
                 "bhf_mode": bhf_mode,
                 "bhf_thickness_mm": bhf_thickness_mm,
                 "hvl_mmAl": hvl_mm_al,
+            },
+            "fluence_anchor": {
+                "mode": fluence_anchor,
+                "factor": anchor_factor,
             },
             "fan_mode": fan_mode,
             "seed": seed,

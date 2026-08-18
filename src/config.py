@@ -136,6 +136,7 @@ class ImagingConfig:
     filtration_mode: str = "hybrid"
     bhf_thickness_mm: float = 0.89
     bhf_mode: str = "spekpy"
+    fluence_anchor: str = "measured"
     legacy_bowtie: bool = False
     bowtie_enabled: bool = True
     imaging_mode: str = "Image Gently"
@@ -174,6 +175,13 @@ class ImagingConfig:
             raise ValueError(
                 "imaging.bhf_mode='spekpy' requires bhf_thickness_mm > 0 "
                 "(use bhf_mode='geometric' with thickness 0 for no filter)"
+            )
+        if self.fluence_anchor not in ("measured", "model"):
+            raise ValueError(
+                "imaging.fluence_anchor must be 'measured' or 'model', got %r "
+                "(measured: scale SpekPy output by the RaySafe-anchored "
+                "per-kV factor; model: raw SpekPy isotropic inflation)"
+                % self.fluence_anchor
             )
 
 

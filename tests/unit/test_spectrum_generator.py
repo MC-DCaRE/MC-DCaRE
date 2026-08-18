@@ -148,14 +148,19 @@ class TestSpectrumGenerator:
         # upstream MC-DCaRE/MC-DCaRE defines the head calibration factor as
         # no_particles / histories, where no_particles = 4*pi*(0.1 m)^2 * flu
         # = 4*pi*0.01*flu (SpekPy flu over the 0.1 m reference sphere).
-        # MockSpek.get_flu() returns 1000, histories=100000.
-        expected = 4.0 * math.pi * 0.01 * 1000.0 / 100000
+        # MockSpek.get_flu() returns 1000, histories=100000. Default
+        # fluence_anchor='measured' scales by F(100 kV)=0.1070.
+        from src.spectrum_generator import _fluence_anchor_factor
+
+        expected = (
+            4.0 * math.pi * 0.01 * 1000.0 / 100000 * _fluence_anchor_factor(100.0)
+        )
         with open(calib_path, "r") as f:
             actual = float(f.readline().strip())
-        assert abs(actual - expected) < 1e-10
+        assert abs(actual - expected) < 1e-12
 
     @patch("src.spectrum_generator.sp")
-    def test_default_calibration_factor_is_one(
+    def test_default_calibration_factor_is_anchored(
         self, mock_sp: MagicMock, tmp_path: object
     ) -> None:
         mock_sp.Spek.return_value = MockSpek()
@@ -164,10 +169,14 @@ class TestSpectrumGenerator:
         SpectrumGenerator.generate(100.0, 10.0, "100000", str(tmp_path))
         calib_path = os.path.join(str(tmp_path), "tmp", "head_calibration_factor.txt")
 
-        expected = 4.0 * math.pi * 0.01 * 1000.0 / 100000
+        from src.spectrum_generator import _fluence_anchor_factor
+
+        expected = (
+            4.0 * math.pi * 0.01 * 1000.0 / 100000 * _fluence_anchor_factor(100.0)
+        )
         with open(calib_path, "r") as f:
             actual = float(f.readline().strip())
-        assert abs(actual - expected) < 1e-10
+        assert abs(actual - expected) < 1e-12
 
     @patch("src.spectrum_generator.sp")
     def test_creates_simulation_metadata_yaml(
@@ -220,8 +229,12 @@ class TestSpectrumGenerator:
         with open(meta_path) as f:
             meta = yaml.safe_load(f)
 
-        expected_fluence = 4.0 * math.pi * 0.01 * 1000.0 / 100000
-        assert abs(meta["spectrum_fluence_photons_per_mAs"] - expected_fluence) < 1e-10
+        from src.spectrum_generator import _fluence_anchor_factor
+
+        expected_fluence = (
+            4.0 * math.pi * 0.01 * 1000.0 / 100000 * _fluence_anchor_factor(100.0)
+        )
+        assert abs(meta["spectrum_fluence_photons_per_mAs"] - expected_fluence) < 1e-12
 
     @patch("src.spectrum_generator.sp")
     def test_metadata_does_not_include_dcf_hint_when_one(
@@ -381,3 +394,62 @@ class TestBhfModeToggle:
         )
         assert meta["spekpy"]["bhf_mode"] == "spekpy"
         assert meta["spekpy"]["bhf_thickness_mm"] == 0.5
+
+
+class TestFluenceAnchor:
+    """fluence_anchor='measured' scales the particle count by the per-kV
+    factor; 'model' leaves the raw SpekPy isotropic inflation."""
+
+    @patch("src.spectrum_generator.sp")
+    def test_measured_mode_scales_calibration_factor(
+        self, mock_sp: MagicMock, tmp_path: object
+    ) -> None:
+        mock_sp.Spek.return_value = MockSpek()
+        mock_sp.__version__ = "2.0.1"
+        os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
+        SpectrumGenerator.generate(
+            100.0, 10.0, "100000", str(tmp_path), fluence_anchor="measured"
+        )
+        meta = yaml.safe_load(
+            open(os.path.join(str(tmp_path), "tmp", "simulation_metadata.yaml"))
+        )
+        assert meta["fluence_anchor"]["mode"] == "measured"
+        assert meta["fluence_anchor"]["factor"] == pytest.approx(0.1070, rel=0.01)
+
+    @patch("src.spectrum_generator.sp")
+    def test_model_mode_factor_is_one(
+        self, mock_sp: MagicMock, tmp_path: object
+    ) -> None:
+        mock_sp.Spek.return_value = MockSpek()
+        mock_sp.__version__ = "2.0.1"
+        os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
+        SpectrumGenerator.generate(
+            100.0, 10.0, "100000", str(tmp_path), fluence_anchor="model"
+        )
+        meta = yaml.safe_load(
+            open(os.path.join(str(tmp_path), "tmp", "simulation_metadata.yaml"))
+        )
+        assert meta["fluence_anchor"]["factor"] == 1.0
+
+    @patch("src.spectrum_generator.sp")
+    def test_interpolation_between_anchors(
+        self, mock_sp: MagicMock, tmp_path: object
+    ) -> None:
+        mock_sp.Spek.return_value = MockSpek()
+        mock_sp.__version__ = "2.0.1"
+        os.makedirs(os.path.join(str(tmp_path), "tmp"), exist_ok=True)
+        SpectrumGenerator.generate(
+            112.5, 10.0, "100000", str(tmp_path), fluence_anchor="measured"
+        )
+        meta = yaml.safe_load(
+            open(os.path.join(str(tmp_path), "tmp", "simulation_metadata.yaml"))
+        )
+        assert 0.1070 < meta["fluence_anchor"]["factor"] < 0.10775
+
+    def test_interpolated_calibration_factor_matches_metadata(self) -> None:
+        from src.spectrum_generator import _fluence_anchor_factor
+
+        assert _fluence_anchor_factor(80) == pytest.approx(0.1070)  # clamp low
+        assert _fluence_anchor_factor(140) == pytest.approx(0.10775)  # clamp high
+        mid = _fluence_anchor_factor(112.5)
+        assert 0.1070 < mid < 0.10775

@@ -190,6 +190,7 @@ class Orchestrator:
             filtration_mode=config.imaging.filtration_mode,
             bhf_thickness_mm=config.imaging.bhf_thickness_mm,
             bhf_mode=config.imaging.bhf_mode,
+            fluence_anchor=config.imaging.fluence_anchor,
         )
 
         mode.prepare_run(config, rundir, self.project_root)
@@ -227,6 +228,7 @@ class Orchestrator:
             filtration_mode=config.imaging.filtration_mode,
             bhf_thickness_mm=config.imaging.bhf_thickness_mm,
             bhf_mode=config.imaging.bhf_mode,
+            fluence_anchor=config.imaging.fluence_anchor,
         )
 
         ctdi_mode.prepare_run(config, rundir, self.project_root)

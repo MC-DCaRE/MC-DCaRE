@@ -29,7 +29,7 @@ def _fluence_anchor_factor(kv: float) -> float:
     """
     with open(_FLUENCE_ANCHORS_PATH, encoding="utf-8") as f:
         data = yaml.safe_load(f)
-    points = sorted((a["kV"], a["factor"]) for a in data["anchors"])
+    points = sorted((float(a["kV"]), float(a["factor"])) for a in data["anchors"])
     if kv <= points[0][0]:
         return points[0][1]
     if kv >= points[-1][0]:

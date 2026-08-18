@@ -477,7 +477,7 @@ class PhaseSpaceAnalyzer:
                 ("first", np.int8),
             ]
         )
-        recs = np.zeros(n_particles, dtype=dtype)
+        recs: np.ndarray = np.zeros(n_particles, dtype=dtype)
         recs["x"] = rng.normal(0, 1.0, n_particles).astype(np.float32)
         recs["y"] = rng.normal(0, 1.0, n_particles).astype(np.float32)
         recs["z"] = rng.normal(0, 0.1, n_particles).astype(np.float32)

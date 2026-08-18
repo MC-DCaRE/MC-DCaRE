@@ -10,11 +10,11 @@ from __future__ import annotations
 
 import logging
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from src.models.calibration import CalibrationEntry, MachineCalibration
+from src.models.calibration import MachineCalibration
 from src.services.ctdi_calculator import CTDICalculator, PRIMARY_SCORER
 
 logger = logging.getLogger(__name__)
@@ -212,22 +212,14 @@ class CalibrationService:
         updated_entries = []
         for e in self._calibration.calibrations:
             if e.kV == kV and e.fan_mode == fan_mode:
-                kwargs = {
-                    "kV": e.kV,
-                    "fan_mode": e.fan_mode,
-                    "reference_mAs": e.reference_mAs,
-                    "measured_ctdi_w_mGy": measured_ctdi_w_mGy,
-                    "dcf_tle": e.dcf_tle,
-                    "dcf_dtw": e.dcf_dtw,
-                    "dcf_dtm": e.dcf_dtm,
-                    "dcf_water_dtm": e.dcf_water_dtm,
-                    "reference_protocol": e.reference_protocol,
-                    "reference_ctdi_w_mGy": e.reference_ctdi_w_mGy,
-                    "date": e.date,
-                    "note": e.note,
-                }
-                kwargs[dcf_field] = dcf
-                updated_entries.append(CalibrationEntry(**kwargs))
+                updates: Dict[str, Any] = {dcf_field: dcf}
+                updated_entries.append(
+                    replace(
+                        e,
+                        measured_ctdi_w_mGy=measured_ctdi_w_mGy,
+                        **updates,
+                    )
+                )
             else:
                 updated_entries.append(e)
 

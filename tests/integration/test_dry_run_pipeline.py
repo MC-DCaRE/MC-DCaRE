@@ -141,6 +141,10 @@ def fake_project(tmp_path: Any) -> Any:
     for name in [
         "fullfan.txt",
         "halffan.txt",
+        "bowtie_ff.txt",
+        "bowtie_hf.txt",
+        "fullfan.stl",
+        "halffan.stl",
         "Muen.dat",
         "HUtoMaterialSchneider.txt",
     ]:

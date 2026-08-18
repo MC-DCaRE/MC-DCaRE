@@ -90,15 +90,13 @@ def load_measured_profile(
         c = cells[pos_col]
         if isinstance(c, (int, float)) and -20 < c < 20:
             pos.append(float(c))
+            dose_val = cells[dose_col]
+            hvl_val = cells[hvl_col]
             dose.append(
-                float(cells[dose_col])
-                if isinstance(cells[dose_col], (int, float))
-                else float("nan")
+                float(dose_val) if isinstance(dose_val, (int, float)) else float("nan")
             )
             hvl.append(
-                float(cells[hvl_col])
-                if isinstance(cells[hvl_col], (int, float))
-                else float("nan")
+                float(hvl_val) if isinstance(hvl_val, (int, float)) else float("nan")
             )
     wb.close()
     if not pos:
@@ -130,7 +128,8 @@ def _normalise(values: np.ndarray) -> np.ndarray:
     peak = float(np.nanmax(values))
     if peak != peak or peak <= 0:  # NaN or non-positive -> cannot normalise
         return values
-    return values / peak
+    normalised: np.ndarray = values / peak
+    return normalised
 
 
 def compare_profiles(

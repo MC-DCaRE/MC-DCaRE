@@ -79,6 +79,8 @@ class TestBowtieDispatch:
             "bowtie_enabled": True,
             "bhf_mode": "geometric",
             "primary_mask_enabled": True,
+            "source_angular_cutoff_x": "90.0 deg",
+            "source_angular_cutoff_y": "90.0 deg",
         }
         merged.update(context)
         result = renderer.render("headsourcecode_boilerplate.j2", merged, "head.txt")
@@ -113,6 +115,12 @@ class TestBowtieDispatch:
         assert "bowtie_ff" not in content
         assert "halffan" not in content
 
+    def test_bhf_thickness_substitutes(self, tmp_path: Any) -> None:
+        content = self._render_head(
+            tmp_path, {"fan_mode": "Full Fan", "bhf_thickness_mm": 0.89}
+        )
+        assert "HLZ=0.89 mm" in content or "HLZ = 0.89 mm" in content
+
 
 class TestPrimaryMaskToggle:
     """The head template must render the primary-collimator mask volumes only
@@ -140,17 +148,23 @@ def _render_head_with_mask(tmp_path: Any, enabled: bool) -> Any:
             "bowtie_enabled": True,
             "bhf_mode": "geometric",
             "primary_mask_enabled": enabled,
+            "source_angular_cutoff_x": "15.0 deg",
+            "source_angular_cutoff_y": "12.0 deg",
         },
         "head.txt",
     )
     with open(result) as f:
         return renderer, f.read()
 
-    def test_bhf_thickness_substitutes(self, tmp_path: Any) -> None:
-        content = self._render_head(
-            tmp_path, {"fan_mode": "Full Fan", "bhf_thickness_mm": 0.89}
-        )
-        assert "HLZ=0.89 mm" in content or "HLZ = 0.89 mm" in content
+
+class TestSourceAngularCutoff:
+    """The head template must substitute the configurable source cone cutoff
+    (housing-equivalent collimation experiments)."""
+
+    def test_default_cutoff_rendered(self, tmp_path: Any) -> None:
+        _, content = _render_head_with_mask(tmp_path, True)
+        assert "BeamAngularCutoffX = 15.0 deg" in content
+        assert "BeamAngularCutoffY = 12.0 deg" in content
 
 
 class TestBhfGating:

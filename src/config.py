@@ -58,6 +58,8 @@ _IMAGING_Q_FIELDS = (
     "blade_x2",
     "blade_y1",
     "blade_y2",
+    "source_angular_cutoff_x",
+    "source_angular_cutoff_y",
 )
 _DICOM_Q_FIELDS = (
     "isocenter_x",
@@ -140,6 +142,8 @@ class ImagingConfig:
     legacy_bowtie: bool = False
     bowtie_enabled: bool = True
     primary_mask_enabled: bool = True
+    source_angular_cutoff_x: Quantity = _q(90.0, "deg")
+    source_angular_cutoff_y: Quantity = _q(90.0, "deg")
     imaging_mode: str = "Image Gently"
     rotation_rate: Quantity = _q(0.4, "deg/s")
     timeline_end: Quantity = _q(501.0, "s")

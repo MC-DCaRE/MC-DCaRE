@@ -47,6 +47,8 @@ class DicomMode(SimulationMode):
             "legacy_bowtie": config.imaging.legacy_bowtie,
             "bowtie_enabled": config.imaging.bowtie_enabled,
             "primary_mask_enabled": config.imaging.primary_mask_enabled,
+            "source_angular_cutoff_x": str(config.imaging.source_angular_cutoff_x),
+            "source_angular_cutoff_y": str(config.imaging.source_angular_cutoff_y),
             "graphics_enabled": config.dicom.graphics_enabled,
             "simulation_type": "DICOM",
             "phantom_size": "",

@@ -105,6 +105,14 @@ def main() -> None:
         default=None,
         help="Output CSV path for organ dose table",
     )
+    parser.add_argument(
+        "--remainder-convention",
+        choices=["all-organs", "icrp103"],
+        default="all-organs",
+        help="Remainder tissue aggregation: 'all-organs' (historical default, "
+        "mean over every remainder-tagged organ) or 'icrp103' (mean over the "
+        "14 ICRP 103 remainder categories).",
+    )
     args = parser.parse_args()
 
     runfolder = Path(args.runfolder)
@@ -169,6 +177,7 @@ def main() -> None:
         target_mAs=args.target_mAs,
         dcf_override=args.dcf,
         scorer_type=args.scorer_type,
+        remainder_convention=args.remainder_convention,
     )
 
     # Print report

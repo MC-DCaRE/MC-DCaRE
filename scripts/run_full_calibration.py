@@ -262,7 +262,9 @@ def has_phantom_output(rundir: str) -> bool:
     return (Path(rundir) / "phantom_dose.csv").exists()
 
 
-def phase1_calibration(threads: str, dry_run: bool, resume: bool) -> Dict:
+def phase1_calibration(
+    threads: str, dry_run: bool, resume: bool, cal_histories: str
+) -> Dict:
     """Phase 1: Run all CTDI calibrations and compute DCFs."""
     print("\n" + "=" * 70)
     print("  PHASE 1: CTDI Calibration (6 protocols, 180M histories each)")
@@ -304,7 +306,7 @@ def phase1_calibration(threads: str, dry_run: bool, resume: bool) -> Dict:
                 "g4_data_directory": G4_DATA,
                 "topas_directory": TOPAS_BIN,
                 "threads": threads,
-                "histories": CAL_HISTORIES,
+                "histories": cal_histories,
                 "dose_calibration_factor": "1.0",
             },
             "imaging": {
@@ -672,6 +674,12 @@ def main() -> None:
         help="Skip phases with existing output (calibration DCFs, CTDI CSVs, dose CSVs)",
     )
     parser.add_argument(
+        "--cal-histories",
+        default=CAL_HISTORIES,
+        help="Histories per sequential time for calibration runs "
+        f"(default {CAL_HISTORIES}; total = value x 36 sequential)",
+    )
+    parser.add_argument(
         "--threads",
         default="20",
         help="Number of TOPAS threads (default: 20)",
@@ -706,7 +714,9 @@ def main() -> None:
     # Phase 1: Calibration
     cal_results = {"results": []}
     if not args.skip_calibration:
-        cal_results = phase1_calibration(args.threads, args.dry_run, args.resume)
+        cal_results = phase1_calibration(
+            args.threads, args.dry_run, args.resume, args.cal_histories
+        )
     else:
         print("\n  Skipping Phase 1 (using existing calibration.yaml)")
 

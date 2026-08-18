@@ -9,16 +9,31 @@ from __future__ import annotations
 
 import numpy as np
 import os
-import sys
 
 # Z number to element name mapping (TOPAS requires full names)
 Z_TO_NAME = {
-    1000: "Hydrogen", 2000: "Helium", 6000: "Carbon", 7000: "Nitrogen",
-    8000: "Oxygen", 9000: "Fluorine", 11000: "Sodium", 12000: "Magnesium",
-    13000: "Aluminum", 14000: "Silicon", 15000: "Phosphorus", 16000: "Sulfur",
-    17000: "Chlorine", 19000: "Potassium", 20000: "Calcium", 26000: "Iron",
-    27000: "Cobalt", 29000: "Copper", 30000: "Zinc", 53000: "Iodine",
-    79000: "Gold", 82000: "Lead",
+    1000: "Hydrogen",
+    2000: "Helium",
+    6000: "Carbon",
+    7000: "Nitrogen",
+    8000: "Oxygen",
+    9000: "Fluorine",
+    11000: "Sodium",
+    12000: "Magnesium",
+    13000: "Aluminum",
+    14000: "Silicon",
+    15000: "Phosphorus",
+    16000: "Sulfur",
+    17000: "Chlorine",
+    19000: "Potassium",
+    20000: "Calcium",
+    26000: "Iron",
+    27000: "Cobalt",
+    29000: "Copper",
+    30000: "Zinc",
+    53000: "Iodine",
+    79000: "Gold",
+    82000: "Lead",
 }
 
 
@@ -107,7 +122,9 @@ def generate_topas_materials(materials: dict[int, dict], output_file: str):
             for z, frac in mat["elements"]:
                 name = Z_TO_NAME.get(z)
                 if name is None:
-                    print(f"  WARNING: Unknown Z={z} in material {mat_id} ({mat['name']})")
+                    print(
+                        f"  WARNING: Unknown Z={z} in material {mat_id} ({mat['name']})"
+                    )
                     continue
                 names.append(name)
                 fracs.append(frac)
@@ -119,9 +136,9 @@ def generate_topas_materials(materials: dict[int, dict], output_file: str):
             comp_str = " ".join(f'"{nm}"' for nm in names)
             frac_str = " ".join(f"{fr:.6f}" for fr in fracs)
             f.write(f"# {mat['name']} (ID={mat_id}, density={mat['density']} g/cm3)\n")
-            f.write(f'sv:Ma/{mat_name}/Components = {n} {comp_str}\n')
-            f.write(f'uv:Ma/{mat_name}/Fractions = {n} {frac_str}\n')
-            f.write(f'd:Ma/{mat_name}/Density = {mat["density"]} g/cm3\n\n')
+            f.write(f"sv:Ma/{mat_name}/Components = {n} {comp_str}\n")
+            f.write(f"uv:Ma/{mat_name}/Fractions = {n} {frac_str}\n")
+            f.write(f"d:Ma/{mat_name}/Density = {mat['density']} g/cm3\n\n")
 
     print(f"  Wrote {len(materials)} material definitions to {output_file}")
 
@@ -165,11 +182,11 @@ def regenerate_voxel_phantom(
 
     with open(output_file, "w") as f:
         f.write("# Voxelized MRCP-AM phantom with real ICRP materials\n")
-        f.write(f"# Voxel size: {voxel_size} cm ({voxel_size*10} mm)\n")
+        f.write(f"# Voxel size: {voxel_size} cm ({voxel_size * 10} mm)\n")
         f.write(f"# Grid: {nx} x {ny} x {nz} = {total} voxels\n\n")
 
         # Include material definitions
-        f.write(f'includeFile = {os.path.basename(materials_file)}\n\n')
+        f.write(f"includeFile = {os.path.basename(materials_file)}\n\n")
 
         # Phantom geometry
         f.write('s:Ge/Phantom/Type = "TsBox"\n')
@@ -259,5 +276,5 @@ if __name__ == "__main__":
     )
 
     print(f"\nDone! Files in: {output_dir}")
-    print(f"  icrp_materials.txt - TOPAS material definitions")
-    print(f"  phantomVoxel.txt   - Voxelized phantom with real materials")
+    print("  icrp_materials.txt - TOPAS material definitions")
+    print("  phantomVoxel.txt   - Voxelized phantom with real materials")

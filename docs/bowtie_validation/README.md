@@ -514,3 +514,61 @@ Hypotheses ranked for Phase 2 (A/B Monte Carlo, DCF re-derived per variant,
 - H3 (Ti 0.89 spekpy vs 1.78 geometric): spectrum softening interacts with
   mu_en/rho scoring; test via bhf_mode toggle.
 
+---
+
+## Phase-2A A/B results: primary-mask hypothesis (2026-08-18)
+
+**Method:** `validate_pelvis_edose.py --mask-off` (Phase 2A, H1 test). DCF
+re-derived in-memory from a variant CTDI calibration leg (100k hist/seq);
+production `calibration.yaml` untouched. Pelvis phantom leg: MRCP-AM voxel,
+1074 mAs, 150 sequential times, seed 42.
+
+| variant | raw CTDIw (Gy) | DCF | E (mSv) | vs Hauri 5.4 |
+|---|---|---|---|---|
+| baseline (mask on) | 2.755e-2 | 0.5770 | **1.83** | -66% |
+| **7a: mask-off** | 2.705e-2 | 0.5893 | **3.07** | -43% |
+| **7d: cutoff 15/12 deg + mask-off** | 2.255e-1 | 0.0705 | **1.84** | -66% |
+
+**Key findings:**
+
+1. **H1 CONFIRMED.** Removing the primary masks raises E from 1.83 to 3.07
+   mSv (+68%), while CTDI raw barely changes (+2%). The masks cut 64% of
+   phantom dose but only 2% of CTDI dose — they disproportionately clip the
+   179-cm human phantom (long Z-extent) while the compact 16/32-cm CTDI
+   cylinder sits entirely within the mask port. This asymmetry breaks the
+   E/CTDIw transfer. The mask-off 3.07 ≈ pre-mask 3.09, confirming the
+   masks alone explain the full pelvis drop.
+
+2. **Source angular cutoff (experiment 7d) is a no-op for E/CTDIw.** Tightening
+   `BeamAngularCutoffX/Y` to 15/12 deg (housing-equivalent, before the bow-tie)
+   concentrates the fixed particle count into a tighter cone — CTDI raw rises
+   8x, phantom raw rises 8x, DCF absorbs the scaling, E/CTDIw transfer is
+   unchanged. The cutoff is **uniform scaling**; the mask is **spatial clipping**.
+   They are fundamentally different operations.
+
+3. **Why cutoff ≠ mask:** The cutoff sits at the source (angular filter);
+   the mask sits 20cm downstream (spatial filter at a Z-plane). The CTDI
+   phantom is compact (Z-extent ~1.5cm at isocenter) — it is never clipped
+   by either the cutoff or the mask. The human phantom extends ±50cm in Z —
+   it is clipped by the mask (which removes scatter from far-Z regions) but
+   only uniformly scaled by the cutoff.
+
+4. **The correct physical fix is an upstream housing aperture** at 8–12 cm
+   SDD (before the bow-tie), not a downstream mask or a source cutoff. The
+   real TrueBeam tube housing exit window is at ~10cm SDD, and its aperture
+   limits the cone before the bow-tie. This would remove the unphysical
+   wide-angle scatter (fixing the |Z|=88cm tails artifact) without the
+   phantom-length asymmetry of the downstream mask.
+
+5. **Persistent 43% gap vs Hauri (mask-off E = 3.07 vs 5.4).** This gap
+   is NOT from the beam model (it was already present in the pre-mask era at
+   3.09). It is likely from the phantom model: HU-to-material conversion,
+   organ segmentation/mapping, or the difference between our MRCP-AM voxel
+   phantom and the Alderson-type TLD phantom used by Hauri 2017. Further
+   investigation should focus on the phantom pathway, not the beam.
+
+**Next steps:** Implement the upstream housing aperture (Phase 8), remove
+the downstream primary mask, re-derive DCFs, run the full 14-protocol
+sweep. The source sigma issue (26.1/27.5 deg from Campos thesis) is now
+characterized but requires the aperture fix, not the cutoff.
+

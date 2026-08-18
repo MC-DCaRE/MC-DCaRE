@@ -129,10 +129,39 @@ def compute_effective_dose(rundir: str) -> Optional[float]:
     return None
 
 
+def render_dose_cubes(rundir: str) -> List[str]:
+    """Render TLE + DTM dose-cube views into the runfolder (diagnostics).
+
+    TLE shows fluence/kerma structure; DTM shows actual deposition -- the
+    pair was decisive for diagnosing the collimator leak (uniform TLE with
+    DTM glow at head/feet). Failures are logged, never fatal.
+    """
+    sys.path.insert(0, str(PROJECT_ROOT / "tools"))
+    from render_dose_cube import render
+
+    paths: List[str] = []
+    for dose_file in ("phantom_tle.csv", "phantom_dtm.csv"):
+        try:
+            paths.append(str(render(Path(rundir), dose_file)))
+        except Exception as e:  # noqa: BLE001
+            print(f"    WARNING: render {dose_file} failed: {e}")
+    return paths
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--threads", default="20", help="TOPAS threads (default 20)")
+    parser.add_argument(
+        "--hist-per-seq",
+        default=HIST_PER_SEQ,
+        help=f"Histories per sequential time (default {HIST_PER_SEQ} = 5M total)",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Generate only")
+    parser.add_argument(
+        "--no-render",
+        action="store_true",
+        help="Skip dose-cube PNG rendering (default renders TLE + DTM)",
+    )
     args = parser.parse_args()
 
     protocols = load_protocols()
@@ -146,7 +175,7 @@ def main() -> None:
         name = p["name"]
         print(f"\n[{i}/{len(protocols)}] {name} ({p['kV']} kV, {p['fan']})")
         overrides = {
-            "general": {"threads": args.threads, "histories": HIST_PER_SEQ},
+            "general": {"threads": args.threads, "histories": args.hist_per_seq},
             "imaging": {
                 "rotation_direction": ROTATION,
                 "imaging_mode": name,
@@ -171,6 +200,8 @@ def main() -> None:
                 rows.append({"protocol": name, "status": "topas_failed", **_meta(p)})
                 continue
             e_sim = compute_effective_dose(rundir)
+            if not args.no_render:
+                render_dose_cubes(rundir)
         except Exception as e:  # noqa: BLE001
             print(f"    ERROR: {e}")
             rows.append({"protocol": name, "status": f"error: {e}", **_meta(p)})

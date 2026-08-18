@@ -20,9 +20,20 @@
 - [ ] Phase 7: hypothesis A/B experiments (DCF re-derived per variant,
   `scripts/validate_pelvis_edose.py`; mask toggle =
   `imaging.primary_mask_enabled`, default True)
-  - [ ] 7a mask-off (H1: primary masks starve scatter) -- running 2026-08-18
-  - [ ] 7b bowtie-off (H2: STL Z-dependent error)
-  - [ ] 7c bhf geometric (H3: Ti thickness/softening)
+  - [x] 7a mask-off (H1 confirmed) -- 2026-08-18: mask cuts 64% phantom dose,
+    2% CTDI dose; mask-off E = 3.07 mSv (matches pre-mask 3.09); explains
+    entire pelvis transfer regression
+  - [ ] 7b bowtie-off (H2: STL Z-dependent error) -- pending
+  - [ ] 7c bhf geometric (H3: Ti thickness/softening) -- pending
+  - [x] 7d tight source cone cutoff (15/12 deg = housing-equivalent) -- 2026-08-18:
+    uniform scaling, no E/CTDIw change (E = 1.84 ≈ baseline 1.83); cutoff
+    ≠ mask: cutoff scales all angles equally, mask clips spatially at a
+    downstream Z-plane disproportionately hitting the elongated human phantom
+- [ ] Phase 8: upstream housing aperture (physical fix for source sigma)
+  - [ ] Implement aperture TsBox at 8–12cm SDD (before bow-tie), sized to
+    max clinical fan (±25cm X / ±13.5cm Z at iso → ±2.5/±1.35 cm at 10cm)
+  - [ ] Remove downstream primary mask (`primary_mask_enabled` → deprecated)
+  - [ ] Re-derive DCFs + full 14-protocol sweep
 
 ## 5b. Measured fluence anchor (executed 2026-08-18, post blade fix)
 

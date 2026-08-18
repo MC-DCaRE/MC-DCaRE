@@ -14,23 +14,41 @@ import numpy as np
 def read_nodes(filepath: str) -> np.ndarray:
     print(f"Reading nodes from {filepath}...")
     import pandas as pd
+
     t0 = time.time()
-    df = pd.read_csv(filepath, sep=r"\s+", skiprows=1, header=None,
-                     usecols=[1, 2, 3], dtype=np.float64, comment="#")
+    df = pd.read_csv(
+        filepath,
+        sep=r"\s+",
+        skiprows=1,
+        header=None,
+        usecols=[1, 2, 3],
+        dtype=np.float64,
+        comment="#",
+    )
     df = df.dropna()
-    print(f"  Loaded {len(df)} nodes in {time.time()-t0:.1f}s")
+    print(f"  Loaded {len(df)} nodes in {time.time() - t0:.1f}s")
     return df.to_numpy()
 
 
 def read_elements(filepath: str) -> tuple[np.ndarray, np.ndarray]:
     print(f"Reading elements from {filepath}...")
     import pandas as pd
+
     t0 = time.time()
-    df = pd.read_csv(filepath, sep=r"\s+", skiprows=1, header=None,
-                     usecols=[1, 2, 3, 4, 5], dtype=np.float64, comment="#")
+    df = pd.read_csv(
+        filepath,
+        sep=r"\s+",
+        skiprows=1,
+        header=None,
+        usecols=[1, 2, 3, 4, 5],
+        dtype=np.float64,
+        comment="#",
+    )
     df = df.dropna()
-    print(f"  Loaded {len(df)} elements in {time.time()-t0:.1f}s")
-    return df.iloc[:, :4].to_numpy().astype(np.int32), df.iloc[:, 4].to_numpy().astype(np.int32)
+    print(f"  Loaded {len(df)} elements in {time.time() - t0:.1f}s")
+    return df.iloc[:, :4].to_numpy().astype(np.int32), df.iloc[:, 4].to_numpy().astype(
+        np.int32
+    )
 
 
 def read_materials(filepath: str) -> dict[int, str]:
@@ -70,7 +88,9 @@ def voxelize_vectorized(
     grid_shape = tuple(np.ceil(extent / voxel_size).astype(int))
 
     total_voxels = int(np.prod(grid_shape))
-    print(f"  Grid: {grid_shape[0]} x {grid_shape[1]} x {grid_shape[2]} = {total_voxels} voxels")
+    print(
+        f"  Grid: {grid_shape[0]} x {grid_shape[1]} x {grid_shape[2]} = {total_voxels} voxels"
+    )
     print(f"  Origin: ({origin[0]:.1f}, {origin[1]:.1f}, {origin[2]:.1f})")
 
     grid = np.full(grid_shape, -1, dtype=np.int32)
@@ -86,9 +106,11 @@ def voxelize_vectorized(
             if i > 0:
                 rate = i / elapsed
                 eta = (n_elems - i) / rate
-                print(f"  {i}/{n_elems} ({pct:.0f}%) - {rate:.0f} tet/s, ETA {eta:.0f}s")
+                print(
+                    f"  {i}/{n_elems} ({pct:.0f}%) - {rate:.0f} tet/s, ETA {eta:.0f}s"
+                )
             else:
-                print(f"  Starting...")
+                print("  Starting...")
 
         tet = nodes[elements[i]]  # (4, 3)
         mat_id = int(material_ids[i])
@@ -154,8 +176,10 @@ def voxelize_vectorized(
     elapsed = time.time() - t0
     n_filled = np.count_nonzero(grid != -1)
     print(f"\nVoxelization complete in {elapsed:.1f}s")
-    print(f"  Filled: {n_filled} / {total_voxels} ({100*n_filled/total_voxels:.1f}%)")
-    print(f"  Rate: {n_elems/elapsed:.0f} tet/s")
+    print(
+        f"  Filled: {n_filled} / {total_voxels} ({100 * n_filled / total_voxels:.1f}%)"
+    )
+    print(f"  Rate: {n_elems / elapsed:.0f} tet/s")
 
     return grid, grid_shape, origin
 
@@ -226,7 +250,7 @@ def generate_topas_file(
 
     with open(output_file, "w") as f:
         f.write("# Voxelized MRCP-AM phantom\n")
-        f.write(f"# Voxel size: {voxel_size} cm ({voxel_size*10} mm)\n")
+        f.write(f"# Voxel size: {voxel_size} cm ({voxel_size * 10} mm)\n")
         f.write(f"# Grid: {nx} x {ny} x {nz} = {total} voxels\n\n")
 
         f.write('s:Ge/Phantom/Type = "TsBox"\n')
@@ -274,14 +298,24 @@ if __name__ == "__main__":
     elements, material_ids = read_elements(os.path.join(phantom_dir, "MRCP_AM.ele"))
     materials = read_materials(os.path.join(phantom_dir, "MRCP_AM.material"))
 
-    print(f"\nMesh: {len(nodes)} nodes, {len(elements)} tets, {len(materials)} materials")
+    print(
+        f"\nMesh: {len(nodes)} nodes, {len(elements)} tets, {len(materials)} materials"
+    )
 
-    grid, grid_shape, origin = voxelize_vectorized(nodes, elements, material_ids, voxel_size)
+    grid, grid_shape, origin = voxelize_vectorized(
+        nodes, elements, material_ids, voxel_size
+    )
 
     np.save(os.path.join(output_dir, "mrcp_am_voxels.npy"), grid)
     np.save(os.path.join(output_dir, "mrcp_am_origin.npy"), origin)
 
-    generate_topas_file(grid, grid_shape, origin, voxel_size, materials,
-                        os.path.join(output_dir, "phantomVoxel.txt"))
+    generate_topas_file(
+        grid,
+        grid_shape,
+        origin,
+        voxel_size,
+        materials,
+        os.path.join(output_dir, "phantomVoxel.txt"),
+    )
 
     print(f"\nDone! Output in: {output_dir}")
